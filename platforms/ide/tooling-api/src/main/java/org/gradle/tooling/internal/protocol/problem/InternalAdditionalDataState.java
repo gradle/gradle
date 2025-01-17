@@ -16,9 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-public interface InternalPayloadSerializedAdditionalData extends InternalAdditionalData {
+public interface InternalAdditionalDataState {
 
-    Object get();
-
-    InternalAdditionalDataState getState();
+    Class<?> getType();
+    String getState();
 }

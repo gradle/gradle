@@ -24,6 +24,8 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.guava)
+    implementation(libs.jacksonCore)
+    implementation(libs.jacksonDatabind)
 
     api(libs.jsr305)
     api(projects.baseServices)

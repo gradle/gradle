@@ -40,6 +40,7 @@ import org.gradle.api.problems.internal.TaskPathLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultAdditionalData;
+import org.gradle.internal.build.event.types.DefaultAdditionalDataState;
 import org.gradle.internal.build.event.types.DefaultContextualLabel;
 import org.gradle.internal.build.event.types.DefaultDetails;
 import org.gradle.internal.build.event.types.DefaultDocumentationLink;
@@ -61,6 +62,7 @@ import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
+import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
@@ -76,11 +78,13 @@ import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Constructor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +95,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 public class ProblemsProgressEventUtils {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
@@ -248,11 +252,41 @@ public class ProblemsProgressEventUtils {
     }
     @SuppressWarnings("unchecked")
     private InternalAdditionalData toInternalAdditionalData(@Nullable Object additionalData) {
-        byte[] payload = additionalData instanceof Isolatable ? serialize((Isolatable<?>) additionalData) : null;
+
+        if (additionalData instanceof IsolatedManagedValue) {
+            IsolatedManagedValue valuedata = (IsolatedManagedValue) additionalData;
+            Class<?> targetType = ((IsolatedManagedValue) additionalData).getTargetType();
+
+
+            additionalData = valuedata.isolate();
+//            if (isDecorated(additionalData.getClass())) {
+                try {
+
+                    String name = (String) additionalData.getClass().getMethod("getName").invoke(additionalData);
+
+                    additionalData = new DefaultAdditionalDataState(targetType, name);
+
+
+//                    Constructor<?> constructor = getDefaultConstructor(originalType);
+//                    if (constructor != null) {
+//                        Object clone = constructor.newInstance();
+//                        String name = (String) additionalData.getClass().getMethod("getName").invoke(additionalData);
+//                        clone.getClass().getMethod("setName", String.class).invoke(clone, name);
+//                        additionalData = clone;
+//                    }
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                }
+            }
+//        }
+
+        SerializedPayload serializedPayload = payloadSerizalizer.serialize(additionalData);
+
+//        byte[] payload = additionalData instanceof Isolatable ? serialize((Isolatable<?>) additionalData) : null;
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
-            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), payload);
+            return new DefaultAdditionalData(ImmutableMap.of("type", data.getType().name()), null);
         } else if (additionalData instanceof TypeValidationData) {
             TypeValidationData data = (TypeValidationData) additionalData;
             ImmutableMap.Builder<String, Object> builder = ImmutableMap.builder();
@@ -260,18 +294,30 @@ public class ProblemsProgressEventUtils {
             Optional.ofNullable(data.getPropertyName()).ifPresent(propertyName -> builder.put("propertyName", propertyName));
             Optional.ofNullable(data.getParentPropertyName()).ifPresent(parentPropertyName -> builder.put("parentPropertyName", parentPropertyName));
             Optional.ofNullable(data.getTypeName()).ifPresent(typeName -> builder.put("typeName", typeName));
-            return new DefaultAdditionalData(builder.build(), payload);
+            return new DefaultAdditionalData(builder.build(), null);
         } else if (additionalData instanceof GeneralData) {
             GeneralData data = (GeneralData) additionalData;
             return new DefaultAdditionalData(
                 data.getAsMap().entrySet().stream()
                     .filter(entry -> isSupportedType(entry.getValue()))
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)),
-                payload
+                null
             );
         } else {
-            return new DefaultAdditionalData(Collections.emptyMap(), payload);
+            return new DefaultAdditionalData(Collections.emptyMap(), serializedPayload);
         }
+    }
+
+    private Constructor<?> getDefaultConstructor(Class<?> additionalDataClass)  {
+        try {
+            return additionalDataClass.getConstructor();
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private boolean isDecorated(Class<?> additionalDataClass) {
+        return additionalDataClass.getName().endsWith("_Decorated");
     }
 
     private static boolean isSupportedType(Object type) {

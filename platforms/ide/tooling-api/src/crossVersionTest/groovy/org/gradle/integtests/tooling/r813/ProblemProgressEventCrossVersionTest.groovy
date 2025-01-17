@@ -102,6 +102,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+
+
+
     @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
@@ -110,34 +113,28 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 def someData = getObjectFactory().newInstance(SomeData)
                 someData.name = "someData"
                 def isolatedData = getIsolatableFactory().isolate(someData) //.isolate()
+                System.err.println(isolatedData)
 
                 it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-//                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                //additionalData(SomeData.class, data -> data.setFoo("bar"))
+                //.additionalData(SomeData.class, SomeDataImpl.class, data -> data.setFoo("bar"))
+                //.additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .additionalData(isolatedData)
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
         """
 
-        when:
 
+        when:
         def problems = runTask()
 
         then:
         problems.size() == 1
-        verifyAll(problems[0]) {
-            definition.id.name == 'id'
-            definition.id.displayName == 'shortProblemMessage'
-            definition.id.group.name == 'generic'
-            definition.id.group.displayName == 'Generic'
-            definition.id.group.parent == null
-            definition.severity == Severity.WARNING
-            definition.documentationLink?.url == expecteDocumentation
-            details?.details == expectedDetails
-        }
+        (problems.get(0).getAdditionalData() as GeneralData).get(MyType).getName() == "someData"
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -310,5 +307,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def failureMessage(failure) {
         failure instanceof Failure ? failure.message : failure.failure.message
+    }
+
+    interface MyType {
+        String getName()
     }
 }

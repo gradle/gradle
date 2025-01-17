@@ -18,6 +18,7 @@ package org.gradle.tooling.events.problems.internal;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -39,5 +40,9 @@ public class GeneralData implements AdditionalData, Serializable {
 
     public Object getData() {
         return data;
+    }
+
+    public <T> T get(Class<T> type) {
+        return new ProtocolToModelAdapter().adapt(type, data);
     }
 }

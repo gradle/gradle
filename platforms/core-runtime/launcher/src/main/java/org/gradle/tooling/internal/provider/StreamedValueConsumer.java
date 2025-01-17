@@ -16,16 +16,25 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalDataState;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.workers.internal.IsolatableSerializerRegistry;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("all")
 public class StreamedValueConsumer implements BuildEventConsumer {
@@ -34,12 +43,14 @@ public class StreamedValueConsumer implements BuildEventConsumer {
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
     private final IsolatableSerializerRegistry isolatableSerializerRegistry;
+    private final ObjectFactory objectFactory;
 
-    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableSerializerRegistry isolatableSerializerRegistry) {
+    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableSerializerRegistry isolatableSerializerRegistry, ObjectFactory objectFactory) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
         this.isolatableSerializerRegistry = isolatableSerializerRegistry;
+        this.objectFactory = objectFactory;
     }
 
     @Override
@@ -57,11 +68,41 @@ public class StreamedValueConsumer implements BuildEventConsumer {
                 if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
                     Object o = ((InternalPayloadSerializedAdditionalData) additionalData).get();
                     if (o != null) {
-                        if (o instanceof byte[]) {
-                            ProblemsProgressEventUtils2 utils = new ProblemsProgressEventUtils2(payloadSerializer, isolatableSerializerRegistry);
-                            Object deserialize = utils.deserialize((byte[]) o);
+                        if (o instanceof SerializedPayload) {
+                            System.err.println(o);
+
+                            Object deserialize1 = payloadSerializer.deserialize((SerializedPayload) o);
+                            if (deserialize1 instanceof InternalAdditionalDataState) {
+                                InternalAdditionalDataState state = (InternalAdditionalDataState) deserialize1;
+                                Object proxy = new ProxyFactory().createProxy(state.getType(), state);
+
+                                ((DefaultProblemDetails) details).setAdditionalData(new InternalPayloadSerializedAdditionalData() {
+                                    @Override
+                                    public Object get() {
+                                        return proxy;
+                                    }
+
+                                    @Override
+                                    public InternalAdditionalDataState getState() {
+                                        return state;
+                                    }
+
+                                    @Override
+                                    public Map<String, Object> getAsMap() {
+                                        return new HashMap<>();
+                                    }
+                                });
+                            }
+
+
+
+
+
+
+//                            ProblemsProgressEventUtils2 utils = new ProblemsProgressEventUtils2(payloadSerializer, isolatableSerializerRegistry);
+//                            Object deserialize = utils.deserialize((byte[]) o);
 //                            Object deserialize = payloadSerializer.deserialize((SerializedPayload) o);
-                            System.out.println(deserialize);
+//                            System.out.println(deserialize);
                         }
 
                     }
@@ -71,6 +112,36 @@ public class StreamedValueConsumer implements BuildEventConsumer {
             delegate.dispatch(message);
         } else {
             delegate.dispatch(message);
+        }
+    }
+
+    public class ProxyFactory {
+
+        @SuppressWarnings("unchecked")
+        public <T> T createProxy(Class<T> interfaceType, InternalAdditionalDataState state) {
+            return (T) Proxy.newProxyInstance(
+                interfaceType.getClassLoader(),
+                new Class<?>[] { interfaceType },
+                new DeepCopyInvocationHandler(state)
+            );
+        }
+    }
+
+    class DeepCopyInvocationHandler implements InvocationHandler {
+
+        private final InternalAdditionalDataState state;
+
+        public DeepCopyInvocationHandler(InternalAdditionalDataState state) {
+            this.state = state;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if (method.getName().equals("getName")) {
+                return state.getState();
+            } else {
+                return null;
+            }
         }
     }
 }

@@ -234,6 +234,7 @@ import org.gradle.tooling.internal.protocol.problem.InternalLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalLineInFileLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalOffsetInFileLocation;
+import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalPluginIdLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
@@ -1011,13 +1012,15 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
-//        if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
+        if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
+            return new GeneralData(additionalData.getAsMap(), ((InternalPayloadSerializedAdditionalData) additionalData).get());
+
 //            SerializedPayload payload = ((InternalPayloadSerializedAdditionalData) additionalData).get();
 //            if (payload != null) {
 //                Object object = payloadSerializer.deserialize(payload);
 //                return new GeneralData(additionalData.getAsMap(), object);
 //            }
-//        }
+        }
         return new GeneralData(additionalData.getAsMap(), null);
     }
 

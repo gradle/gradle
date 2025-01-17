@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
@@ -77,7 +78,8 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
         NotifyDaemonClientExecuter notifyDaemonClientExecuter,
-        IsolatableSerializerRegistry isolatableSerializerRegistry
+        IsolatableSerializerRegistry isolatableSerializerRegistry,
+        ObjectFactory objectFactory
     ) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
@@ -99,7 +101,8 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
             userInputReader,
             shutdownCoordinator,
             notifyDaemonClientExecuter,
-            isolatableSerializerRegistry
+            isolatableSerializerRegistry,
+            objectFactory
         );
     }
 

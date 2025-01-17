@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.InternalProblemSpec;
 
+import java.io.Serializable;
+
 /**
  * Marker interface for additional data that can be attached to a {@link Problem}.
  * <p>
@@ -36,6 +38,6 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
  * @since 8.13
  */
 @Incubating
-public interface AdditionalData {
+public interface AdditionalData extends Serializable {
 
 }
