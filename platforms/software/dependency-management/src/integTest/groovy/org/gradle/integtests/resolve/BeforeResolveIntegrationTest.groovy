@@ -276,14 +276,14 @@ task resolveDependencies {
         mavenRepo.module('org.test', 'module1', '1.0').publish()
         mavenRepo.module('org.test', 'module2', '1.0').publish()
         settingsFile << """
-           include ":lib"
-        """
-        buildFile << """
-            allprojects {
-                repositories {
-                    maven { url = '${mavenRepo.uri}' }
-                }
+            include ":lib"
+
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
             }
+        """
+
+        buildFile << """
             configurations {
                 foo
                 bar {

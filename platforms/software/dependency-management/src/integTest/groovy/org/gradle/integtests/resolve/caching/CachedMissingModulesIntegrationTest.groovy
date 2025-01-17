@@ -552,10 +552,9 @@ Required by:
         def repo2 = mavenHttpRepo("repo2")
         def repo2Module = repo2.module("group", "projectA", "1.0")
 
-        createDirs("subproject")
-        settingsFile << "include 'subproject'"
-        buildFile << """
-            allprojects{
+        settingsFile << """
+            include 'subproject'
+            dependencyResolutionManagement {
                 repositories {
                     maven {
                         name = 'repo1'
@@ -567,6 +566,8 @@ Required by:
                     }
                 }
             }
+        """
+        buildFile << """
             configurations {
                 config1
             }
@@ -581,23 +582,24 @@ Required by:
                    }
                }
             }
+        """
 
-            project(":subproject"){
-                configurations{
-                    config2
-                }
-                dependencies{
-                    config2 'group:projectA:1.0'
-                }
-                task resolveConfig2 {
-                    doLast {
-                        configurations.config2.incoming.resolutionResult.allDependencies{
-                            assert it instanceof UnresolvedDependencyResult
-                        }
+        file("subproject/build.gradle") << """
+            configurations{
+                config2
+            }
+            dependencies{
+                config2 'group:projectA:1.0'
+            }
+            task resolveConfig2 {
+                doLast {
+                    configurations.config2.incoming.resolutionResult.allDependencies{
+                        assert it instanceof UnresolvedDependencyResult
                     }
                 }
             }
         """
+
         when:
         repo1Module.pom.expectGetMissing()
         repo2Module.pom.expectGetMissing()

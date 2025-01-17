@@ -23,85 +23,96 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 @FluidDependenciesResolveTest
 class ResolvedArtifactsApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
-        createDirs("a", "b")
         settingsFile << """
-rootProject.name = 'test'
-include 'a', 'b'
-"""
-        buildFile << """
-def usage = Attribute.of('usage', String)
-def flavor = Attribute.of('flavor', String)
-def buildType = Attribute.of('buildType', String)
+            rootProject.name = 'test'
+        """
+    }
 
-allprojects {
-    dependencies {
-       attributesSchema {
-          attribute(usage)
-          attribute(flavor)
-          attribute(buildType)
-       }
-    }
-    configurations {
-        compile
-        create("default") {
-            extendsFrom compile
-        }
-    }
-}
-"""
+    String getHeader() {
+        """
+            def usage = Attribute.of('usage', String)
+            def flavor = Attribute.of('flavor', String)
+            def buildType = Attribute.of('buildType', String)
+
+            dependencies {
+               attributesSchema {
+                  attribute(usage)
+                  attribute(flavor)
+                  attribute(buildType)
+               }
+            }
+            configurations {
+                compile
+                create("default") {
+                    extendsFrom compile
+                }
+            }
+        """
     }
 
     def "result includes artifacts from local and external components and file dependencies in fixed order"() {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
 
-        buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenRepo.uri' } }
-}
-dependencies {
-    compile files('test-lib.jar')
-    compile project(':a')
-    compile 'org:test:1.0'
-    artifacts {
-        compile file('test.jar')
-    }
-}
-project(':a') {
-    dependencies {
-        compile files('a-lib.jar')
-        compile project(':b')
-        compile 'org:test:1.0'
-    }
-    artifacts {
-        compile file('a.jar')
-    }
-}
-project(':b') {
-    dependencies {
-        compile files('b-lib.jar')
-        compile 'org:test2:1.0'
-    }
-    artifacts {
-        compile file('b.jar')
-    }
-}
+        settingsFile << """
+            include 'a'
+            include 'b'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-task show {
-    inputs.files configurations.compile
-    def artifacts = configurations.compile.${expression}
-    doLast {
-        println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id.displayName }
-        println "unique ids: " + artifacts.collect { it.id }.unique()
-        println "display-names: " + artifacts.collect { it.toString() }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
-        println "variants: " + artifacts.collect { it.variant.attributes }
-        assert artifacts.failures.empty
-    }
-}
-"""
+        buildFile << """
+            $header
+
+            dependencies {
+                compile files('test-lib.jar')
+                compile project(':a')
+                compile 'org:test:1.0'
+                artifacts {
+                    compile file('test.jar')
+                }
+            }
+
+            task show {
+                inputs.files configurations.compile
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id.displayName }
+                    println "unique ids: " + artifacts.collect { it.id }.unique()
+                    println "display-names: " + artifacts.collect { it.toString() }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            dependencies {
+                compile files('a-lib.jar')
+                compile project(':b')
+                compile 'org:test:1.0'
+            }
+            artifacts {
+                compile file('a.jar')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+            dependencies {
+                compile files('b-lib.jar')
+                compile 'org:test2:1.0'
+            }
+            artifacts {
+                compile file('b.jar')
+            }
+        """
 
         when:
         run 'show'
@@ -123,58 +134,74 @@ task show {
     }
 
     def "result includes declared variant for local dependencies"() {
-        buildFile << """
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
-dependencies {
-    compile project(':a')
-}
-project(':a') {
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact file('a1.jar')
-                        attributes.attribute(flavor, 'one')
-                    }
-                }
-            }
-        }
-    }
-    dependencies {
-        compile project(':b')
-    }
-}
-project(':b') {
-    configurations {
-        compile {
-            outgoing {
-                variants {
-                    var1 {
-                        artifact file('b2.jar')
-                        attributes.attribute(flavor, 'two')
-                    }
-                }
-            }
-        }
-    }
-}
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
 
-task show {
-    inputs.files configurations.compile
-    def artifacts = configurations.compile.${expression}
-    doLast {
-        println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id.displayName }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "variants: " + artifacts.collect { it.variant.attributes }
-        assert artifacts.failures.empty
-    }
-}
-"""
+        buildFile << """
+            $header
+
+            configurations {
+                compile.attributes.attribute(usage, 'compile')
+            }
+
+            dependencies {
+                compile project(':a')
+            }
+
+            task show {
+                inputs.files configurations.compile
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id.displayName }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact file('a1.jar')
+                                attributes.attribute(flavor, 'one')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+            dependencies {
+                compile project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact file('b2.jar')
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+        """
 
         when:
         run 'show'
@@ -193,93 +220,109 @@ task show {
     }
 
     def "applies compatibility rules to select variants"() {
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+
         buildFile << """
-class OneRule implements AttributeCompatibilityRule<String> {
-    void execute(CompatibilityCheckDetails<String> details) {
-        if (details.consumerValue == 'preview' && details.producerValue == 'one') {
-            details.compatible()
-        }
-    }
-}
-class TwoRule implements AttributeCompatibilityRule<String> {
-    void execute(CompatibilityCheckDetails<String> details) {
-        if (details.consumerValue == 'preview' && details.producerValue == 'two') {
-            details.compatible()
-        }
-    }
-}
+            $header
 
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                    attributes.attribute(flavor, 'preview')
+                }
+            }
 
-dependencies {
-    compile project(':a')
-}
+            dependencies {
+                compile project(':a')
+            }
 
-configurations.compile.attributes.attribute(flavor, 'preview')
+            task show {
+                inputs.files configurations.compile.${expression}.artifactFiles
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id.displayName }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
 
-project(':a') {
-    dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(OneRule)
-    task oneJar(type: Jar) { archiveBaseName = 'a1' }
-    task twoJar(type: Jar) { archiveBaseName = 'a2' }
-    tasks.withType(Jar) { destinationDirectory = buildDir }
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                    }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
+        file("a/build.gradle") << """
+            $header
+
+            class OneRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue == 'preview' && details.producerValue == 'one') {
+                        details.compatible()
                     }
                 }
             }
-        }
-    }
-    dependencies {
-        compile project(':b')
-    }
-}
-project(':b') {
-    dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(TwoRule)
-    task oneJar(type: Jar) { archiveBaseName = 'b1' }
-    task twoJar(type: Jar) { archiveBaseName = 'b2' }
-    tasks.withType(Jar) { destinationDirectory = buildDir }
-    configurations {
-        compile {
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
+
+            dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(OneRule)
+            task oneJar(type: Jar) { archiveBaseName = 'a1' }
+            task twoJar(type: Jar) { archiveBaseName = 'a2' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
                     }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+            dependencies {
+                compile project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            class TwoRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue == 'preview' && details.producerValue == 'two') {
+                        details.compatible()
                     }
                 }
             }
-        }
-    }
-}
 
-task show {
-    inputs.files configurations.compile.${expression}.artifactFiles
-    def artifacts = configurations.compile.${expression}
-    doLast {
-        println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id.displayName }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "variants: " + artifacts.collect { it.variant.attributes }
-        assert artifacts.failures.empty
-    }
-}
-"""
+            dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(TwoRule)
+            task oneJar(type: Jar) { archiveBaseName = 'b1' }
+            task twoJar(type: Jar) { archiveBaseName = 'b2' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            configurations {
+                compile {
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+        """
 
         when:
         run 'show'
@@ -301,87 +344,102 @@ task show {
     }
 
     def "applies disambiguation rules to select variants"() {
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+
         buildFile << """
-class OneRule implements AttributeDisambiguationRule<String> {
-    void execute(MultipleCandidatesDetails<String> details) {
-        details.closestMatch('one')
-    }
-}
-class TwoRule implements AttributeDisambiguationRule<String> {
-    void execute(MultipleCandidatesDetails<String> details) {
-        details.closestMatch('two')
-    }
-}
+            $header
 
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                }
+            }
 
-dependencies {
-    compile project(':a')
-}
+            dependencies {
+                compile project(':a')
+            }
 
-project(':a') {
-    dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(OneRule)
-    task oneJar(type: Jar) { archiveBaseName = 'a1' }
-    task twoJar(type: Jar) { archiveBaseName = 'a2' }
-    tasks.withType(Jar) { destinationDirectory = buildDir }
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                    }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
+            task show {
+                inputs.files configurations.compile.${expression}.artifactFiles
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "ids: " + artifacts.collect { it.id.displayName }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            class OneRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch('one')
+                }
+            }
+            dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(OneRule)
+            task oneJar(type: Jar) { archiveBaseName = 'a1' }
+            task twoJar(type: Jar) { archiveBaseName = 'a2' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-    dependencies {
-        compile project(':b')
-    }
-}
-project(':b') {
-    dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(TwoRule)
-    task oneJar(type: Jar) { archiveBaseName = 'b1' }
-    task twoJar(type: Jar) { archiveBaseName = 'b2' }
-    tasks.withType(Jar) { destinationDirectory = buildDir }
-    configurations {
-        compile {
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                    }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
+            dependencies {
+                compile project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            class TwoRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch('two')
+                }
+            }
+            dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(TwoRule)
+            task oneJar(type: Jar) { archiveBaseName = 'b1' }
+            task twoJar(type: Jar) { archiveBaseName = 'b2' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
                     }
                 }
             }
-        }
-    }
-}
-
-task show {
-    inputs.files configurations.compile.${expression}.artifactFiles
-    def artifacts = configurations.compile.${expression}
-    doLast {
-        println "files: " + artifacts.collect { it.file.name }
-        println "ids: " + artifacts.collect { it.id.displayName }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "variants: " + artifacts.collect { it.variant.attributes }
-        assert artifacts.failures.empty
-    }
-}
-"""
+        """
 
         when:
         run 'show'
@@ -403,68 +461,84 @@ task show {
     }
 
     def "reports failure when multiple compatible variants available"() {
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+
         buildFile << """
-allprojects {
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
+            $header
 
-dependencies {
-    compile project(':a')
-}
-
-project(':a') {
-    task oneJar(type: Jar) { archiveBaseName = 'a1' }
-    task twoJar(type: Jar) { archiveBaseName = 'a2' }
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                    }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
-                    }
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
                 }
             }
-        }
-    }
-    dependencies {
-        compile project(':b')
-    }
-}
-project(':b') {
-    task oneJar(type: Jar) { archiveBaseName = 'b1' }
-    task twoJar(type: Jar) { archiveBaseName = 'b2' }
-    configurations {
-        compile {
-            outgoing {
-                variants {
-                    var1 {
-                        artifact oneJar
-                        attributes.attribute(flavor, 'one')
-                    }
-                    var2 {
-                        artifact twoJar
-                        attributes.attribute(flavor, 'two')
-                    }
+
+            dependencies {
+                compile project(':a')
+            }
+
+            task show {
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    throw new RuntimeException()
                 }
             }
-        }
-    }
-}
+        """
 
-task show {
-    def artifacts = configurations.compile.${expression}
-    doLast {
-        println "files: " + artifacts.collect { it.file.name }
-        throw new RuntimeException()
-    }
-}
-"""
+        file("a/build.gradle") << """
+            $header
+
+            task oneJar(type: Jar) { archiveBaseName = 'a1' }
+            task twoJar(type: Jar) { archiveBaseName = 'a2' }
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+            dependencies {
+                compile project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            task oneJar(type: Jar) { archiveBaseName = 'b1' }
+            task twoJar(type: Jar) { archiveBaseName = 'b2' }
+            configurations {
+                compile {
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact oneJar
+                                attributes.attribute(flavor, 'one')
+                            }
+                            var2 {
+                                artifact twoJar
+                                attributes.attribute(flavor, 'two')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+        """
 
         when:
         fails 'show'
@@ -492,71 +566,93 @@ task show {
     def "result includes consumer-provided variants"() {
         mavenRepo.module("org", "test", "1.0").publish()
 
+        settingsFile << """
+            include 'a'
+            include 'b'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
         buildFile << """
+            $header
 
-import org.gradle.api.artifacts.transform.TransformParameters
+            import org.gradle.api.artifacts.transform.TransformParameters
 
-abstract class VariantArtifactTransform implements TransformAction<TransformParameters.None> {
-    @InputArtifact
-    abstract Provider<FileSystemLocation> getInputArtifact()
+            abstract class VariantArtifactTransform implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
 
-    void transform(TransformOutputs outputs) {
-        def output = outputs.file("transformed-" + inputArtifact.get().asFile.name)
-        output << "transformed"
-    }
-}
-
-allprojects {
-    repositories { maven { url = '$mavenRepo.uri' } }
-    configurations.compile.attributes.attribute(usage, 'compile')
-}
-
-dependencies {
-    compile files('test-lib.jar')
-    compile project(':a')
-    compile project(':b')
-    compile 'org:test:1.0'
-    registerTransform(VariantArtifactTransform) {
-        from.attribute(usage, "compile")
-        to.attribute(usage, "transformed")
-    }
-}
-
-project(':a') {
-    configurations {
-        compile {
-            attributes.attribute(buildType, 'debug')
-            outgoing {
-                variants {
-                    var1 {
-                        artifact file('a1.jar')
-                        attributes.attribute(flavor, 'one')
-                    }
+                void transform(TransformOutputs outputs) {
+                    def output = outputs.file("transformed-" + inputArtifact.get().asFile.name)
+                    output << "transformed"
                 }
             }
-        }
-    }
-}
 
-project(':b') {
-    artifacts {
-        compile file('b2.jar')
-    }
-}
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                }
+            }
 
-task show {
-    inputs.files configurations.compile
-    def artifacts = configurations.compile.incoming.artifactView {
-        attributes({it.attribute(usage, 'transformed')})
-    }.artifacts
-    doLast {
-        println "files: " + artifacts.collect { it.file.name }
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "variants: " + artifacts.collect { it.variant.attributes }
-        assert artifacts.failures.empty
-    }
-}
-"""
+            dependencies {
+                compile files('test-lib.jar')
+                compile project(':a')
+                compile project(':b')
+                compile 'org:test:1.0'
+                registerTransform(VariantArtifactTransform) {
+                    from.attribute(usage, "compile")
+                    to.attribute(usage, "transformed")
+                }
+            }
+
+            task show {
+                inputs.files configurations.compile
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes({it.attribute(usage, 'transformed')})
+                }.artifacts
+                doLast {
+                    println "files: " + artifacts.collect { it.file.name }
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "variants: " + artifacts.collect { it.variant.attributes }
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(buildType, 'debug')
+                    outgoing {
+                        variants {
+                            var1 {
+                                artifact file('a1.jar')
+                                attributes.attribute(flavor, 'one')
+                            }
+                        }
+                    }
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+
+            artifacts {
+                compile file('b2.jar')
+            }
+        """
+
 
         when:
         run 'show'
@@ -569,49 +665,59 @@ task show {
 
     def "more than one local file can have a given base name"() {
         settingsFile << """
-include 'a', 'b'
-"""
-        buildFile << """
-dependencies {
-    compile project(':a')
-    compile files('lib.jar')
-}
-project(':a') {
-    dependencies {
-        compile project(':b')
-        compile rootProject.files('lib.jar')
-        compile files('lib.jar')
-    }
-    artifacts {
-        compile file('one/lib.jar')
-        compile file('two/lib.jar')
-        compile rootProject.file('lib.jar')
-    }
-}
-project(':b') {
-    dependencies {
-        compile rootProject.files('lib.jar')
-        compile files('lib.jar')
-    }
-    artifacts {
-        compile rootProject.file('lib.jar')
-    }
-}
+            include 'a'
+            include 'b'
+        """
 
-task show {
-    inputs.files configurations.compile
-    def artifacts = configurations.compile.${expression}
-    def rootDir = rootProject.projectDir.toPath()
-    doLast {
-        println "files: " + artifacts.collect { rootDir.relativize(it.file.toPath()).toString().replace(File.separator, '/') }
-        println "ids: " + artifacts.collect { it.id.displayName }
-        println "unique ids: " + artifacts.collect { it.id }.unique()
-        println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
-        println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
-        assert artifacts.failures.empty
-    }
-}
-"""
+        buildFile << """
+            $header
+
+            dependencies {
+                compile project(':a')
+                compile files('lib.jar')
+            }
+
+            task show {
+                inputs.files configurations.compile
+                def artifacts = configurations.compile.${expression}
+                def rootDir = rootProject.projectDir.toPath()
+                doLast {
+                    println "files: " + artifacts.collect { rootDir.relativize(it.file.toPath()).toString().replace(File.separator, '/') }
+                    println "ids: " + artifacts.collect { it.id.displayName }
+                    println "unique ids: " + artifacts.collect { it.id }.unique()
+                    println "components: " + artifacts.collect { it.id.componentIdentifier.displayName }
+                    println "unique components: " + artifacts.collect { it.id.componentIdentifier }.unique()
+                    assert artifacts.failures.empty
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            dependencies {
+                compile project(':b')
+                compile rootProject.files('lib.jar')
+                compile files('lib.jar')
+            }
+            artifacts {
+                compile file('one/lib.jar')
+                compile file('two/lib.jar')
+                compile rootProject.file('lib.jar')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile rootProject.files('lib.jar')
+                compile files('lib.jar')
+            }
+            artifacts {
+                compile rootProject.file('lib.jar')
+            }
+        """
 
         when:
         run 'show'
@@ -632,25 +738,30 @@ task show {
     }
 
     def "reports failure to resolve components when artifacts are queried"() {
-        buildFile << """
-allprojects {
-    repositories {
-        maven {
-            url = '$mavenHttpRepo.uri'
-            metadataSources {
-                mavenPom()
-                artifact()
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories {
+                    maven {
+                        url = '$mavenHttpRepo.uri'
+                        metadataSources {
+                            mavenPom()
+                            artifact()
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-dependencies {
-    compile 'org:test:1.0+'
-    compile 'org:test2:2.0'
-}
+        """
 
-${showFailuresTask(expression)}
-"""
+        buildFile << """
+            $header
+
+            dependencies {
+                compile 'org:test:1.0+'
+                compile 'org:test2:2.0'
+            }
+
+            ${showFailuresTask(expression)}
+        """
 
         given:
         mavenHttpRepo.getModuleMetaData('org', 'test').expectGetMissing()
@@ -675,28 +786,77 @@ ${showFailuresTask(expression)}
     }
 
     def "reports failure to select configurations when artifacts are queried"() {
-        settingsFile << "include 'a', 'b'"
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+
         buildFile << """
-def volume = Attribute.of('volume', Integer)
-allprojects {
-    dependencies.attributesSchema.attribute(volume)
-}
-configurations.compile.attributes.attribute(volume, 11)
+            $header
 
-dependencies {
-    compile project(':a')
-    compile project(':b')
-}
+            def volume = Attribute.of('volume', Integer)
 
-project(':a') {
-    configurations.compile.attributes.attribute(volume, 8)
-}
-project(':b') {
-    configurations.compile.attributes.attribute(volume, 9)
-}
+            dependencies {
+                attributesSchema {
+                    attribute(volume)
+                }
+            }
 
-${showFailuresTask(expression)}
-"""
+            configurations {
+                compile {
+                    attributes {
+                        attribute(volume, 11)
+                    }
+                }
+            }
+
+            dependencies {
+                compile project(':a')
+                compile project(':b')
+            }
+
+            ${showFailuresTask(expression)}
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            def volume = Attribute.of('volume', Integer)
+
+            dependencies {
+                attributesSchema {
+                    attribute(volume)
+                }
+            }
+
+            configurations {
+                compile {
+                    attributes {
+                        attribute(volume, 8)
+                    }
+                }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            def volume = Attribute.of('volume', Integer)
+
+            dependencies {
+                attributesSchema {
+                    attribute(volume)
+                }
+            }
+
+            configurations {
+                compile {
+                    attributes {
+                        attribute(volume, 9)
+                    }
+                }
+            }
+        """
 
         when:
         fails 'show'
@@ -719,17 +879,23 @@ ${showFailuresTask(expression)}
     }
 
     def "reports failure to download artifact when artifacts are queried"() {
-        buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-}
-dependencies {
-    compile 'org:test:1.0'
-    compile 'org:test2:2.0'
-}
 
-${showFailuresTask(expression)}
-"""
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
+
+        buildFile << """
+            $header
+
+            dependencies {
+                compile 'org:test:1.0'
+                compile 'org:test2:2.0'
+            }
+
+            ${showFailuresTask(expression)}
+        """
 
         given:
         def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
@@ -757,13 +923,16 @@ ${showFailuresTask(expression)}
     @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports failure to query file dependency when artifacts are queried"() {
         buildFile << """
-dependencies {
-    compile files { throw new RuntimeException('broken') }
-    compile files('lib.jar')
-}
+            $header
 
-${showFailuresTask(expression)}
-"""
+            dependencies {
+                compile files { throw new RuntimeException('broken') }
+                compile files('lib.jar')
+            }
+
+            ${showFailuresTask(expression)}
+        """
+
         when:
         fails 'show'
 
@@ -781,28 +950,34 @@ ${showFailuresTask(expression)}
 
     @ToBeFixedForConfigurationCache(because = "error reporting is different when CC is enabled")
     def "reports multiple failures to resolve artifacts when artifacts are queried"() {
-        settingsFile << "include 'a'"
+        settingsFile << """
+            include 'a'
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
         buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-}
-dependencies {
-    compile 'org:test:1.0'
-    compile 'org:test2:2.0'
-    compile files { throw new RuntimeException('broken 1') }
-    compile files { throw new RuntimeException('broken 2') }
-    compile project(':a')
-}
+            $header
 
-project(':a') {
-    configurations.default.outgoing.variants {
-        v1 { }
-        v2 { }
-    }
-}
+            dependencies {
+                compile 'org:test:1.0'
+                compile 'org:test2:2.0'
+                compile files { throw new RuntimeException('broken 1') }
+                compile files { throw new RuntimeException('broken 2') }
+                compile project(':a')
+            }
 
-${showFailuresTask(expression)}
-"""
+            ${showFailuresTask(expression)}
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations.default.outgoing.variants {
+                v1 { }
+                v2 { }
+            }
+        """
 
         given:
         def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
@@ -833,47 +1008,56 @@ ${showFailuresTask(expression)}
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
-        settingsFile << "include 'a', 'b'"
+        settingsFile << """
+            include 'a'
+            include 'b'
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
 
         buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-}
-dependencies {
-    compile 'org:missing-module:1.0'
-    compile 'org:missing-artifact:1.0'
-    compile 'org:broken-artifact:1.0'
-    compile 'org:found:2.0'
-    compile files('lib.jar')
-    compile files { throw new RuntimeException('broken') }
-    compile project(':a')
-    compile project(':b')
-}
+            $header
 
-configurations.compile.attributes.attribute(usage, "compile")
+            dependencies {
+                compile 'org:missing-module:1.0'
+                compile 'org:missing-artifact:1.0'
+                compile 'org:broken-artifact:1.0'
+                compile 'org:found:2.0'
+                compile files('lib.jar')
+                compile files { throw new RuntimeException('broken') }
+                compile project(':a')
+                compile project(':b')
+            }
 
-project(':a') {
-    configurations.default.outgoing.variants {
-        v1 { }
-        v2 { }
-    }
-}
+            configurations.compile.attributes.attribute(usage, "compile")
 
-project(':b') {
-    configurations.compile.attributes.attribute(usage, "broken")
-}
+            task resolveLenient {
+                def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
+                doLast {
+                    def resolvedFiles = ['lib.jar', 'found-2.0.jar']
+                    assert lenientView.files.collect { it.name } == resolvedFiles
+                    assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
+                    assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
+                    lenientView.artifacts.failures.eachWithIndex { f, i -> println "failure \${i+1}: \$f.message" }
+                }
+            }
+        """
 
-task resolveLenient {
-    def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
-    doLast {
-        def resolvedFiles = ['lib.jar', 'found-2.0.jar']
-        assert lenientView.files.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
-        assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-        lenientView.artifacts.failures.eachWithIndex { f, i -> println "failure \${i+1}: \$f.message" }
-    }
-}
-"""
+        file("a/build.gradle") << """
+            $header
+
+            configurations.default.outgoing.variants {
+                v1 { }
+                v2 { }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            configurations.compile.attributes.attribute(usage, "broken")
+        """
 
         given:
         def m0 = mavenHttpRepo.module('org', 'missing-module', '1.0')
@@ -912,60 +1096,76 @@ Searched in the following locations:
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
-        createDirs("a", "b", "c")
-        settingsFile << "include 'a', 'b', 'c'"
+        settingsFile << """
+            include 'a'
+            include 'b'
+            include 'c'
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
+
+        def common = """
+            $header
+
+            tasks.withType(Jar) {
+                archiveFileName = project.name + '-' + name + ".jar"
+                destinationDirectory = buildDir
+            }
+        """
 
         buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-    tasks.withType(Jar) {
-        archiveFileName = project.name + '-' + name + ".jar"
-        destinationDirectory = buildDir
-    }
-}
-dependencies {
-    compile 'org:missing-module:1.0'
-    compile project(':a')
-    compile project(':b')
-}
+            $common
 
-configurations.compile.attributes.attribute(usage, "compile")
+            dependencies {
+                compile 'org:missing-module:1.0'
+                compile project(':a')
+                compile project(':b')
+            }
 
-project(':a') {
-    task jar1(type: Jar)
-    task jar2(type: Jar)
-    dependencies {
-        compile project(':c')
-    }
-    configurations.default.outgoing.variants {
-        v1 { artifact jar1 }
-        v2 { artifact jar2 }
-    }
-}
+            configurations.compile.attributes.attribute(usage, "compile")
 
-project(':b') {
-    configurations.compile.attributes.attribute(usage, "broken")
-    task jar1(type: Jar)
-    artifacts { compile jar1 }
-}
+            task resolveLenient {
+                def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
+                inputs.files lenientView.files
+                doLast {
+                    def resolvedFiles = ['c-jar1.jar']
+                    assert lenientView.files.collect { it.name } == resolvedFiles
+                    assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
+                    assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
+                    assert lenientView.artifacts.failures.size() == 3
+                }
+            }
+        """
 
-project(':c') {
-    task jar1(type: Jar)
-    artifacts { compile jar1 }
-}
+        file("a/build.gradle") << """
+            $common
 
-task resolveLenient {
-    def lenientView = configurations.compile.incoming.artifactView({lenient(true)})
-    inputs.files lenientView.files
-    doLast {
-        def resolvedFiles = ['c-jar1.jar']
-        assert lenientView.files.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.collect { it.file.name } == resolvedFiles
-        assert lenientView.artifacts.artifactFiles.collect { it.name } == resolvedFiles
-        assert lenientView.artifacts.failures.size() == 3
-    }
-}
-"""
+            task jar1(type: Jar)
+            task jar2(type: Jar)
+            dependencies {
+                compile project(':c')
+            }
+            configurations.default.outgoing.variants {
+                v1 { artifact jar1 }
+                v2 { artifact jar2 }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $common
+
+            configurations.compile.attributes.attribute(usage, "broken")
+            task jar1(type: Jar)
+            artifacts { compile jar1 }
+        """
+
+        file("c/build.gradle") << """
+            $common
+
+            task jar1(type: Jar)
+            artifacts { compile jar1 }
+        """
 
         given:
         def m0 = mavenHttpRepo.module('org', 'missing-module', '1.0')
@@ -978,12 +1178,12 @@ task resolveLenient {
 
     def showFailuresTask(expression) {
         """
-task show {
-    def artifacts = configurations.compile.${expression}
-    doLast {
-        artifacts.collect { true }
-    }
-}
-"""
+            task show {
+                def artifacts = configurations.compile.${expression}
+                doLast {
+                    artifacts.collect { true }
+                }
+            }
+        """
     }
 }

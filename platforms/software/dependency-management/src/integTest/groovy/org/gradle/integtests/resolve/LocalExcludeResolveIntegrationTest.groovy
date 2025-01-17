@@ -184,40 +184,18 @@ task check {
             .dependsOn('org.gradle.test', 'transitive', '1.0')
             .publish()
 
-        createDirs("a", "b", "c")
         settingsFile << """
             rootProject.name = 'root'
-            include 'a', 'b', 'c'
-"""
+            include 'a'
+            include 'b'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
         buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                repositories { maven { url = "${mavenRepo.uri}" } }
-            }
-
-            project(':a') {
-                configurations {
-                    implementation {
-                        exclude module: 'direct'
-                        exclude module: 'transitive'
-                    }
-                    other {
-                        exclude module: 'external'
-                    }
-                }
-                dependencies {
-                    implementation 'org.gradle.test:external:1.0'
-                    implementation 'org.gradle.test:direct:1.0'
-                    implementation project(':b')
-                }
-            }
-
-            project(':b') {
-                configurations {
-                    implementation {
-                        exclude module: 'external' // Only applies to transitive dependencies of 'b'
-                    }
-                }
+            plugins {
+                id("java-library")
             }
 
             dependencies {
@@ -234,7 +212,40 @@ task check {
                     assert runtimeClasspath*.name == ['a.jar', 'external-1.0.jar', 'b.jar']
                 }
             }
-"""
+        """
+
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            configurations {
+                implementation {
+                    exclude module: 'direct'
+                    exclude module: 'transitive'
+                }
+                other {
+                    exclude module: 'external'
+                }
+            }
+            dependencies {
+                implementation 'org.gradle.test:external:1.0'
+                implementation 'org.gradle.test:direct:1.0'
+                implementation project(':b')
+            }
+        """
+
+        file("b/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            configurations {
+                implementation {
+                    exclude module: 'external' // Only applies to transitive dependencies of 'b'
+                }
+            }
+        """
 
         expect:
         succeeds ":checkDeps"
