@@ -6,6 +6,7 @@ plugins {
 description = "Kotlin extensions to make working with Gradle :core and family more convenient"
 
 dependencies {
+    api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.core)
     api(projects.coreApi)

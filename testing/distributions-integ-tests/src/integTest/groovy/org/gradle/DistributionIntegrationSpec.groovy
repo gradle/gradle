@@ -62,6 +62,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "configuration-problems-base",
         "core",
         "core-api",
+        "core-kotlin-extensions",
         "daemon-main",
         "daemon-protocol",
         "daemon-server",
@@ -141,7 +142,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        81
+        80
     }
 
     /**
