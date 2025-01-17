@@ -17,6 +17,7 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.ManualEvictionInMemoryCache;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.lazy.Lazy;
@@ -25,7 +26,6 @@ import org.gradle.internal.session.BuildSessionLifecycleListener;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.SoftReference;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.synchronizedMap;
 
@@ -110,7 +110,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Override
         public void beforeComplete() {
-            retainValuesFromCurrentSession(valuesForThisSession.values().stream().map(Lazy::get).collect(Collectors.toSet()));
+            retainValuesFromCurrentSession(valuesForThisSession.values().stream().map(Lazy::get));
             valuesForThisSession.clear();
         }
 
@@ -120,7 +120,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
             discardRetainedValues();
         }
 
-        protected abstract void retainValuesFromCurrentSession(Collection<V> values);
+        protected abstract void retainValuesFromCurrentSession(Stream<V> values);
 
         protected abstract void discardRetainedValues();
 
@@ -143,6 +143,10 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
                 .get();
         }
 
+        /**
+         * Factory must be thread-safe and must not rely on thread-local state as it might
+         * be executed from a different thread than the one that submitted it.
+         */
         @Override
         public V get(K key, Function<? super K, ? extends V> factory) {
             return valuesForThisSession.computeIfAbsent(key, k -> {
@@ -162,12 +166,23 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         private V produceAndRetain(Function<? super K, ? extends V> factory, K k) {
-            V newValue = factory.apply(k);
-            if (newValue == null) {
-                // Factory should never produce null
-                throw new IllegalStateException("Factory '" + factory + "' failed to produce a value for key '" + k + "'!");
-            }
+            V newValue = produce(factory, k);
             retainValue(k, newValue);
+            return newValue;
+        }
+
+        private V produce(Function<? super K, ? extends V> factory, K k) {
+            V newValue;
+            try {
+                newValue = factory.apply(k);
+                if (newValue == null) {
+                    // Factory should never produce null
+                    throw new IllegalStateException("Factory '" + factory + "' failed to produce a value for key '" + k + "'!");
+                }
+            } catch (Throwable e) {
+                valuesForThisSession.remove(k);
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
             return newValue;
         }
     }
@@ -182,10 +197,10 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
 
         @Override
-        protected void retainValuesFromCurrentSession(Collection<V> values) {
+        protected void retainValuesFromCurrentSession(Stream<V> values) {
             // Retain strong references to the values created for this session
             valuesForPreviousSession.clear();
-            valuesForPreviousSession.addAll(values);
+            values.forEach(valuesForPreviousSession::add);
         }
 
         @Override
@@ -219,7 +234,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private final Map<Class<?>, V> leakyValues = new ConcurrentHashMap<>();
 
         @Override
-        protected void retainValuesFromCurrentSession(Collection<V> values) {
+        protected void retainValuesFromCurrentSession(Stream<V> values) {
             // Ignore
         }
 
