@@ -49,7 +49,7 @@ The dependency resolution process is highly customizable and many APIs can influ
 [[sec:version-conflict]]
 === A. Version conflicts
 
-A version conflict occurs when two components:
+A version conflict can occur when two components:
 
 * Depend on the same module, such as `com.google.guava:guava`
 * But on different versions, for example, `20.0` and `25.1-android`:
@@ -117,7 +117,7 @@ For example:
 
 As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
 
-Gradle gives preference to versions without qualifiers when resolving conflicts.
+By default, Gradle gives preference to versions without qualifiers when resolving conflicts.
 
 For example, in version `1.0-beta`, the base form is `1.0`, and `beta` is the qualifier.
 Versions without qualifiers are considered more stable, so Gradle will prioritize them.
@@ -209,9 +209,9 @@ If the build were to continue while ignoring the faulty repository, subsequent b
 Gradle will attempt to connect to a repository multiple times before disabling it.
 If the connection fails, Gradle retries on specific errors that might be temporary, with increasing wait times between retries.
 
-A repository is blacklisted when it cannot be reached, either due to a permanent error or after the maximum number of retries has been exhausted.
+A repository is marked as unavailable when it cannot be reached, either due to a permanent error or after the maximum number of retries has been exhausted.
 
-== Result. The Dependency tree
+== The dependency tree
 
 Once the process is complete, a dependency tree is created.
 

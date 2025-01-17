@@ -20,19 +20,19 @@ dependencies {
 }
 
 tasks.register('processJavadocs') {
-    doLast {
-        def view = configurations.customConfiguration.incoming.artifactView {
-            // Filter by attribute
-            attributes {
-                // This filters the artifacts down to only the Javadoc
-                // files associated with the Guava dependency
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
-            }
+    def view = configurations.customConfiguration.incoming.artifactView {
+        // Filter by attribute
+        attributes {
+            // This filters the artifacts down to only the Javadoc
+            // files associated with the Guava dependency
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
         }
+    }
 
-        // Get the artifacts
-        def artifacts = view.artifacts.artifactFiles
+    // Get the artifacts
+    def artifacts = view.artifacts.artifactFiles
 
+    doLast {
         // Process each artifact
         artifacts.files.each { file ->
             println "Processing Javadoc artifact: ${file.name}"
@@ -43,19 +43,19 @@ tasks.register('processJavadocs') {
 
 // tag::resolve-javadocs-views[]
 tasks.register('resolveJavadocs') {
-    doLast {
-        def javadocArtifacts = configurations.customConfiguration.incoming.artifactView {
-            // Allows Gradle to select artifacts from alternative variants of a component,
-            // not just the variant that was initially selected during the dependency graph resolution phase.
-            withVariantReselection()
-            // Filter by attribute
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
-            }
-        }.artifacts
+    def javadocArtifacts = configurations.customConfiguration.incoming.artifactView {
+        // Allows Gradle to select artifacts from alternative variants of a component,
+        // not just the variant that was initially selected during the dependency graph resolution phase.
+        withVariantReselection()
+        // Filter by attribute
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
+        }
+    }.artifacts
 
+    doLast {
         if (javadocArtifacts.artifacts.isEmpty()) {
             println 'No Javadoc artifacts found.'
         } else {

@@ -18,19 +18,19 @@ dependencies {
 }
 
 tasks.register("processJavadocs") {
-    doLast {
-        val view = customConfiguration.incoming.artifactView {
-            // Filter by attribute
-            attributes {
-                // This filters the artifacts down to only the Javadoc
-                // files associated with the Guava dependency
-                attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JAVADOC))
-            }
+    val view = customConfiguration.incoming.artifactView {
+        // Filter by attribute
+        attributes {
+            // This filters the artifacts down to only the Javadoc
+            // files associated with the Guava dependency
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JAVADOC))
         }
+    }
 
-        // Get the artifacts
-        val artifacts = view.artifacts.artifactFiles
+    // Get the artifacts
+    val artifacts = view.artifacts.artifactFiles
 
+    doLast {
         // Process each artifact
         artifacts.files.forEach { file ->
             println("Processing Javadoc artifact: ${file.name}")
@@ -42,7 +42,6 @@ tasks.register("processJavadocs") {
 
 // tag::resolve-javadocs-views[]
 tasks.register("resolveJavadocs") {
-    doLast {
         val javadocArtifacts = customConfiguration.incoming.artifactView {
             // Allows Gradle to select artifacts from alternative variants of a component,
             // not just the variant that was initially selected during the dependency graph resolution phase.
@@ -55,6 +54,7 @@ tasks.register("resolveJavadocs") {
             }
         }.artifacts
 
+    doLast {
         if (javadocArtifacts.artifacts.isEmpty()) {
             println("No Javadoc artifacts found.")
         } else {

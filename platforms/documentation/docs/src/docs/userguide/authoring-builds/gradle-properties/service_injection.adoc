@@ -40,7 +40,10 @@ Out of the above, `ProjectLayout` and `WorkerExecutor` services are only availab
 `BuildLayout` is only available in settings plugins and settings files.
 `ProjectLayout` is unavailable in Worker API actions.
 
-WARNING: While `TaskContainer`, `PluginManager`, and other services are also injectable; you should avoid injecting types not listed above.
+While other services can technically be injected, this practice is not supported and may lead to breaking changes in the future.
+Only inject the services explicitly listed above to ensure stability and compatibility.
+
+WARNING: You should avoid injecting types not listed above.
 
 [[objectfactory]]
 == 1. `ObjectFactory`
