@@ -24,10 +24,10 @@ import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdd
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
 import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
+@SuppressWarnings("all")
 public class StreamedValueConsumer implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
@@ -57,8 +57,13 @@ public class StreamedValueConsumer implements BuildEventConsumer {
                 if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
                     Object o = ((InternalPayloadSerializedAdditionalData) additionalData).get();
                     if (o != null) {
-                        Object deserialize = payloadSerializer.deserialize((SerializedPayload) o);
-                        System.out.println(deserialize);
+                        if (o instanceof byte[]) {
+                            ProblemsProgressEventUtils2 utils = new ProblemsProgressEventUtils2(payloadSerializer, isolatableSerializerRegistry);
+                            Object deserialize = utils.deserialize((byte[]) o);
+//                            Object deserialize = payloadSerializer.deserialize((SerializedPayload) o);
+                            System.out.println(deserialize);
+                        }
+
                     }
                 }
 //                providerParameters.onProblemDetails(((DefaultProblemDetails) details).get());

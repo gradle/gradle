@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.runner;
+package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -92,7 +92,7 @@ import static java.util.stream.Collectors.toMap;
 
 @NonNullApi
 @SuppressWarnings("unused")
-public class ProblemsProgressEventUtils {
+public class ProblemsProgressEventUtils2 {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
@@ -100,7 +100,7 @@ public class ProblemsProgressEventUtils {
     private final PayloadSerializer payloadSerizalizer;
     private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public ProblemsProgressEventUtils(PayloadSerializer payloadSerializer, IsolatableSerializerRegistry isolatableSerializerRegistry) {
+    public ProblemsProgressEventUtils2(PayloadSerializer payloadSerializer, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.payloadSerizalizer = payloadSerializer;
         this.isolatableSerializerRegistry = IsolatableSerializerRegistry.singleton != null ? IsolatableSerializerRegistry.singleton : null;
     }
@@ -237,7 +237,7 @@ public class ProblemsProgressEventUtils {
         return outputStream.toByteArray();
     }
 
-    private Isolatable<?> deserialize(byte[] bytes) {
+    public Isolatable<?> deserialize(byte[] bytes) {
         ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
         KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
         try {
