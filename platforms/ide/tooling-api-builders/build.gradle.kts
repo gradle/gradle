@@ -13,6 +13,7 @@ errorprone {
 dependencies {
     implementation(projects.baseServicesGroovy) // for 'Specs'
     implementation(projects.coreApi)
+    implementation(projects.clientServices)
     implementation(projects.dependencyManagement)
     implementation(projects.launcher)
     implementation(projects.problemsApi)

@@ -35,10 +35,23 @@ public class StreamedValueConsumer implements BuildEventConsumer {
 
     @Override
     public void dispatch(Object message) {
+//        System.out.println(message);
         if (message instanceof StreamedValue) {
             StreamedValue value = (StreamedValue) message;
             Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
             providerParameters.onStreamedValue(deserializedValue);
+//        } else if (message instanceof DefaultProblemEvent) {
+//            DefaultProblemEvent problemEvent = (DefaultProblemEvent) message;
+//            InternalProblemDetailsVersion2 details = problemEvent.getDetails();
+//            if (details instanceof DefaultProblemDetails) {
+//                InternalAdditionalData additionalData = ((DefaultProblemDetails) details).getAdditionalData();
+//                if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
+//                    Object deserialize = payloadSerializer.deserialize((SerializedPayload) ((InternalPayloadSerializedAdditionalData) additionalData).get());
+//                    System.out.println(deserialize);
+//                }
+////                providerParameters.onProblemDetails(((DefaultProblemDetails) details).get());
+//            }
+//            delegate.dispatch(message);
         } else {
             delegate.dispatch(message);
         }

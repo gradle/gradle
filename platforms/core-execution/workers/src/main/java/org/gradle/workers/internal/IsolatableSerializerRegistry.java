@@ -61,7 +61,7 @@ import java.util.List;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
-@ServiceScope(Scope.UserHome.class)
+@ServiceScope({Scope.UserHome.class, Scope.Global.class})
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
     private static final byte BOOLEAN_VALUE = (byte) 1;
@@ -111,11 +111,14 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
+    public static IsolatableSerializerRegistry singleton = null;
+
     public IsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         super(false);
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.managedFactoryRegistry = managedFactoryRegistry;
         registerIsolatableSerializers();
+        singleton = this;
     }
 
     private void registerIsolatableSerializers() {

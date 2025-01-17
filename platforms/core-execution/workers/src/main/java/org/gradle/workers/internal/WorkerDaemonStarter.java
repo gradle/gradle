@@ -48,7 +48,7 @@ public class WorkerDaemonStarter {
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
-    public WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions) {
+    WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Time.startTimer();
         MultiRequestWorkerProcessBuilder<TransportableActionExecutionSpec, DefaultWorkResult> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonServer.class);

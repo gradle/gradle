@@ -37,11 +37,40 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     static String getProblemReportTaskString(String taskActionMethodBody) {
         """
+            plugins {
+                id 'java-library'
+            }
+
             import org.gradle.api.problems.Severity
+            import org.gradle.api.problems.AdditionalData
+            import org.gradle.internal.isolation.IsolatableFactory
+
+//            java {
+//                toolchain {
+//                    languageVersion = JavaLanguageVersion.of(8)
+//                }
+//            }
+
+            tasks.withType(JavaCompile).configureEach {
+                javaCompiler = javaToolchains.compilerFor {
+                    languageVersion = JavaLanguageVersion.of(8)
+                }
+            }
+
+           interface SomeData extends AdditionalData {
+
+                Property<String> getName()
+            }
 
             abstract class ProblemReportingTask extends DefaultTask {
                 @Inject
                 protected abstract Problems getProblems();
+
+                @Inject
+                protected abstract ObjectFactory getObjectFactory();
+
+                @Inject
+                protected abstract IsolatableFactory getIsolatableFactory();
 
                 @TaskAction
                 void run() {
@@ -49,7 +78,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 }
             }
 
-            tasks.register("reportProblem", ProblemReportingTask)
+            tasks.register("reportProblem", ProblemReportingTask){
+                it.dependsOn("compileJava")
+            }
+
         """
     }
 

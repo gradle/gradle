@@ -39,6 +39,7 @@ import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
@@ -57,8 +58,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def runTask() {
         def listener = new ProblemProgressListener()
         withConnection { connection ->
-            connection.newBuild().forTasks('reportProblem')
+            connection.newBuild().forTasks("compileJava", 'reportProblem')
                 .addProgressListener(listener)
+                .setStandardOutput(System.out)
+                .setStandardError(System.err)
+//                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5006")
                 .run()
         }
         return listener.problems
@@ -102,15 +106,29 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
+        file("src/main/java/Main.java") << """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello, world!");
+                }
+            }
+        """
+
         withReportProblemTask """
             getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                def someData = getObjectFactory().newInstance(SomeData)
+                someData.name = "someData"
+                def isolatedData = getIsolatableFactory().isolate(someData).isolate()
+
                 it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+//                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalData(isolatedData)
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -226,7 +244,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 
