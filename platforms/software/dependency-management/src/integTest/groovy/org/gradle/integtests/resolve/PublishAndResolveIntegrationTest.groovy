@@ -34,7 +34,7 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
 
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
             }
@@ -126,15 +126,15 @@ class PublishAndResolveIntegrationTest extends AbstractDependencyResolutionTest 
             publishing {
                 repositories {
                     ivy {
-                        url '${ivyRepo.uri}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {
                     jar(IvyPublication) {
                         from components.java
-                        organisation group
-                        module '${lib}'
-                        revision '${version}'
+                        organisation = group
+                        module = '${lib}'
+                        revision = '${version}'
                     }
                 }
             }

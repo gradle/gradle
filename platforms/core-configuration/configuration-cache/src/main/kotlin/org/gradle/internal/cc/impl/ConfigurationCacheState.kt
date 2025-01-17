@@ -52,10 +52,10 @@ import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.buildoption.FeatureFlags
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.base.serialize.ProjectProvider
 import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.base.serialize.withGradleIsolate
 import org.gradle.internal.cc.base.services.ConfigurationCacheEnvironmentChangeTracker
+import org.gradle.internal.cc.base.services.ProjectRefResolver
 import org.gradle.internal.cc.impl.serialize.Codecs
 import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplementedSourceDependencies
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter
@@ -131,7 +131,13 @@ enum class StateType(val encryptable: Boolean = false) {
     /**
      * The index file that points to all of these things
      */
-    Entry(false)
+    Entry(false),
+
+    /**
+     * The per cache-key file that lists all known configuration cache entries
+     * for that key.
+     */
+    Candidates(false)
 }
 
 
@@ -488,8 +494,7 @@ class ConfigurationCacheState(
             val projects = readProjects(gradle, build)
 
             build.createProjects()
-
-            setSingletonProperty<ProjectProvider>(build::getProject)
+            gradle.serviceOf<ProjectRefResolver>().projectsReady()
 
             applyProjectStates(projects, gradle)
             readRequiredBuildServicesOf(gradle)

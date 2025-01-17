@@ -137,6 +137,7 @@ public abstract class XcodePlugin extends IdePlugin {
     }
 
     private void configureXcodeCleanTask(Project project) {
+        @SuppressWarnings("deprecation")
         Delete cleanTask = project.getTasks().create("cleanXcodeProject", Delete.class);
         cleanTask.delete(xcodeProject.getLocationDir());
         if (isRoot()) {
@@ -148,9 +149,11 @@ public abstract class XcodePlugin extends IdePlugin {
     private GenerateXcodeProjectFileTask createProjectTask(final ProjectInternal project) {
         File xcodeProjectPackageDir = xcodeProject.getLocationDir();
 
+        @SuppressWarnings("deprecation")
         GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeProjectWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
         workspaceSettingsFileTask.setOutputFile(new File(xcodeProjectPackageDir, "project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings"));
 
+        @SuppressWarnings("deprecation")
         GenerateXcodeProjectFileTask projectFileTask = project.getTasks().create("xcodeProject", GenerateXcodeProjectFileTask.class);
         projectFileTask.dependsOn(workspaceSettingsFileTask);
         projectFileTask.dependsOn(xcodeProject.getTaskDependencies());
@@ -167,9 +170,11 @@ public abstract class XcodePlugin extends IdePlugin {
         File xcodeWorkspacePackageDir = project.file(project.getName() + ".xcworkspace");
         workspace.getLocation().set(xcodeWorkspacePackageDir);
 
+        @SuppressWarnings("deprecation")
         GenerateWorkspaceSettingsFileTask workspaceSettingsFileTask = project.getTasks().create("xcodeWorkspaceWorkspaceSettings", GenerateWorkspaceSettingsFileTask.class);
         workspaceSettingsFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "xcshareddata/WorkspaceSettings.xcsettings"));
 
+        @SuppressWarnings("deprecation")
         GenerateXcodeWorkspaceFileTask workspaceFileTask = project.getTasks().create("xcodeWorkspace", GenerateXcodeWorkspaceFileTask.class);
         workspaceFileTask.dependsOn(workspaceSettingsFileTask);
         workspaceFileTask.setOutputFile(new File(xcodeWorkspacePackageDir, "contents.xcworkspacedata"));
@@ -393,6 +398,7 @@ public abstract class XcodePlugin extends IdePlugin {
         @Override
         public void execute(String taskName) {
             if (taskName.startsWith("_xcode")) {
+                @SuppressWarnings("deprecation")
                 Task bridgeTask = project.getTasks().create(taskName);
                 String action = xcodePropertyAdapter.getAction();
                 if (action.equals("clean")) {
@@ -430,6 +436,7 @@ public abstract class XcodePlugin extends IdePlugin {
             // XCTest executable
             // Sync the binary to the BUILT_PRODUCTS_DIR, otherwise Xcode won't find any tests
             final String builtProductsPath = xcodePropertyAdapter.getBuiltProductsDir();
+            @SuppressWarnings("deprecation")
             final Sync syncTask = project.getTasks().create("syncBundleToXcodeBuiltProductDir", Sync.class, new Action<Sync>() {
                 @Override
                 public void execute(Sync task) {

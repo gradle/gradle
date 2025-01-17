@@ -40,7 +40,7 @@ import java.util.List;
 
 @IntegrationTest
 @Category(IntegrationTest.class)
-public abstract class AbstractIntegrationTest {
+public abstract class AbstractIntegrationTest implements HasGradleExecutor {
 
     @Rule
     public final PreconditionVerifier preconditionVerifier = new PreconditionVerifier();
@@ -83,7 +83,8 @@ public abstract class AbstractIntegrationTest {
         return distribution;
     }
 
-    protected GradleExecuter getExecuter() {
+    @Override
+    public GradleExecuter getExecuter() {
         return executer;
     }
 

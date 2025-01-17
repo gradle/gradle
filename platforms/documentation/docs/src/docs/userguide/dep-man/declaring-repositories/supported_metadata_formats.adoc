@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ By reading dependency metadata, Gradle is able to determine which versions of ot
 External module dependencies require module metadata so that Gradle can determine the transitive dependencies of a module.
 Gradle supports various metadata formats to achieve this.
 
-[[sub:supported-md-gradle]]
+[[sec:supported-md-gradle]]
 === Gradle Module Metadata (GMM) files
 
 Gradle Module Metadata is specifically designed to support all features of Gradle's dependency management model, making it the preferred format.
@@ -63,12 +63,12 @@ You can find the https://github.com/gradle/gradle/blob/master/platforms/document
 }
 ----
 
-[[sub:supported-md-pom]]
+[[sec:supported-md-pom]]
 === POM files
 
 Gradle natively supports https://maven.apache.org/pom.html[Maven POM files].
 By default, Gradle will first look for a POM file.
-However, if the file contains a special marker, Gradle will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
+However, if the file contains a special marker, Gradle will use <<#sec:supported-md-gradle, Gradle Module Metadata>> instead.
 
 [source,xml]
 ----
@@ -80,11 +80,11 @@ However, if the file contains a special marker, Gradle will use <<#sub:supported
 </project>
 ----
 
-[[sub:supported-md-ivy]]
+[[sec:supported-md-ivy]]
 === Ivy files
 
 Gradle also supports http://ant.apache.org/ivy/[Ivy descriptor files].
-Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, it will use <<#sub:supported-md-gradle, Gradle Module Metadata>> instead.
+Gradle will first look for an `ivy.xml` file, but if this file contains a special marker, it will use <<#sec:supported-md-gradle, Gradle Module Metadata>> instead.
 
 [source,xml]
 ----
@@ -96,7 +96,7 @@ Gradle will first look for an `ivy.xml` file, but if this file contains a specia
 </ivy-module>
 ----
 
-[[sec:supported_metadata_sources]]
+[[sec:supported-metadata-sources]]
 == Supported metadata sources
 
 When searching for a component in a repository, Gradle checks for supported metadata file formats by default.

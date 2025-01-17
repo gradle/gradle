@@ -17,6 +17,8 @@
 package org.gradle.ide.xcode.internal.xcodeproj;
 
 import com.google.common.collect.Sets;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Set;
 
@@ -25,6 +27,7 @@ import java.util.Set;
  *
  * The GID is a 96 bit identifier that's unique on a per-project basis.
  */
+@ServiceScope(Scope.Build.class)
 public class GidGenerator {
     private final Set<String> generatedAndReservedIds;
 

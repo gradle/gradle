@@ -45,12 +45,12 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
                                 testTask.configure {
                                     testLogging {
                                         quiet {
-                                            events "skipped", "failed"
-                                            minGranularity 2
-                                            maxGranularity -1
-                                            displayGranularity 3
-                                            exceptionFormat "full"
-                                            stackTraceFilters "truncate", "groovy"
+                                            events("skipped", "failed")
+                                            minGranularity = 2
+                                            maxGranularity = -1
+                                            displayGranularity = 3
+                                            exceptionFormat = "full"
+                                            stackTraceFilters("truncate", "groovy")
                                         }
                                     }
                                 }

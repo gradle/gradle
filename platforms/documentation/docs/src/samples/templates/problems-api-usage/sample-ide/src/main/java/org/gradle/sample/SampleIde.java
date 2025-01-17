@@ -15,23 +15,12 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class SampleIde {
-
     private static final Logger LOGGER = Logging.getLogger(SampleIde.class);
+
     private final String workingDir;
-    private final String taskPath;
 
-    public SampleIde(String workingDir, String taskPath) {
+    public SampleIde(String workingDir) {
         this.workingDir = workingDir;
-        this.taskPath = taskPath;
-    }
-
-    private ProjectConnection createGradleConnection() {
-        // Get current working directory
-        Path projectPath = Path.of(workingDir);
-        File projectDir = projectPath.toFile();
-
-        // Initialize the Tooling API
-        return GradleConnector.newConnector().useGradleVersion("8.9").forProjectDirectory(projectDir).connect();
     }
 
     public void buildModel() {
@@ -42,13 +31,14 @@ public class SampleIde {
         }
     }
 
-    public void runBuild() {
+    public void runBuild(String taskPath) {
         try (ProjectConnection connection = createGradleConnection()) {
             // Load the project
-            BuildLauncher buildLauncher = connection.newBuild();
-            buildLauncher.addArguments("--quiet");
-            buildLauncher.setStandardOutput(System.err);
-            buildLauncher.setStandardError(System.err);
+            BuildLauncher buildLauncher = connection.newBuild()
+                .addArguments("--quiet")
+                .setStandardOutput(System.out)
+                .setStandardError(System.err)
+                .withDetailedFailure(); // Get problem reports for build failures
 
             // Add a problem listener
             ProblemListener.createAndRegister(buildLauncher);
@@ -57,26 +47,118 @@ public class SampleIde {
             // Execute the task
             launcher.run();
         } catch (GradleConnectionException e) {
-            LOGGER.error("Error connecting to Gradle.", e);
+            if (!e.getFailures().isEmpty()) {
+                prettyPrintFailures(e.getFailures()); // Print problem reports from build failures
+            } else {
+                LOGGER.error("Error connecting to Gradle.", e);
+            }
         } catch (Exception e) {
             LOGGER.error("Error executing Gradle task.", e);
+        }
+    }
+
+    private ProjectConnection createGradleConnection() {
+        // Get current working directory
+        Path projectPath = Path.of(workingDir);
+        File projectDir = projectPath.toFile();
+
+        // Initialize the Tooling API
+        return GradleConnector.newConnector().useGradleVersion("8.12").forProjectDirectory(projectDir).connect();
+    }
+
+    private void prettyPrintFailures(List<? extends Failure> failures) {
+        for (Failure failure : failures) {
+            for (Problem problem : failure.getProblems()) {
+                prettyPrint(problem, "");
+            }
+            prettyPrintFailures(failure.getCauses());
+        }
+    }
+
+    static void prettyPrint(Problem problem, String prefix) {
+        System.out.println(prefix + "Problem:");
+        System.out.println(" - id: " + fqId(problem.getDefinition()));
+        System.out.println(" - display name: " + problem.getDefinition().getId().getDisplayName());
+        if (problem.getDetails() != null) {
+            System.out.println(" - details: " + problem.getDetails().getDetails());
+        }
+        System.out.println(" - severity: " + toString(problem.getDefinition().getSeverity()));
+        for (Location location : problem.getOriginLocations()) {
+            if (location instanceof PluginIdLocation) {
+                System.out.println(" - plugin ID: " + ((PluginIdLocation) location).getPluginId());
+            } else {
+                System.out.println(" - location: " + location);
+            }
+        }
+        Failure exception = problem.getFailure();
+        if (exception != null) {
+            System.out.println(" - exception: " + exception.getMessage());
+        }
+
+        if (problem.getDefinition().getDocumentationLink() != null) {
+            String url = problem.getDefinition().getDocumentationLink().getUrl();
+            if (url != null) {
+                System.out.println(" - documentation: " + url);
+            }
+        }
+
+        List<Solution> solutions = problem.getSolutions();
+        if (!solutions.isEmpty()) {
+            System.out.println(" - solutions: ");
+            for (Solution solution : solutions) {
+                System.out.println("   - " + solution.getSolution());
+            }
+        }
+    }
+
+    static String fqId(ProblemDefinition definition) {
+        return fqId(definition.getId());
+    }
+
+    static String fqId(ProblemId id) {
+        return fqId(id.getGroup()) + ":" + id.getName();
+    }
+
+    static String fqId(ProblemGroup group) {
+        ProblemGroup parent = group.getParent();
+        if (parent == null) {
+            return group.getName();
+        } else {
+            return fqId(parent) + ":" + group.getName();
+        }
+    }
+
+    static String toString(Severity severity) {
+        int code = severity.getSeverity();
+        switch (code) {
+            case 0:
+                return "ADVICE";
+            case 1:
+                return "WARNING";
+            case 2:
+                return "ERROR";
+            default:
+                return "UNKNOWN";
         }
     }
 
     public static void main(String[] args) {
         String workingDir = args.length > 0 ? args[0] : System.getProperty("user.dir");
         String taskPath = args.length > 1 ? args[1] : ":sample-project:assemble";
+        String failingTaskPath = args.length > 2 ? args[2] : ":sample-project:myFailingTask";
 
         System.out.println("=== Importing project from " + workingDir + " ===");
-        SampleIde main = new SampleIde(workingDir, taskPath);
+        SampleIde main = new SampleIde(workingDir);
 
         System.out.println("=== Running task " + taskPath + " on imported project ===");
-        main.runBuild();
+        main.runBuild(taskPath);
 
         System.out.println("=== Retrieving Gradle configuration with logic implemented in the 'reporters.model.builder' plugin ===");
         main.buildModel();
-    }
 
+        System.out.println("=== Running failing task " + failingTaskPath + " on imported project ===");;
+        main.runBuild(failingTaskPath);
+    }
     private static class ProblemListener implements ProgressListener {
 
         static void createAndRegister(LongRunningOperation operation) {
@@ -86,64 +168,28 @@ public class SampleIde {
         // tag::problems-tapi-event[]
         @Override
         public void statusChanged(ProgressEvent progressEvent) {
-            if (progressEvent instanceof SingleProblemEvent)
+            if (progressEvent instanceof SingleProblemEvent) {
                 prettyPrint((SingleProblemEvent) progressEvent);
+            } else if (progressEvent instanceof ProblemSummariesEvent) {
+                prettyPrint((ProblemSummariesEvent) progressEvent);
+            }
         }
         // end::problems-tapi-event[]
 
-        static void prettyPrint(SingleProblemEvent problem) {
-            System.out.println("Problem:");
-            System.out.println(" - id: " + fqId(problem.getDefinition()));
-            System.out.println(" - display name: " + problem.getDefinition().getId().getDisplayName());
-            System.out.println(" - details: " + problem.getDetails().getDetails());
-            System.out.println(" - severity: " + toString(problem.getDefinition().getSeverity()));
-            for (Location location : problem.getLocations()) {
-                if (location instanceof PluginIdLocation) {
-                    System.out.println(" - plugin ID: " + ((PluginIdLocation) location).getPluginId());
-                } else {
-                    System.out.println(" - location: " + location);
-                }
-            }
-            Failure exception = problem.getFailure().getFailure();
-            if (exception != null) {
-                System.out.println(" - exception: " + exception.getMessage());
-            }
-            String url = problem.getDefinition().getDocumentationLink().getUrl();
-            if (url != null) {
-                System.out.println(" - documentation: " + url);
-            }
-
-            List<Solution> solutions = problem.getSolutions();
-            if (!solutions.isEmpty()) {
-                System.out.println(" - solutions: ");
-                for (Solution solution : solutions) {
-                    System.out.println("   - " + solution.getSolution());
-                }
-            }
+        static void prettyPrint(ProblemSummariesEvent problemEvent) {
+            System.out.println("Problem Summaries:");
+            problemEvent.getProblemSummaries()
+                .forEach(summary -> {
+                    System.out.println(" - display name: " + summary.getProblemId().getDisplayName());
+                    System.out.println(" - id: " + fqId(summary.getProblemId()));
+                    System.out.println(" - count: " + summary.getCount());
+                    System.out.println();
+                });
         }
 
-        static String fqId(ProblemDefinition definition) {
-            ProblemId id = definition.getId();
-            return fqId(id.getGroup()) + ":" + id.getName();
+        static void prettyPrint(SingleProblemEvent problemEvent) {
+            SampleIde.prettyPrint(problemEvent.getProblem(), "Build Failure ");
         }
 
-        static String fqId(ProblemGroup group) {
-            ProblemGroup parent = group.getParent();
-            if (parent == null) {
-                return group.getName();
-            } else {
-                return fqId(parent) + ":" + group.getName();
-            }
-        }
-
-        static String toString(Severity severity) {
-            int code = severity.getSeverity();
-            switch (code) {
-                case 0: return "ADVICE";
-                case 1: return "WARNING";
-                case 2: return "ERROR";
-                default: return "UNKNOWN";
-            }
-        }
     }
 }

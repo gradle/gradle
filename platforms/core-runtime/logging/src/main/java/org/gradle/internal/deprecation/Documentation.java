@@ -18,12 +18,13 @@ package org.gradle.internal.deprecation;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.problems.internal.DocLink;
+import org.gradle.api.problems.DocLink;
+import org.gradle.api.problems.internal.InternalDocLink;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
-public abstract class Documentation implements DocLink {
+public abstract class Documentation implements InternalDocLink {
     public static final String RECOMMENDATION = "For more %s, please refer to %s in the Gradle documentation.";
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
 

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.SharedModelDefaults
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
 import org.gradle.api.reflect.TypeOf
@@ -40,6 +41,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
+import org.gradle.kotlin.dsl.accessors.SoftwareTypeEntry
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
 import org.gradle.kotlin.dsl.accessors.isDclEnabledForScriptTarget
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -52,12 +54,13 @@ internal class DefaultProjectSchemaProvider(
     private val dclSchemaCollector: KotlinDslDclSchemaCollector,
 ) : ProjectSchemaProvider {
 
-    override fun schemaFor(scriptTarget: Any): TypedProjectSchema? =
+    override fun schemaFor(scriptTarget: Any, classLoaderScope: ClassLoaderScope): TypedProjectSchema? =
         targetTypeOf(scriptTarget)
             ?.let { scriptTargetType ->
                 targetSchemaFor(
                     scriptTarget,
-                    scriptTargetType
+                    scriptTargetType,
+                    classLoaderScope
                 )
             }?.let { targetSchema ->
                 ProjectSchema(
@@ -70,6 +73,7 @@ internal class DefaultProjectSchemaProvider(
                         ?: emptyList(),
                     targetSchema.modelDefaults,
                     targetSchema.containerElementFactories,
+                    targetSchema.softwareTypeEntries,
                     scriptTarget
                 ).map(::SchemaType)
             }
@@ -81,15 +85,12 @@ internal class DefaultProjectSchemaProvider(
         else -> null
     }
 
-    internal fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
+    internal fun targetSchemaFor(target: Any, targetType: TypeOf<*>, classLoaderScope: ClassLoaderScope): TargetTypedSchema {
         val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val conventions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val tasks = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val containerElements = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
         val buildModelDefaults = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
-        val containerElementFactories = mutableListOf<ContainerElementFactoryEntry<TypeOf<*>>>()
-
-        val isDclEnabled = isDclEnabledForScriptTarget(target)
 
         fun collectSchemaOf(target: Any, targetType: TypeOf<*>) {
             if (target is ExtensionAware) {
@@ -127,14 +128,13 @@ internal class DefaultProjectSchemaProvider(
                     containerElements.add(ProjectSchemaEntry(targetType, schema.name, schema.publicType))
                 }
             }
-
-            if (isDclEnabled) {
-                dclSchemaCollector.collectNestedContainerFactories(targetType.concreteClass)
-                    .forEach(containerElementFactories::add)
-            }
         }
 
         collectSchemaOf(target, targetType)
+
+        val dclSchema = if (isDclEnabledForScriptTarget(target)) {
+            dclSchemaCollector.collectDclSchemaForKotlinDslTarget(target, classLoaderScope)
+        } else null
 
         return TargetTypedSchema(
             extensions,
@@ -142,7 +142,8 @@ internal class DefaultProjectSchemaProvider(
             tasks,
             containerElements,
             buildModelDefaults,
-            containerElementFactories
+            dclSchema?.softwareTypes.orEmpty(),
+            dclSchema?.containerElementFactories.orEmpty()
         )
     }
 }
@@ -154,8 +155,10 @@ data class TargetTypedSchema(
     val tasks: List<ProjectSchemaEntry<TypeOf<*>>>,
     val containerElements: List<ProjectSchemaEntry<TypeOf<*>>>,
     val modelDefaults: List<ProjectSchemaEntry<TypeOf<*>>>,
+    val softwareTypeEntries: List<SoftwareTypeEntry<TypeOf<*>>>,
     val containerElementFactories: List<ContainerElementFactoryEntry<TypeOf<*>>>
 )
+
 
 private
 fun accessibleConventionsSchema(plugins: Map<String, Any>) =

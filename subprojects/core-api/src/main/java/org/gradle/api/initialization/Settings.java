@@ -342,7 +342,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 3.5
      */
-    @Restricted
     PluginManagementSpec getPluginManagement();
 
     /**
@@ -383,7 +382,6 @@ public interface Settings extends PluginAware, ExtensionAware {
      *
      * @since 6.8
      */
-    @Restricted
     DependencyResolutionManagement getDependencyResolutionManagement();
 
     /**

@@ -34,8 +34,6 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.state.Managed;
 
 import javax.annotation.Nullable;
@@ -45,7 +43,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
-@ServiceScope({Scope.Global.class, Scope.Project.class})
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
     private final PropertyHost host;
     private final FileResolver fileResolver;

@@ -97,7 +97,7 @@ class DeprecatedTLSVersionDependencyResolutionIntegrationTest extends AbstractHt
         buildFile << """
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
             configurations { compile }

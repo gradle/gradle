@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.cache.CleanupProgressMonitor
+import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion

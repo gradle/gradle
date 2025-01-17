@@ -6,8 +6,8 @@ plugins {
 
 tasks.withType<IntegrationTest>().configureEach {
     // See AbstractKotlinIntegrationTest
-    "kotlinDslTestsExtraRepo".let {
-        systemProperty(it, System.getProperty(it))
+    "kotlinDslTestsExtraRepo".let { propName ->
+        System.getProperty(propName)?.let { systemProperty(propName, it) }
     }
 }
 

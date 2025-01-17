@@ -1,11 +1,9 @@
+// tag::root[]
 plugins {
     `java-library`
-    id("com.github.johnrengelman.shadow")
+    id("com.gradleup.shadow")
 }
-
-shadow {
-    applicationDistribution.from("src/dist")
-}
+// end::root[]
 
 tasks.shadowJar {
     minimize()

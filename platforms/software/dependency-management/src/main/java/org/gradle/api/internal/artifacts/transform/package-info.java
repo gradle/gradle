@@ -13,7 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@NonNullApi
+@org.gradle.api.NonNullApi
 package org.gradle.api.internal.artifacts.transform;
-
-import org.gradle.api.NonNullApi;

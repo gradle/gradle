@@ -28,7 +28,6 @@ import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Time
-import org.gradle.test.fixtures.Flaky
 
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -38,7 +37,6 @@ import java.util.function.Consumer
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 import static org.gradle.util.internal.TextUtil.escapeString
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4441")
 class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegrationSpec {
     def addressFactory = new InetAddressFactory()
 
@@ -90,13 +88,16 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         when:
         def build = executer.withTasks("lock").start()
         def timer = Time.startTimer()
+
+        def pingCountInOutput = 0
         poll(120) {
-            assert (build.standardOutput =~ 'Pinged owner at port').count == 3
+            pingCountInOutput = (build.standardOutput =~ 'Pinged owner at port').count
+            assert pingCountInOutput >= 3
         }
         receivingLock.close()
         then:
         build.waitForFinish()
-        pingRequestCount == 3 || pingRequestCount == 4
+        pingRequestCount in [pingCountInOutput, pingCountInOutput + 1]
         timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
@@ -116,11 +117,10 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         // simulate additional requests
         def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
         (1..500).each {
-            addressFactory.communicationAddresses.each { address ->
-                byte[] bytes = [1, 0, 0, 0, 0, 0, 0, 0, 0]
-                DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, address, receivingSocket.localPort)
-                socket.send(confirmPacket)
-            }
+            def address = addressFactory.localBindingAddress
+            byte[] bytes = [1, 0, 0, 0, 0, 0, 0, 0, 0]
+            DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, address, receivingSocket.localPort)
+            socket.send(confirmPacket)
         }
 
         then:
@@ -315,7 +315,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     }
 
     void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket, FileLock lock = receivingLock) {
-        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == addressFactory.communicationAddresses.size()
+        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
     }
 
     void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {
@@ -374,8 +374,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             }
 
             @Override
-            Iterable<InetAddress> getCommunicationAddresses() {
-                return addressFactory.communicationAddresses
+            InetAddress getCommunicationAddress() {
+                return addressFactory.localBindingAddress
             }
         })
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {

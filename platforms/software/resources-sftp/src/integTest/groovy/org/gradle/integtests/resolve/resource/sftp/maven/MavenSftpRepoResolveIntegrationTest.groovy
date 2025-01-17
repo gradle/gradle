@@ -30,10 +30,10 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
         buildFile << """
             repositories {
                 maven {
-                    url "${mavenSftpRepo.uri}"
+                    url = "${mavenSftpRepo.uri}"
                     credentials {
-                        username 'sftp'
-                        password 'sftp'
+                        username = 'sftp'
+                        password = 'sftp'
                     }
                 }
             }
@@ -66,7 +66,7 @@ class MavenSftpRepoResolveIntegrationTest extends AbstractSftpDependencyResoluti
         buildFile << """
 repositories {
     maven {
-        url "${mavenSftpRepo.uri}"
+        url = "${mavenSftpRepo.uri}"
         authentication {
             auth(BasicAuthentication)
         }

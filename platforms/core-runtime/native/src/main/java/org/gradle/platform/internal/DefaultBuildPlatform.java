@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2022 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,21 @@
 
 package org.gradle.platform.internal;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import org.gradle.api.GradleException;
-import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.Architecture;
+import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.OperatingSystem;
 
-import javax.inject.Inject;
+import java.io.Serializable;
+import java.util.Objects;
 
-public class DefaultBuildPlatform implements BuildPlatform {
+public class DefaultBuildPlatform implements BuildPlatform, Serializable {
 
-    private Architecture architecture;
+    private final Architecture architecture;
+    private final OperatingSystem operatingSystem;
 
-    private Supplier<OperatingSystem> operatingSystem;
-
-    @Inject
-    public DefaultBuildPlatform(Architecture architecture, final org.gradle.internal.os.OperatingSystem operatingSystem) {
+    public DefaultBuildPlatform(final Architecture architecture, final OperatingSystem operatingSystem) {
         this.architecture = architecture;
-        this.operatingSystem = Suppliers.memoize(new Supplier<OperatingSystem>() {
-            @Override
-            public OperatingSystem get() {
-                return getOperatingSystem(operatingSystem);
-            }
-        });
+        this.operatingSystem = operatingSystem;
     }
 
     @Override
@@ -49,26 +40,23 @@ public class DefaultBuildPlatform implements BuildPlatform {
 
     @Override
     public OperatingSystem getOperatingSystem() {
-        return operatingSystem.get();
+        return operatingSystem;
     }
 
-    public static OperatingSystem getOperatingSystem(org.gradle.internal.os.OperatingSystem operatingSystem) {
-        if (org.gradle.internal.os.OperatingSystem.LINUX == operatingSystem) {
-            return OperatingSystem.LINUX;
-        } else if (org.gradle.internal.os.OperatingSystem.UNIX == operatingSystem) {
-            return OperatingSystem.UNIX;
-        } else if (org.gradle.internal.os.OperatingSystem.WINDOWS == operatingSystem) {
-            return OperatingSystem.WINDOWS;
-        } else if (org.gradle.internal.os.OperatingSystem.MAC_OS == operatingSystem) {
-            return OperatingSystem.MAC_OS;
-        } else  if (org.gradle.internal.os.OperatingSystem.SOLARIS == operatingSystem) {
-            return OperatingSystem.SOLARIS;
-        } else if (org.gradle.internal.os.OperatingSystem.FREE_BSD == operatingSystem) {
-            return OperatingSystem.FREE_BSD;
-        } else if (org.gradle.internal.os.OperatingSystem.AIX == operatingSystem) {
-            return OperatingSystem.AIX;
-        } else {
-            throw new GradleException("Unhandled operating system: " + operatingSystem.getName());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultBuildPlatform that = (DefaultBuildPlatform) o;
+        return Objects.equals(getArchitecture(), that.getArchitecture()) && Objects.equals(getOperatingSystem(), that.getOperatingSystem());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getArchitecture(), getOperatingSystem());
     }
 }

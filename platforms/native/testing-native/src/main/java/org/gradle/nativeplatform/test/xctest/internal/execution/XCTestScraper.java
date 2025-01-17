@@ -148,7 +148,7 @@ class XCTestScraper implements TextStream {
                     if (xcTestDescriptor != null) {
                         TestDescriptorInternal testDescriptor = xcTestDescriptor.getDescriptorInternal();
 
-                        processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
+                        processor.output(testDescriptor.getId(), new DefaultTestOutputEvent(clock.getCurrentTime(), destination, text));
 
                         Matcher failureMessageMatcher = TEST_FAILURE_PATTERN.matcher(text);
                         if (failureMessageMatcher.find()) {
@@ -164,10 +164,10 @@ class XCTestScraper implements TextStream {
                         // If no current test can be associated to the output, the last known descriptor is used.
                         // See https://bugs.swift.org/browse/SR-1127 for more information.
                     } else if (lastDescriptor != null) {
-                        processor.output(lastDescriptor.getId(), new DefaultTestOutputEvent(destination, text));
+                        processor.output(lastDescriptor.getId(), new DefaultTestOutputEvent(clock.getCurrentTime(), destination, text));
                     } else {
                         // If there is no known last descriptor, associate it with the root test suite
-                        processor.output(rootTestSuiteId, new DefaultTestOutputEvent(destination, text));
+                        processor.output(rootTestSuiteId, new DefaultTestOutputEvent(clock.getCurrentTime(), destination, text));
                     }
                 }
             }

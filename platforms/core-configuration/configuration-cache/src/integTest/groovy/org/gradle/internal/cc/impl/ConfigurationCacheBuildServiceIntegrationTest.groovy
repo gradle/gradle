@@ -19,6 +19,10 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.TransformAction
+import org.gradle.api.artifacts.transform.TransformOutputs
+import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
@@ -48,6 +52,106 @@ import javax.inject.Inject
 import java.util.concurrent.atomic.AtomicInteger
 
 class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue('https://github.com/gradle/gradle/issues/31039')
+    def "build service with transformer-dependent parameter"() {
+        settingsFile """
+            include("producer")
+            include("consumer")
+        """
+        buildFile file("producer/build.gradle"), '''
+            apply plugin: 'base'
+            configurations {
+                'default' {
+                    attributes {
+                        attribute(Attribute.of('color', String), 'red')
+                    }
+                }
+            }
+            artifacts {
+                'default' file('file.txt')
+            }
+            tasks.register('ok') {
+                doLast {
+                    println("Making sure this project is considered relevant")
+                }
+            }
+        '''
+        file("producer/file.txt").createFile()
+        buildFile file("consumer/build.gradle"), """
+            apply plugin: 'base'
+            ${withIdentityTransformSource()}
+            configurations {
+                implementation
+            }
+            def color = Attribute.of('color', String)
+            dependencies {
+                registerTransform(IdentityTransform) {
+                    from.attribute(color, 'red')
+                    to.attribute(color, 'blue')
+                }
+                implementation(project(":producer"))
+            }
+
+            abstract class ValueProviderService implements ${BuildService.name}<Parameters>{
+
+                interface Parameters extends ${BuildServiceParameters.name} {
+                    ListProperty<String> getInFiles()
+                }
+
+                Object getValue() {
+                    parameters.inFiles.get().join(',')
+                }
+            }
+
+            abstract class ValueTask extends DefaultTask {
+                @ServiceReference('valueProvider') abstract Property<ValueProviderService> getValueProvider()
+                @TaskAction def doIt() {
+                    println("value: " + valueProvider.get().value)
+                }
+            }
+
+            gradle.sharedServices.registerIfAbsent('valueProvider', ValueProviderService) {
+                parameters {
+                    inFiles.set(
+                        configurations.implementation.incoming.artifactView {
+                            attributes { attribute(color, 'blue') }
+                        }.files.elements.map {
+                            it.asFile.name
+                        }
+                    )
+                }
+            }
+
+            tasks.register('ok', ValueTask)
+        """
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        outputContains 'Transforming file.txt'
+        outputContains "value: file.txt"
+
+        when:
+        configurationCacheRun 'ok'
+
+        then:
+        outputDoesNotContain 'Transforming file.txt'
+        outputContains "value: file.txt"
+    }
+
+    private String withIdentityTransformSource() {
+        """
+            abstract class IdentityTransform implements $TransformAction.name<${TransformParameters.name}.None> {
+                @$InputArtifact.name abstract Provider<FileSystemLocation> getInputArtifact()
+                @Override void transform($TransformOutputs.name outputs) {
+                    println('Transforming ' + inputArtifact.get().asFile.name)
+                    outputs.file(inputArtifact)
+                }
+            }
+        """
+    }
 
     def "BuildOperationListener build service is instantiated only once per build"() {
         given:
@@ -109,7 +213,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             file('settings.gradle') << """
                 pluginManagement {
                     repositories {
-                        maven { url '$mavenRepo.uri' }
+                        maven { url = '$mavenRepo.uri' }
                     }
                 }
             """
@@ -140,7 +244,6 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             pluginManagement {
                 includeBuild 'counting-service-plugin'
             }
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
         """
         file('build.gradle') << """
             plugins { id 'counting-service-plugin' version '1.0' }
@@ -337,7 +440,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
                 version = "1.0"
                 publishing {
                     repositories {
-                        maven { url '$mavenRepo.uri' }
+                        maven { url = '$mavenRepo.uri' }
                     }
                 }
                 gradlePlugin {
@@ -727,7 +830,7 @@ class ConfigurationCacheBuildServiceIntegrationTest extends AbstractConfiguratio
             file('settings.gradle') << """
                 pluginManagement {
                     repositories {
-                        maven { url '$mavenRepo.uri' }
+                        maven { url = '$mavenRepo.uri' }
                     }
                 }
             """

@@ -45,7 +45,9 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
             task projectExecTask {
                 dependsOn 'compileJava'
                 doLast {
-                    def result = exec { commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block' }
+                    def result = services.get(ExecOperations).exec {
+                        commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block'
+                    }
                     assert result.exitValue == 0
                 }
             }

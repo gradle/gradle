@@ -19,6 +19,8 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
+import groovy.transform.stc.ClosureParams;
+import groovy.transform.stc.SimpleType;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
@@ -639,7 +641,10 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
      */
-    Project project(String path, @DelegatesTo(Project.class) Closure configureClosure);
+    Project project(String path,
+                    @DelegatesTo(Project.class)
+                    @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Project")
+                    Closure configureClosure);
 
     /**
      * <p>Locates a project by path and configures it using the given action. If the path is relative, it is
@@ -1253,7 +1258,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure the closure to use to configure the published artifacts.
      */
-    void artifacts(@DelegatesTo(ArtifactHandler.class) Closure configureClosure);
+    void artifacts(@DelegatesTo(ArtifactHandler.class)
+                   @ClosureParams(value = SimpleType.class, options = "org.gradle.api.artifacts.dsl.ArtifactHandler")
+                   Closure configureClosure);
 
     /**
      * <p>Configures the published artifacts for this project.
@@ -1335,7 +1342,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void subprojects(@DelegatesTo(Project.class) Closure configureClosure);
+    void subprojects(@DelegatesTo(Project.class)
+                     @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Project")
+                     Closure configureClosure);
 
     /**
      * <p>Configures this project and each of its sub-projects.</p>
@@ -1354,7 +1363,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @param configureClosure The closure to execute.
      */
-    void allprojects(@DelegatesTo(Project.class) Closure configureClosure);
+    void allprojects(@DelegatesTo(Project.class)
+                     @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Project")
+                     Closure configureClosure);
 
     /**
      * <p>Adds an action to call immediately before this project is evaluated.</p>
@@ -1389,7 +1400,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure to call.
      * @see Project#beforeEvaluate(Action)
      */
-    void beforeEvaluate(Closure closure);
+    void beforeEvaluate(@DelegatesTo(Project.class)
+                        @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Project")
+                        Closure closure);
 
     /**
      * <p>Adds a closure to call immediately after this project is evaluated.</p>
@@ -1397,7 +1410,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure The closure to call.
      * @see Project#afterEvaluate(Action)
      */
-    void afterEvaluate(@DelegatesTo(Project.class) Closure closure);
+    void afterEvaluate(@DelegatesTo(Project.class)
+                       @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Project")
+                       Closure closure);
 
     /**
      * <p>Determines if this project has the given property. See <a href="#properties">here</a> for details of the
@@ -1644,7 +1659,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
-    WorkResult copy(@DelegatesTo(CopySpec.class) Closure closure);
+    WorkResult copy(@DelegatesTo(CopySpec.class)
+                    @ClosureParams(value = SimpleType.class, options = "org.gradle.api.file.CopySpec")
+                    Closure closure);
 
     /**
      * Copies the specified files.  The given action is used to configure a {@link CopySpec}, which is then used to
@@ -1675,7 +1692,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
      */
-    CopySpec copySpec(@DelegatesTo(CopySpec.class) Closure closure);
+    CopySpec copySpec(@DelegatesTo(CopySpec.class)
+                      @ClosureParams(value = SimpleType.class, options = "org.gradle.api.file.CopySpec")
+                      Closure closure);
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used

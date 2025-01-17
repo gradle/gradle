@@ -40,7 +40,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             repositories {
                 maven {
-                    url = uri('$blockingServer.uri')
+                    url = '$blockingServer.uri'
                     $authConfig
                 }
             }
@@ -99,7 +99,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             repositories {
                 ivy {
-                    url = uri('$blockingServer.uri')
+                    url = '$blockingServer.uri'
                     $authConfig
                 }
             }
@@ -145,7 +145,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             repositories {
                 maven {
-                    url = uri('$blockingServer.uri')
+                    url = '$blockingServer.uri'
                     $authConfig
                 }
             }
@@ -205,7 +205,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             repositories {
                 ivy {
-                    url = uri('$blockingServer.uri')
+                    url = '$blockingServer.uri'
                     $authConfig
                 }
             }
@@ -284,7 +284,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             repositories {
                 maven {
-                    url = uri('$blockingServer.uri')
+                    url = '$blockingServer.uri'
                     $authConfig
                 }
             }

@@ -16,16 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-
 /**
- * Represents a container of artifacts, possibly made up of several different variants.
+ * Represents a container of artifacts, each corresponding to a single node in the graph.
  *
  * Instances are retained during the lifetime of a build, so should avoid retaining unnecessary state.
  */
 public interface ArtifactSet {
     /**
-     * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.
+     * Selects the artifacts of this set that meet the given criteria.
+     * Implementation should be eager where possible, so that selection happens
+     * immediately, but may be lazy.
      */
-    ResolvedArtifactSet select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec);
+    ResolvedArtifactSet select(
+        ArtifactSelectionServices consumerServices,
+        ArtifactSelectionSpec spec
+    );
 }

@@ -60,6 +60,7 @@ sealed interface DataType : Serializable {
     ])
     sealed interface ClassDataType : DataType {
         val name: FqName
+        val javaTypeName: String
     }
 
     // TODO: `Any` type?

@@ -90,7 +90,7 @@ class BuildOperationTreeFixture extends BuildOperationTreeQueries {
 
     @Override
     List<BuildOperationRecord> all(Pattern displayName) {
-        return operations.records.values().findAll { it.displayName ==~ displayName }
+        return operations.records.values().findAll { it.displayName ==~ displayName }.toList()
     }
 
     @Override
@@ -99,9 +99,16 @@ class BuildOperationTreeFixture extends BuildOperationTreeQueries {
         if (records.isEmpty()) {
             throw new AssertionFailedError("No operations found with display name that matches $displayName")
         } else if (records.size() > 1) {
-            throw new AssertionFailedError("Multiple operations found with display name that matches $displayName")
+            throw new AssertionFailedError("Multiple operations found with display name that matches $displayName. Expected 1, found ${records.size()}")
         }
         return records.first()
+    }
+
+    @Override
+    BuildOperationRecord singleOrNone(Pattern displayName) {
+        def records = all(displayName)
+        assert records.size() <= 1
+        return records.find()
     }
 
     @Override

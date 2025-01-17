@@ -28,13 +28,19 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
         void publicMethod() {}
 
         private void privateMethod() {}
+
+        OldSuperInternal returnTypeOverridenMethod() { return null }
     }
 
     static class OldBase extends OldSuperInternal {
         void anotherPublicMethod() {}
+
+        OldBase returnTypeOverridenMethod() { return null }
     }
 
-    static class OldSub extends OldBase {}
+    static class OldSub extends OldBase {
+        OldSub returnTypeOverridenMethod() { return null }
+    }
 
     static class NewSuperInternal {}
 
@@ -74,6 +80,7 @@ class MethodsRemovedInInternalSuperClassRuleTest extends AbstractContextAwareRul
 
         then:
         violation.humanExplanation.contains('SuperInternal.publicMethod()')
+        violation.humanExplanation.contains('SuperInternal.returnTypeOverridenMethod()')
         !violation.humanExplanation.contains('SuperInternal.privateMethod()')
     }
 

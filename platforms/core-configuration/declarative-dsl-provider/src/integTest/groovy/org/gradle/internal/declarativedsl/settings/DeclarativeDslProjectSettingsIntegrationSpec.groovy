@@ -19,7 +19,8 @@ package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
 
 class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpec {
 

@@ -24,6 +24,8 @@ import org.gradle.nativeplatform.fixtures.app.Swift4WithSwift3XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift4WithXCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithSwift4XCTest
 import org.gradle.nativeplatform.fixtures.app.Swift5WithXCTest
+import org.gradle.nativeplatform.fixtures.app.Swift6WithSwift5XCTest
+import org.gradle.nativeplatform.fixtures.app.Swift6WithXCTest
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
 
 abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends AbstractXcodeSwiftProjectIntegrationTest {
@@ -40,6 +42,11 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
     @Override
     SwiftSourceElement getSwift5Component() {
         return new Swift5WithXCTest(rootProjectName)
+    }
+
+    @Override
+    SwiftSourceElement getSwift6Component() {
+        return new Swift6WithXCTest(rootProjectName)
     }
 
     @Override
@@ -95,5 +102,6 @@ abstract class AbstractXcodeSwiftWithXCTestProjectIntegrationTest extends Abstra
         new Swift3WithSwift4XCTest(rootProjectName) | SwiftVersion.SWIFT3          | SwiftVersion.SWIFT4
         new Swift4WithSwift3XCTest(rootProjectName) | SwiftVersion.SWIFT4          | SwiftVersion.SWIFT3
         new Swift5WithSwift4XCTest(rootProjectName) | SwiftVersion.SWIFT5          | SwiftVersion.SWIFT4
+        new Swift6WithSwift5XCTest(rootProjectName) | SwiftVersion.SWIFT6          | SwiftVersion.SWIFT5
     }
 }

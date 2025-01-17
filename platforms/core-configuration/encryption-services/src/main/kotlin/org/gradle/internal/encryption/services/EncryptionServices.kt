@@ -16,6 +16,8 @@
 
 package org.gradle.internal.encryption.services
 
+import org.gradle.internal.encryption.EncryptionConfiguration
+import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.encryption.impl.DefaultEncryptionService
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices
@@ -23,6 +25,6 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices
 
 class EncryptionServices : AbstractGradleModuleServices() {
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
-        registration.add(DefaultEncryptionService::class.java)
+        registration.add(EncryptionConfiguration::class.java, EncryptionService::class.java, DefaultEncryptionService::class.java)
     }
 }

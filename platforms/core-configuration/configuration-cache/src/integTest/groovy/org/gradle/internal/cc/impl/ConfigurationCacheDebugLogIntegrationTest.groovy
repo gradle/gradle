@@ -25,6 +25,37 @@ import static org.gradle.internal.cc.impl.fingerprint.ProjectSpecificFingerprint
 
 class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    def "logs oid and hashes"() {
+        given:
+        buildFile """
+            def scriptObject = [foo: "bar"]
+            task ok { Task it ->
+                def oid = Integer.toHexString(System.identityHashCode(scriptObject))
+                def hash = Integer.toHexString(scriptObject.hashCode())
+                doLast {
+                    // reference required so it is actually cached
+                    println scriptObject
+                    println("oid = \$oid")
+                    println("hash = \$hash")
+                    println("ok")
+                }
+            }
+        """
+
+        when:
+        executer.withArgument "-D$ConfigurationCacheDebugOption.PROPERTY_NAME=true"
+
+        and:
+        configurationCacheRun 'ok'
+
+        then: "object identity hashcode and hashcode are logged"
+        def oid = (output =~ /oid = (.*)/)[0][1]
+        def hash = (output =~ /hash = (.*)/)[0][1]
+        def events = collectOutputEvents(true)
+        events.contains([profile: "child ':' state", type: "O", "frame": "java.util.LinkedHashMap", "oid": oid, "hash": hash])
+        events.contains([profile: "child ':' state", type: "C", "frame": "java.util.LinkedHashMap", "oid": oid, "hash": hash])
+    }
+
     def "logs categorized open/close frame events for state and fingerprint files"() {
         given:
         createDirs("sub")
@@ -94,14 +125,16 @@ class ConfigurationCacheDebugLogIntegrationTest extends AbstractConfigurationCac
         DEBUG_LOG_LEVEL,
     }
 
-    private Collection<Map<String, Object>> collectOutputEvents() {
-        def pattern = /\{"profile":"(.*?)","type":"(O|C)","frame":"(.*?)","at":\d+\,"sn":\d+\}/
+    private Collection<Map<String, Object>> collectOutputEvents(boolean includeOidAndHash = false) {
+        def pattern = /\{"profile":"(.*?)","type":"(O|C)","frame":"(.*?)"(?:,"oid":"(.*?)","hash":"(.*?)")?,"at":\d+\,"sn":\d+\}/
         (output =~ pattern)
             .findAll()
             .collect { matchResult ->
                 //noinspection GroovyUnusedAssignment
-                def (ignored, profile, type, frame) = matchResult
-                [profile: profile, type: type, frame: frame]
+                def (ignored, profile, type, frame, oid, hash) = matchResult
+                [profile: profile, type: type, frame: frame] +
+                    (includeOidAndHash && oid && hash ?
+                        [oid: oid, hash: hash] : [:])
             }
     }
 }

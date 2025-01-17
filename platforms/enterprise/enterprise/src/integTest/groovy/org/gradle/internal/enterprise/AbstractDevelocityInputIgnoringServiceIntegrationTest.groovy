@@ -143,7 +143,7 @@ abstract class AbstractDevelocityInputIgnoringServiceIntegrationTest extends Abs
         outputContains("Hello, world")
     }
 
-    def "an execute external process with Gradle API at configuration time"() {
+    def "can execute external process with Gradle API at configuration time"() {
         given:
         ShellScript script = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
 

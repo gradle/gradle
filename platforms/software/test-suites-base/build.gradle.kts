@@ -18,6 +18,8 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(libs.commonsLang3)
+
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))

@@ -37,7 +37,7 @@ class DefaultDependencyLockingHandlerTest extends Specification {
         handler.lockAllConfigurations()
 
         then:
-        1 * container.all(_ as Action) >> { Action action ->
+        1 * container.configureEach(_ as Action) >> { Action action ->
             action.execute(configuration)
         }
 
@@ -57,7 +57,7 @@ class DefaultDependencyLockingHandlerTest extends Specification {
         handler.unlockAllConfigurations()
 
         then:
-        1 * container.all(_ as Action) >> { Action action ->
+        1 * container.configureEach(_ as Action) >> { Action action ->
             action.execute(configuration)
         }
 

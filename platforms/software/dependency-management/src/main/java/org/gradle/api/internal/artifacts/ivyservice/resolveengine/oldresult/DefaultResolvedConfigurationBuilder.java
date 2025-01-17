@@ -16,14 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
-    private final Map<Long, Dependency> modulesMap = new HashMap<>();
+    private final Long2ObjectMap<Dependency> modulesMap = new Long2ObjectOpenHashMap<>();
     private final TransientConfigurationResultsBuilder builder;
 
     public DefaultResolvedConfigurationBuilder(TransientConfigurationResultsBuilder builder) {

@@ -21,6 +21,7 @@ import org.gradle.declarative.dsl.evaluation.EvaluationSchema
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultOperationGenerationId
+import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.schema.DefaultEvaluationSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.DefaultEvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
@@ -37,28 +38,52 @@ import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import kotlin.reflect.KClass
 
 
-internal
-interface EvaluationSchemaBuilder {
+internal interface EvaluationSchemaBuilder {
     fun registerAnalysisSchemaComponent(analysisSchemaComponent: AnalysisSchemaComponent)
+}
+
+internal interface EvaluationSchemaBuilderResult {
     val typeDiscoveries: List<TypeDiscovery>
     val propertyExtractors: List<PropertyExtractor>
     val functionExtractors: List<FunctionExtractor>
 }
 
+internal interface ConversionSchemaBuilder : EvaluationSchemaBuilder {
+    fun registerObjectConversionComponent(component: ObjectConversionComponent)
+    fun <T> registerObjectConversionComponent(mapper: ScriptTargetMapper<T>, componentFactory: (T) -> ObjectConversionComponent)
+}
 
-internal
-fun EvaluationSchemaBuilder.ifConversionSupported(thenConfigure: EvaluationAndConversionSchemaBuilder.() -> Unit) {
-    if (this@ifConversionSupported is EvaluationAndConversionSchemaBuilder)
-        thenConfigure()
+internal interface ConversionSchemaBuilderResult {
+    val conversionComponentFactories: List<(scriptTarget: Any) -> ObjectConversionComponent?>
 }
 
 
+internal fun <T> EvaluationSchemaBuilder.ifConversionSupported(mapper: ScriptTargetMapper<T>, thenConfigure: TypedConversionSchemaBuilderScope<T>.() -> Unit) {
+    if (this@ifConversionSupported is ConversionSchemaBuilder) {
+        val typedProjectionOfThisBuilder = object : TypedConversionSchemaBuilderScope<T>, ConversionSchemaBuilder by this {
+            override fun registerObjectConversionComponent(factory: (T) -> ObjectConversionComponent) {
+                registerObjectConversionComponent(mapper, factory)
+            }
+        }
+
+        thenConfigure(typedProjectionOfThisBuilder)
+    }
+}
+
 internal
-interface EvaluationAndConversionSchemaBuilder : EvaluationSchemaBuilder {
-    fun registerObjectConversionComponent(objectConversionComponent: ObjectConversionComponent)
-    val runtimePropertyResolvers: List<RuntimePropertyResolver>
-    val runtimeFunctionResolvers: List<RuntimeFunctionResolver>
-    val runtimeCustomAccessors: List<RuntimeCustomAccessors>
+fun EvaluationSchemaBuilder.ifConversionSupported(thenConfigure: ConversionSchemaBuilder.() -> Unit) {
+    if (this@ifConversionSupported is ConversionSchemaBuilder) {
+        thenConfigure(this)
+    }
+}
+
+fun interface ScriptTargetMapper<T> {
+    fun getTargetForConversion(scriptTarget: Any): T?
+}
+
+internal
+interface TypedConversionSchemaBuilderScope<T> : EvaluationSchemaBuilder {
+    fun registerObjectConversionComponent(factory: (T) -> ObjectConversionComponent)
 }
 
 
@@ -80,17 +105,26 @@ fun buildEvaluationAndConversionSchema(
     topLevelReceiverType: KClass<*>,
     analysisStatementFilter: AnalysisStatementFilter,
     operationGenerationId: OperationGenerationId = DefaultOperationGenerationId.finalEvaluation,
-    schemaComponents: EvaluationAndConversionSchemaBuilder.() -> Unit
+    schemaComponents: EvaluationSchemaBuilder.() -> Unit,
 ): EvaluationAndConversionSchema {
     val builder = DefaultEvaluationAndConversionSchemaBuilder().apply(schemaComponents)
     val analysisSchema = analysisSchema(topLevelReceiverType, builder)
+
     return DefaultEvaluationAndConversionSchema(
         analysisSchema,
         analysisStatementFilter,
         operationGenerationId,
-        runtimePropertyResolvers = builder.runtimePropertyResolvers,
-        runtimeFunctionResolvers = builder.runtimeFunctionResolvers,
-        runtimeCustomAccessors = builder.runtimeCustomAccessors
+        builder.conversionComponentFactories.map { fn ->
+            return@map { scriptTarget ->
+                val resultComponent = fn(scriptTarget)
+                // Re-wrap the services into the "public" schema type
+                object : ConversionSchema {
+                    override val runtimePropertyResolvers: List<RuntimePropertyResolver> = resultComponent?.runtimePropertyResolvers().orEmpty()
+                    override val runtimeFunctionResolvers: List<RuntimeFunctionResolver> = resultComponent?.runtimeFunctionResolvers().orEmpty()
+                    override val runtimeCustomAccessors: List<RuntimeCustomAccessors> = resultComponent?.runtimeCustomAccessors().orEmpty()
+                }
+            }
+        }
     )
 }
 
@@ -105,7 +139,6 @@ interface AnalysisSchemaComponent {
     fun functionExtractors(): List<FunctionExtractor> = listOf()
 }
 
-
 /**
  * Provides grouping capabilities for features used in DCL-to-JVM object conversion.
  */
@@ -116,11 +149,10 @@ interface ObjectConversionComponent {
     fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf()
 }
 
-
 private
 fun analysisSchema(
     topLevelReceiverType: KClass<*>,
-    builder: EvaluationSchemaBuilder
+    builder: EvaluationSchemaBuilderResult
 ): AnalysisSchema {
     val analysisSchema = schemaFromTypes(
         topLevelReceiverType,
@@ -134,10 +166,14 @@ fun analysisSchema(
 }
 
 
-private
-open class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder {
+internal
+open class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder, EvaluationSchemaBuilderResult {
     private
     val analysisSchemaComponents = mutableListOf<AnalysisSchemaComponent>()
+
+    override fun registerAnalysisSchemaComponent(analysisSchemaComponent: AnalysisSchemaComponent) {
+        analysisSchemaComponents += analysisSchemaComponent
+    }
 
     override val typeDiscoveries: List<TypeDiscovery>
         get() = analysisSchemaComponents.flatMap { it.typeDiscovery() }
@@ -147,29 +183,21 @@ open class DefaultEvaluationSchemaBuilder : EvaluationSchemaBuilder {
 
     override val functionExtractors: List<FunctionExtractor>
         get() = analysisSchemaComponents.flatMap { it.functionExtractors() }
-
-    override fun registerAnalysisSchemaComponent(analysisSchemaComponent: AnalysisSchemaComponent) {
-        analysisSchemaComponents += analysisSchemaComponent
-    }
 }
 
 
-private
-open class DefaultEvaluationAndConversionSchemaBuilder : DefaultEvaluationSchemaBuilder(), EvaluationAndConversionSchemaBuilder {
-    private
-    val objectConversionComponents = mutableListOf<ObjectConversionComponent>()
+internal class DefaultEvaluationAndConversionSchemaBuilder : DefaultEvaluationSchemaBuilder(), ConversionSchemaBuilder, ConversionSchemaBuilderResult {
 
-    override val runtimePropertyResolvers: List<RuntimePropertyResolver>
-        get() = objectConversionComponents.flatMap { it.runtimePropertyResolvers() }
+    private val mutableConversionComponents = mutableListOf<(scriptTarget: Any) -> ObjectConversionComponent?>()
 
-    override val runtimeFunctionResolvers: List<RuntimeFunctionResolver>
-        get() = objectConversionComponents.flatMap { it.runtimeFunctionResolvers() }
-
-    override val runtimeCustomAccessors: List<RuntimeCustomAccessors>
-        get() = objectConversionComponents.flatMap { it.runtimeCustomAccessors() }
-
-
-    override fun registerObjectConversionComponent(objectConversionComponent: ObjectConversionComponent) {
-        objectConversionComponents += objectConversionComponent
+    override fun registerObjectConversionComponent(component: ObjectConversionComponent) {
+        mutableConversionComponents.add { component }
     }
+
+    override fun <T> registerObjectConversionComponent(mapper: ScriptTargetMapper<T>, componentFactory: (T) -> ObjectConversionComponent) {
+        mutableConversionComponents.add { scriptTarget -> mapper.getTargetForConversion(scriptTarget)?.let(componentFactory) }
+    }
+
+    override val conversionComponentFactories: List<(scriptTarget: Any) -> ObjectConversionComponent?>
+        get() = mutableConversionComponents
 }

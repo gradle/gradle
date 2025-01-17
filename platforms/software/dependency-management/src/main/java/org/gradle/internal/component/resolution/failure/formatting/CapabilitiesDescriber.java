@@ -51,4 +51,5 @@ public final class CapabilitiesDescriber {
         }
         return '\'' + c.getGroup() + ":" + c.getName() + '\'';
     }
+
 }

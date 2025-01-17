@@ -25,8 +25,8 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
+import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.internal.DefaultProblemDefinition;
-import org.gradle.api.problems.internal.ProblemDefinition;
 
 import javax.annotation.Nullable;
 import java.io.IOException;

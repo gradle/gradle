@@ -31,13 +31,12 @@ import static org.gradle.internal.FileUtils.withExtension;
 
 @SuppressWarnings("ClassInitializationDeadlock")
 public abstract class OperatingSystem {
-    public static final OperatingSystem WINDOWS = new Windows();
-    public static final OperatingSystem MAC_OS = new MacOs();
-    public static final OperatingSystem SOLARIS = new Solaris();
-    public static final OperatingSystem LINUX = new Linux();
-    public static final OperatingSystem FREE_BSD = new FreeBSD();
-    public static final OperatingSystem UNIX = new Unix();
-    public static final OperatingSystem AIX = new Aix();
+    public static final Windows WINDOWS = new Windows();
+    public static final MacOs MAC_OS = new MacOs();
+    public static final Solaris SOLARIS = new Solaris();
+    public static final Linux LINUX = new Linux();
+    public static final FreeBSD FREE_BSD = new FreeBSD();
+    public static final Unix UNIX = new Unix();
     private static OperatingSystem currentOs;
     private final String toStringValue;
     private final String osName;
@@ -73,8 +72,6 @@ public abstract class OperatingSystem {
             return LINUX;
         } else if (osName.contains("freebsd")) {
             return FREE_BSD;
-        } else if (osName.contains("aix")) {
-            return AIX;
         } else {
             // Not strictly true
             return UNIX;
@@ -187,7 +184,7 @@ public abstract class OperatingSystem {
         return "PATH";
     }
 
-    private static class Windows extends OperatingSystem {
+    static class Windows extends OperatingSystem {
         private final String nativePrefix;
 
         Windows() {
@@ -268,7 +265,7 @@ public abstract class OperatingSystem {
         }
     }
 
-    private static class Unix extends OperatingSystem {
+    static class Unix extends OperatingSystem {
         private final String nativePrefix;
 
         Unix() {
@@ -378,7 +375,7 @@ public abstract class OperatingSystem {
         }
     }
 
-    private static class MacOs extends Unix {
+    static class MacOs extends Unix {
         @Override
         public boolean isMacOsX() {
             return true;
@@ -400,7 +397,7 @@ public abstract class OperatingSystem {
         }
     }
 
-    private static class Linux extends Unix {
+    static class Linux extends Unix {
         @Override
         public boolean isLinux() {
             return true;
@@ -412,10 +409,10 @@ public abstract class OperatingSystem {
         }
     }
 
-    private static class FreeBSD extends Unix {
+    static class FreeBSD extends Unix {
     }
 
-    private static class Solaris extends Unix {
+    static class Solaris extends Unix {
         @Override
         public String getFamilyName() {
             return "solaris";
@@ -435,17 +432,4 @@ public abstract class OperatingSystem {
             return super.getArch();
         }
     }
-
-    private static class Aix extends Unix {
-        @Override
-        public String getFamilyName() {
-            return "aix";
-        }
-
-        @Override
-        protected String getOsPrefix() {
-            return "aix";
-        }
-    }
-
 }

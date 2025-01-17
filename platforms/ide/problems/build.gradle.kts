@@ -65,6 +65,8 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.messaging)
 
+    implementation(libs.guava)
+
     testImplementation(projects.stdlibKotlinExtensions)
 
     testImplementation(libs.junit)

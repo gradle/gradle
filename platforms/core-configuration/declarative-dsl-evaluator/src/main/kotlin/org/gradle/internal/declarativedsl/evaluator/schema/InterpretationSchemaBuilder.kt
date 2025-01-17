@@ -17,8 +17,11 @@
 package org.gradle.internal.declarativedsl.evaluator.schema
 
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.Build::class)
 interface InterpretationSchemaBuilder {
     fun getEvaluationSchemaForScript(
         scriptContext: DeclarativeScriptContext,
@@ -33,9 +36,9 @@ sealed interface InterpretationSchemaBuildingResult {
 
 
 sealed interface DeclarativeScriptContext {
-    interface SettingsScript : DeclarativeScriptContext
+    data object SettingsScript : DeclarativeScriptContext
 
-    object ProjectScript : DeclarativeScriptContext
+    data object ProjectScript : DeclarativeScriptContext
 
-    object UnknownScript : DeclarativeScriptContext
+    data object UnknownScript : DeclarativeScriptContext
 }

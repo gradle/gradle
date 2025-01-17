@@ -14,9 +14,9 @@ import org.gradle.internal.declarativedsl.language.Import
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
 import org.gradle.internal.declarativedsl.language.Syntactic
@@ -26,9 +26,11 @@ import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.AnnotationUsage
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.Indexing
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.UnsupportedAssignmentLeftHandSide
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.LocalVarNotSupported
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.ThisWithLabelQualifier
 import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.UnsignedType
+import org.gradle.internal.declarativedsl.language.UnsupportedLanguageFeature.InvalidImportValue
 import org.gradle.internal.declarativedsl.parsing.FailureCollectorContext.CheckedResult
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
 import org.jetbrains.kotlin.ElementTypeUtils.isExpression
@@ -197,7 +199,10 @@ class GrammarToTree(
                 var content: CheckedResult<ElementResult<NamedReference>>? = null
                 children.forEach {
                     when (it.tokenType) {
-                        DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(propertyAccessStatement(tree, it))
+                        DOT_QUALIFIED_EXPRESSION, REFERENCE_EXPRESSION -> content = checkForFailure(
+                            propertyAccessStatement(tree, it)
+                                .flatMap { e -> if (e is NamedReference) Element(e) else tree.unsupported(node, InvalidImportValue) }
+                        )
                         MUL -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.StarImport))
                         IMPORT_ALIAS -> collectingFailure(tree.unsupportedNoOffset(node, it, UnsupportedLanguageFeature.RenamingImport))
                     }
@@ -267,12 +272,12 @@ class GrammarToTree(
 
     @Suppress("UNCHECKED_CAST")
     private
-    fun propertyAccessStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<NamedReference> =
+    fun propertyAccessStatement(tree: CachingLightTree, node: LighterASTNode): ElementResult<Expr> =
         when (val tokenType = node.tokenType) {
             ANNOTATED_EXPRESSION -> tree.unsupported(node, AnnotationUsage)
-            BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<NamedReference>
+            BINARY_EXPRESSION -> binaryStatement(tree, node) as ElementResult<Expr>
             REFERENCE_EXPRESSION -> propertyAccess(tree, node, null, referenceExpression(node).value, tree.sourceData(node))
-            in QUALIFIED_ACCESS -> qualifiedExpression(tree, node) as ElementResult<NamedReference>
+            in QUALIFIED_ACCESS -> qualifiedExpression(tree, node)
             ARRAY_ACCESS_EXPRESSION -> tree.unsupported(node, Indexing)
             else -> tree.parsingError(node, "Parsing failure, unexpected tokenType in property access statement: $tokenType")
         }
@@ -458,14 +463,14 @@ class GrammarToTree(
                             VALUE_ARGUMENT_LIST, LAMBDA_ARGUMENT -> {
                                 valueArguments += node
                             }
-                            else -> tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType")
+                            else -> collectingFailure(tree.parsingError(node, "Parsing failure, unexpected token type in call expression: $tokenType"))
                         }
                     }
 
                     process(child)
                 }
 
-                if (name == null) tree.parsingError(node, "Name missing from function call!")
+                if (name == null) collectingFailure(tree.parsingError(node, "Name missing from function call!"))
 
                 val arguments = valueArguments.flatMap { valueArguments(tree, it) }.map { checkForFailure(it) }
                 elementIfNoFailures {
@@ -564,7 +569,7 @@ class GrammarToTree(
                         CALL_EXPRESSION -> expression = checkForFailure(callExpression(tree, it))
                         else ->
                             if (it.isExpression()) expression = checkForFailure(expression(tree, it))
-                            else tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType")
+                            else collectingFailure(tree.parsingError(it, "Parsing failure, unexpected token type in value argument: $tokenType"))
                     }
                 }
 
@@ -670,7 +675,10 @@ class GrammarToTree(
                         val operationToken = operation!!.asText.getOperationSymbol()
                         when (operationToken) {
                             EQ -> {
-                                val lhs = checkForFailure(propertyAccessStatement(tree, leftArg!!))
+                                val lhs = checkForFailure(
+                                    propertyAccessStatement(tree, leftArg!!)
+                                        .flatMap { if (it is NamedReference) Element(it) else tree.unsupported(node, UnsupportedAssignmentLeftHandSide) }
+                                )
                                 val expr = checkForFailure(expression(tree, rightArg!!))
                                 elementIfNoFailures {
                                     Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))

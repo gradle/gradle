@@ -87,7 +87,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
         def buildSrc = file("buildSrc/build.gradle")
         buildSrc << """
             repositories {
-                maven { url '$mavenRepo.uri' }
+                maven { url = '$mavenRepo.uri' }
             }
 
             dependencies {

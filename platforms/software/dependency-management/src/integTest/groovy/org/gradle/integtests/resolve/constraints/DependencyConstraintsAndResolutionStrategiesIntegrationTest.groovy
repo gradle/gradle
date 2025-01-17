@@ -38,7 +38,7 @@ class DependencyConstraintsAndResolutionStrategiesIntegrationTest extends Abstra
         resolve.addDefaultVariantDerivationStrategy()
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 conf

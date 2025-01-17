@@ -48,7 +48,7 @@ class IvyS3RepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveIntegr
         buildFile << """
             repositories {
                 ivy {
-                    url "${remoteIvyRepo.uri}"
+                    url = "${remoteIvyRepo.uri}"
                     authentication {
                         auth(BasicAuthentication)
                     }

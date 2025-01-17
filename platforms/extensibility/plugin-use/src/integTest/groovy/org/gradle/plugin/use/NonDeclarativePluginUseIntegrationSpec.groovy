@@ -133,7 +133,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
                 classpath "$GROUP:${ARTIFACT + 2}:$VERSION"
               }
               repositories {
-                maven { url "$pluginRepo.uri" }
+                maven { url = "$pluginRepo.uri" }
               }
             }
             $USE
@@ -177,7 +177,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         buildFile """
             buildscript {
                 repositories {
-                    maven { url "$pluginRepo.uri" }
+                    maven { url = "$pluginRepo.uri" }
                 }
                 dependencies {
                     classpath "test:test:1"

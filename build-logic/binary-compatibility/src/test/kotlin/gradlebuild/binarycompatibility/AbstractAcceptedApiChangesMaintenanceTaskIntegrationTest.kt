@@ -126,7 +126,7 @@ abstract class AbstractAcceptedApiChangesMaintenanceTaskIntegrationTest {
             .buildAndFail()
 
         val files = listOf(firstAcceptedApiChangesFile, secondAcceptedApiChangesFile)
-        val cleanupHint = "To automatically alphabetize these changes run: 'gradlew :architecture-test:sortAcceptedApiChanges'"
+        val cleanupHint = "To automatically alphabetize these changes run: './gradlew :architecture-test:sortAcceptedApiChanges'"
         with(standardError) {
             files.forEach {
                 assertContains("API changes in file '${it.name}' should be in alphabetical order (by type and member), yet these changes were not:\n")

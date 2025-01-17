@@ -41,6 +41,7 @@ public interface BuildTaskSelector {
     /**
      * A selector that is contextualized to select tasks relative to some build.
      */
+    @ServiceScope(Scope.Build.class)
     interface BuildSpecificSelector {
         TaskSelection resolveTaskName(String taskName);
     }

@@ -16,8 +16,8 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -336,7 +336,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -369,7 +369,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -457,7 +457,7 @@ subprojects {
 
 project(':impl') {
     repositories {
-        maven { url "${repoDir.toURI()}" }
+        maven { url = "${repoDir.toURI()}" }
     }
 
     dependencies {
@@ -492,7 +492,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 dependencies {
@@ -523,7 +523,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 configurations {
@@ -561,7 +561,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 configurations {
@@ -600,7 +600,7 @@ idea {
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${repoDir.toURI()}" }
+    maven { url = "${repoDir.toURI()}" }
 }
 
 configurations {
@@ -630,7 +630,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 configurations {
@@ -674,7 +674,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 
 dependencies {
@@ -707,7 +707,7 @@ dependencies {
             apply plugin: 'idea'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -737,7 +737,7 @@ dependencies {
             apply plugin: 'idea'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -767,7 +767,7 @@ dependencies {
             apply plugin: 'idea'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -797,7 +797,7 @@ dependencies {
             apply plugin: 'idea'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -825,7 +825,7 @@ dependencies {
             apply plugin: 'idea'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {
@@ -851,7 +851,7 @@ dependencies {
             apply plugin: 'idea'
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             dependencies {

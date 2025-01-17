@@ -46,13 +46,14 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
     }
 
     private String buildFailureMsg(AmbiguousArtifactTransformsFailure failure) {
-        TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Found multiple transforms that can produce a variant of " + failure.describeRequestTarget() + " with requested attributes");
+        TreeFormatter formatter = new TreeFormatter(true);
+
+        formatter.node("Found multiple transformation chains that produce a variant of '" + failure.describeRequestTarget() + "' with requested attributes");
         formatSortedAttributes(formatter, failure.getRequestedAttributes());
-        formatter.node("Found the following transforms");
+        formatter.node("Found the following transformation chains");
 
         Comparator<TransformationChainData> variantDataComparator =
-            Comparator.comparing(TransformationChainData::describeTransformations)
+            Comparator.comparing(TransformationChainData::summarizeTransformations)
                 .thenComparing(x -> x.getFinalAttributes().toString());
 
         Map<SourceVariantData, List<TransformationChainData>> transformationPaths = failure.getPotentialVariants().stream()
@@ -64,24 +65,36 @@ public abstract class AmbiguousArtifactTransformsFailureDescriber extends Abstra
         formatter.startChildren();
         transformationPaths.forEach((root, transformations) -> {
             formatSourceVariant(root, formatter);
+
+            formatter.node("Candidate transformation chains");
+            formatter.startChildren();
             transformations.forEach(transformationChainData -> {
-                formatter.node("Transform '" + transformationChainData.describeTransformations() + "' producing attributes:");
-                formatSortedAttributes(formatter, transformationChainData.getFinalAttributes());
+                formatter.node("Transformation chain: " + transformationChainData.summarizeTransformations());
+                formatter.startChildren();
+                transformationChainData.getSteps().forEach(step -> {
+                    formatter.node("'" + step.getTransformName() + "'");
+                    formatter.startChildren();
+                    formatter.node("Converts from attributes");
+                    formatSortedAttributes(formatter, step.getFromAttributes());
+                    formatter.node("To attributes");
+                    formatSortedAttributes(formatter, step.getToAttributes());
+                    formatter.endChildren();
+                });
+                formatter.endChildren();
             });
             formatter.endChildren();
-            formatter.endChildren();
+            formatter.endChildren(); // End formatSourceVariant children
         });
         formatter.endChildren();
+
         return formatter.toString();
     }
 
     private void formatSourceVariant(SourceVariantData sourceVariantData, TreeFormatter formatter) {
-        formatter.node("From '" + sourceVariantData.getVariantName() + "'");
+        formatter.node("From " + sourceVariantData.getFormattedVariantName());
         formatter.startChildren();
         formatter.node("With source attributes");
         formatSortedAttributes(formatter, sourceVariantData.getAttributes());
-        formatter.node("Candidate transform(s)");
-        formatter.startChildren();
     }
 
     private void formatSortedAttributes(TreeFormatter formatter, AttributeContainer attributes) {

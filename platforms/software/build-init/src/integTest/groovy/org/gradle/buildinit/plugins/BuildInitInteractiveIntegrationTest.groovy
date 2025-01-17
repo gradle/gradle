@@ -18,39 +18,12 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
-class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
-    def buildTypePrompt = "Select type of build to generate:"
-    def dslPrompt = "Select build script DSL:"
-    def incubatingPrompt = "Generate build using new APIs and behavior (some features may change in the next minor release)?"
-    def basicType = "4: Basic (build structure only)"
-    def basicTypeOption = 4
-    def applicationOption = 1
-    def defaultProjectName = "some-thing"
-    def defaultFileName = "some-file"
-    def projectNamePrompt = "Project name (default: $defaultProjectName)"
-    def convertMavenBuildPrompt = "Found a Maven build. Generate a Gradle build from this?"
-    def overwriteFilesPrompt = "Found existing files in the project directory: '${testDirectory.file(defaultProjectName)}'." + System.lineSeparator() + "Directory will be modified and existing files may be overwritten.  Continue? (default: no)"
-    def javaOption = 1
-    def languageSelectionOptions = [
-        "Select implementation language:",
-        "1: Java",
-        "2: Kotlin",
-        "3: Groovy",
-        "4: Scala",
-        "5: C++",
-        "6: Swift"
-    ]
-
-    @Override
-    String subprojectName() { 'app' }
-
+class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegrationSpec {
     def "prompts user when run from an interactive session"() {
         when:
         def handle = startInteractiveExecutorWithTasks("init")
@@ -500,32 +473,5 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
 
         then:
         ScriptDslFixture.of(BuildInitDsl.KOTLIN, targetDir, null).assertGradleFilesGenerated("app")
-    }
-
-    private GradleHandle startInteractiveExecutorWithTasks(String... names) {
-        executer.withForceInteractive(true)
-        executer.withStdinPipe()
-        executer.withTasks(names)
-        executer.start()
-    }
-
-    private static ExecutionResult closeInteractiveExecutor(GradleHandle handle) {
-        handle.stdinPipe.close()
-        handle.waitForFinish()
-    }
-
-    private void assertPromptedToOverwriteExistingFiles(GradleHandle handle) {
-        assert handle.standardOutput.contains(overwriteFilesPrompt)
-    }
-
-    private void assertBuildAborted(GradleHandle handle) {
-        assert handle.errorOutput.contains("Aborting build initialization due to existing files in the project directory: '${testDirectory.file(defaultProjectName)}'.")
-    }
-
-    private void assertSuggestedResolutionsToExistingFilesProblem(GradleHandle handle) {
-        handle.errorOutput.with {
-            assert it.contains("Remove any existing files in the project directory and run the init task again.")
-            assert it.contains("Enable the --overwrite option to allow existing files to be overwritten.")
-        }
     }
 }

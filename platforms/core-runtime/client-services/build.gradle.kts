@@ -45,18 +45,21 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.baseAsm)
+    implementation(projects.fileTemp)
     implementation(projects.serviceRegistryBuilder)
-    implementation(libs.guava)
-    implementation(libs.asm)
-    implementation(libs.slf4jApi)
     implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.fileOperations)
+    implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
     implementation(projects.time)
     implementation(projects.toolchainsJvmShared)
     implementation(projects.io)
+
+    implementation(libs.guava)
+    implementation(libs.asm)
+    implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core)) {
         because("ConcurrentSpecification")

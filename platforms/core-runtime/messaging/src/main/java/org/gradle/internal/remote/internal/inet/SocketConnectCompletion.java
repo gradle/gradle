@@ -16,10 +16,10 @@
 
 package org.gradle.internal.remote.internal.inet;
 
+import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.KryoBackedMessageSerializer;
 import org.gradle.internal.remote.internal.RemoteConnection;
 import org.gradle.internal.serialize.StatefulSerializer;
-import org.gradle.internal.remote.internal.ConnectCompletion;
 
 import java.nio.channels.SocketChannel;
 

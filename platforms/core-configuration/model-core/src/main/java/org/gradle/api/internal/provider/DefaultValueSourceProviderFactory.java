@@ -17,9 +17,12 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
+import org.gradle.api.internal.provider.ValueSupplier.Value;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
@@ -27,6 +30,7 @@ import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -256,7 +260,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         public ExecutionTimeValue<T> calculateExecutionTimeValue() {
             if (value.hasBeenObtained()) {
-                return ExecutionTimeValue.ofNullable(value.obtain().get());
+                return value.obtain().asExecutionTimeValue();
             } else {
                 return ExecutionTimeValue.changingValue(this);
             }
@@ -264,7 +268,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            return Value.ofNullable(value.obtain().get());
+            return value.obtain().asNullableValue();
         }
     }
 
@@ -309,7 +313,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return value.isFinalized();
         }
 
-        public Try<@org.jetbrains.annotations.Nullable T> obtain() {
+        public ObtainedValueHolder<T> obtain() {
             final @Nullable ValueSource<T, P> obtainedFrom;
             try {
                 value.finalizeIfNotAlready();
@@ -322,8 +326,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             if (obtainedFrom != null) {
                 // We are the first thread to see the obtained value. Let's tell the interested parties about it.
                 valueBroadcaster.getSource().valueObtained(obtainedValue(obtained), obtainedFrom);
+                DisplayName displayName = null;
+                if (obtainedFrom instanceof Describable) {
+                    displayName = Describables.of(((Describable) obtainedFrom).getDisplayName());
+                }
+                return new ObtainedValueHolder<>(obtained, displayName);
             }
-            return obtained;
+            return new ObtainedValueHolder<>(obtained);
         }
 
         @Nonnull
@@ -343,6 +352,29 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                 parametersType,
                 parameters
             );
+        }
+    }
+
+    private static class ObtainedValueHolder<T> {
+        private final Try<T> obtained;
+        @Nullable
+        private final DisplayName displayName;
+
+        private ObtainedValueHolder(Try<T> obtained, @Nullable DisplayName displayName) {
+            this.obtained = obtained;
+            this.displayName = displayName;
+        }
+
+        public ObtainedValueHolder(Try<T> obtained) {
+            this(obtained, null);
+        }
+
+        public Value<T> asNullableValue() {
+            return Value.ofNullable(obtained.get()).pushWhenMissing(displayName);
+        }
+
+        public ExecutionTimeValue<T> asExecutionTimeValue() {
+            return ExecutionTimeValue.ofNullable(obtained.get());
         }
     }
 

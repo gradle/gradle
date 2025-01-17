@@ -135,10 +135,11 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
             .filter { onlyNativeSubprojectsForIntelMacs(testCoverage, it.subProject.name) }
 
         return parallelize(subProjectTestClassTimes, testCoverage) { numberOfBatches ->
-            if (testCoverage.os == Os.LINUX)
-                ParallelizationMethod.TestDistribution
-            else
-                ParallelizationMethod.TeamCityParallelTests(numberOfBatches)
+            when (testCoverage.os) {
+                Os.LINUX -> ParallelizationMethod.TestDistribution
+                Os.ALPINE -> ParallelizationMethod.TestDistributionAlpine
+                else -> ParallelizationMethod.TeamCityParallelTests(numberOfBatches)
+            }
         }
     }
 

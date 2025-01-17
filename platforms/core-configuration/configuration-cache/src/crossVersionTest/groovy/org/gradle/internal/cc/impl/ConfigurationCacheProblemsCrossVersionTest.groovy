@@ -28,7 +28,7 @@ import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.GeneralData
 
-@ToolingApiVersion(">=8.10")
+@ToolingApiVersion(">=8.10 <8.12")
 @TargetGradleVersion(">=8.10")
 class ConfigurationCacheProblemsCrossVersionTest extends ToolingApiSpecification {
 

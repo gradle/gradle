@@ -4,6 +4,6 @@ plugins {
 
 // tag::custom-repo[]
 repositories {
-    ivy { url rootProject.layout.projectDirectory.dir("repo") }
+    ivy { url = rootProject.layout.projectDirectory.dir("repo") }
 }
 // tag::custom-repo[]

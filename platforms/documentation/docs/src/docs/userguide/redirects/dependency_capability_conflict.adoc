@@ -1,0 +1,22 @@
+++++
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+  "sub:capabilities": "component_capabilities.html#capabilities",
+  "sub:declaring-component-capabilities": "component_capabilities.html#sec:declaring-component-capabilities",
+  "sub:selecting-between-candidates": "component_capabilities.html#sec:selecting-between-candidates",
+  "sub:selecting-preferred-capability-provider": "component_capabilities.html#sec:selecting-preferred-capability-provider"
+};
+
+const defaultRedirect = "component_capabilities.html";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
+++++

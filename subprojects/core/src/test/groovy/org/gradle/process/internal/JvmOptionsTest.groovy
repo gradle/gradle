@@ -20,6 +20,7 @@ package org.gradle.process.internal
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.process.JavaDebugOptions
 import org.gradle.process.JavaForkOptions
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.nio.charset.Charset
@@ -142,15 +143,15 @@ class JvmOptionsTest extends Specification {
         1 * target.systemProperties({
             it == new TreeMap(["file.encoding": "UTF-16"] + localeProperties())
         })
-        1 * target.getDebugOptions() >> new DefaultJavaDebugOptions()
+        1 * target.getDebugOptions() >> TestUtil.newInstance(DefaultJavaDebugOptions)
     }
 
     def "copyTo copies debugOptions"() {
-        JavaDebugOptions debugOptions = new DefaultJavaDebugOptions();
+        JavaDebugOptions debugOptions = TestUtil.newInstance(DefaultJavaDebugOptions);
         JavaForkOptions target = Mock(JavaForkOptions) { it.debugOptions >> debugOptions }
         JvmOptions source = parse("-Dx=y")
-        source.debugOptions.host.set("*")
-        source.debugOptions.port.set(1234)
+        source.debugSpec.host = "*"
+        source.debugSpec.port = 1234
 
         when:
         source.copyTo(target)
@@ -238,9 +239,9 @@ class JvmOptionsTest extends Specification {
 
         when:
         opts.debug = true
-        opts.debugOptions.port.set(port)
-        opts.debugOptions.server.set(server)
-        opts.debugOptions.suspend.set(suspend)
+        opts.debugSpec.port = port
+        opts.debugSpec.server = server
+        opts.debugSpec.suspend = suspend
 
         then:
         opts.allJvmArgs.findAll { it.contains 'jdwp' } == [expected]

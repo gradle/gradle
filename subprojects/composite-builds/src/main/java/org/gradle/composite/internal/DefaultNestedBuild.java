@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.initialization.IncludedBuildSpec;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -32,6 +31,7 @@ import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor;
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkExecutor;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.util.Path;
 

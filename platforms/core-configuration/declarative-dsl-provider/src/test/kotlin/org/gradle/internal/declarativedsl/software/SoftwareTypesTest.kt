@@ -50,12 +50,12 @@ class SoftwareTypesTest {
 
         val schemaForSettings = buildEvaluationSchema(TopLevel::class, analyzeEverything) {
             gradleDslGeneralSchema()
-            softwareTypesConventions(TopLevel::class, registryMock)
+            softwareTypesDefaultsComponent(TopLevel::class, registryMock)
         }
 
         val schemaForProject = buildEvaluationAndConversionSchema(TopLevel::class, analyzeEverything) {
             gradleDslGeneralSchema()
-            softwareTypesWithPluginApplication(TopLevel::class, registryMock)
+            softwareTypesComponent(TopLevel::class, registryMock, withDefaultsApplication = false)
         }
 
         listOf(schemaForSettings, schemaForProject).forEach { schema ->

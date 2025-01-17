@@ -132,6 +132,20 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 }
             }
         """
+        // Just make sure that the groovy interceptors are generated
+        def groovyInterceptorClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesGroovyInterceptors_TestProject {
+                @Generated
+                public static class IsIncrementalCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public IsIncrementalCallInterceptor() {
+                        super(InterceptScope.readsOfPropertiesNamed("incremental"), InterceptScope.methodsNamed("isIncremental"));
+                    }
+                }
+            }
+        """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
@@ -139,6 +153,9 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         assertThat(compilation)
             .generatedSourceFile(fqName(adapterClass))
             .containsElementsIn(adapterClass)
+        assertThat(compilation)
+            .generatedSourceFile(fqName(groovyInterceptorClass))
+            .containsElementsIn(groovyInterceptorClass)
     }
 
     def "should auto generate adapter for upgraded property with type #upgradedType"() {
@@ -363,6 +380,7 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
             public abstract class Task {
                 @ReplacesEagerProperty(replacedAccessors = {
                     @ReplacedAccessor(value = AccessorType.GETTER, name = "getDestinationDir"),
+                    @ReplacedAccessor(value = AccessorType.GETTER, name = "addDestinationDir"),
                     @ReplacedAccessor(value = AccessorType.SETTER, name = "setDestinationDir"),
                     @ReplacedAccessor(value = AccessorType.SETTER, name = "destinationDir", originalType = File.class)
                 })
@@ -387,6 +405,10 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_getDestinationDir", "(Lorg/gradle/test/Task;)Ljava/io/File;");
                             return true;
                         }
+                        if (name.equals("addDestinationDir") && descriptor.equals("()Ljava/io/File;") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
+                            mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_get_addDestinationDir", "(Lorg/gradle/test/Task;)Ljava/io/File;");
+                            return true;
+                        }
                         if (name.equals("setDestinationDir") && descriptor.equals("(Ljava/io/File;)V") && (opcode == Opcodes.INVOKEVIRTUAL || opcode == Opcodes.INVOKEINTERFACE)) {
                             mv._INVOKESTATIC(TASK__ADAPTER_TYPE, "access_set_setDestinationDir", "(Lorg/gradle/test/Task;Ljava/io/File;)V");
                             return true;
@@ -400,9 +422,43 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
                 }
             }
         """
+        // Just make sure that the groovy interceptors are generated
+        def groovyInterceptorClass = source """
+            package $GENERATED_CLASSES_PACKAGE_NAME;
+            @Generated
+            public class InterceptorDeclaration_PropertyUpgradesGroovyInterceptors_TestProject {
+                @Generated
+                public static class GetDestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public GetDestinationDirCallInterceptor() {
+                        super(InterceptScope.readsOfPropertiesNamed("destinationDir"), InterceptScope.methodsNamed("getDestinationDir"));
+                    }
+                }
+                @Generated
+                public static class SetDestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor, PropertyAwareCallInterceptor {
+                    public SetDestinationDirCallInterceptor() {
+                        super(InterceptScope.writesOfPropertiesNamed("destinationDir"), InterceptScope.methodsNamed("setDestinationDir"));
+                    }
+                }
+                @Generated
+                public static class DestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                    public DestinationDirCallInterceptor() {
+                        super(InterceptScope.methodsNamed("destinationDir"));
+                    }
+                }
+                @Generated
+                public static class AddDestinationDirCallInterceptor extends AbstractCallInterceptor implements SignatureAwareCallInterceptor, FilterableCallInterceptor, FilterableBytecodeInterceptor.BytecodeUpgradeInterceptor {
+                    public AddDestinationDirCallInterceptor() {
+                        super(InterceptScope.methodsNamed("addDestinationDir"));
+                    }
+                }
+            }
+        """
         assertThat(compilation).succeededWithoutWarnings()
         assertThat(compilation)
             .generatedSourceFile(fqName(generatedClass))
             .containsElementsIn(generatedClass)
+        assertThat(compilation)
+            .generatedSourceFile(fqName(groovyInterceptorClass))
+            .containsElementsIn(groovyInterceptorClass)
     }
 }

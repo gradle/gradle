@@ -225,6 +225,7 @@ class NamedDomainObjectContainerExtensionsTest {
         )
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `can create and configure tasks`() {
 
@@ -260,6 +261,7 @@ class NamedDomainObjectContainerExtensionsTest {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `can create element within configuration block via delegated property`() {
 

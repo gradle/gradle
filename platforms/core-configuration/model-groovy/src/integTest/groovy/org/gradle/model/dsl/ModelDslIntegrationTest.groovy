@@ -247,8 +247,9 @@ class ModelDslIntegrationTest extends AbstractIntegrationSpec {
             model {
               tasks {
                 create("printStrings") {
+                  def projectName = it.project.name
                   doLast {
-                    println it.project.name + ": " + $.strings
+                    println projectName + ": " + $.strings
                   }
                 }
               }

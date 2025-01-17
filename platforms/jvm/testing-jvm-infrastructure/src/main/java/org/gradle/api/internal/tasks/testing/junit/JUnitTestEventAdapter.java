@@ -89,22 +89,23 @@ public class JUnitTestEventAdapter extends RunListener {
 
     @Override
     public void testFailure(Failure failure) {
-        TestDescriptorInternal descriptor = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.get(failure.getDescription());
         }
-        boolean needEndEvent = false;
-        if (testInternal == null) {
-            // This can happen when, for example, a @BeforeClass or @AfterClass method fails
-            needEndEvent = true;
-            testInternal = descriptor;
-            resultProcessor.started(testInternal, startEvent());
-        }
 
-        Throwable exception = failure.getException();
-        reportFailure(testInternal.getId(), exception);
-        if (needEndEvent) {
+        if (testInternal != null) {
+            // This is the normal path, we've just seen a test failure
+            // for a test that we saw start
+            Throwable exception = failure.getException();
+            reportFailure(testInternal.getId(), exception);
+        } else {
+            // This can happen when, for example, a @BeforeClass or @AfterClass method fails
+            // We generate an artificial start/failure/completed sequence of events
+            testInternal = nullSafeDescriptor(idGenerator.generateId(), failure.getDescription());
+            resultProcessor.started(testInternal, startEvent());
+            Throwable exception = failure.getException();
+            reportFailure(testInternal.getId(), exception);
             resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(clock.getCurrentTime()));
         }
     }

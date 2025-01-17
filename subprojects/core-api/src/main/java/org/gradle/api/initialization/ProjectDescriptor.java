@@ -45,7 +45,6 @@ public interface ProjectDescriptor {
      *
      * @param name The new name for the project. Should not be null
      */
-    @Restricted
     void setName(String name);
 
     /**

@@ -33,12 +33,14 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
 
     boolean outputMatches(String expectedOutput) {
         def actualOutput = result.groupedOutput.task(":components").output
-        assert removeDownloadMessageAndEmptyLines(actualOutput) == expected(expectedOutput)
+        assert removeIrrelevantOutput(actualOutput) == expected(expectedOutput)
         return true
     }
 
-    String removeDownloadMessageAndEmptyLines(String output) {
-        return output.readLines().findAll { !it.isEmpty() && !(it ==~ /^Download http.*$/) }.join('\n')
+    String removeIrrelevantOutput(String output) {
+        return output.readLines().findAll {
+            !it.isEmpty() && !(it ==~ /^Download http.*$/) && !(it ==~ /.*has been deprecated.*$/)
+        }.join('\n')
     }
 
     String expected(String normalised) {

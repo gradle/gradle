@@ -36,6 +36,7 @@ import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Message;
+import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
@@ -64,10 +65,12 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private final DaemonStarter daemonStarter;
     private final DaemonStartListener startListener;
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final DaemonDir daemonDir;
     private final Serializer<Message> serializer;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener, ProgressLoggerFactory progressLoggerFactory, Serializer<Message> serializer) {
+    public DefaultDaemonConnector(DaemonDir daemonDir, DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener, ProgressLoggerFactory progressLoggerFactory, Serializer<Message> serializer) {
+        this.daemonDir = daemonDir;
         this.serializer = serializer;
         Preconditions.checkNotNull(daemonRegistry);
         Preconditions.checkNotNull(connector);
@@ -220,7 +223,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             do {
                 DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
                 if (daemonConnection != null) {
-                    startListener.daemonStarted(daemonConnection.getDaemon());
+                    startListener.daemonStarted(daemonDir, daemonConnection.getDaemon());
                     return daemonConnection;
                 }
                 try {

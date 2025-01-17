@@ -88,7 +88,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     classpath("${coordinates}")
@@ -116,7 +116,7 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("build-scan-init.gradle") << """
             initscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     classpath("${pluginArtifactId}")
@@ -147,14 +147,14 @@ class DevelocityPluginConfigIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("build-scan-init.gradle") << """
             initscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     classpath("${pluginArtifactId}")
                 }
             }
             gradle.beforeSettings { settings ->
-                settings.buildscript.repositories { maven { url '${mavenRepo.uri}' } }
+                settings.buildscript.repositories { maven { url = '${mavenRepo.uri}' } }
                 settings.buildscript.dependencies.classpath("com.gradle:develocity-gradle-plugin:${plugin.runtimeVersion}")
             }
             gradle.settingsEvaluated { settings ->

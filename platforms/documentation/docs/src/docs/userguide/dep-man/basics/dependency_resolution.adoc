@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[understanding_dependency_resolution]]
+[[six-dependency_resolution]]
 = 6. Dependency Resolution
 
 Dependency resolution in Gradle involves two main steps:
@@ -22,6 +22,7 @@ Dependency resolution in Gradle involves two main steps:
 
 image::dep-man-basics-1.png[]
 
+[[sub:graph-resolution]]
 == 1. Graph Resolution
 
 *Graph resolution* is the process of determining the full set of transitive dependencies, and their versions, that are required for a given set of declared dependencies.
@@ -252,6 +253,7 @@ com.fasterxml.jackson.core:jackson-databind:2.17.2
 
 In this example, Gradle uses the `runtimeElements` *variant* of `jackson-databind` for the `runtimeClasspath` configuration.
 
+[[sub:artifact-resolution]]
 == 2. Artifact Resolution
 
 **Artifact resolution** occurs after the dependency graph is constructed.
@@ -304,4 +306,4 @@ For example, `jackson-databind` might only produce a ZIP file as an artifact cal
 Gradle can use Gradle provided transforms or user programmed transforms to convert the `zip` file into a `jar` file.
 
 [.text-right]
-**Next Step:** <<variant_aware_resolution.adoc#variant_aware_resolution,View Variant-Aware Dependency Resolution in Action>> >>
+**Next Step:** <<variant_aware_resolution.adoc#seven-variant-aware-resolution,View Variant-Aware Dependency Resolution in Action>> >>

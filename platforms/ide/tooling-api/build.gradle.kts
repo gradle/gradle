@@ -66,6 +66,7 @@ dependencies {
     integTestImplementation(projects.persistentCache)
 
     crossVersionTestImplementation(projects.jvmServices)
+    crossVersionTestImplementation(projects.problems)
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.jettyWebApp)
     crossVersionTestImplementation(libs.commonsIo)
@@ -73,6 +74,8 @@ dependencies {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
 
+    testImplementation(projects.buildEvents)
+    
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.dependencyManagement))

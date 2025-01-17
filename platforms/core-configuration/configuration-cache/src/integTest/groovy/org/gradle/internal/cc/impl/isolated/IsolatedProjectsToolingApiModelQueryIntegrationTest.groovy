@@ -47,7 +47,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model.message == "It works from project :"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             modelsCreated(":")
         }
@@ -61,7 +61,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model2.message == "It works from project :"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         when:
@@ -76,7 +76,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model3.message == "this is the root project"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -92,7 +92,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model4.message == "this is the root project"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 
     @ToBeImplemented("when Isolated Projects becomes incremental for task execution")
@@ -114,26 +114,73 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
             }
         """
 
-        when:
+        when: "requesting a model together with running a task"
         withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
-        then:
-        fixture.assertStateStored {
+        then: "only relevant projects are configured, while work graph and the model are stored in cache"
+        fixture.assertModelStored {
+            runsTasks = true
             // TODO:isolated desired behavior
-//            projectsConfigured(":buildSrc", ":")
+//            projectsConfigured(":buildSrc", ":") // Note :a and :b were not configured
             projectsConfigured(":buildSrc", ":", ":a", ":b")
             modelsCreated(":")
         }
         outputContains("Configuration of dummyTask")
         outputContains("Execution of dummyTask")
 
-        when:
+        when: "repeating the request"
         withIsolatedProjects()
         fetchModel(SomeToolingModel, ":dummyTask")
 
-        then:
-        fixture.assertStateLoaded()
+        then: "no projects are configured, work graph and the model are loaded, tasks are executed before the model is returned"
+        fixture.assertModelLoaded {
+            runsTasks = true
+        }
+        outputDoesNotContain("Configuration of dummyTask")
+        outputDoesNotContain("creating model")
+        outputContains("Execution of dummyTask")
+    }
+
+    def "can cache models with tasks using internal option"() {
+        given:
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile << """
+            include("a")
+            include("b")
+        """
+        buildFile << """
+            plugins.apply(my.MyPlugin)
+
+            tasks.register("dummyTask") {
+                println("Configuration of dummyTask")
+                doLast {
+                    println("Execution of dummyTask")
+                }
+            }
+        """
+
+        when: "requesting a model together with running a task"
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then: "only relevant projects are configured, while work graph and the model are stored in cache"
+        fixture.assertModelStored {
+            runsTasks = true
+            projectsConfigured(":buildSrc", ":") // Note :a and :b were not configured
+            modelsCreated(":")
+        }
+        outputContains("Configuration of dummyTask")
+        outputContains("Execution of dummyTask")
+
+        when: "repeating the request"
+        withIsolatedProjects("-Dorg.gradle.internal.isolated-projects.configure-on-demand.tasks=true")
+        fetchModel(SomeToolingModel, ":dummyTask")
+
+        then: "no projects are configured, work graph and the model are loaded, tasks are executed before the model is returned"
+        fixture.assertModelLoaded {
+            runsTasks = true
+        }
         outputDoesNotContain("Configuration of dummyTask")
         outputDoesNotContain("creating model")
         outputContains("Execution of dummyTask")
@@ -154,7 +201,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         notExecuted("help")
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":")
             modelsCreated(":")
         }
@@ -165,7 +212,8 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         executed(":dummyTask")
-        fixture.assertStateStored {
+        fixture.assertModelStored {
+            runsTasks = true
             projectsConfigured(":buildSrc", ":")
             modelsCreated(":")
         }
@@ -191,7 +239,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         model.message == "It works from project :"
-        fixture.assertStateStoredWithProblems {
+        fixture.assertModelStoredWithProblems {
             projectConfigured(":buildSrc")
             modelsCreated(":")
             problem("Build file 'build.gradle': line 3: Project ':' cannot access 'Project.plugins' functionality on subprojects via 'allprojects'", 2)
@@ -203,7 +251,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
 
         then:
         model2.message == "It works from project :"
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 
     def "caches calculation of GradleBuild model"() {
@@ -229,7 +277,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model.projects[2].name == "b"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             buildModelCreated()
         }
         outputContains("configuring build")
@@ -246,7 +294,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model2.projects[2].name == "b"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("configuring build")
     }
 
@@ -266,7 +314,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model.message == "It works from project :"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             modelsCreated(":")
         }
@@ -281,7 +329,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model2.message == "It works from project :"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("configuring build")
         outputDoesNotContain("creating model")
 
@@ -293,7 +341,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model3 instanceof GradleProject
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             modelsCreated(":", 2) // Requested `GradleProject` and intermediate `IsolatedGradleProject`
         }
@@ -308,7 +356,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model4 instanceof GradleProject
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("configuring build")
         outputDoesNotContain("creating model")
 
@@ -321,7 +369,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         model5.message == "It works from project :"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("configuring build")
         outputDoesNotContain("creating model")
     }
@@ -360,7 +408,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":", ":a", ":b")
             buildModelCreated()
             modelsCreated(":a", ":b")
@@ -376,7 +424,7 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("buildSrc/build.gradle")
             projectsConfigured(":buildSrc")
             modelsCreated()
@@ -388,6 +436,6 @@ class IsolatedProjectsToolingApiModelQueryIntegrationTest extends AbstractIsolat
         runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 }

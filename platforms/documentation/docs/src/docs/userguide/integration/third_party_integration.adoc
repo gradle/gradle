@@ -1,0 +1,68 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[third_party_integration]]
+= Gradle & Third-party Tools
+
+Gradle can be integrated with many different third-party tools such as IDEs and continuous integration platforms.
+Here we look at some of the more common ones as well as how to integrate your own tool with Gradle.
+
+[[ides]]
+== IDEs
+
+Android Studio::
+As a variant of IntelliJ IDEA, https://developer.android.com/studio/[Android Studio] has built-in support for importing and building Gradle projects.
+You can also use the <<idea_plugin.adoc#idea_plugin,IDEA Plugin for Gradle>> to fine-tune the import process if that's necessary.
++
+This IDE also has an https://developer.android.com/studio/intro/[extensive user guide] to help you get the most out of the IDE and Gradle.
+
+Eclipse::
+If you want to work on a project within Eclipse that has a Gradle build, you should use the https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship plugin].
+This will allow you to import and run Gradle builds.
+If you need to fine tune the import process so that the project loads correctly, you can use the <<eclipse_plugin.adoc#eclipse_plugin,Eclipse Plugins for Gradle>>.
+See https://discuss.gradle.org/t/buildship-1-0-18-is-now-available/19012[the associated release announcement] for details on what fine tuning you can do.
+
+IntelliJ IDEA::
+IDEA has built-in support for importing Gradle projects.
+If you need to fine tune the import process so that the project loads correctly, you can use the <<idea_plugin.adoc#idea_plugin,IDEA Plugin for Gradle>>.
+
+NetBeans::
+Built-in support for Gradle in https://netbeans.apache.org/[Apache NetBeans]
+
+Visual Studio::
+For developing C++ projects, Gradle comes with a <<visual_studio_plugin.adoc#visual_studio_plugin,Visual Studio plugin>>.
+
+Xcode::
+For developing C++ projects, Gradle comes with a <<xcode_plugin.adoc#xcode_plugin,Xcode plugin>>.
+
+CLion::
+JetBrains supports building https://blog.jetbrains.com/clion/2018/05/clion-starts-2018-2-eap-sanitizers-gradle-db-performance/[C++ projects with Gradle].
+
+== Continuous integration
+
+We have link:https://community.gradle.org/cookbook/ci/[dedicated guides] showing you how to integrate a Gradle project with several CI platforms.
+
+== How to integrate with Gradle
+
+There are two main ways to integrate a tool with Gradle:
+
+ * The Gradle build uses the tool
+ * The tool executes the Gradle build
+
+The former case is typically <<custom_plugins.adoc#custom_plugins,implemented as a Gradle plugin>>.
+The latter can be accomplished by embedding Gradle through the <<tooling_api.adoc#tooling_api,Tooling API>>.
+
+== Test integration
+
+If your platform uses an external testing suite, and you want to integrate with the <<java_testing.adoc#test_reporting,HTML Test Report>>, you can use the <<test_reporting_api.adoc#test_reporting_api,Test Reporting API>>.

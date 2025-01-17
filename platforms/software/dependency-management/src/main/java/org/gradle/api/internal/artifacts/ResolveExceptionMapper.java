@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
 
 import javax.annotation.Nullable;
@@ -45,19 +46,20 @@ public class ResolveExceptionMapper {
     }
 
     @Nullable
-    public TypedResolveException mapFailures(Collection<Throwable> failures, String type, String contextDisplayName) {
+    public TypedResolveException mapFailures(Collection<Throwable> failures, String type, DisplayName contextDisplayName) {
         if (failures.isEmpty()) {
             return null;
         }
 
+        String displayName = contextDisplayName.getDisplayName();
         if (failures.size() > 1) {
-            return new TypedResolveException(type, contextDisplayName, failures.stream().map(failure ->
-                mapRepositoryOverrideFailure(contextDisplayName, failure)
+            return new TypedResolveException(type, displayName, failures.stream().map(failure ->
+                mapRepositoryOverrideFailure(displayName, failure)
             ).collect(ImmutableList.toImmutableList()));
         }
 
         Throwable failure = failures.iterator().next();
-        return mapFailure(failure, type, contextDisplayName);
+        return mapFailure(failure, type, displayName);
     }
 
     public TypedResolveException mapFailure(Throwable failure, String type, String contextDisplayName) {

@@ -28,7 +28,7 @@ configurations {
 }
 dependencies {
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url = "${ivyRepo.uri}" }
     }
     compile 'ivy.configuration:projectA:1.2'
 }
@@ -93,7 +93,7 @@ configurations {
     compile
 }
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = "${ivyRepo.uri}" }
 }
 dependencies {
     compile group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
@@ -123,7 +123,7 @@ configurations {
     compile
 }
 repositories {
-    ivy { url "${ivyRepo.uri}" }
+    ivy { url = "${ivyRepo.uri}" }
 }
 dependencies {
     compile group: 'test', name: 'target', version: '1.0', configuration: 'something'
@@ -147,7 +147,7 @@ configurations {
 }
 dependencies {
     repositories {
-        ivy { url "${ivyHttpRepo.uri}" }
+        ivy { url = "${ivyHttpRepo.uri}" }
     }
     compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'
 }
@@ -233,7 +233,7 @@ configurations {
 dependencies {
     repositories {
         ivy {
-            url "${ivyRepo.uri}"
+            url = "${ivyRepo.uri}"
             resolve.dynamicMode = project.hasProperty('useDynamicResolve')
         }
     }
@@ -284,14 +284,14 @@ task retrieve(type: Sync) {
         buildFile << """
 repositories {
     ivy {
-        url "${repo1.uri}"
+        url = "${repo1.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
         }
     }
     ivy {
-        url "${repo2.uri}"
+        url = "${repo2.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
@@ -335,13 +335,13 @@ task retrieve(type: Sync) {
 
         def resolve = new ResolveTestFixture(buildFile, "compile")
         buildFile << """
-    group 'org.test'
-    version '1.0'
+    group = 'org.test'
+    version = '1.0'
     configurations {
         compile
     }
     repositories {
-        ivy { url "${ivyRepo.uri}" }
+        ivy { url = "${ivyRepo.uri}" }
     }
     dependencies {
         compile group: 'ivy.configuration', name: 'projectA', version: '1.2', configuration: 'a'

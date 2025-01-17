@@ -49,7 +49,7 @@ class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
 
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             pub(MavenPublication) {
@@ -94,7 +94,7 @@ version = '1.0'
 
 publishing {
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
     publications {
         maven(MavenPublication) {
@@ -125,11 +125,11 @@ subprojects {
     group = 'my.org'
     version = '1.0'
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             mavenJava(MavenPublication) {
@@ -178,7 +178,7 @@ subprojects {
     version = "1.0"
 
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
     dependencies {
         api("org.gradle:pom-excludes:0.1"){
@@ -189,7 +189,7 @@ subprojects {
     }
     publishing {
         repositories {
-            maven { url "${mavenRepo.uri}" }
+            maven { url = "${mavenRepo.uri}" }
         }
         publications {
             pub(MavenPublication) {
@@ -232,11 +232,11 @@ subprojects {
             apply plugin: "maven-publish"
 
             publishing {
-                repositories{ maven{ url '${normaliseFileSeparators(repo.getAbsolutePath())}'}}
+                repositories{ maven { url = file('${normaliseFileSeparators(repo.getAbsolutePath())}') }}
                 publications {
                     maven(MavenPublication) {
-                        groupId 'org.gradle.sample'
-                        version '1.1'
+                        groupId = 'org.gradle.sample'
+                        version = '1.1'
                         from components.java
                     }
                 }
@@ -274,7 +274,7 @@ subprojects {
 
             publishing {
                 repositories {
-                    maven { url "\${buildDir}/repo" }
+                    maven { url = layout.buildDirectory.dir("repo") }
                 }
                 publications {
                     maven(MavenPublication) {
@@ -327,7 +327,7 @@ subprojects {
 
             publishing {
                 repositories {
-                    maven { url "\${buildDir}/repo" }
+                    maven { url = layout.buildDirectory.dir("repo") }
                 }
                 publications {
                     maven(MavenPublication) {

@@ -46,6 +46,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeRequestExtra.BridgedMethodInfo.BridgeType.INSTANCE_METHOD_BRIDGE;
+import static org.gradle.internal.instrumentation.processor.codegen.CodeGenUtils.SUPPRESS_UNCHECKED_AND_RAWTYPES;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.DEPRECATION_LOGGER;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.FILE_SYSTEM_LOCATION;
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
@@ -57,9 +58,6 @@ import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.ty
 public class PropertyUpgradeClassSourceGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
 
     private static final String SELF_PARAMETER_NAME = "self";
-    private static final AnnotationSpec SUPPRESS_UNCHECKED_AND_RAWTYPES = AnnotationSpec.builder(SuppressWarnings.class)
-        .addMember("value", "$L", "{\"unchecked\", \"rawtypes\"}")
-        .build();
 
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {

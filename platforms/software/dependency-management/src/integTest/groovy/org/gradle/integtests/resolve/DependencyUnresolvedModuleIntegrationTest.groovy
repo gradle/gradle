@@ -405,7 +405,7 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
     private String mavenRepository(MavenRepository repo) {
         """
             repositories {
-                maven { url "${repo.uri}"}
+                maven { url = "${repo.uri}"}
             }
         """
     }

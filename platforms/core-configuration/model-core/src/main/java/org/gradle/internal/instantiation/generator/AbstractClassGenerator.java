@@ -911,6 +911,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private void addSetMethods(AbstractClassGenerator.ClassGenerationVisitor visitor) {
             for (PropertyMetadata property : mutableProperties) {
                 if (property.setMethods.isEmpty()) {
+                    // TODO: remove in Gradle 10.0
                     Set<Class<?>> appliedTo = new HashSet<>();
                     for (Method setter : property.setters) {
                         if (appliedTo.add(setter.getParameterTypes()[0])) {
@@ -1290,9 +1291,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Cannot use ");
                 formatter.appendAnnotation(annotationType);
-                formatter.append(" annotation on property ");
-                formatter.appendMethod(method);
-                formatter.append(" of type ");
+                formatter.append(" annotation on property '");
+                formatter.append(accessorType.propertyNameFor(method));
+                formatter.append("' of type ");
                 formatter.append(TypeToken.of(returnType).toString());
                 formatter.append(". Allowed property types: ");
                 formatter.append(allowedTypes.stream()

@@ -76,8 +76,8 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
                 reports.xml.required = true
                 reports.csv.required = true
             }
-            reporting{
-                baseDir = "\$buildDir/customReports"
+            reporting {
+                baseDirectory = layout.buildDirectory.dir("customReports")
             }"""
 
         when:

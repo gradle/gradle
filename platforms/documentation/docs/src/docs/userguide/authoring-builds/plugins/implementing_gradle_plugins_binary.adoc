@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -544,7 +544,7 @@ You might want to automatically download an artifact using Gradle’s dependency
 Ideally, the plugin implementation does not need to ask the user for the coordinates of that dependency - it can simply predefine a sensible default version.
 
 Let’s look at an example of a plugin that downloads files containing data for further processing.
-The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#declaring-basic-dependencies,assigning those external dependencies with dependency coordinates>>:
+The plugin implementation declares a custom configuration that allows for <<declaring_dependencies.adoc#one-declaring-dependencies,assigning those external dependencies with dependency coordinates>>:
 
 .DataProcessingPlugin.java
 [source,java]
@@ -631,8 +631,8 @@ NOTE: Only Gradle versions 7 or higher can be explicitly targeted by a variant, 
 First, we declare a separate _source set_ and a _feature variant_ for our Gradle 7 plugin variant.
 Then, we do some specific wiring to turn the feature into a proper Gradle plugin variant:
 
-<1> Assign the <<component_capabilities.adoc#declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
-<2> Assign the <<variant_attributes.adoc#sub:gradle_plugins_default_attributes,Gradle API version attribute>> to all <<declaring_dependencies_adv.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. Gradle uses this information to determine which variant to select during plugin resolution.
+<1> Assign the <<component_capabilities.adoc#sec:declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
+<2> Assign the <<variant_attributes.adoc#sec:gradle-plugins-default-attributes,Gradle API version attribute>> to all <<declaring_configurations.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. Gradle uses this information to determine which variant to select during plugin resolution.
 <3> Configure the `processGradle7Resources` task to ensure the plugin descriptor file is added to the Gradle7 variant Jar.
 <4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
 
@@ -665,44 +665,3 @@ This snippet makes the <<#plugin-with-variants,plugin variant `gradle7` defined 
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/kotlin",files="build.gradle.kts[tags=consume-plugin-variant]"]
 include::sample[dir="snippets/developingPlugins/pluginWithVariants/groovy",files="build.gradle[tags=consume-plugin-variant]"]
 ====
-
-[[reporting_problems]]
-== Reporting problems
-
-Plugins can report problems through Gradle's problems-reporting APIs.
-The APIs report rich, structured information about problems happening during the build.
-This information can be used by different user interfaces such as Gradle's console output, Build Scans, or IDEs to communicate problems to the user in the most appropriate way.
-
-The following example shows an issue reported from a plugin:
-
-====
-include::sample[dir="snippets/developingPlugins/problemReporting/kotlin/buildSrc/src/main/java/org/myorg",files="ProblemReportingPlugin.java[tags=snippet]"]
-====
-
-<1> The `Problem` service is injected into the plugin.
-<2> A problem reporter, is created for the plugin. While the namespace is up to the plugin author, it is recommended that the plugin ID be used.
-<3> A problem is reported. This problem is recoverable so that the build will continue.
-
-For a full example, see our link:../samples/sample_problems_api_usage.html[end-to-end sample].
-
-=== Problem building
-
-When reporting a problem, a wide variety of information can be provided.
-The link:{javaDocPath}/org/gradle/api/problems/ProblemSpec.html[ProblemSpec] describes all the information that can be provided.
-
-=== Reporting problems
-
-When it comes to reporting problems, we support two different modes:
-
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[Reporting] a problem is used for reporting problems that are recoverable, and the build should continue.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[Throwing] a problem is used for reporting problems that are not recoverable, and the build should fail.
-
-For more details, see the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[ProblemReporter] documentation.
-
-=== Problem aggregation
-
-When reporting problems, Gradle will aggregate similar problems by sending them through the Tooling API based on the problem's category label.
-
-- When a problem is reported, the _first_ occurrence is going to be reported as a link:{javaDocPath}/org/gradle/tooling/events/problems/ProblemDescriptor.html[ProblemDescriptor], containing the complete information about the problem.
-- Any subsequent occurrences of the same problem will be reported as a link:{javaDocPath}org/gradle/tooling/events/problems/ProblemAggregationDescriptor.html[ProblemAggregationDescriptor]. This descriptor will arrive at the _end_ of the build and contain the number of occurrences of the problem.
-- If for any bucket (i.e., category and label pairing), the number of collected occurrences is greater than 10.000, then it will be sent immediately instead of at the end of the build.

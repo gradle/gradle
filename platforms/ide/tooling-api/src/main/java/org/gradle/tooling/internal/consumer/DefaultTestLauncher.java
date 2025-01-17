@@ -209,7 +209,7 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
 
     private class ResultHandlerAdapter extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<Void> {
         public ResultHandlerAdapter(ResultHandler<? super Void> handler) {
-            super(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+            super(handler, DefaultTestLauncher.this.createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
                 @Override
                 public String getConnectionFailureMessage(Throwable throwable) {
                     return String.format("Could not execute tests using %s.", connection.getDisplayName());

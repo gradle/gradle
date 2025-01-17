@@ -11,12 +11,12 @@ buildscript {
     }
     dependencies {
         classpath("org.yaml:snakeyaml:1.19") // The library's classpath dependency
-        classpath("com.github.johnrengelman:shadow:8.1.1") // The legacy version of Shadow Plugin that needs buildscript
+        classpath("com.gradleup.shadow:shadow-gradle-plugin:8.3.4") // Plugin dependency for legacy plugin application
     }
 }
 
 // Applies legacy Shadow plugin
-apply(plugin = "com.github.johnrengelman.shadow")
+apply(plugin = "com.gradleup.shadow")
 
 // Uses the library in the build script
 val yamlContent = """

@@ -194,9 +194,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
             // plugins.withType() callbacks waiting to build on what the plugin did
             instances.put(pluginClass, pluginInstance);
             pluginContainer.pluginAdded(pluginInstance);
-
-            // Apply any build-level model defaults for the target
-            target.applyModelDefaults(pluginInstance);
         } else {
             target.applyRules(pluginId, pluginClass);
         }

@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
@@ -24,7 +25,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
 @FluidDependenciesResolveTest
-class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
+class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
@@ -46,7 +47,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = '$mavenRepo.uri' } }
 }
 project(":a") {
     configurations {
@@ -103,7 +104,7 @@ project(":b") {
         and:
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = '$mavenRepo.uri' } }
 }
 project(":a") {
     apply plugin: 'base'
@@ -325,7 +326,7 @@ project(':b') {
         buildFile << """
 allprojects {
     apply plugin: 'base'
-    repositories { maven { url '${mavenRepo.uri}' } }
+    repositories { maven { url = '${mavenRepo.uri}' } }
 }
 
 project(":a") {
@@ -408,7 +409,7 @@ project(":b") {
         buildFile << """
 allprojects {
     apply plugin: 'java'
-    repositories { maven { url '${mavenRepo.uri}' } }
+    repositories { maven { url = '${mavenRepo.uri}' } }
 }
 project(':a') {
     dependencies {
@@ -623,6 +624,7 @@ project('c') {
 """
 
         when:
+        expectTaskGetProjectDeprecations(3)
         fails("impl:check")
 
         then:

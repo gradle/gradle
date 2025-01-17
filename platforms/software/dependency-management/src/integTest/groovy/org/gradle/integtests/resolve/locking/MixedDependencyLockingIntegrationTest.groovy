@@ -33,8 +33,8 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
         buildFile << """
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -58,7 +58,7 @@ dependencies {
 
         then:
         outputContains('org:foo:1.0')
-        outputContains('dependency was locked to version \'1.0\'')
+        outputContains('Dependency version enforced by Dependency Locking')
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
@@ -76,8 +76,8 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -110,8 +110,8 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {
@@ -135,7 +135,7 @@ dependencies {
 
         then:
         outputContains('org:foo:1.0')
-        outputContains('dependency was locked to version \'1.0\'')
+        outputContains('Dependency version enforced by Dependency Locking')
     }
 
     def 'writes lock file entries for inherited dependencies'() {
@@ -145,8 +145,8 @@ dependencies {
         buildFile << """
 repositories {
     maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
+        name = 'repo'
+        url = "${mavenRepo.uri}"
     }
 }
 configurations {

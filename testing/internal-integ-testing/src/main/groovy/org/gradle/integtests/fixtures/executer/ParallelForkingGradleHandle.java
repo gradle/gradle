@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
 import org.gradle.internal.Factory;
-import org.gradle.process.internal.AbstractExecHandleBuilder;
+import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.util.internal.IncubationLogger;
 
 import java.io.PipedOutputStream;
@@ -27,7 +27,7 @@ import static java.lang.String.format;
 
 public class ParallelForkingGradleHandle extends ForkingGradleHandle {
 
-    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
+    public ParallelForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<BaseExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         super(stdinPipe, isDaemon, resultAssertion, outputEncoding, execHandleFactory, durationMeasurement);
     }
 

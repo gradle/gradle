@@ -135,7 +135,7 @@ class CppLibraryIntegrationTest extends AbstractCppIntegrationTest implements Cp
         and:
         buildFile << """
             apply plugin: 'cpp-library'
-            library.binaries.get { it.optimized }.configure { compileTask.get().macros(WITH_FEATURE: "true") }
+            library.binaries.get { it.optimized }.configure { compileTask.get().setMacros(WITH_FEATURE: "true") }
          """
 
         expect:

@@ -25,6 +25,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.IOException;
 import java.util.List;
@@ -36,6 +38,7 @@ import java.util.List;
  * supposed to serialize. This is, therefore, limited to the metadata necessary to perform selection
  * in a dynamic version resolver.
  */
+@ServiceScope(Scope.Build.class)
 public class SuppliedComponentMetadataSerializer extends AbstractSerializer<ComponentMetadata> {
     private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer;
     private final AttributeContainerSerializer attributeContainerSerializer;

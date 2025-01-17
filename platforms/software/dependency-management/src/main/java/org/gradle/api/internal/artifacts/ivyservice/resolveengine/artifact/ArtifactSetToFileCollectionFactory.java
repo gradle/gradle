@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
@@ -70,7 +69,7 @@ public class ArtifactSetToFileCollectionFactory {
      * Over time, this should be merged with the FileCollection implementation in DefaultConfiguration
      */
     public ResolutionBackedFileCollection asFileCollection(String displayName, boolean lenient, List<?> elements) {
-        return new ResolutionBackedFileCollection(new PartialSelectedArtifactProvider(elements), lenient, new NameBackedResolutionHost(problemsService, displayName), taskDependencyFactory);
+        return new ResolutionBackedFileCollection(new PartialSelectedArtifactSet(elements, buildOperationExecutor), lenient, new NameBackedResolutionHost(problemsService, displayName), taskDependencyFactory);
     }
 
     public ResolvedArtifactSet asResolvedArtifactSet(Throwable failure) {
@@ -280,25 +279,6 @@ public class ArtifactSetToFileCollectionFactory {
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             // No dependencies
-        }
-    }
-
-    // "partial" in the sense that some artifacts are only available as a File, and have no metadata
-    private class PartialSelectedArtifactProvider implements ResolutionResultProvider<SelectedArtifactSet> {
-        private final List<?> elements;
-
-        public PartialSelectedArtifactProvider(List<?> elements) {
-            this.elements = elements;
-        }
-
-        @Override
-        public SelectedArtifactSet getTaskDependencyValue() {
-            return getValue();
-        }
-
-        @Override
-        public SelectedArtifactSet getValue() {
-            return new PartialSelectedArtifactSet(elements, buildOperationExecutor);
         }
     }
 }

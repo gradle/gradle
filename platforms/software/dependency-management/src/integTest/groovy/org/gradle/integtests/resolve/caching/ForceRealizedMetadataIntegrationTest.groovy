@@ -34,7 +34,7 @@ class ForceRealizedMetadataIntegrationTest extends AbstractHttpDependencyResolut
             }
 
             repositories {
-                maven { url '$mavenHttpRepo.uri' }
+                maven { url = '$mavenHttpRepo.uri' }
             }
 
             dependencies {

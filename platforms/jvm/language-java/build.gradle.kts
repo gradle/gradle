@@ -64,8 +64,8 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.logging)
     implementation(projects.modelCore)
-    implementation(projects.toolingApi)
     implementation(projects.problemsRendering)
+    implementation(projects.toolingApi)
 
     api(libs.slf4jApi)
     implementation(libs.commonsLang)
@@ -78,6 +78,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.toolchainsJvm))
+    testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     testImplementation(libs.commonsIo)
     testImplementation(libs.nativePlatform) {
@@ -126,15 +127,14 @@ packageCycles {
 integTest.usesJavadocCodeSnippets = true
 
 tasks.javadoc {
-    // This project accesses JDK internals.
-    // We would ideally add --add-exports flags for the required packages, however
-    // due to limitations in the javadoc modeling API, we cannot specify multiple
-    // flags for the same key.
-    // Instead, we disable failure on javadoc errors.
-    isFailOnError = false
     options {
         this as StandardJavadocDocletOptions
-        addBooleanOption("quiet", true)
+        // This project accesses JDK internals, which we need to open up so that javadoc can access them
+        addMultilineStringsOption("-add-exports").value = listOf(
+            "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED"
+        )
     }
 }
 tasks.isolatedProjectsIntegTest {

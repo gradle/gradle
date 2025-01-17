@@ -126,9 +126,9 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         buildFile buildFileConfiguration("""
             repositories {
                 maven {
-                    name "${repositoryName}"
-                    url "${remoteRepo.uri}"
-                    allowInsecureProtocol true
+                    name = "${repositoryName}"
+                    url = "${remoteRepo.uri}"
+                    allowInsecureProtocol = true
                     // no credentials
                 }
             }
@@ -220,7 +220,7 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         settingsFile "rootProject.name = 'root'"
         buildFile buildFileConfiguration("""
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
         """)
         def configurationCache = newConfigurationCacheFixture()
@@ -310,8 +310,8 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         if (inlinedCredentials) {
             credentialsBlock = """
                 credentials {
-                    username '${username}'
-                    password '${password}'
+                    username = '${username}'
+                    password = '${password}'
                 }
             """
         } else {
@@ -321,9 +321,9 @@ class ConfigurationCacheMavenPublishIntegrationTest extends AbstractConfiguratio
         buildFile buildFileConfiguration("""
             repositories {
                 maven {
-                    name "${repositoryName}"
-                    url "${remoteRepo.uri}"
-                    allowInsecureProtocol true
+                    name = "${repositoryName}"
+                    url = "${remoteRepo.uri}"
+                    allowInsecureProtocol = true
                     ${credentialsBlock}
                 }
             }

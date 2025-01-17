@@ -127,7 +127,7 @@ class EdgeState implements DependencyGraphEdge {
         return isTransitive;
     }
 
-    void attachToTargetConfigurations() {
+    void attachToTargetNodes() {
         ComponentState targetComponent = getTargetComponent();
         if (targetComponent == null || !isUsed()) {
             // The selector failed or the module has been deselected or the edge source has been deselected. Do not attach.
@@ -145,7 +145,7 @@ class EdgeState implements DependencyGraphEdge {
             }
         }
 
-        calculateTargetConfigurations(targetComponent);
+        calculateTargetNodes(targetComponent);
         for (NodeState targetConfiguration : targetNodes) {
             targetConfiguration.addIncomingEdge(this);
         }
@@ -154,17 +154,15 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    void cleanUpOnSourceChange(NodeState source) {
-        removeFromTargetConfigurations();
-        maybeDecreaseHardEdgeCount(source);
-        selector.getTargetModule().removeUnattachedEdge(this);
-        selector.release();
-    }
-
-    void removeFromTargetConfigurations() {
+    /**
+     * Disconnect this edge from any node that it currently targets,
+     * ensuring the target knows it is no longer being pointed to by
+     * this edge.
+     */
+    void detachFromTargetNodes() {
         if (!targetNodes.isEmpty()) {
-            for (NodeState targetConfiguration : targetNodes) {
-                targetConfiguration.removeIncomingEdge(this);
+            for (NodeState targetNode : targetNodes) {
+                targetNode.removeIncomingEdge(this);
             }
             targetNodes.clear();
         }
@@ -181,26 +179,22 @@ class EdgeState implements DependencyGraphEdge {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }
 
-
-    public void restart() {
-        if (from.isSelected()) {
-            restartInternal(false);
+    /**
+     * Ensure this edge it up-to-date and attached to the proper nodes, effectively
+     * retargeting this edge from its previous potentially incorrect target, to
+     * the new correct target.
+     * <p>
+     * Useful for when the state of the destination has changed, for example
+     * when the selected component of the target module has changed.
+     */
+    public void retarget() {
+        detachFromTargetNodes();
+        if (isUsed()) {
+            attachToTargetNodes();
+            if (targetNodes.isEmpty()) {
+                selector.getTargetModule().addUnattachedEdge(this); // Attach failed, mark it as such.
+            }
         }
-    }
-
-    public void restartConnected() {
-        if (from.isSelected() && isUsed()) {
-            restartInternal(true);
-        }
-    }
-
-    private void restartInternal(boolean checkUnattached) {
-        removeFromTargetConfigurations();
-        // We now have corner cases that can lead to this restart not succeeding
-        if (checkUnattached && !isUnattached()) {
-            selector.getTargetModule().addUnattachedEdge(this);
-        }
-        attachToTargetConfigurations();
     }
 
     @Override
@@ -215,7 +209,7 @@ class EdgeState implements DependencyGraphEdge {
         return cachedAttributes;
     }
 
-    private void calculateTargetConfigurations(ComponentState targetComponent) {
+    private void calculateTargetNodes(ComponentState targetComponent) {
         ComponentGraphResolveState targetComponentState = targetComponent.getResolveStateOrNull();
         targetNodes.clear();
         targetNodeSelectionFailure = null;
@@ -236,8 +230,8 @@ class EdgeState implements DependencyGraphEdge {
                 List<EdgeState> unattachedEdges = targetComponent.getModule().getUnattachedEdges();
                 if (!unattachedEdges.isEmpty()) {
                     for (EdgeState otherEdge : unattachedEdges) {
-                        if (otherEdge != this && !otherEdge.isConstraint()) {
-                            otherEdge.attachToTargetConfigurations();
+                        if (!otherEdge.isConstraint()) {
+                            otherEdge.attachToTargetNodes();
                             if (otherEdge.targetNodeSelectionFailure != null) {
                                 // Copy selection failure
                                 this.targetNodeSelectionFailure = otherEdge.targetNodeSelectionFailure;
@@ -398,7 +392,10 @@ class EdgeState implements DependencyGraphEdge {
     private List<NodeState> findTargetNodes() {
         List<NodeState> targetNodes = this.targetNodes;
         if (targetNodes.isEmpty()) {
-            // happens for substituted dependencies
+            // TODO: This code is not correct. At the end of graph traversal,
+            // all edges that are part of the graph should have target nodes.
+            // Going to the target component and grabbing all of its nodes
+            // is certainly not the right thing to do here.
             ComponentState targetComponent = getTargetComponent();
             if (targetComponent != null) {
                 targetNodes = targetComponent.getNodes();
@@ -433,12 +430,6 @@ class EdgeState implements DependencyGraphEdge {
             return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
         }
         return null;
-    }
-
-    void maybeDecreaseHardEdgeCount(NodeState removalSource) {
-        if (!isConstraint) {
-            selector.getTargetModule().decreaseHardEdgeCount(removalSource);
-        }
     }
 
     @Override

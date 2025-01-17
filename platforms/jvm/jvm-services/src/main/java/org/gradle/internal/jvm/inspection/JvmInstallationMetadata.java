@@ -28,10 +28,10 @@ import java.text.MessageFormat;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 
 public interface JvmInstallationMetadata {
-
     static DefaultJvmInstallationMetadata from(
         File javaHome,
         String javaVersion,
@@ -292,6 +292,23 @@ public interface JvmInstallationMetadata {
                     ", jvmVendor='" + jvmVendor + '\'' +
                     ", architecture='" + architecture + '\'' +
                     '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            DefaultJvmInstallationMetadata that = (DefaultJvmInstallationMetadata) o;
+            return Objects.equals(javaHome, that.javaHome) && Objects.equals(javaVersion, that.javaVersion) && Objects.equals(javaVendor, that.javaVendor) && Objects.equals(runtimeName, that.runtimeName) && Objects.equals(runtimeVersion, that.runtimeVersion) && Objects.equals(jvmName, that.jvmName) && Objects.equals(jvmVersion, that.jvmVersion) && Objects.equals(jvmVendor, that.jvmVendor) && Objects.equals(architecture, that.architecture);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(javaHome, javaVersion, javaVendor, runtimeName, runtimeVersion, jvmName, jvmVersion, jvmVendor, architecture);
         }
     }
 

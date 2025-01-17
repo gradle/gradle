@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
-import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -27,7 +26,6 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.DefaultToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
-import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.process.internal.JvmOptions;
@@ -35,12 +33,10 @@ import org.gradle.util.internal.GUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
@@ -67,19 +63,19 @@ public class DaemonParameters {
     private DaemonPriority priority = DaemonPriority.NORMAL;
     private DaemonJvmCriteria requestedJvmCriteria = new DaemonJvmCriteria.LauncherJvm();
 
-    public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory) {
-        this(layout, fileCollectionFactory, Collections.<String, String>emptyMap());
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory) {
+        this(gradleUserHomeDir, fileCollectionFactory, Collections.<String, String>emptyMap());
     }
 
-    public DaemonParameters(BuildLayoutResult layout, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
-        jvmOptions = new JvmOptions(fileCollectionFactory);
+    public DaemonParameters(File gradleUserHomeDir, FileCollectionFactory fileCollectionFactory, Map<String, String> extraSystemProperties) {
+        this.jvmOptions = new JvmOptions(fileCollectionFactory);
         if (!extraSystemProperties.isEmpty()) {
             jvmOptions.systemProperties(extraSystemProperties);
         }
         jvmOptions.jvmArgs(DEFAULT_JVM_ARGS);
-        baseDir = new File(layout.getGradleUserHomeDir(), "daemon");
-        gradleUserHomeDir = layout.getGradleUserHomeDir();
-        envVariables = new HashMap<>(System.getenv());
+        this.gradleUserHomeDir = gradleUserHomeDir;
+        this.baseDir = new File(gradleUserHomeDir, "daemon");
+        this.envVariables = new HashMap<>(System.getenv());
     }
 
     public DaemonRequestContext toRequestContext() {
@@ -145,14 +141,7 @@ public class DaemonParameters {
             String requestedVendor = buildProperties.get(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY);
 
             if (requestedVendor != null) {
-                Optional<JvmVendor.KnownJvmVendor> knownVendor =
-                    Arrays.stream(JvmVendor.KnownJvmVendor.values()).filter(e -> e.name().equals(requestedVendor)).findFirst();
-
-                if (knownVendor.isPresent() && knownVendor.get()!=JvmVendor.KnownJvmVendor.UNKNOWN) {
-                    javaVendor = DefaultJvmVendorSpec.of(knownVendor.get());
-                } else {
-                    javaVendor = DefaultJvmVendorSpec.matching(requestedVendor);
-                }
+                javaVendor = JvmVendorSpec.of(requestedVendor);
             } else {
                 // match any vendor
                 javaVendor = DefaultJvmVendorSpec.any();
@@ -183,6 +172,10 @@ public class DaemonParameters {
         return systemProperties;
     }
 
+    public void addJvmArgs(Iterable<String> jvmArgs) {
+        jvmOptions.jvmArgs(jvmArgs);
+    }
+
     public void setJvmArgs(Iterable<String> jvmArgs) {
         jvmOptions.setAllJvmArgs(jvmArgs);
     }
@@ -196,19 +189,19 @@ public class DaemonParameters {
     }
 
     public void setDebugPort(int debug) {
-        jvmOptions.getDebugOptions().getPort().set(debug);
+        jvmOptions.getDebugSpec().setPort(debug);
     }
 
     public void setDebugHost(String host) {
-        jvmOptions.getDebugOptions().getHost().set(host);
+        jvmOptions.getDebugSpec().setHost(host);
     }
 
     public void setDebugSuspend(boolean suspend) {
-        jvmOptions.getDebugOptions().getSuspend().set(suspend);
+        jvmOptions.getDebugSpec().setSuspend(suspend);
     }
 
     public void setDebugServer(boolean server) {
-        jvmOptions.getDebugOptions().getServer().set(server);
+        jvmOptions.getDebugSpec().setServer(server);
     }
 
     public DaemonParameters setBaseDir(File baseDir) {

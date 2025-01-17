@@ -19,16 +19,17 @@ package org.gradle.api.internal.tasks.testing.redirector;
 import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.time.Clock;
 
 public class TestOutputRedirector {
     private final StandardOutputRedirector redirector;
     Forwarder outForwarder;
     Forwarder errForwarder;
 
-    public TestOutputRedirector(TestResultProcessor processor, StandardOutputRedirector redirector) {
+    public TestOutputRedirector(Clock clock, TestResultProcessor processor, StandardOutputRedirector redirector) {
         this.redirector = redirector;
-        this.outForwarder = new Forwarder(processor, TestOutputEvent.Destination.StdOut);
-        this.errForwarder = new Forwarder(processor, TestOutputEvent.Destination.StdErr);
+        this.outForwarder = new Forwarder(clock, processor, TestOutputEvent.Destination.StdOut);
+        this.errForwarder = new Forwarder(clock, processor, TestOutputEvent.Destination.StdErr);
     }
 
     public void startRedirecting() {
@@ -57,11 +58,13 @@ public class TestOutputRedirector {
     }
 
     static class Forwarder implements StandardOutputRedirector.OutputListener {
+        final Clock clock;
         final TestResultProcessor processor;
         final TestOutputEvent.Destination dest;
         Object outputOwner;
 
-        public Forwarder(TestResultProcessor processor, TestOutputEvent.Destination dest) {
+        public Forwarder(Clock clock, TestResultProcessor processor, TestOutputEvent.Destination dest) {
+            this.clock = clock;
             this.processor = processor;
             this.dest = dest;
         }
@@ -71,7 +74,7 @@ public class TestOutputRedirector {
             if (outputOwner == null) {
                 throw new RuntimeException("Unable send output event from test executor. Please report this problem. Destination: " + dest + ", event: " + output.toString());
             }
-            processor.output(outputOwner, new DefaultTestOutputEvent(dest, output.toString()));
+            processor.output(outputOwner, new DefaultTestOutputEvent(clock.getCurrentTime(), dest, output.toString()));
         }
     }
 }

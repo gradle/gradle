@@ -17,10 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Checks for tasks accessing the model at execution time, which might be a problem that needs reporting e.g. with configuration cache enabled.
  */
+@ServiceScope(Scope.Build.class)
 public interface TaskExecutionAccessChecker {
     void notifyProjectAccess(TaskInternal task);
     void notifyTaskDependenciesAccess(TaskInternal task, String invocationDescription);

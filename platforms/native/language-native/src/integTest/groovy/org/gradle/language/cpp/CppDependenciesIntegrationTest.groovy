@@ -69,7 +69,7 @@ class CppDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrati
                     all { details ->
                         if (details.requested.group == "org.gradle.cpp") {
                             from(${GitVersionControlSpec.name}) {
-                                url = uri("${repo.url}")
+                                url = "${repo.url}"
                                 rootDir = details.requested.module
                             }
                         }

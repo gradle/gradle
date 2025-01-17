@@ -104,7 +104,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         def moduleC = mavenRepo.module("org.test", "buildC", "1.0").publish()
         buildB.buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             dependencies {
                 implementation 'org.test:buildC:1.0'

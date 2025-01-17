@@ -20,7 +20,8 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.transform.Transform
 import org.gradle.api.internal.artifacts.transform.TransformInvocationFactory
 import org.gradle.api.internal.artifacts.transform.TransformStep
-import org.gradle.internal.cc.base.serialize.getProject
+import org.gradle.internal.cc.base.serialize.readProjectRef
+import org.gradle.internal.cc.base.serialize.writeProjectRef
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -37,16 +38,15 @@ class TransformStepCodec(
     override suspend fun WriteContext.encode(value: TransformStep) {
         encodePreservingSharedIdentityOf(value) {
             val project = value.owningProject ?: throw UnsupportedOperationException("TransformStep must have an owning project to be encoded.")
-            writeString(project.path)
+            writeProjectRef(project)
             write(value.transform)
         }
     }
 
     override suspend fun ReadContext.decode(): TransformStep {
         return decodePreservingSharedIdentity {
-            val path = readString()
+            val project = readProjectRef()
             val transform = readNonNull<Transform>()
-            val project = getProject(path)
             val services = project.services
             TransformStep(
                 transform,

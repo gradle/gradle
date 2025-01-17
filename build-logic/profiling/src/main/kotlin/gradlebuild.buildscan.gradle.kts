@@ -111,6 +111,10 @@ fun DevelocityConfiguration.extractCiData() {
             }
             if (isEc2Agent()) {
                 tag("EC2")
+                safeAddSystemPropertyToBuildScan(this, "EC2AmiId", "ec2.ami-id")
+                safeAddSystemPropertyToBuildScan(this, "EC2InstanceType", "ec2.instance-type")
+                safeAddSystemPropertyToBuildScan(this, "EC2InstanceId", "ec2.instance-id")
+                safeAddSystemPropertyToBuildScan(this, "EC2CloudProfileId", "cloud.profile_id")
             }
             if (isGhActions) {
                 tag("GH_ACTION")
@@ -145,6 +149,13 @@ fun DevelocityConfiguration.extractCiData() {
                 }
             }
         }
+    }
+}
+
+fun Project.safeAddSystemPropertyToBuildScan(buildScan: BuildScanConfiguration, customValueName: String, propertyName: String) {
+    val propertyValue = findProperty(propertyName)
+    if (propertyValue != null) {
+        buildScan.value(customValueName, propertyValue.toString())
     }
 }
 

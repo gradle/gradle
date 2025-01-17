@@ -1,31 +1,34 @@
 <start> ::= <statement>{100};
 
-<statement> ::= 3 <assignment> "\n" | <expression> "\n";
-<statementIndent1> ::= "  " <statement>;
+<statement> ::= 10 <assignment> "\n" | 3 <block> "\n" | <functionChain> "\n";
+<statementIndent1> ::= 5 "  " <assignment> "\n" | 3 "  " <blockIndent1> "\n" | "  " <functionChain> "\n";
+<statementIndent2> ::= 3 "    " <assignment> "\n" | "    " <functionChain> "\n";
 
-<assignment> ::= <directlyAssignableExpression> "=" <primaryExpression>;
-<expression> ::= <simpleIdentifier> <postfixUnarySuffixes>;
+<assignment> ::= <directlyAssignableExpression> "=" <assignmentValue>;
+<directlyAssignableExpression> ::= <simpleIdentifier> | <simpleIdentifier> <navigationSuffix>;
+<assignmentValue> ::= 10 <literalOrIdentifier> | 5 <simpleIdentifier> | 3 <simpleIdentifier> <navigationSuffix> {1,3} <valueArguments>;
 
-<directlyAssignableExpression> ::=
-    <simpleIdentifier> <navigationSuffix>{0,1};
+<block> ::= <simpleIdentifier> <annotatedLambda> | <simpleIdentifier> <valueArguments> <annotatedLambda>;
+<blockIndent1> ::= <simpleIdentifier> <annotatedLambdaIndent1> | <simpleIdentifier> <valueArguments> <annotatedLambdaIndent1>;
+<annotatedLambda> ::= " {}\n" | 10 " {\n" <statementIndent1>{1,10} "}\n";
+<annotatedLambdaIndent1> ::= " {}\n" | 10 " {\n" <statementIndent2>{1,10} "  }\n";
 
-<annotatedLambdaSuffix> ::= <valueArguments>{0,1} <annotatedLambda>;
-<valueArgumentsSuffix> ::= <navigationSuffix>{0,5} <valueArguments>;
-<postfixUnarySuffixes> ::= 3 <annotatedLambdaSuffix> | <valueArgumentsSuffix>;
 
-<annotatedLambda> ::= " {\n" <statementIndent1>{0,10} "}\n";
+<functionChain> ::= <simpleIdentifier> <postfixUnarySuffixes>;
+<postfixUnarySuffixes> ::= <navigationSuffix> {1,3} <valueArguments> | <valueArguments> | <valueArguments> <navSuffixAndValueArguments> {1,3};
+<navSuffixAndValueArguments> ::= <navigationSuffix> <valueArguments>;
 
-<valueArguments> ::= "(" <valueArgument> <furtherArguments>{0,2}  ")";
+
+<valueArguments> ::= "(" <valueArgument> ")" | "(" <valueArgument> <furtherArguments>{1,2}  ")";
 <furtherArguments> ::= "," <valueArgument>;
-<valueArgument> ::= <identifierEquals>{0,1} <primaryExpression> <postfixUnarySuffixes>{0,1};
-<identifierEquals> ::= <simpleIdentifier> "=";
+<valueArgument> ::= 5 <functionChain> | 20 <literalOrIdentifier> | 3 <simpleIdentifier> "=" <functionChain> | 10 <simpleIdentifier> "=" <literalOrIdentifier>;
 
 <navigationSuffix> ::= "." <simpleIdentifier>;
 
-<primaryExpression> ::= <simpleIdentifier> | <literalConstant> | <stringLiteral>;
+<literalOrIdentifier> ::= <simpleIdentifier> | <literalConstant> | <stringLiteral>;
 
-<simpleIdentifier> ::= 10 <nonBacktickIdentifier> | <backtickString>;
-<nonBacktickIdentifier> ::= <letter> <letterOrSeparatorOrUnicodeDigit>{0,3} | "_" <letterOrSeparatorOrUnicodeDigit>{1, 3};
+<simpleIdentifier> ::= <letter> | <letter> <letterOrSeparatorOrUnicodeDigit>{2,3} | "_" <letterOrSeparatorOrUnicodeDigit>{1, 3};
+
 <letterOrSeparatorOrUnicodeDigit> ::= <letter> | "_" | <unicodeDigit>;
 <unicodeDigit> ::= "\\u0030" | "\\u0031" | "\\u0032" | "\\u0033" | "\\u0034" | "\\u0035" | "\\u0036" | "\\u0037" | "\\u0038" | "\\u0039" |
                    	"\\u0660" | "\\u0661" | "\\u0662" | "\\u0663" | "\\u0664" | "\\u0665" | "\\u0666" | "\\u0667" | "\\u0668" | "\\u0669" |
@@ -36,12 +39,10 @@
                    	"\\u0A66" | "\\u0A67" | "\\u0A68" | "\\u0A69" | "\\u0A6A" | "\\u0A6B" | "\\u0A6C" | "\\u0A6D" | "\\u0A6E" | "\\u0A6F" |
                    	"\\u0AE6" | "\\u0AE7" | "\\u0AE8" | "\\u0AE9" | "\\u0AEA" | "\\u0AEB" | "\\u0AEC" | "\\u0AED" | "\\u0AEE" | "\\u0AEF" |
                    	"\\u0B66" | "\\u0B67" | "\\u0B68" | "\\u0B69" | "\\u0B6A" | "\\u0B6B" | "\\u0B6C" | "\\u0B6D";
-<backtickString> ::= "`" <backtickStringContent>{1,7} "`";
-<backtickStringContent> ::= 10 <letter> | 2 <unicodeDigit> | " " | "$" | "@" | "(" | ")" | "{" | "}" | "[" | "]" | "|" | "&" | "!" | "," | ";" | "\\" | "/" | "\"" | "'";
 
 <stringLiteral> ::= 10 <lineStringLiteral> | <multiLineStringLiteral>;
 
-<lineStringLiteral> ::= "\"" <lineStringContent>{0,10} "\"";
+<lineStringLiteral> ::= "\"\"" | "\"" <lineStringContent>{1,10} "\"";
 <lineStringContent> ::= 30 <letter> | 3 <unicodeDigit> |
     " " | "@" | "(" | ")" | "{" | "}" | "[" | "]" | "|" | "&" | "!" | "," | ";" | "/" | "'" |
     "\\t" | "\\b" | "\\r" | "\\n" | "\\\'" | "\\\"" | "\\\\" | "\\$";
@@ -64,17 +65,17 @@
 <longLiteral> ::= <intLiteral> <longSuffix> | <hexLiteral> <longSuffix> | <binLiteral> <longSuffix>;
 <longSuffix> ::= "l" | "L";
 
-<intLiteral> ::= <decDigitNoZero> <decDigitOrSeparator>{0,3} <decDigit> | <decDigit>;
+<intLiteral> ::= <decDigitNoZero> <decDigitOrSeparator>{1,3} <decDigit> | <decDigitNoZero> <decDigit> | <decDigit>;
 <decDigit>  ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 <decDigitNoZero>  ::= "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 <decDigitOrSeparator> ::= 3 <decDigit> | "_";
 
-<hexLiteral> ::= <hexPrefix> <hexDigit> <hexDigitOrSeparator>{0,3} <hexDigit> | <hexPrefix> <hexDigit>;
+<hexLiteral> ::= <hexPrefix> <hexDigit> <hexDigitOrSeparator>{1,3} <hexDigit> | <hexPrefix> <hexDigit> {1,2};
 <hexPrefix> ::= "0x" | "0X";
 <hexDigit> ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "a" | "b" | "c" | "d" | "e" | "f" | "A" | "B" | "C" | "D" | "E" | "F";
 <hexDigitOrSeparator> ::= 3 <hexDigit> | "_";
 
-<binLiteral> ::= <binPrefix> <binDigit> <binDigitOrSeparator>{0,3} <binDigit> | <binPrefix> <binDigit>;
+<binLiteral> ::= <binPrefix> <binDigit> <binDigitOrSeparator>{1,3} <binDigit> | <binPrefix> <binDigit> {1,2};
 <binPrefix> ::= "0b" | "0B";
 <binDigit> ::= "0" | "1";
 <binDigitOrSeparator> ::= 3 <binDigit> | "_";

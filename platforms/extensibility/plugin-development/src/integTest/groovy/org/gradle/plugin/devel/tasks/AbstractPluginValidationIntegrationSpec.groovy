@@ -704,15 +704,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         """
         expect:
         assertValidationFailsWith([
-            error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('method').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('method').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('function').method('notAGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('function').method('notANestedGetter').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
 
         and:
         if (isProblemsApiCheckEnabled()) {
             verifyAll(receivedProblem(0)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
-                contextualLabel == 'Type \'MyTask\' method \'notAGetter()\' should not be annotated with: @Input'
+                contextualLabel == 'Type \'MyTask\' function \'notAGetter()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
                     'Remove the annotations',
@@ -722,7 +722,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             }
             verifyAll(receivedProblem(1)) {
                 fqid == 'validation:type-validation:ignored-annotations-on-method'
-                contextualLabel == 'Type \'MyTask.Options\' method \'notANestedGetter()\' should not be annotated with: @Input'
+                contextualLabel == 'Type \'MyTask.Options\' function \'notANestedGetter()\' should not be annotated with: @Input'
                 details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
                 solutions == [
                     'Remove the annotations',
@@ -782,11 +782,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith([
-            error(missingAnnotationConfig { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
-            error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
-            error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                error(missingAnnotationConfig { type('MyTask').property('readWrite').missingInputOrOutput() }, 'validation_problems', 'missing_annotation'),
+                error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                error(methodShouldNotBeAnnotatedConfig { type('MyTask').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setReadWrite').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
+                error(methodShouldNotBeAnnotatedConfig { type('MyTask.Options').kind('setter').method('setWriteOnly').annotation('Input') }, 'validation_problems', 'ignored_annotations_on_method'),
         ])
 
         and:

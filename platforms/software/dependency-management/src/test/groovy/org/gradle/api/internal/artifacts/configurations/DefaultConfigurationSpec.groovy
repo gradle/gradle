@@ -40,17 +40,16 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DefaultResolverResults
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedFileVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults
@@ -65,18 +64,15 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.problems.internal.DefaultProblems
-import org.gradle.api.problems.internal.NoOpProblemEmitter
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.Describables
 import org.gradle.internal.Factories
 import org.gradle.internal.code.UserCodeApplicationContext
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.external.model.ImmutableCapabilities
 import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.locking.DefaultDependencyLockingState
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.reflect.DirectInstantiator
@@ -105,7 +101,6 @@ class DefaultConfigurationSpec extends Specification {
     def resolver = Mock(ConfigurationResolver)
     def listenerManager = Mock(ListenerManager)
     def metaDataProvider = Mock(DependencyMetaDataProvider)
-    def dependencyLockingProvider = Mock(DependencyLockingProvider)
     def resolutionStrategy = Mock(ResolutionStrategyInternal)
     def attributesFactory = AttributeTestUtil.attributesFactory()
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
@@ -537,7 +532,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * artifactTaskDependencies.getDependencies(_) >> requiredTasks
 
         and:
-        _ * resolver.resolveBuildDependencies(_) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
+        _ * resolver.resolveBuildDependencies(_, _) >> DefaultResolverResults.buildDependenciesResolved(Stub(VisitedGraphResults), visitedArtifactSet, Mock(ResolverResults.LegacyResolverResults))
 
         expect:
         configuration.buildDependencies.getDependencies(targetTask) == requiredTasks
@@ -1120,7 +1115,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         config.state == UNRESOLVED
-        1 * resolver.resolveBuildDependencies(config) >> buildDependenciesResolved()
+        1 * resolver.resolveBuildDependencies(config, _) >> buildDependenciesResolved()
         0 * resolver._
     }
 
@@ -1159,7 +1154,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         config.state == UNRESOLVED
-        1 * resolver.resolveBuildDependencies(config) >> buildDependenciesResolved()
+        1 * resolver.resolveBuildDependencies(config, _) >> buildDependenciesResolved()
         0 * resolver._
 
         when:
@@ -1466,7 +1461,7 @@ class DefaultConfigurationSpec extends Specification {
         def a1 = Attribute.of('a1', String)
 
         when:
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
         conf.getAttributes().attribute(a1, "a1")
 
         then:
@@ -1484,7 +1479,7 @@ class DefaultConfigurationSpec extends Specification {
         def containerImmutable = conf.getAttributes().asImmutable()
 
         when:
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
         def containerWrapped = conf.getAttributes()
 
         then:
@@ -1648,7 +1643,7 @@ class DefaultConfigurationSpec extends Specification {
     def "observation changes prevents #usageName usage changes"() {
         given:
         def conf = conf()
-        conf.markAsObserved()
+        conf.markAsObserved("reason")
 
         when:
         changeUsage(conf)
@@ -1662,60 +1657,6 @@ class DefaultConfigurationSpec extends Specification {
         'consumable'            | { it.setCanBeConsumed(!it.isCanBeConsumed()) }
         'resolvable'            | { it.setCanBeResolved(!it.isCanBeResolved()) }
         'declarable'            | { it.setCanBeDeclared(!it.isCanBeDeclared()) }
-    }
-
-    def 'locking constraints are attached to a configuration and not its children'() {
-        given:
-        def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
-        resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, { entry -> false })
-        dependencyLockingProvider.loadLockState("child", _) >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
-
-        when:
-        def child = conf("child")
-        def conf = conf()
-        child.extendsFrom(conf)
-
-        then:
-        conf.syntheticDependencies.size() == 1
-        child.syntheticDependencies.size() == 0
-    }
-
-    def 'locking constraints are not transitive'() {
-        given:
-        def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
-        resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(true, [constraint] as Set, {entry -> false })
-
-        when:
-        def conf = conf()
-
-        then:
-        conf.syntheticDependencies.size() == 1
-        conf.syntheticDependencies.each {
-            assert !it.transitive
-        }
-    }
-
-    def 'provides useful reason for locking constraints (#strict)'() {
-        given:
-        def constraint = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('org', 'foo'), '1.1')
-        resolutionStrategy.isDependencyLockingEnabled() >> true
-        dependencyLockingProvider.loadLockState("conf", _) >> new DefaultDependencyLockingState(strict, [constraint] as Set, {entry -> false })
-
-        when:
-        def conf = conf()
-
-        then:
-        conf.syntheticDependencies.size() == 1
-        conf.syntheticDependencies.each { DependencyMetadata dep ->
-            assert dep.reason == reason
-        }
-
-        where:
-        reason                                                          | strict
-        "dependency was locked to version '1.1'"                        | true
-        "dependency was locked to version '1.1' (update/lenient mode)"  | false
     }
 
     private ResolverResults buildDependenciesResolved() {
@@ -1761,21 +1702,37 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     private SelectedArtifactSet selectedArtifacts(Set<File> files = []) {
-        Stub(SelectedArtifactSet) {
-            visitFiles(_, _) >> { ResolvedFileVisitor visitor, boolean l ->
-                files.each {
-                    visitor.visitFile(it)
+        return new SelectedArtifactSet() {
+            @Override
+            void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+                files.each { file ->
+                    visitor.visitArtifact(Describables.of(file.getName()), ImmutableAttributes.EMPTY, ImmutableCapabilities.EMPTY, resolvableArtifact(file))
                 }
                 visitor.endVisitCollection(null)
             }
+
+            @Override
+            void visitDependencies(TaskDependencyResolveContext context) { }
         }
     }
 
-    private SelectedArtifactSet selectedArtifacts(Throwable failure) {
-        Stub(SelectedArtifactSet) {
-            visitDependencies(_) >> { it[0].visitFailure(failure) }
-            visitFiles(_, _) >> { ResolvedFileVisitor v, boolean l ->
-                v.visitFailure(failure)
+    private ResolvableArtifact resolvableArtifact(file) {
+        Mock(ResolvableArtifact) {
+            getFile() >> file
+        }
+    }
+
+    private static SelectedArtifactSet selectedArtifacts(Throwable failure) {
+        return new SelectedArtifactSet() {
+            @Override
+            void visitArtifacts(ArtifactVisitor visitor, boolean continueOnSelectionFailure) {
+                visitor.visitFailure(failure)
+                visitor.endVisitCollection(null)
+            }
+
+            @Override
+            void visitDependencies(TaskDependencyResolveContext context) {
+                context.visitFailure(failure)
             }
         }
     }
@@ -1814,7 +1771,6 @@ class DefaultConfigurationSpec extends Specification {
             DirectInstantiator.INSTANCE,
             resolver,
             listenerManager,
-            dependencyLockingProvider,
             domainObjectContext,
             TestFiles.fileCollectionFactory(),
             new TestBuildOperationRunner(),
@@ -1828,7 +1784,7 @@ class DefaultConfigurationSpec extends Specification {
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            new DefaultProblems([new NoOpProblemEmitter()])
+            TestUtil.problemsService()
         )
     }
 

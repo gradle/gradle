@@ -29,9 +29,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServices)
-    implementation(projects.core)
     implementation(projects.pluginsJavaBase)
-    implementation(projects.pluginsJvmTestSuite)
     implementation(projects.reporting)
     implementation(projects.testingBase)
     implementation(projects.testingJvm)

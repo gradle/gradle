@@ -16,9 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 
+@ServiceScope(Scope.Build.class)
 public interface ResolverProviderFactory {
     /**
      * Create any applicable resolvers and add to the given collection.

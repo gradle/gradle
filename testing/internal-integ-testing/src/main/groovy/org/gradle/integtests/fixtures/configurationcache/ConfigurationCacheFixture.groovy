@@ -65,7 +65,8 @@ class ConfigurationCacheFixture {
 
     void assertStateStored(HasBuildActions details) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored(details.loadsOnStore)
+
+        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.loadsOnStore)
 
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
@@ -88,7 +89,8 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredWithProblems(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        configurationCacheBuildOperations.assertStateStored(details.runsTasks)
+
+        assertStateStored(details)
 
         spec.result.assertHasPostBuildOutput("Configuration cache entry ${details.storeAction}.")
 
@@ -111,10 +113,26 @@ class ConfigurationCacheFixture {
 
     void assertStateStoredAndDiscarded(HasBuildActions details, HasProblems problemDetails) {
         assertHasStoreReason(details)
-        if (details.hasStoreFailure) {
-            configurationCacheBuildOperations.assertStateStoreFailed()
+
+        assert details.runsTasks || details.createsModels
+        if (details.runsTasks) {
+            if (details.hasStoreFailure) {
+                configurationCacheBuildOperations.assertStateStoreFailed()
+            } else {
+                configurationCacheBuildOperations.assertStateStored(false)
+            }
         } else {
-            configurationCacheBuildOperations.assertStateStored(false)
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
+        }
+
+        if (details.createsModels) {
+            if (details.hasStoreFailure) {
+                configurationCacheBuildOperations.assertModelStoreFailed()
+            } else {
+                configurationCacheBuildOperations.assertModelStored()
+            }
+        } else {
+            configurationCacheBuildOperations.assertNoModelOperations()
         }
 
         def message = "Configuration cache entry ${details.storeAction}"
@@ -144,7 +162,9 @@ class ConfigurationCacheFixture {
 
     void assertStateRecreated(HasBuildActions details, HasInvalidationReason invalidationDetails) {
         assertHasRecreateReason(details, invalidationDetails)
-        configurationCacheBuildOperations.assertStateStored(details.runsTasks)
+
+        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, details.runsTasks)
+
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
         assertHasNoProblems()
     }
@@ -165,7 +185,9 @@ class ConfigurationCacheFixture {
 
     void assertStateRecreatedWithProblems(HasBuildActions details, HasInvalidationReason invalidationDetails, HasProblems problemDetails) {
         assertHasRecreateReason(details, invalidationDetails)
-        configurationCacheBuildOperations.assertStateStored(false)
+
+        assertWorkGraphOrModelStored(details.runsTasks, details.createsModels, false)
+
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
         assertHasProblems(problemDetails)
     }
@@ -184,7 +206,17 @@ class ConfigurationCacheFixture {
         assertLoadLogged()
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
-        configurationCacheBuildOperations.assertStateLoaded()
+        assert details.runsTasks || details.createsModels
+        if (details.runsTasks) {
+            configurationCacheBuildOperations.assertStateLoaded()
+        } else {
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
+        }
+        if (details.createsModels) {
+            configurationCacheBuildOperations.assertModelLoaded()
+        } else {
+            configurationCacheBuildOperations.assertNoModelOperations()
+        }
 
         assertNothingConfigured()
 
@@ -206,10 +238,25 @@ class ConfigurationCacheFixture {
         spec.postBuildOutputContains("Configuration cache entry ${details.storeAction}.")
 
         configurationCacheBuildOperations.assertStateLoaded()
+        configurationCacheBuildOperations.assertNoModelOperations()
 
         assertNothingConfigured()
 
         assertHasProblems(details)
+    }
+
+    private void assertWorkGraphOrModelStored(boolean runsTasks, boolean createsModels, boolean loadAfterStore) {
+        assert runsTasks || createsModels
+        if (runsTasks) {
+            configurationCacheBuildOperations.assertStateStored(loadAfterStore)
+        } else {
+            configurationCacheBuildOperations.assertNoWorkGraphOperations()
+        }
+        if (createsModels) {
+            configurationCacheBuildOperations.assertModelStored()
+        } else {
+            configurationCacheBuildOperations.assertNoModelOperations()
+        }
     }
 
     private void assertHasProblems(HasProblems problemDetails) {
@@ -262,11 +309,13 @@ class ConfigurationCacheFixture {
             // Runs in quiet mode, and does not log anything
             return
         }
-        if (details.runsTasks) {
-            spec.outputContains("Calculating task graph as no cached configuration is available for tasks:")
-        } else {
+
+        assert details.createsModels || details.runsTasks
+        if (details.createsModels) {
             assert spec.getOutput().contains("Creating tooling model as no cached configuration is available for the requested model") ||
                 spec.getOutput().contains("Creating tooling model as configuration cache cannot be reused because")
+        } else if (details.runsTasks) {
+            spec.outputContains("Calculating task graph as no cached configuration is available for tasks:")
         }
     }
 
@@ -291,11 +340,14 @@ class ConfigurationCacheFixture {
             reasons.add("an input to task '${invalidationDetails.changedTask}'")
         }
 
+        assert details.createsModels || details.runsTasks
         def messages = reasons.collect { reason ->
-            if (details.runsTasks) {
+            if (details.createsModels) {
+                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
+            } else if (details.runsTasks) {
                 "Calculating task graph as configuration cache cannot be reused because $reason has changed"
             } else {
-                "Creating tooling model as configuration cache cannot be reused because $reason has changed"
+                throw new IllegalStateException("Expected creating models and/or running tasks")
             }
         }
 
@@ -327,6 +379,7 @@ class ConfigurationCacheFixture {
     static class IncompatibleTaskDetails {
         final String task
         final String reason
+
         IncompatibleTaskDetails(String task, String reason) {
             this.task = task
             this.reason = reason
@@ -371,7 +424,10 @@ class ConfigurationCacheFixture {
     }
 
     trait HasBuildActions {
+        // Whether to expect tasks as part of a regular invocation or Tooling API build action
         boolean runsTasks = true
+        // Whether to expect tooling models, which is normally the case when running any Tooling API build action
+        boolean createsModels = false
         boolean loadsOnStore = true
         boolean hasStoreFailure = true
 

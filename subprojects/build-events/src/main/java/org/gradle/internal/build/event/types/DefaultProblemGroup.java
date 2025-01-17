@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.protocol.InternalProblemGroup;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.util.Objects;
 
 @NonNullApi
 public class DefaultProblemGroup implements InternalProblemGroup, Serializable {
@@ -49,5 +50,22 @@ public class DefaultProblemGroup implements InternalProblemGroup, Serializable {
     @Override
     public InternalProblemGroup getParent() {
         return parent;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DefaultProblemGroup)) {
+            return false;
+        }
+        DefaultProblemGroup that = (DefaultProblemGroup) o;
+        return Objects.equals(name, that.name) && Objects.equals(displayName, that.displayName) && Objects.equals(parent, that.parent);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, displayName, parent);
     }
 }

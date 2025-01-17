@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ The format of the dependency lockfile has been changed and as a consequence ther
 This change only affects _writing_ lock files.
 Gradle remains capable of _loading_ lock state saved in the older format.
 
-Head over to <<dependency_locking.adoc#migrate_single_lockfile,the documentation>> to learn how to migrate to the new format.
+Head over to <<dependency_locking.adoc#sec:migrate-single-lockfile,the documentation>> to learn how to migrate to the new format.
 The migration can be performed per configuration and does not have to be done in a single step.
 Gradle will automatically clean up previous lock files when migrating them over to the new file format.
 
@@ -67,7 +67,7 @@ Users can still opt in to have this unique identifier part of the produced metad
 JFrog link:https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter[announced] the sunset of the JCenter repository in February 2021. https://blog.gradle.org/jcenter-shutdown[Many Gradle builds] rely on JCenter for project dependencies.
 
 No new packages or versions are published to JCenter, but JFrog says they will keep JCenter running in a read-only state indefinitely.
-We recommend that you consider <<declaring_repositories.adoc#declaring-basic-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
+We recommend that you consider <<declaring_repositories.adoc#three-declaring-repositories,using>> `mavenCentral()`, `google()` or a private `maven` repository instead.
 
 Gradle emits a deprecation warning when `jcenter()` is used as a repository and this method is scheduled to be removed in Gradle 8.0.
 
@@ -270,7 +270,7 @@ In the context of dependency version sorting, a `-SNAPSHOT` version is now consi
 More special version suffixes are also taken into account.
 This brings the Gradle algorithm closer to the Maven one for well-known version suffixes.
 
-Have a look at <<dependency_versions.adoc#single-version-declarations,the documentation>> for all the rules Gradle applies.
+Have a look at <<dependency_versions.adoc#sec:single-version-declarations,the documentation>> for all the rules Gradle applies.
 
 ==== Removal of Play Framework plugins
 
@@ -609,8 +609,8 @@ configurations.implementation.extendsFrom(configurations.myConfiguration)
 
 ==== Dependency substitutions and variant aware dependency resolution
 
-While adding support for expressing <<resolution_rules#sec:variant_aware_substitutions, variant support>> in dependency substitutions, a bug fix introduced a behaviour change that some builds may rely upon.
-Previously a substituted dependency would still use the <<variant_attributes#variant_attributes, attributes>> of the original selector instead of the ones from the replacement selector.
+While adding support for expressing <<resolution_rules#sec:variant-aware-substitutions, variant support>> in dependency substitutions, a bug fix introduced a behaviour change that some builds may rely upon.
+Previously a substituted dependency would still use the <<variant_attributes.adoc#variant-attributes, attributes>> of the original selector instead of the ones from the replacement selector.
 
 With that change, existing substitutions around dependencies with richer selectors, such as for platform dependencies, will no longer work as they did.
 It becomes mandatory to define the variant aware part in the target selector.
@@ -619,9 +619,9 @@ You can be affected by this change if you:
 
 * have dependencies on platforms, like `implementation platform("org:platform:1.0")`
 * _or_ if you specify attributes on dependencies,
-* _and_ you use <<resolution_rules#resolution_rules, resolution rules>> on these dependencies.
+* _and_ you use <<resolution_rules.adoc#using-resolution-rules, resolution rules>> on these dependencies.
 
-See the <<resolution_rules#sec:variant_aware_substitutions, documentation>> for resolving issues if you are impacted.
+See the <<resolution_rules#sec:variant-aware-substitutions, documentation>> for resolving issues if you are impacted.
 
 === Deprecations
 
@@ -673,7 +673,7 @@ pmd {
 
 ==== Changes in dependency locking
 
-With Gradle 6.4, the incubating API for <<dependency_locking#fine_tuning_dependency_locking_behaviour_with_lock_mode, dependency locking `LockMode`>> has changed.
+With Gradle 6.4, the incubating API for <<dependency_locking.adoc#sec:fine-tuning-dependency-locking-behaviour-with-lock-mode, dependency locking `LockMode`>> has changed.
 The value is now set via a `Property<LockMode>` instead of a direct setter.
 This means that the notation to set the value has to be updated for the Kotlin DSL:
 
@@ -752,7 +752,7 @@ Gradle will continue building projects on 32-bit systems but will no longer show
 ==== Using default and archives configurations
 
 Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
-These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
+These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#sec:understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
 
 While the configurations will stay in Gradle for backwards compatibility for now, using them to declare dependencies or to resolve dependencies is now deprecated.
 

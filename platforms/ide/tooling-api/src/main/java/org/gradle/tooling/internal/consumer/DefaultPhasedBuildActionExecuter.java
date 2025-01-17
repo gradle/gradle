@@ -83,7 +83,7 @@ public class DefaultPhasedBuildActionExecuter extends AbstractLongRunningOperati
                 connection.run(phasedBuildAction, operationParameters);
                 return null;
             }
-        }, new ResultHandlerAdapter<Void>(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+        }, new ResultHandlerAdapter<Void>(handler, createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
             @Override
             public String getConnectionFailureMessage(Throwable throwable) {
                 return String.format("Could not run phased build action using %s.", connection.getDisplayName());

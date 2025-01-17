@@ -29,7 +29,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification imp
     def setup() {
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.example", "example-lib", "1.0").publish()
-        localMaven = "maven { url '${mavenRepo.uri}' }"
+        localMaven = "maven { url = '${mavenRepo.uri}' }"
     }
 
     // TODO (donat) add more coverage after all classpath entry types are exposed via the TAPI

@@ -17,10 +17,14 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
+
+import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -72,6 +76,13 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
 
         then:
         runner('groovydoc', '-s')
+            .expectDeprecationWarning(
+                "Space-assignment syntax in Groovy DSL has been deprecated. " +
+                    "This is scheduled to be removed in Gradle 10.0. " +
+                    "Use assignment ('url = <value>') instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax",
+                "https://github.com/nebula-plugins/nebula-plugin-plugin/pull/76"
+            )
             .build()
     }
 
@@ -98,7 +109,9 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         """.stripIndent()
 
         when:
-        def result = runner('autoLintGradle').build()
+        def result = runner('autoLintGradle').deprecations(NebulaPluginDeprecations) {
+            expectNebulaLintPluginDeprecations()
+        }.build()
 
         then:
         int numOfRepoBlockLines = 14 + mavenCentralRepository().readLines().size()
@@ -109,7 +122,9 @@ class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implement
         buildFile.text.contains("testImplementation('junit:junit:4.7')")
 
         when:
-        result = runner('fixGradleLint').build()
+        result = runner('fixGradleLint').deprecations(NebulaPluginDeprecations) {
+            expectNebulaLintPluginDeprecations()
+        }.build()
 
         then:
         result.output.contains("""fixed          dependency-parentheses             parentheses are unnecessary for dependencies
@@ -128,7 +143,9 @@ testImplementation('junit:junit:4.7')""")
         """.stripIndent()
 
         then:
-        runner('buildEnvironment', 'generateLock').build()
+        runner('buildEnvironment', 'generateLock').deprecations(NebulaPluginDeprecations) {
+            expectNebulaDependencyLockPluginDeprecations()
+        }.build()
 
         where:
         nebulaDepLockVersion << TestedVersions.nebulaDependencyLock.versions
@@ -191,7 +208,9 @@ testImplementation('junit:junit:4.7')""")
 
         then:
         runner('dependencies').build()
-        runner('generateLock').build()
+        runner('generateLock').deprecations(NebulaPluginDeprecations) {
+            expectNebulaDependencyLockPluginDeprecations()
+        }.build()
         runner('resolve').build()
 
         where:
@@ -245,4 +264,35 @@ testImplementation('junit:junit:4.7')""")
             'com.netflix.nebula.resolution-rules': Versions.of(TestedVersions.nebulaResolutionRules)
         ]
     }
+
+    private static class NebulaPluginDeprecations extends BaseDeprecations {
+
+        NebulaPluginDeprecations(SmokeTestGradleRunner runner) {
+            super(runner)
+        }
+
+        void expectNebulaDependencyLockPluginDeprecations() {
+            // with CC, these are reported as config cache problems only
+            runner.expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
+                "Invocation of Task.project at execution time has been deprecated. "+
+                    "This will fail with an error in Gradle 10.0. " +
+                    "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+                    "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
+                "https://github.com/nebula-plugins/gradle-dependency-lock-plugin/issues/273"
+            )
+        }
+
+        void expectNebulaLintPluginDeprecations() {
+            // with CC, these are reported as config cache problems only
+            runner.expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache,
+                "Invocation of Task.project at execution time has been deprecated. "+
+                    "This will fail with an error in Gradle 10.0. " +
+                    "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+                    "Consult the upgrading guide for further information: $BASE_URL/userguide/upgrading_version_7.html#task_project",
+                "https://github.com/nebula-plugins/gradle-lint-plugin/issues/412"
+            )
+        }
+    }
 }
+
+

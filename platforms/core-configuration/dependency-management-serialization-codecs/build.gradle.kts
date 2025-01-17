@@ -23,7 +23,6 @@ plugins {
 description = "Configuration Cache serialization codecs for :dependency-management types"
 
 dependencies {
-    api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
@@ -41,6 +40,7 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
+    implementation(projects.baseServices)
     implementation(projects.configurationCacheBase)
     implementation(projects.serviceLookup)
     implementation(projects.serialization)

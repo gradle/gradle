@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -46,14 +47,14 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
     @Override
     public boolean calculatePresence(ValueConsumer consumer) {
         // Rely on MappingProvider contract with regard to the transform always returning value
-        try (EvaluationContext.ScopeContext ignored = openScope()) {
+        try (EvaluationScopeContext ignored = openScope()) {
             return provider.calculatePresence(consumer);
         }
     }
 
     @Override
     public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
             if (value.isChangingValue()) {
                 return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
@@ -65,7 +66,7 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
 
     @Nonnull
     @Override
-    protected Value<OUT> mapValue(EvaluationContext.ScopeContext context, Value<? extends IN> value) {
+    protected Value<OUT> mapValue(EvaluationScopeContext context, Value<? extends IN> value) {
         Value<OUT> transformedValue = super.mapValue(context, value);
         // Check MappingProvider contract with regard to the transform
         if (!value.isMissing() && transformedValue.isMissing()) {
@@ -75,7 +76,7 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
     }
 
     @Override
-    protected void beforeRead(EvaluationContext.ScopeContext context) {}
+    protected void beforeRead(EvaluationScopeContext context) {}
 
     @Override
     protected String toStringNoReentrance() {

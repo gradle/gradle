@@ -1,4 +1,6 @@
 package reporters
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.kotlin.dsl.registering
 
 interface Injected {
@@ -6,10 +8,10 @@ interface Injected {
 }
 
 val problems = project.objects.newInstance<Injected>().problems
+val problemGroup = ProblemGroup.create("root", "Root Group")
 
-problems.getReporter().reporting {
-    id("adhoc-script-deprecation", "Deprecated script plugin")
-        .contextualLabel("Deprecated script plugin 'demo-script-plugin'")
+problems.getReporter().report(ProblemId.create("adhoc-script-deprecation", "Deprecated script plugin", problemGroup)) {
+    contextualLabel("Deprecated script plugin 'demo-script-plugin'")
         .severity(Severity.WARNING)
         .solution("Please use 'standard-plugin-2' instead of this plugin")
 }
@@ -17,9 +19,8 @@ problems.getReporter().reporting {
 tasks {
     val warningTask by registering {
         doLast {
-            problems.getReporter().reporting {
-                id("adhoc-task-deprecation", "Deprecated task")
-                    .contextualLabel("Task 'warningTask' is deprecated")
+            problems.getReporter().report(ProblemId.create("adhoc-task-deprecation", "Deprecated task", problemGroup)) {
+                contextualLabel("Task 'warningTask' is deprecated")
                     .severity(Severity.WARNING)
                     .solution("Please use 'warningTask2' instead of this task")
             }
@@ -28,11 +29,9 @@ tasks {
 
     val failingTask by registering {
         doLast {
-            problems.getReporter().throwing {
-                id("broken-task", "Task should not be called")
-                    .contextualLabel("Task 'failingTask' should not be called")
+            problems.getReporter().throwing(RuntimeException("The 'failingTask' should not be called"), ProblemId.create("broken-task", "Task should not be called", problemGroup)) {
+                    contextualLabel("Task 'failingTask' should not be called")
                     .severity(Severity.ERROR)
-                    .withException(RuntimeException("The 'failingTask' should not be called"))
                     .solution("Please use 'successfulTask' instead of this task")
             }
         }

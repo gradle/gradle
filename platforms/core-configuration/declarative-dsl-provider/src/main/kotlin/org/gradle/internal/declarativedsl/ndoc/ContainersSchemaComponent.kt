@@ -36,6 +36,7 @@ import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
+import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory
 import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.evaluationSchema.AnalysisSchemaComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
@@ -43,6 +44,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimeFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
@@ -64,6 +66,7 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.jvm.jvmErasure
 
 
 internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
@@ -79,6 +82,7 @@ internal fun EvaluationSchemaBuilder.namedDomainObjectContainers() {
 internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     private val containerByAccessorId = mutableMapOf<String, ContainerProperty>()
     private val elementFactoryFunctions = hashSetOf<SchemaMemberFunction>()
+    private val elementPublicTypes = mutableMapOf<SchemaMemberFunction, KClass<*>>()
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
         // For subtypes of NDOC<T>, generate the element factory function as a member:
@@ -119,7 +123,7 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
                 containerProperties(kClass).flatMap { property ->
                     listOfNotNull(
                         property.elementType.classifier, // the element type
@@ -131,9 +135,9 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun runtimeCustomAccessors(): List<RuntimeCustomAccessors> = listOf(
         object : RuntimeCustomAccessors {
-            override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): Any? {
-                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return null
-                return callable.call(receiverObject)
+            override fun getObjectFromCustomAccessor(receiverObject: Any, accessor: ConfigureAccessor.Custom): InstanceAndPublicType {
+                val callable = containerByAccessorId[accessor.customAccessorIdentifier]?.originDeclaration?.callable ?: return InstanceAndPublicType.NULL
+                return InstanceAndPublicType.of(callable.call(receiverObject),  callable.returnType.jvmErasure)
             }
         }
     )
@@ -146,15 +150,20 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
                     RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
                         override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                             val result = (receiver as NamedDomainObjectContainer<*>).maybeCreate(binding.values.single() as String)
-                            return DeclarativeRuntimeFunction.InvocationResult(result, result)
+                            val resultInstanceAndPublicType = InstanceAndPublicType.of(result, elementPublicTypes[schemaFunction])
+                            return DeclarativeRuntimeFunction.InvocationResult(resultInstanceAndPublicType, resultInstanceAndPublicType)
                         }
                     })
                 } else RuntimeFunctionResolver.Resolution.Unresolved
         }
     )
 
-    private fun newElementFactoryFunction(receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any) =
-        elementFactoryFunction(receiverTypeRef, elementKType, inContext).also(elementFactoryFunctions::add)
+    private fun newElementFactoryFunction(receiverTypeRef: DataTypeRef, elementKType: KType, inContext: Any): DataMemberFunction {
+        val elementFactoryFunction = elementFactoryFunction(receiverTypeRef, elementKType, inContext)
+        elementFactoryFunctions.add(elementFactoryFunction)
+        elementPublicTypes[elementFactoryFunction] = elementKType.jvmErasure
+        return elementFactoryFunction
+    }
 
     private inner class ContainerProperty(
         val ownerType: KClass<*>,
@@ -185,6 +194,8 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
         fun generateSyntheticContainerType(): DataClass = DefaultDataClass(
             syntheticTypeName(),
+            NamedDomainObjectContainer::class.java.name,
+            listOfNotNull((elementType.classifier as? KClass<*>)?.java?.name),
             emptySet(),
             emptyList(),
             listOf(newElementFactoryFunction(syntheticContainerTypeRef(), elementType, inContext = originDeclaration.callable)),
@@ -248,7 +259,8 @@ private fun elementFactoryFunction(
             ConfigureAccessorInternal.DefaultConfiguringLambdaArgument(elementTypeRef),
             FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject,
             DefaultRequired
-        )
+        ),
+        metadata = listOf(DefaultContainerElementFactory(elementTypeRef))
     )
 }
 

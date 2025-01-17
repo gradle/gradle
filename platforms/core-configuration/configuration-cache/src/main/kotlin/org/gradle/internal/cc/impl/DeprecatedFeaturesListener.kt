@@ -66,7 +66,7 @@ class DeprecatedFeaturesListener(
     }
 
     override fun onProjectAccess(invocationDescription: String, task: TaskInternal, runningTask: TaskInternal?) {
-        if (shouldNagFor(task, runningTask)) {
+        if (shouldNagFor(task, runningTask, ignoreStable = true)) {
             nagUserAbout("Invocation of $invocationDescription at execution time", 7, "task_project")
         }
     }
@@ -92,19 +92,20 @@ class DeprecatedFeaturesListener(
     private
     fun nagUserAbout(action: String, upgradeGuideMajorVersion: Int, upgradeGuideSection: String) {
         DeprecationLogger.deprecateAction(action)
-            .willBecomeAnErrorInGradle9()
+            .withContext("This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.")
+            .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(upgradeGuideMajorVersion, upgradeGuideSection)
             .nagUser()
     }
 
     private
-    fun shouldNagFor(task: TaskInternal, runningTask: TaskInternal?) =
-        shouldNag() && shouldReportInContext(task, runningTask)
+    fun shouldNagFor(task: TaskInternal, runningTask: TaskInternal?, ignoreStable: Boolean = false) =
+        shouldNag(ignoreStable) && shouldReportInContext(task, runningTask)
 
     private
-    fun shouldNag(): Boolean =
+    fun shouldNag(ignoreStable: Boolean = false): Boolean =
         // TODO:configuration-cache - this listener shouldn't be registered when cc is enabled
-        !buildModelParameters.isConfigurationCache && featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE)
+        !buildModelParameters.isConfigurationCache && (ignoreStable || featureFlags.isEnabled(STABLE_CONFIGURATION_CACHE))
 
     private
     fun shouldNagAbout(listener: Any): Boolean = shouldNag() && !isSupportedListener(listener)

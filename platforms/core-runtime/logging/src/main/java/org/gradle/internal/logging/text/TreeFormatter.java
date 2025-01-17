@@ -33,8 +33,21 @@ public class TreeFormatter implements DiagnosticsVisitor {
     private final AbstractStyledTextOutput original;
     private Node current;
     private Prefixer prefixer = new DefaultPrefixer();
+    private final boolean alwaysChildrenOnNewlines;
 
     public TreeFormatter() {
+        this(false);
+    }
+
+    /**
+     * By default, if a child node + the parent node have only a short amount of total text,
+     * the formatter will merge them both onto the same line.
+     * <p>
+     * If this is set to {@code true}, this behavior will be disabled.
+     *
+     * @param alwaysChildrenOnNewlines {@code true} = never merge nodes; {@code false} (default) = merge nodes with short total text
+     */
+    public TreeFormatter(boolean alwaysChildrenOnNewlines) {
         this.original = new AbstractStyledTextOutput() {
             @Override
             protected void doAppend(String text) {
@@ -42,6 +55,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
             }
         };
         this.current = new Node();
+        this.alwaysChildrenOnNewlines = alwaysChildrenOnNewlines;
     }
 
     @Override
@@ -156,11 +170,25 @@ public class TreeFormatter implements DiagnosticsVisitor {
      * Appends a method name to the current node.
      */
     public TreeFormatter appendMethod(Method method) {
-        // Implementation is currently dumb, can be made smarter
         append(method.getDeclaringClass().getSimpleName());
         append(".");
         append(method.getName());
-        append("()");
+        append("(");
+        Class<?>[] params = method.getParameterTypes();
+        int numParams = params.length;
+        for (int i = 0; i < numParams; i++) {
+            Class<?> param = params[i];
+            appendType(param);
+            if (i < numParams - 1) {
+                append(", ");
+            }
+        }
+        append(")");
+        if (!method.getReturnType().equals(Void.TYPE)) {
+            append(": ");
+            appendType(method.getGenericReturnType());
+        }
+
         return this;
     }
 
@@ -274,7 +302,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
             output.append(node.value);
         }
 
-        Separator separator = node.getFirstChildSeparator();
+        Separator separator = node.getFirstChildSeparator(alwaysChildrenOnNewlines);
 
         if (!separator.newLine) {
             output.append(separator.text);
@@ -342,7 +370,7 @@ public class TreeFormatter implements DiagnosticsVisitor {
             }
         }
 
-        Separator getFirstChildSeparator() {
+        Separator getFirstChildSeparator(boolean alwaysChildrenOnNewlines) {
             if (firstChild == null) {
                 return Separator.NewLine;
             }
@@ -357,7 +385,9 @@ public class TreeFormatter implements DiagnosticsVisitor {
             }
             if (firstChild.nextSibling == null
                 && firstChild.firstChild == null
-                && value.length() + firstChild.value.length() < 60) {
+                && value.length() + firstChild.value.length() < 60
+                && !alwaysChildrenOnNewlines
+            ) {
                 // A single leaf node as child and total text is not too long, collapse
                 if (trailing == ':') {
                     return Separator.Empty;

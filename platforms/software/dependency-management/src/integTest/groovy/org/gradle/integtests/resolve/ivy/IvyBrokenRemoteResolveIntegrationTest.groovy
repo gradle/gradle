@@ -35,7 +35,7 @@ class IvyBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolu
 
         buildFile << """
 repositories {
-    ivy { url "${repo.uri}"}
+    ivy { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -100,7 +100,7 @@ Required by:
 
         buildFile << """
 repositories {
-    ivy { url "${repo.uri}"}
+    ivy { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -171,7 +171,7 @@ Required by:
         buildFile << """
 allprojects {
     repositories {
-        ivy { url "${repo.uri}"}
+        ivy { url = "${repo.uri}"}
     }
     configurations {
         compile
@@ -246,7 +246,7 @@ Required by:
 
         buildFile << """
 repositories {
-    ivy { url "${repo.uri}"}
+    ivy { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -299,8 +299,8 @@ Required by:
 
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}"}
-    ivy { url "${repo2.uri}"}
+    ivy { url = "${repo1.uri}"}
+    ivy { url = "${repo2.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -360,7 +360,7 @@ task showMissing { doLast { println configurations.missing.files } }
         def module = ivyHttpRepo.module("group", "projectA", "1.2").publish()
 
         and:
-        buildFile << "repositories { ivy { url '${ivyHttpRepo.uri}' } }"
+        buildFile << "repositories { ivy { url = '${ivyHttpRepo.uri}' } }"
 
         module.ivy.expectGet()
         module.jar.expectGet()
@@ -383,7 +383,7 @@ task showMissing { doLast { println configurations.missing.files } }
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -424,7 +424,7 @@ task showBroken { doLast { println configurations.broken.files } }
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { compile }
@@ -467,7 +467,7 @@ Searched in the following locations:
         buildFile << """
 repositories {
     ivy {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { compile }

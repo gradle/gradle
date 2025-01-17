@@ -54,7 +54,7 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         def executer = new ScriptExecuter()
         executer.workingDir = testDirectory
         executer.standardOutput = out
-        executer.commandLine = "build/install/test/bin/test"
+        executer.commandLine("build/install/test/bin/test")
         def result = executer.run()
         then:
         result.assertNormalExitValue()
@@ -99,7 +99,7 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
         def executer = new ScriptExecuter()
         executer.workingDir = testDirectory
         executer.standardOutput = out
-        executer.commandLine = "build/install/test/bin/test"
+        executer.commandLine("build/install/test/bin/test")
 
         then:
         executer.run().assertNormalExitValue()

@@ -371,24 +371,32 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         and: "Has error output"
         failure.assertHasDescription("Could not determine the dependencies of task ':forceResolution'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':resolveMe'.")
-        assertFullMessageCorrect("""   > Found multiple transforms that can produce a variant of root project : with requested attributes:
+        assertFullMessageCorrect("""   > Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
        - color 'red'
        - shape 'round'
-     Found the following transforms:
-       - From 'configuration ':roundBlueLiquidElements'':
+     Found the following transformation chains:
+       - From configuration ':roundBlueLiquidElements':
            - With source attributes:
                - color 'blue'
                - shape 'round'
                - state 'liquid'
-           - Candidate transform(s):
-               - Transform 'BrokenTransform' producing attributes:
-                   - color 'red'
-                   - shape 'round'
-                   - state 'gas'
-               - Transform 'BrokenTransform' producing attributes:
-                   - color 'red'
-                   - shape 'round'
-                   - state 'solid'""")
+           - Candidate transformation chains:
+               - Transformation chain: 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - state 'liquid'
+                       - To attributes:
+                           - color 'red'
+                           - state 'gas'
+               - Transformation chain: 'BrokenTransform':
+                   - 'BrokenTransform':
+                       - Converts from attributes:
+                           - color 'blue'
+                           - state 'liquid'
+                       - To attributes:
+                           - color 'red'
+                           - state 'solid'""")
 
         and: "Helpful resolutions are provided"
         assertSuggestsReviewingAlgorithm()
@@ -443,7 +451,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
         String basicOutput = """   Failures:
       - Could not resolve com.google.code.gson:gson:2.8.5."""
-        String fullOutput = """          - Unable to find a variant providing the requested capability 'com.google.code.gson:gson-test-fixtures':
+        String fullOutput = """          - Unable to find a variant with the requested capability: feature 'test-fixtures':
                - Variant 'compile' provides 'com.google.code.gson:gson:2.8.5'
                - Variant 'enforced-platform-compile' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'
                - Variant 'enforced-platform-runtime' provides 'com.google.code.gson:gson-derived-enforced-platform:2.8.5'

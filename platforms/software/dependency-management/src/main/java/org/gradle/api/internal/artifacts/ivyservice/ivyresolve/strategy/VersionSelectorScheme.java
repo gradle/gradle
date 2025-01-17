@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * Compares version selectors against candidate versions, indicating whether they match or not.
  *
  */
+@ServiceScope(Scope.Build.class)
 public interface VersionSelectorScheme {
     /**
      * Returns an appropriate {@link VersionSelector} for the given selector string.

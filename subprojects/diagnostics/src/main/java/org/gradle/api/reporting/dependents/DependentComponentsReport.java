@@ -26,6 +26,7 @@ import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -138,6 +139,10 @@ public abstract class DependentComponentsReport extends DefaultTask {
 
     @TaskAction
     public void report() {
+        DeprecationLogger.whileDisabled(this::doReport);
+    }
+
+    private void doReport() {
         // Once we are here, the project lock is held. If we synchronize to avoid cross-project operations, we will have a dead lock.
         getWorkerLeaseService().runAsIsolatedTask(() -> {
             // Output reports per execution, not mixed.

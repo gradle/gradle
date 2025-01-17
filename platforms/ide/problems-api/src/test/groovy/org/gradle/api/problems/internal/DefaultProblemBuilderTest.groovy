@@ -16,19 +16,26 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.GeneralData
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import spock.lang.Specification
 
 import static org.gradle.internal.problems.NoOpProblemDiagnosticsFactory.EMPTY_STREAM
 
 class DefaultProblemBuilderTest extends Specification {
+
+    def problemGroup = ProblemGroup.create("group", "label")
+    def problemId = ProblemId.create('id', 'Problem Id', problemGroup)
+
     def "additionalData accepts GeneralDataSpec"() {
         given:
         def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
+            .id(problemId)
             .additionalData(GeneralDataSpec, spec -> {
                 spec.put("key", "value")
             })
@@ -44,7 +51,7 @@ class DefaultProblemBuilderTest extends Specification {
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
+            .id(problemId)
             .additionalData(DeprecationDataSpec, spec -> {
                 spec.type(DeprecationData.Type.USER_CODE_INDIRECT)
             })
@@ -60,7 +67,7 @@ class DefaultProblemBuilderTest extends Specification {
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
+            .id(problemId)
             .additionalData(TypeValidationDataSpec, spec -> {
                 spec.propertyName("propertyName")
                 spec.parentPropertyName("parentPropertyName")
@@ -79,7 +86,7 @@ class DefaultProblemBuilderTest extends Specification {
 
         when:
         def data = problemBuilder
-            .id("id", "displayName")
+            .id(problemId)
             .additionalData(PropertyTraceDataSpec, spec -> {
                 spec.trace("trace")
             })
@@ -98,7 +105,7 @@ class DefaultProblemBuilderTest extends Specification {
         when:
         //noinspection GroovyAssignabilityCheck
         def problem = problemBuilder
-            .id("id", "displayName")
+            .id(problemId)
             .additionalData(NoOpProblemDiagnosticsFactory, spec -> {
                 // won't reach here
 
@@ -109,5 +116,22 @@ class DefaultProblemBuilderTest extends Specification {
 
         then:
         data == null
+    }
+
+    def "can define contextual locations"() {
+        given:
+        def problemBuilder = new DefaultProblemBuilder(EMPTY_STREAM, new AdditionalDataBuilderFactory())
+
+        when:
+        //noinspection GroovyAssignabilityCheck
+        def problem = problemBuilder
+            .id(problemId)
+            .taskPathLocation(":taskPath")
+            .build()
+
+
+        then:
+        problem.contextualLocations.every { it instanceof TaskPathLocation }
+        problem.contextualLocations.collect {(it as TaskPathLocation).buildTreePath } == [':taskPath']
     }
 }

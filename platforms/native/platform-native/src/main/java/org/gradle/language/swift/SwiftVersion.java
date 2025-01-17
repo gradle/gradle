@@ -29,7 +29,14 @@ public enum SwiftVersion {
      *
      * @since 5.4
      */
-    SWIFT5(5);
+    SWIFT5(5),
+
+    /**
+     * Swift 6 major version.
+     *
+     * @since 8.12
+     */
+    SWIFT6(6);
 
     private final int version;
 

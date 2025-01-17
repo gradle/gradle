@@ -20,13 +20,13 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.buildtree.BuildTreeModelAction;
 import org.gradle.internal.buildtree.BuildTreeModelController;
+import org.gradle.internal.buildtree.BuildTreeModelTarget;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.action.BuildModelAction;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.provider.model.UnknownModelException;
-import org.gradle.tooling.provider.model.internal.ToolingModelScope;
 
 public class BuildModelActionRunner implements BuildActionRunner {
     private final PayloadSerializer payloadSerializer;
@@ -78,9 +78,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
         @Override
         public Object fromBuildModel(BuildTreeModelController controller) {
             String modelName = buildModelAction.getModelName();
-            ToolingModelScope scope = controller.locateBuilderForDefaultTarget(modelName, false);
             try {
-                return scope.getModel(modelName, null);
+                return controller.getModel(BuildTreeModelTarget.ofDefault(), modelName, null);
             } catch (UnknownModelException e) {
                 modelLookupFailure = e;
                 throw e;

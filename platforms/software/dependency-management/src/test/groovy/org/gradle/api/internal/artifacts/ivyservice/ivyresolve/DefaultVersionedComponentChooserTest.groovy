@@ -23,14 +23,13 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveMetadata
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -47,18 +46,17 @@ class DefaultVersionedComponentChooserTest extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(versionComparator, versionParser)
     def componentSelectionRules = Mock(ComponentSelectionRulesInternal)
     def consumerAttributes = ImmutableAttributes.EMPTY
-    def cachePolicy = new DefaultCachePolicy()
 
     def chooser = new DefaultVersionedComponentChooser(versionComparator, versionParser, AttributeTestUtil.services(), componentSelectionRules, ImmutableAttributesSchema.EMPTY)
 
     def "chooses latest version for component meta data"() {
-        def one = Stub(ModuleComponentGraphResolveMetadata) {
+        def one = Stub(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Stub(ModuleComponentGraphResolveMetadata) {
+        def two = Stub(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
         }
-        def three = Stub(ModuleComponentGraphResolveMetadata) {
+        def three = Stub(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
         }
 
@@ -76,10 +74,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def "chooses non-generated descriptor over generated"() {
-        def one = Mock(ModuleComponentGraphResolveMetadata) {
+        def one = Mock(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
-        def two = Mock(ModuleComponentGraphResolveMetadata) {
+        def two = Mock(ExternalModuleComponentGraphResolveMetadata) {
             getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
         }
 
@@ -362,7 +360,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
             getStatus() >> status
             getAttributes() >> AttributeTestUtil.attributes(attributes)
         }
-        def state = Stub(ModuleComponentGraphResolveState) {
+        def state = Stub(ExternalModuleComponentGraphResolveState) {
             getLegacyMetadata() >> meta
         }
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
@@ -396,7 +394,6 @@ class DefaultVersionedComponentChooserTest extends Specification {
                 resolve() >> resolvedWithStatus(status, attributes)
             }
             getComponentMetadataSupplier() >> null
-            getCachePolicy() >> cachePolicy
             getComponentMetadataSupplierExecutor() >> { componentMetadataSupplierExecutor() }
         }
         return c

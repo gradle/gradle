@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import spock.lang.Issue
@@ -28,7 +29,15 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
-class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, StableConfigurationCacheDeprecations {
+
+    int expectedTaskGetProjectDeprecationCount = 0
+
+    @Override
+    protected void setupExecuter() {
+        super.setupExecuter()
+        expectTaskGetProjectDeprecations(expectedTaskGetProjectDeprecationCount)
+    }
 
     @UnsupportedWithConfigurationCache
     def taskCanAccessTaskGraph() {
@@ -105,7 +114,9 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
         """
         expect:
         2.times {
+            expectedTaskGetProjectDeprecationCount = 2
             run("a", "b").assertTasksExecuted(":a", ":b")
+            expectedTaskGetProjectDeprecationCount = 1
             run("a", "a").assertTasksExecuted(":a")
             run("c", "a").assertTasksExecuted(":a", ":c")
             run("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e")

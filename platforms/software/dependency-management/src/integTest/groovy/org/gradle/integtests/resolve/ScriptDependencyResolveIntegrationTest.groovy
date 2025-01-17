@@ -43,7 +43,7 @@ group = 'org.gradle'
 version = '1.0'
 
 buildscript {
-    repositories { maven { url "${mavenRepo().uri}" } }
+    repositories { maven { url = "${mavenRepo().uri}" } }
     dependencies {
         classpath "org.gradle:test:1.45"
     }
@@ -74,7 +74,7 @@ task check {
         and:
         settingsFile << """
 buildscript {
-    repositories { maven { url "${mavenRepo().uri}" } }
+    repositories { maven { url = "${mavenRepo().uri}" } }
     configurations.classpath {
         resolutionStrategy {
             failOnVersionConflict()
@@ -101,7 +101,7 @@ rootProject.name = 'testproject'
         and:
         settingsFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core"
                 }
@@ -112,7 +112,7 @@ rootProject.name = 'testproject'
 
         buildFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core"
                 }
@@ -133,7 +133,7 @@ rootProject.name = 'testproject'
 
         buildFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core:2.14.1!!"
                 }
@@ -151,7 +151,7 @@ rootProject.name = 'testproject'
         mavenRepo().module('org.apache.logging.log4j', 'log4j-core', '3.1.0').publish()
         buildFile << """
             buildscript {
-                repositories { maven { url "${mavenRepo().uri}" } }
+                repositories { maven { url = "${mavenRepo().uri}" } }
                 dependencies {
                     classpath "org.apache.logging.log4j:log4j-core:3.1.0"
                 }

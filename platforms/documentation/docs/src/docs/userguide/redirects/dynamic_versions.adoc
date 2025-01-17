@@ -1,0 +1,20 @@
+++++
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+"sec:offline-mode": "dependency_caching.html#sec:controlling-dependency-caching-command-line",
+"sec:refreshing-dependencies": "dependency_caching.html#sec:refreshing-dependencies"
+};
+
+const defaultRedirect = "dependency_versions.html#sec:dynamic-versions-and-changing-modules";
+
+if (currentAnchor) {
+  if (redirectionRules[currentAnchor]) {
+    window.location.href = redirectionRules[currentAnchor];
+  }
+} else {
+  window.location.href = defaultRedirect;
+}
+</script>
+++++

@@ -40,7 +40,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
             buildFile << """
                 apply plugin: 'java'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             """
         }

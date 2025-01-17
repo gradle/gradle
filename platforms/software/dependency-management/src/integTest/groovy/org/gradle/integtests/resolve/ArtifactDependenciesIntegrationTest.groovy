@@ -188,7 +188,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        maven { url '${repo.uri}' }
+        maven { url = '${repo.uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -211,7 +211,7 @@ project(':b') {
         given:
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     compile; missingExt; missingClassifier
@@ -276,7 +276,7 @@ subprojects {
 }
 project(':a') {
     repositories {
-        maven { url '${repo1.uri}' }
+        maven { url = '${repo1.uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -284,7 +284,7 @@ project(':a') {
 }
 project(':b') {
     repositories {
-        maven { url '${repo2.uri}' }
+        maven { url = '${repo2.uri}' }
     }
     dependencies {
         compile 'org.gradle.test:external1:1.0'
@@ -311,7 +311,7 @@ project(':b') {
 
         file('build.gradle') << """
             repositories {
-                maven { url '${repo.uri}' }
+                maven { url = '${repo.uri}' }
             }
             configurations {
                 compile
@@ -340,7 +340,7 @@ project(':b') {
 
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     compile
@@ -409,7 +409,7 @@ tasks.register("test", CheckArtifacts) {
         file('build.gradle') << """
 subprojects {
     repositories {
-        maven { url '${repo.uri}' }
+        maven { url = '${repo.uri}' }
     }
     configurations {
         compile
@@ -476,7 +476,7 @@ project(':b') {
 
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     base
@@ -536,7 +536,7 @@ task test {
 
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     base
@@ -579,7 +579,7 @@ task test {
 
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     base
@@ -619,7 +619,7 @@ task test {
         file('settings.gradle') << "rootProject.name = 'test'"
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     transitive
@@ -712,7 +712,7 @@ dependencies {
 
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     override { transitive = false }
@@ -744,7 +744,7 @@ task test {
 
         file('build.gradle') << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     a

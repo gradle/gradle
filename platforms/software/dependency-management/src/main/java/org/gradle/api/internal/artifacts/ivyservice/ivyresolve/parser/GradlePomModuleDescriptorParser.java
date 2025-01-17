@@ -32,8 +32,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.external.model.GradleDependencyMetadata;
-import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.resource.local.FileResourceRepository;
@@ -45,7 +43,6 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -229,14 +226,9 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
     }
 
     private PomReader parsePomForSelector(DescriptorParseContext parseContext, ModuleComponentSelector selector, Map<String, String> childProperties) throws IOException, SAXException {
-        ModuleDependencyMetadata moduleDependencyMetadata = toDependencyMetadata(selector);
         VersionSelector acceptor = mavenVersionSelectorScheme.parseSelector(selector.getVersion());
-        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(moduleDependencyMetadata, acceptor, ArtifactType.MAVEN_POM);
+        LocallyAvailableExternalResource localResource = parseContext.getMetaDataArtifact(selector, acceptor, ArtifactType.MAVEN_POM);
         return parsePomResource(parseContext, localResource, childProperties);
-    }
-
-    private ModuleDependencyMetadata toDependencyMetadata(ModuleComponentSelector selector) {
-        return new GradleDependencyMetadata(selector, Collections.emptyList(), false, false, null, false, null);
     }
 
     private PomReader parsePomResource(DescriptorParseContext parseContext, LocallyAvailableExternalResource localResource, Map<String, String> childProperties) throws SAXException, IOException {

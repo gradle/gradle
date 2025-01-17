@@ -16,9 +16,11 @@
 
 package org.gradle.internal.enterprise
 
+import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.api.problems.ReportingScript.getProblemReportingScript
+import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
 
 class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,11 +33,11 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
         plugin.publishDummyPlugin(executer)
 
         buildFile """
+        ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
+        ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)
             ${getProblemReportingScript """
-                problems.getReporter().throwing {
-                    it.id('type', 'label')
-                    .withException(new RuntimeException('failed'))
-            }"""}
+                problems.getReporter().throwing(new RuntimeException('failed'), problemId) {}
+            """}
 
             task $succeedingTaskName
         """

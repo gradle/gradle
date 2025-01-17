@@ -38,7 +38,7 @@ include 'first', 'second'
 allprojects {
     apply plugin: 'java-library'
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -80,7 +80,7 @@ project(':second') {
 allprojects {
     apply plugin: 'java-library'
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 
@@ -122,7 +122,7 @@ project(':second') {
 allprojects {
     apply plugin: 'java-library'
     repositories {
-        maven { url "${mavenRepo.uri}" }
+        maven { url = "${mavenRepo.uri}" }
     }
 }
 

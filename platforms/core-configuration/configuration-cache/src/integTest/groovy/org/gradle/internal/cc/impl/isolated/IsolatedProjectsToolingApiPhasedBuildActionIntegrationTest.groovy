@@ -54,7 +54,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -79,7 +79,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model2[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         when:
@@ -101,7 +101,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -142,7 +142,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -169,7 +169,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model2[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
     }
 
@@ -205,7 +205,8 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
+            runsTasks = true
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -233,7 +234,9 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         model2[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded {
+            runsTasks = true
+        }
         outputDoesNotContain("creating model")
         result.ignoreBuildSrc.assertTasksExecuted(":a:thing")
     }
@@ -257,7 +260,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         def models = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(SomeToolingModel, ":", ":a")
@@ -275,7 +278,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         def models2 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(SomeToolingModel, ":", ":a")
@@ -293,7 +296,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         def models3 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":"), new FetchCustomModelForTargetProject(":a"))
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         and:
@@ -306,7 +309,7 @@ class IsolatedProjectsToolingApiPhasedBuildActionIntegrationTest extends Abstrac
         def models4 = runPhasedBuildAction(new FetchCustomModelForTargetProject(":a"), new FetchCustomModelForTargetProject(":"))
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         and:

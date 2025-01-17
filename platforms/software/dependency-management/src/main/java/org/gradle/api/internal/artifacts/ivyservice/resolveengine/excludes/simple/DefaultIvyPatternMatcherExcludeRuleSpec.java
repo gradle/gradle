@@ -33,16 +33,16 @@ final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcher
     private final boolean isArtifactExclude;
     private final int hashCode;
 
-    public static ExcludeSpec of(ModuleIdentifier moduleId, IvyArtifactName artifact, String matcher) {
+    public static ExcludeSpec of(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
         return new DefaultIvyPatternMatcherExcludeRuleSpec(moduleId, artifact, matcher);
     }
 
-    private DefaultIvyPatternMatcherExcludeRuleSpec(ModuleIdentifier moduleId, IvyArtifactName artifact, String matcher) {
+    private DefaultIvyPatternMatcherExcludeRuleSpec(ModuleIdentifier moduleId, @Nullable IvyArtifactName artifact, String matcher) {
         this.moduleId = moduleId;
         this.ivyArtifactName = artifact;
         this.matcher = PatternMatchers.getInstance().getMatcher(matcher);
-        isArtifactExclude = ivyArtifactName != null;
-        hashCode = Objects.hashCode(moduleId, ivyArtifactName, matcher, isArtifactExclude);
+        this.isArtifactExclude = ivyArtifactName != null;
+        this.hashCode = Objects.hashCode(moduleId, ivyArtifactName, matcher, isArtifactExclude);
     }
 
     @Override

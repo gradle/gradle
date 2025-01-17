@@ -55,21 +55,20 @@ public class FileLockCommunicator {
         boolean pingSentSuccessfully = false;
         try {
             byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
-            for (InetAddress address : inetAddressProvider.getCommunicationAddresses()) {
-                try {
-                    socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
-                    pingSentSuccessfully = true;
-                } catch (IOException e) {
-                    String message = e.getMessage();
-                    if (message != null && (
-                        message.startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)
-                            || message.startsWith(SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE)
-                            || message.startsWith(SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE)
-                    )) {
-                        LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
-                    } else {
-                        throw e;
-                    }
+            InetAddress address = inetAddressProvider.getCommunicationAddress();
+            try {
+                socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
+                pingSentSuccessfully = true;
+            } catch (IOException e) {
+                String message = e.getMessage();
+                if (message != null && (
+                    message.startsWith(SOCKET_OPERATION_NOT_PERMITTED_ERROR_MESSAGE)
+                        || message.startsWith(SOCKET_NETWORK_UNREACHABLE_ERROR_MESSAGE)
+                        || message.startsWith(SOCKET_CANNOT_ASSIGN_ADDRESS_ERROR_MESSAGE)
+                )) {
+                    LOGGER.debug("Failed attempt to ping owner of lock for {} (lock id: {}, port: {}, address: {})", displayName, lockId, ownerPort, address);
+                } else {
+                    throw e;
                 }
             }
         } catch (IOException e) {

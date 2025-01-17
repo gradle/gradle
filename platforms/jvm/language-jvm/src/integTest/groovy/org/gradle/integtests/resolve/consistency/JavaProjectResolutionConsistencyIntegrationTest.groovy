@@ -30,7 +30,7 @@ class JavaProjectResolutionConsistencyIntegrationTest extends AbstractHttpDepend
 
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                 }
             }
         """

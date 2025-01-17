@@ -17,7 +17,29 @@
 package org.gradle.internal.cc.impl
 
 
-internal
-enum class ConfigurationCacheAction {
-    LOAD, STORE, UPDATE
+/**
+ * A build execution strategy chosen by Configuration Cache
+ * that depends on the availability and state of existing cache entries
+ * that correspond to the build environment and build parameters of the current invocation.
+ */
+internal sealed class ConfigurationCacheAction {
+
+    /**
+     * Configuration cache entry is fully loaded and reused.
+     */
+    data class Load(val entryId: String) : ConfigurationCacheAction()
+
+    /**
+     * Configuration cache entry is loaded and partially reused.
+     * The entry will be stored again, incrementally updating parts of state.
+     */
+    data class Update(val entryId: String, val invalidProjects: CheckedFingerprint.InvalidProjects) : ConfigurationCacheAction()
+
+    /**
+     * Configuration cache entry is invalid for the current invocation.
+     * The new entry will be stored by the end of the build.
+     */
+    object Store : ConfigurationCacheAction() {
+        override fun toString(): String = "Store"
+    }
 }

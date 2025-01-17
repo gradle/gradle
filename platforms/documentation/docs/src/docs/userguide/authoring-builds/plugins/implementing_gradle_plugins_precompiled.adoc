@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ For example, a script named `code-quality.gradle(.kts)` located in `src/main/gro
 [source, kotlin]
 ----
 plugins {
-    id("kotlin-dsl")
+    `kotlin-dsl`
 }
 ----
 .app/build.gradle.kts
@@ -71,7 +71,7 @@ On the other hand, a script named `code-quality.gradle.kts` located in `src/main
 [source, kotlin]
 ----
 plugins {
-    id("kotlin-dsl")
+    `kotlin-dsl`
 }
 ----
 .app/build.gradle.kts

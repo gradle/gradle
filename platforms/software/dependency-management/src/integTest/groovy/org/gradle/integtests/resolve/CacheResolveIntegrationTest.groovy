@@ -37,7 +37,7 @@ class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest i
         and:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
@@ -93,12 +93,12 @@ subprojects {
 }
 project('a') {
     repositories {
-        ivy { url "${repo1.uri}" }
+        ivy { url = "${repo1.uri}" }
     }
 }
 project('b') {
     repositories {
-        ivy { url "${repo2.uri}" }
+        ivy { url = "${repo2.uri}" }
     }
     retrieve.dependsOn(':a:retrieve')
 }
@@ -130,7 +130,7 @@ project('b') {
         and:
         buildFile << """
 repositories {
-    ivy { url "${ivyHttpRepo.uri}" }
+    ivy { url = "${ivyHttpRepo.uri}" }
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
@@ -274,7 +274,7 @@ plugins {
 
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
         metadataSources {
             artifact()
         }
@@ -291,7 +291,7 @@ plugins {
 
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 """

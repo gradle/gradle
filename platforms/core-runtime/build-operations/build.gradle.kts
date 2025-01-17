@@ -10,6 +10,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.jsr305)
     api(projects.stdlibJavaExtensions)
+    api(projects.time)
 
     implementation(libs.slf4jApi)
 

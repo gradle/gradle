@@ -33,49 +33,53 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             rootProject.name = 'test'
         """
-        resolve.expectDefaultConfiguration("runtime")
-        resolve.addDefaultVariantDerivationStrategy()
     }
 
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${mavenRepo.uri}" }
-	}
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
+            dependencies {
+                implementation("org:foo:1.3.3")
+            }
+        """
 
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':tool') {
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-	}
+            dependencies {
+                implementation("org:foo:1.4.4")
+            }
+        """
 
-	configurations.runtimeClasspath.resolutionStrategy.failOnVersionConflict()
-}
-"""
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-        expect:
-        runAndFail("tool:dependencies")
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation(project(':api'))
+                implementation(project(':impl'))
+            }
+
+            configurations.runtimeClasspath.resolutionStrategy.failOnVersionConflict()
+        """
+
+        when:
+        fails("tool:dependencies")
+
+        then:
         failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
         failure.assertHasResolutions("Run with :tool:dependencyInsight --configuration runtimeClasspath " +
             "--dependency org:foo to get more insight on how to solve the conflict.",
@@ -89,41 +93,45 @@ project(':tool') {
     void "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
-        createDirs("api", "impl", "tool")
         settingsFile << "include 'api', 'impl', 'tool'"
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${mavenRepo.uri}" }
-	}
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
+            dependencies {
+                implementation("org:foo:1.3.3")
+            }
+        """
 
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':tool') {
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-	}
+            dependencies {
+                implementation("org:foo:1.3.3")
+            }
+        """
 
-	configurations.all { resolutionStrategy.failOnVersionConflict() }
-}
-"""
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(':api')
+                implementation project(':impl')
+            }
+
+            configurations.all {
+                resolutionStrategy.failOnVersionConflict()
+            }
+        """
 
         expect:
-        run("tool:dependencies")
+        succeeds("tool:dependencies")
     }
 
     void "resolves module version conflicts to the latest version by default"() {
@@ -132,42 +140,44 @@ project(':tool') {
 
         createDirs("api", "impl", "tool")
         settingsFile << """
-include 'api', 'impl', 'tool'
-"""
+            include 'api', 'impl', 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${mavenRepo.uri}" }
-	}
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation("org:foo:1.3.3")
+            }
+        """
 
-project(':api') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.3.3')
-	}
-}
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation("org:foo:1.4.4")
+            }
+        """
 
-project(':impl') {
-	dependencies {
-		implementation (group: 'org', name: 'foo', version:'1.4.4')
-	}
-}
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation project(':api')
+                implementation project(':impl')
+            }
+        """
 
-project(':tool') {
-	dependencies {
-		implementation project(':api')
-		implementation project(':impl')
-	}
-}
-"""
-
-        def resolve = new ResolveTestFixture(buildFile)
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run("tool:checkDeps")
+        succeeds("tool:checkDeps")
 
         then:
         resolve.expectGraph {
@@ -191,30 +201,25 @@ project(':tool') {
         mavenRepo.module("org", "baz", "1.0").dependsOn(foo144).publish()
 
         buildFile << """
-apply plugin: 'java'
-group = 'org'
-version = '1.0'
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            plugins {
+                id("java-library")
+            }
 
-dependencies {
-    implementation (group: 'org', name: 'bar', version:'1.0')
-    implementation (group: 'org', name: 'baz', version:'1.0')
-}
+            group = 'org'
+            version = '1.0'
 
-task resolve {
-    doLast {
-        println configurations.compile.files
-    }
-}
-"""
+            ${mavenTestRepository()}
 
-        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
-        resolve.prepare()
+            dependencies {
+                implementation("org:bar:1.0")
+                implementation("org:baz:1.0")
+            }
+        """
+
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run(":checkDeps")
+        succeeds(":checkDeps")
 
         then:
         resolve.expectGraph {
@@ -244,22 +249,22 @@ task resolve {
         mavenRepo.module("org", "two", "1.0").dependsOn(controlNewBringer).dependsOn(depOldBringer).publish()
 
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-configurations { compile }
+            configurations {
+                compile
+            }
 
-dependencies {
-    compile 'org:one:1.0'
-    compile 'org:two:1.0'
-}
-"""
+            dependencies {
+                compile("org:one:1.0")
+                compile("org:two:1.0")
+            }
+        """
 
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -289,21 +294,21 @@ dependencies {
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.0").publish()
 
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-configurations { compile }
+            configurations {
+                compile
+            }
 
-dependencies {
-    compile 'org:external:1.2'
-    compile 'org:dep:2.2'
-}
-"""
+            dependencies {
+                compile("org:external:1.2")
+                compile("org:dep:2.2")
+            }
+        """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -325,22 +330,22 @@ dependencies {
         mavenRepo.module("org", "dep", '2').dependsOn("org", "parent", "2").publish()
 
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
-configurations {
-    compile
-}
-dependencies {
-    compile 'org:parent:1'
-    compile 'org:child:2'
-    compile 'org:dep:2'
-}
-"""
+            ${mavenTestRepository()}
+
+            configurations {
+                compile
+            }
+
+            dependencies {
+                compile("org:parent:1")
+                compile("org:child:2")
+                compile("org:dep:2")
+            }
+        """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -366,21 +371,21 @@ dependencies {
 
         def buildFile = file("build.gradle")
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-configurations { compile }
+            configurations {
+                compile
+            }
 
-dependencies {
-    compile 'org:external:1.2'
-    compile 'org:dep:2.2'
-}
-"""
+            dependencies {
+                compile("org:external:1.2")
+                compile("org:dep:2.2")
+            }
+        """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -400,27 +405,29 @@ dependencies {
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-configurations { compile }
+            configurations {
+                compile
+            }
 
-dependencies {
-    compile 'org:external:1.2'
-    compile 'org:dep:2.2'
-}
+            dependencies {
+                compile("org:external:1.2")
+                compile("org:dep:2.2")
+            }
 
-task checkDeps {
-    def files = configurations.compile
-    doLast {
-        files.files
-    }
-}
-"""
+            task checkDeps {
+                def files = configurations.compile
+                doLast {
+                    files.files
+                }
+            }
+        """
 
-        expect:
-        runAndFail("checkDeps")
+        when:
+        fails("checkDeps")
+
+        then:
         failure.assertHasCause("Could not find org:external:1.4.")
     }
 
@@ -429,21 +436,21 @@ task checkDeps {
         mavenRepo.module("org", "dep", "2.2").dependsOn("org", "external", "1.4").publish()
 
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-configurations { compile }
+            configurations {
+                compile
+            }
 
-dependencies {
-    compile 'org:external:1.2'
-    compile 'org:dep:2.2'
-}
-"""
+            dependencies {
+                compile("org:external:1.2")
+                compile("org:dep:2.2")
+            }
+        """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -467,48 +474,55 @@ dependencies {
 
         mavenRepo.module("org", "foo", '1.6.0').publish()
 
-        createDirs("api", "impl", "tool")
-        settingsFile << "include 'api', 'impl', 'tool'"
+        settingsFile << """
+            include 'api', 'impl', 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-        buildFile << """
-allprojects {
-	apply plugin: 'java'
-	repositories {
-		maven { url "${mavenRepo.uri}" }
-	}
-}
+        file("api/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation("org:foo:1.4.4")
+            }
+        """
 
-project(':api') {
-	dependencies {
-		implementation 'org:foo:1.4.4'
-	}
-}
+        file("impl/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation("org:foo:1.4.1")
+            }
+        """
 
-project(':impl') {
-	dependencies {
-		implementation 'org:foo:1.4.1'
-	}
-}
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-project(':tool') {
+            dependencies {
+                implementation(project(":api"))
+                implementation(project(":impl"))
+                implementation("org:foo:1.3.0")
+            }
 
-	dependencies {
-		implementation project(':api'), project(':impl'), 'org:foo:1.3.0'
-	}
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    force("org:foo:[1.4, 1.5)")
+                    failOnVersionConflict()
+                }
+            }
+        """
 
-	configurations.all {
-	    resolutionStrategy {
-	        force 'org:foo:[1.4, 1.5)'
-	        failOnVersionConflict()
-	    }
-	}
-}
 
-"""
         resolve.prepare("runtimeClasspath")
 
         when:
-        run("tool:checkDeps")
+        succeeds("tool:checkDeps")
 
         then:
         resolve.expectGraph {
@@ -546,26 +560,27 @@ project(':tool') {
         dep.publish()
 
         buildFile << """
-apply plugin: 'java'
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            plugins {
+                id("java-library")
+            }
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation 'org:someArtifact:1.0'
-}
+            dependencies {
+                implementation("org:someArtifact:1.0")
+            }
 
-configurations.all {
-    resolutionStrategy {
-        force 'org:someParent:2.0'
-        failOnVersionConflict()
-    }
-}
-"""
+            configurations.runtimeClasspath {
+                resolutionStrategy {
+                    force("org:someParent:2.0")
+                    failOnVersionConflict()
+                }
+            }
+        """
+
         resolve.prepare("runtimeClasspath")
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -598,21 +613,21 @@ configurations.all {
         ivyRepo.module("org", "a", '2.0').dependsOn("org", "b", '2.0').publish()
 
         buildFile << """
-            repositories {
-                ivy { url "${ivyRepo.uri}" }
-            }
+            ${ivyTestRepository()}
 
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:a:2.0'
+                compile("org:a:1.0")
+                compile("org:a:2.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -659,18 +674,21 @@ configurations.all {
         mavenRepo.module("org", "b", '1.0').dependsOn("org", "b-child", "1.0").publish()
 
         buildFile << """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            ${mavenTestRepository()}
 
-            configurations { compile }
+            configurations {
+                compile
+            }
 
             dependencies {
-                compile "org:a:1.0", "org:b:1.0"
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -721,21 +739,30 @@ configurations.all {
         mavenRepo.module("org", "f").dependsOn("org", "x", "2.0").publish()
 
         buildFile << """
-            repositories { maven { url "${mavenRepo.uri}" } }
+            ${mavenTestRepository()}
+
             configurations {
                 childFirst
                 parentFirst
             }
+
             dependencies {
                 //conflicted child is resolved first
-                childFirst 'org:d:1.0', 'org:f:1.0', 'org:a:1.0', 'org:b:1.0'
+                childFirst("org:d:1.0")
+                childFirst("org:f:1.0")
+                childFirst("org:a:1.0")
+                childFirst("org:b:1.0")
+
                 //conflicted parent is resolved first
-                parentFirst 'org:a:1.0', 'org:b:1.0', 'org:d:1.0', 'org:f:1.0'
+                parentFirst("org:a:1.0")
+                parentFirst("org:b:1.0")
+                parentFirst("org:d:1.0")
+                parentFirst("org:f:1.0")
             }
         """
 
         when:
-        run("dependencies")
+        succeeds("dependencies")
 
         then:
         output.contains """
@@ -768,25 +795,24 @@ parentFirst
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "1.2").publish()
 
         buildFile << """
-apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
-group "org"
-version "1.3"
+            group = "org"
+            version = "1.3"
 
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation "org:other:1.7"
-}
-"""
+            dependencies {
+                implementation("org:other:1.7")
+            }
+        """
 
-        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -804,25 +830,24 @@ dependencies {
         mavenRepo.module("org", "other", "1.7").dependsOn("org", "test", "2.1").publish()
 
         buildFile << """
-apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
-group "org"
-version "1.3"
+            group = "org"
+            version = "1.3"
 
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation "org:other:1.7"
-}
-"""
+            dependencies {
+                implementation("org:other:1.7")
+            }
+        """
 
-        def resolve = new ResolveTestFixture(buildFile).expectDefaultConfiguration("runtime")
-        resolve.prepare()
+        resolve.prepare("runtimeClasspath")
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -847,22 +872,22 @@ dependencies {
         mavenRepo.module("org", "c", "2").publish()
 
         buildFile << """
-repositories {
-    maven { url "${mavenRepo.uri}" }
-}
-configurations {
-    compile
-}
-dependencies {
-    compile "org:a:2"
-    compile "org:a:1"
-    compile "org:c:2"
-}
-"""
+            ${mavenTestRepository()}
+
+            configurations {
+                compile
+            }
+
+            dependencies {
+                compile("org:a:2")
+                compile("org:a:1")
+                compile("org:c:2")
+            }
+        """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -895,21 +920,27 @@ dependencies {
 
         buildFile << """
             version = 12
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+
+            ${mavenTestRepository()}
+
             configurations {
                 conf
             }
+
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
+                conf("org:a:1.0")
+                conf("org:b:1.0")
+                conf("org:c:1.0")
+                conf("org:d:1.0")
             }
+
             task resolve {
                 def files = configurations.conf
                 doLast {
                     files.files
                 }
             }
+
             task checkGraph {
                 def result = configurations.conf.incoming.resolutionResult.rootComponent
                 doLast {
@@ -948,7 +979,7 @@ dependencies {
         succeeds "checkGraph"
 
         and:
-        runAndFail "resolve"
+        fails "resolve"
 
         then:
         failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("root project : > org:d:1.0")
@@ -963,20 +994,19 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1005,20 +1035,19 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1044,9 +1073,7 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[4,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile {
                     resolutionStrategy {
@@ -1055,13 +1082,14 @@ dependencies {
                 }
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1088,20 +1116,22 @@ dependencies {
         mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[3,5]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1140,20 +1170,20 @@ dependencies {
         mavenRepo.module("org", "c3", "1.0").dependsOn("org", "leaf", "[3,5]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1190,20 +1220,21 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[5,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1232,15 +1263,16 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[11,15]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 conf
             }
+
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
+                conf("org:a:1.0")
+                conf("org:b:1.0")
             }
+
             task checkDeps {
                 def files = configurations.conf
                 doLast {
@@ -1265,17 +1297,19 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[5,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 conf {
                     resolutionStrategy.failOnVersionConflict()
                 }
             }
+
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
+                conf("org:a:1.0")
+                conf("org:b:1.0")
             }
+
             task checkDeps {
                 def files = configurations.conf
                 doLast {
@@ -1301,20 +1335,20 @@ dependencies {
         mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[7,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1348,9 +1382,8 @@ dependencies {
         mavenRepo.module("org", "c", "1.0").dependsOn("org", "leaf", "[7,8]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 conf {
                     resolutionStrategy {
@@ -1358,9 +1391,13 @@ dependencies {
                     }
                 }
             }
+
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                conf("org:a:1.0")
+                conf("org:b:1.0")
+                conf("org:c:1.0")
             }
+
             task checkDeps {
                 def files = configurations.conf
                 doLast {
@@ -1388,20 +1425,24 @@ dependencies {
         mavenRepo.module("org", "e", "1.0").dependsOn("org", "leaf", "[4,11]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0', 'org:e:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
+                compile("org:d:1.0")
+                compile("org:e:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1438,20 +1479,19 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "[5,)").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1477,20 +1517,21 @@ dependencies {
         mavenRepo.module("org", "b", "1.0").dependsOn("org", "leaf", "1.+").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1519,21 +1560,27 @@ dependencies {
         mavenRepo.module("org", "d", "1.0").dependsOn("org", "leaf", "8").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 conf
                 conf2
                 conf3
                 conf4
             }
+
             dependencies {
-                conf 'org:a:1.0', 'org:b:1.0'
-                conf2 'org:a:1.0', 'org:c:1.0'
-                conf3 'org:b:1.0', 'org:c:1.0'
-                conf4 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
+                conf("org:a:1.0")
+                conf("org:b:1.0")
+                conf2("org:a:1.0")
+                conf2("org:c:1.0")
+                conf3("org:b:1.0")
+                conf3("org:c:1.0")
+                conf4("org:b:1.0")
+                conf4("org:c:1.0")
+                conf4("org:d:1.0")
             }
+
             task checkDeps {
                 def files1 = configurations.conf
                 def files2 = configurations.conf2
@@ -1552,11 +1599,8 @@ dependencies {
             }
         """
 
-        when:
-        run 'checkDeps'
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds("checkDeps")
     }
 
     def "conflict resolution on different dependencies are handled separately"() {
@@ -1571,20 +1615,23 @@ dependencies {
         mavenRepo.module("org", "d", "1.0").dependsOn("org", "leaf2", "[1,7]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0', 'org:d:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
+                compile("org:d:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1624,20 +1671,21 @@ dependencies {
         mavenRepo.module("org", "c", "1.1").dependsOn("org", "leaf", "[4,6]").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1673,20 +1721,20 @@ dependencies {
 
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1720,20 +1768,20 @@ dependencies {
 
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+                compile("org:c:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1765,20 +1813,22 @@ dependencies {
         mavenRepo.module('org', 'c', '2.0').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
+                compile("org:a:1.0")
+                compile("org:c:1.0")
+                compile("org:d:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1809,20 +1859,20 @@ dependencies {
         mavenRepo.module('org', 'a', '2.0').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1.0', 'org:c:1.0', 'org:d:1.0'
+                compile("org:a:1.0")
+                compile("org:c:1.0")
+                compile("org:d:1.0")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1850,20 +1900,20 @@ dependencies {
         mavenRepo.module('org', 'b', '2').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:[1,3]', 'org:b:1', 'org:c:1'
+                compile("org:a:[1,3]")
+                compile("org:b:1")
+                compile("org:c:1")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1895,20 +1945,22 @@ dependencies {
         mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
+
             configurations {
                 compile
             }
+
             dependencies {
-                compile 'org:a:1', 'org:b:1', 'org:c:1'
+                compile("org:a:1")
+                compile("org:b:1")
+                compile("org:c:1")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1935,20 +1987,20 @@ dependencies {
         mavenRepo.module('org', 'a', '2').publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 compile
             }
             dependencies {
-                compile 'org:a:1', 'org:b:1', 'org:c:1'
+                compile("org:a:1")
+                compile("org:b:1")
+                compile("org:c:1")
             }
         """
         resolve.prepare()
 
         when:
-        run("checkDeps")
+        succeeds("checkDeps")
 
         then:
         resolve.expectGraph {
@@ -1972,29 +2024,26 @@ dependencies {
         mavenRepo.module('org', 'baz', '1.2').dependsOn(foo12).publish()
         mavenRepo.module('org', 'bar', '1.1').dependsOn(baz11).publish()
 
-        ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "conf").expectDefaultConfiguration("runtime")
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 conf
             }
             dependencies {
                 if ($barFirst) {
-                    conf 'org:bar:1.1' // WORKS IF THIS DEPENDENCY IS FIRST
+                    conf("org:bar:1.1") // WORKS IF THIS DEPENDENCY IS FIRST
                 }
-                conf 'org:baz:[1.0,2.0)'
+                conf("org:baz:[1.0,2.0)")
                 if (!$barFirst) {
-                    conf 'org:bar:1.1' // FAILED IF HERE
+                    conf("org:bar:1.1") // FAILED IF HERE
                 }
-                conf 'org:foo:[1.0,2.0)'
+                conf("org:foo:[1.0,2.0)")
             }
-"""
-        resolve.prepare()
+        """
+        resolve.prepare("conf")
 
         when:
-        run 'dependencies', 'checkDeps'
+        succeeds("dependencies", "checkDeps")
 
         then:
         resolve.expectGraph {
@@ -2019,32 +2068,33 @@ dependencies {
             include "testlib", "common"
         """
 
-        buildFile << """
-            subprojects {
-                apply plugin: 'java-library'
-                configurations.all {
-                   resolutionStrategy.failOnVersionConflict()
-                }
-            }
-        """
-
         file("testlib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
             dependencies {
-                api project(':common') // cycle causes resolution to fail, but shouldn't
+                api(project(':common')) // cycle causes resolution to fail, but shouldn't
             }
         """
 
         file("common/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            configurations.testCompileClasspath {
+                resolutionStrategy {
+                    failOnVersionConflict()
+                }
+            }
+
             dependencies {
-                testImplementation project(':testlib')
+                testImplementation(project(':testlib'))
             }
         """
 
-        when:
-        run 'common:dependencies', '--configuration', 'testCompileClasspath'
-
-        then:
-        noExceptionThrown()
+        expect:
+        succeeds("common:dependencies", "--configuration", "testCompileClasspath")
     }
 
     @Issue("gradle/gradle#6403")
@@ -2054,9 +2104,7 @@ dependencies {
         mavenRepo.module("org", "moduleA", "1.1").publish()
 
         buildFile << """
-            repositories {
-                maven { url "${mavenRepo.uri}" }
-            }
+            ${mavenTestRepository()}
             configurations {
                 conf {
                    resolutionStrategy {
@@ -2072,13 +2120,8 @@ dependencies {
             }
         """
 
-        when:
-        run 'dependencies', '--configuration', 'conf'
-
-        then:
-        noExceptionThrown()
-
-
+        expect:
+        succeeds("dependencies", "--configuration", "conf")
     }
 
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
@@ -2096,26 +2139,23 @@ dependencies {
         bom.publish()
 
         buildFile << """
-apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
-repositories {
-    maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
-    }
-}
+            ${mavenTestRepository()}
 
-dependencies {
-    implementation 'org.a:root'
-    implementation platform('org:bom:1.0')
-    constraints {
-        implementation 'org.a:root:1.0'
-        if ($constraintsOptional) {
-            implementation 'org:optional:1.0'
-        }
-    }
-}
-"""
+            dependencies {
+                implementation('org.a:root')
+                implementation(platform('org:bom:1.0'))
+                constraints {
+                    implementation('org.a:root:1.0')
+                    if ($constraintsOptional) {
+                        implementation('org:optional:1.0')
+                    }
+                }
+            }
+        """
         when:
         succeeds 'dependencies', '--configuration', 'compileClasspath'
 
@@ -2149,46 +2189,46 @@ dependencies {
 
         createDirs("sub")
         settingsFile << """
-include 'sub'
-"""
+            include 'sub'
+        """
 
         buildFile << """
-apply plugin: 'java'
+            plugins {
+                id("java-library")
+            }
 
-repositories {
-    maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
-    }
-}
+            ${mavenTestRepository()}
 
-configurations.all {
-    resolutionStrategy.dependencySubstitution {
-        substitute module('org:project') using project(':sub')
-    }
-}
+            configurations.runtimeClasspath {
+                resolutionStrategy.dependencySubstitution {
+                    substitute module('org:project') using project(':sub')
+                }
+            }
 
-dependencies {
-    implementation 'org:direct:1.0'
-    implementation 'org:a:1.0'
-}
+            dependencies {
+                implementation("org:direct:1.0")
+                implementation("org:a:1.0")
+            }
+        """
 
-project(':sub') {
-    apply plugin: 'java'
+        file("sub/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
 
-    group = 'org'
-    version = '1.0'
+            group = 'org'
+            version = '1.0'
 
-    dependencies {
-        constraints {
-            implementation 'org:lib:1.0'
-        }
+            dependencies {
+                constraints {
+                    implementation 'org:lib:1.0'
+                }
 
-        implementation 'org:lib'
-        implementation 'org:other:1.0'
-    }
-}
-"""
+                implementation("org:lib")
+                implementation("org:other:1.0")
+            }
+        """
+
         expect:
         succeeds 'dependencies', '--configuration', 'runtimeClasspath'
     }
@@ -2208,16 +2248,14 @@ project(':sub') {
         mavenRepo.module('org', 'lib', '1.0').dependsOn(between).publish()
 
         buildFile << """
-            apply plugin: 'java-library'
-
-            repositories {
-                maven {
-                    url '${mavenRepo.uri}'
-                }
+            plugins {
+                id("java-library")
             }
 
+            ${mavenTestRepository()}
+
             dependencies {
-                implementation 'org:lib:1.0'
+                implementation("org:lib:1.0")
             }
         """
         expect:
@@ -2239,17 +2277,15 @@ project(':sub') {
         mavenRepo.module('org', 'a', '1.0').dependsOn(b).publish()
 
         buildFile << """
-            apply plugin: 'java-library'
-
-            repositories {
-                maven {
-                    url '${mavenRepo.uri}'
-                }
+            plugins {
+                id("java-library")
             }
 
+            ${mavenTestRepository()}
+
             dependencies {
-                implementation 'org:direct:1.0'  // dependeincy on 'lib'
-                implementation 'org:a:1.0'       // updates direct (to remove dependency on 'lib' again)
+                implementation("org:direct:1.0")  // dependeincy on 'lib'
+                implementation("org:a:1.0")       // updates direct (to remove dependency on 'lib' again)
             }
         """
 
@@ -2273,16 +2309,14 @@ project(':sub') {
             .dependsOn([endorseStrictVersions: true], lib1).dependsOn(lib05).dependsOn(lib1).withModuleMetadata().publish()
 
         buildFile << """
-            apply plugin: 'java-library'
-
-            repositories {
-                maven {
-                    url '${mavenRepo.uri}'
-                }
+            plugins {
+                id("java-library")
             }
 
+            ${mavenTestRepository()}
+
             dependencies {
-                implementation 'org:direct:1.0'  // dependency on 'lib' which will istself update 'direct'
+                implementation("org:direct:1.0")  // dependency on 'lib' which will istself update 'direct'
             }
         """
 
@@ -2312,16 +2346,14 @@ project(':sub') {
             .dependsOn([endorseStrictVersions: true], foo1).dependsOn(lib05).dependsOn(lib1).dependsOn([endorseStrictVersions: true], foo05).withModuleMetadata().publish()
 
         buildFile << """
-            apply plugin: 'java-library'
-
-            repositories {
-                maven {
-                    url '${mavenRepo.uri}'
-                }
+            plugins {
+                id("java-library")
             }
 
+            ${mavenTestRepository()}
+
             dependencies {
-                implementation 'org:direct:1.0'  // dependency on 'lib' which will istself update 'direct'
+                implementation("org:direct:1.0") // dependency on 'lib' which will istself update 'direct'
             }
         """
 
@@ -2336,21 +2368,17 @@ project(':sub') {
         mavenRepo.module('org', 'direct', '1.0').dependsOn(trans).publish()
 
         buildFile << """
-repositories {
-    maven {
-        name 'repo'
-        url '${mavenRepo.uri}'
-    }
-}
+            ${mavenTestRepository()}
 
-configurations {
-    conf
-}
+            configurations {
+                conf
+            }
 
-dependencies {
-    conf "org:direct:1.0"
-}
-"""
+            dependencies {
+                conf("org:direct:1.0")
+            }
+        """
+
         expect:
         succeeds 'dependencies', '--configuration', 'conf'
     }
@@ -2362,12 +2390,7 @@ dependencies {
         mavenRepo.module('org', 'direct', '1.0').dependsOn(child1).dependsOn(child2).publish()
 
         buildFile << """
-            repositories {
-                maven {
-                    name 'repo'
-                    url '${mavenRepo.uri}'
-                }
-            }
+            ${mavenTestRepository()}
 
             configurations {
                 conf
@@ -2379,7 +2402,7 @@ dependencies {
                         replacedBy("org:direct")
                     }
                 }
-                conf "org:direct:1.0"
+                conf("org:direct:1.0")
             }
         """
 
@@ -2409,21 +2432,16 @@ dependencies {
         mavenRepo.module('org.test', 'root3', '1.0').dependsOn(otherAligned).publish()
 
         buildFile << """
-            repositories {
-                maven {
-                    name 'repo'
-                    url '${mavenRepo.uri}'
-                }
-            }
+            ${mavenTestRepository()}
 
             configurations {
                 conf
             }
 
             dependencies {
-                conf 'org.test:excludingRoot:1.0'
-                conf 'org.test:root2:1.0'
-                conf 'org.test:root3:1.0'
+                conf("org.test:excludingRoot:1.0")
+                conf("org.test:root2:1.0")
+                conf("org.test:root3:1.0")
 
                 components.all(AlignGroup.class)
             }
@@ -2437,12 +2455,85 @@ dependencies {
                     }
                 }
             }
-"""
+        """
+
         when:
         succeeds 'dependencies', '--configuration', 'conf'
 
         then:
         outputContains('excluded')
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/14220#issuecomment-2008178522")
+    def "changing selection of module while deselected node that will eventually become reselected is already in queue does not cause node to be ignored"() {
+        mavenRepo.module("com.netflix.eureka", "eureka-client", "2.0.1")
+            .dependsOn(
+                mavenRepo.module("com.netflix.netflix-commons", "netflix-eventbus", "0.3.0")
+                    .dependsOn(mavenRepo.module("com.netflix.archaius", "archaius-core", "0.3.3").publish())
+                    .publish()
+            )
+            .dependsOn(mavenRepo.module("com.netflix.archaius", "archaius-core", "0.7.6").publish())
+            .publish()
+
+        mavenRepo.module("org.springframework.cloud", "spring-cloud-netflix-dependencies", "4.1.0")
+            .hasPackaging("pom")
+            .dependencyConstraint([exclusions: [[group: "com.netflix.archaius", module: "archaius-core"]]], mavenRepo.module("com.netflix.eureka", "eureka-client", "2.0.1"))
+            .publish()
+
+        settingsFile << """
+            include 'indirect'
+        """
+
+        file("indirect/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            version = "1.0"
+
+            dependencies {
+                implementation(platform("org.springframework.cloud:spring-cloud-netflix-dependencies:4.1.0"))
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("com.netflix.eureka:eureka-client:2.0.1")
+                implementation(project(":indirect"))
+            }
+        """
+        resolve.prepare("runtimeClasspath")
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module("com.netflix.eureka:eureka-client:2.0.1") {
+                    module("com.netflix.netflix-commons:netflix-eventbus:0.3.0") {
+                        module("com.netflix.archaius:archaius-core:0.3.3")
+                    }
+                }
+                project(":indirect", "test:indirect:1.0") {
+                    module("org.springframework.cloud:spring-cloud-netflix-dependencies:4.1.0") {
+                        noArtifacts()
+                        constraint("com.netflix.eureka:eureka-client:2.0.1", "com.netflix.eureka:eureka-client:2.0.1") {
+                            byConstraint()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 
 }

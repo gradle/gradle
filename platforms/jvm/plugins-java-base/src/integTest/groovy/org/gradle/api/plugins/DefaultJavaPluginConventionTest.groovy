@@ -95,7 +95,7 @@ class DefaultJavaPluginConventionTest extends Specification {
         convention.testReportDir == new File(project.buildDir, 'reports/tests')
 
         when:
-        project.reporting.baseDir = 'other-reports-dir'
+        project.reporting.baseDirectory.set(project.file('other-reports-dir'))
         convention.testReportDirName = 'other-test-dir'
 
         then:

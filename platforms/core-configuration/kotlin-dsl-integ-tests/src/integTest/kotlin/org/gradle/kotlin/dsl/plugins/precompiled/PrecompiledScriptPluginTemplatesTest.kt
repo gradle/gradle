@@ -179,6 +179,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         )
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun `implicit imports are available to precompiled scripts`() {
 

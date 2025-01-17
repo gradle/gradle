@@ -23,8 +23,13 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.ModuleVisitor;
+import org.objectweb.asm.Type;
 
+import java.util.Optional;
 import java.util.Set;
+
+import static org.objectweb.asm.Opcodes.ACC_ENUM;
+import static org.objectweb.asm.Opcodes.ACC_STATIC;
 
 public class JavaApiMemberWriter implements ApiMemberWriter {
 
@@ -57,8 +62,12 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
         for (String permittedSubclass : classMember.getPermittedSubclasses()) {
             apiMemberAdapter.visitPermittedSubclass(permittedSubclass);
         }
+        InnerClassMember declaringInnerClass = innerClasses.stream()
+            .filter(innerClass -> innerClass.getName().equals(classMember.getName()))
+            .findFirst()
+            .orElse(null);
         for (MethodMember method : methods) {
-            writeMethod(method);
+            writeMethod(classMember, declaringInnerClass, method);
         }
         for (FieldMember field : fields) {
             FieldVisitor fieldVisitor = apiMemberAdapter.visitField(
@@ -74,18 +83,46 @@ public class JavaApiMemberWriter implements ApiMemberWriter {
     }
 
     @Override
-    public void writeMethod(MethodMember method) {
+    public void writeMethod(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
         MethodVisitor mv = apiMemberAdapter.visitMethod(
             method.getAccess(), method.getName(), method.getTypeDesc(), method.getSignature(),
             method.getExceptions().toArray(new String[0]));
         writeMethodAnnotations(mv, method.getAnnotations());
         writeMethodAnnotations(mv, method.getParameterAnnotations());
+
+        // In some cases ASM generates the wrong number of parameter annotation entries
+        // in the written classfile. This is a workaround to fix that.
+        // See https://gitlab.ow2.org/asm/asm/-/issues/318023
+        calculateNonAnnotableParameterCount(classMember, declaringInnerClass, method)
+            .ifPresent(nonAnnotableParameterCount -> {
+                int totalParameterCount = Type.getArgumentCount(method.getTypeDesc());
+                int annotableParameterCount = totalParameterCount - nonAnnotableParameterCount;
+                mv.visitAnnotableParameterCount(annotableParameterCount, true);
+                mv.visitAnnotableParameterCount(annotableParameterCount, false);
+            });
+
         method.getAnnotationDefaultValue().ifPresent(value -> {
             AnnotationVisitor av = mv.visitAnnotationDefault();
             writeAnnotationValue(av, value);
             av.visitEnd();
         });
         mv.visitEnd();
+    }
+
+    private static Optional<Integer> calculateNonAnnotableParameterCount(ClassMember classMember, /* Nullable */ InnerClassMember declaringInnerClass, MethodMember method) {
+        if (method.getName().equals("<init>")) {
+            if ((classMember.getAccess() & ACC_ENUM) == ACC_ENUM) {
+                // Enum constructors have an implicit String and int parameter containing
+                // the name and ordinal of the value that is non-annotable.
+                return Optional.of(2);
+            } else if (declaringInnerClass != null
+                && (declaringInnerClass.getAccess() & ACC_STATIC) != ACC_STATIC) {
+                // Non-static inner-class constructors have an implicit, non-annotable parameter
+                // pointing to the enclosing class instance
+                return Optional.of(1);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

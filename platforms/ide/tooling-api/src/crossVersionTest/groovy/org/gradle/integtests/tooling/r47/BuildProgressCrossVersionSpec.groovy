@@ -19,10 +19,10 @@ package org.gradle.integtests.tooling.r47
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
-import org.gradle.test.fixtures.Flaky
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import spock.lang.Timeout
@@ -87,7 +87,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
 
             publishing {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
                 publications {
                     maven(MavenPublication) {

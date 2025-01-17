@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistration;
@@ -28,15 +27,12 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.configuration.DaemonPriority;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.registry.DaemonRegistryServices;
 import org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices;
-import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
-import java.util.Collections;
 
 @ServiceScope(Scope.Global.class)
 public class DaemonClientFactory {
@@ -110,8 +106,15 @@ public class DaemonClientFactory {
      * - {@link DaemonStopClient} that can be used to stop daemons.
      * - {@link NotifyDaemonAboutChangedPathsClient} that can be used to notify daemons about changed paths.
      */
-    public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters) {
+    public ServiceRegistry createMessageDaemonServices(ServiceLookup clientLoggingServices, File daemonBaseDir) {
         // These can always run inside the current JVM since we should not be forking a daemon to run them
-        return createBuildClientServices(clientLoggingServices, daemonParameters, new DaemonRequestContext(new DaemonJvmCriteria.LauncherJvm(), Collections.emptyList(), false, NativeServices.NativeServicesMode.NOT_SET, DaemonPriority.NORMAL), new ByteArrayInputStream(new byte[0]));
+        ServiceRegistry loggingServices = createLoggingServices(clientLoggingServices);
+
+        return ServiceRegistryBuilder.builder()
+            .displayName("daemon client services")
+            .parent(loggingServices)
+            .provider(new DaemonRegistryServices(daemonBaseDir))
+            .provider(new DaemonClientMessageServices())
+            .build();
     }
 }

@@ -36,11 +36,6 @@ public class LoggingAttributeMatchingExplanationBuilder implements AttributeMatc
     }
 
     @Override
-    public boolean canSkipExplanation() {
-        return true;
-    }
-
-    @Override
     public <T extends HasAttributes> void noCandidates(AttributeContainerInternal requested) {
         LOGGER.debug("No candidates for {}. Select nothing.", requested);
     }

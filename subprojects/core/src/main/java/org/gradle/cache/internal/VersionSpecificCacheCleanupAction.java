@@ -28,6 +28,8 @@ import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.internal.versionedcache.VersionSpecificCacheDirectory;
+import org.gradle.internal.versionedcache.VersionSpecificCacheDirectoryScanner;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
 import org.slf4j.Logger;

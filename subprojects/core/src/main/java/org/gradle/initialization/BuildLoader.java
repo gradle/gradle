@@ -17,7 +17,10 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Build.class)
 public interface BuildLoader {
     /**
      * Creates prepares the {@link org.gradle.api.internal.project.ProjectInternal} instances for the given settings,

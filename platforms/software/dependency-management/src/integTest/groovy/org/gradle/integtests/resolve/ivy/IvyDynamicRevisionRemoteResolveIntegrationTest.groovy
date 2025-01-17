@@ -333,12 +333,12 @@ task cache {
         given:
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}" }
+    ivy { url = "${repo1.uri}" }
 }
 
 if (project.hasProperty('addRepo2')) {
     repositories {
-        ivy { url "${repo2.uri}" }
+        ivy { url = "${repo2.uri}" }
     }
 }
 
@@ -810,7 +810,7 @@ dependencies {
         when:
         buildFile.text = """
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 
 configurations { compile }
@@ -856,9 +856,9 @@ dependencies {
         buildFile << """
 repositories {
     ivy {
-        url "${repo1.uri}"
-        ivyPattern "${repo2.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml"
-        artifactPattern "${repo2.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"
+        url = "${repo1.uri}"
+        ivyPattern("${repo2.uri}/[organisation]/[module]/[revision]/ivy-[revision].xml")
+        artifactPattern("${repo2.uri}/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]")
     }
 }
 configurations { compile }
@@ -1328,7 +1328,7 @@ dependencies {
 repositories {
 """
         repo.each {
-            buildFile << "ivy { url '${it.uri}' }\n"
+            buildFile << "ivy { url = '${it.uri}' }\n"
         }
         buildFile << """
 }

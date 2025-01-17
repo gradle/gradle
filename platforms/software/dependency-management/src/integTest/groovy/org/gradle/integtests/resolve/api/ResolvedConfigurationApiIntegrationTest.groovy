@@ -48,7 +48,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-    repositories { ivy { url '$ivyHttpRepo.uri' } }
+    repositories { ivy { url = '$ivyHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:test:1.0'
@@ -85,7 +85,7 @@ task show {
     @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
     def "reports multiple failures to resolve components"() {
         buildFile << """
-            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            repositories { maven { url = '${mavenHttpRepo.uri}' } }
             dependencies {
                 compile 'test:test1:1.2'
                 compile 'test:test2:1.2'
@@ -119,7 +119,7 @@ task show {
     @ToBeFixedForConfigurationCache(because = "task exercises the ResolvedConfiguration API")
     def "reports failure to resolve artifact"() {
         buildFile << """
-            repositories { maven { url '${mavenHttpRepo.uri}' } }
+            repositories { maven { url = '${mavenHttpRepo.uri}' } }
             dependencies {
                 compile 'test:test1:1.2'
                 compile 'test:test2:1.2'

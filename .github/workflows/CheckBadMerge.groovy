@@ -17,6 +17,8 @@
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import java.nio.file.Files
+import java.nio.file.Paths
 
 /**
  * See https://github.com/gradle/gradle-private/issues/3919
@@ -39,7 +41,13 @@ class CheckBadMerge {
         "platforms/core-runtime/launcher/src/main/resources/release-features.txt"
     ]
 
-    static void main(String[] commits) {
+    static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println("Usage: groovy CheckBadMerge.groovy <commits_file>")
+            System.exit(1)
+        }
+
+        List<String> commits = Files.readAllLines(Paths.get(args[0]))
         println("Commits to check: ${Arrays.toString(commits)}")
         try {
             commits.each { checkCommit(it) }

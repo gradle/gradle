@@ -1,0 +1,238 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[artifact-resolution]]
+= Artifact Resolution
+
+After constructing a dependency graph, Gradle can perform *artifact resolution* on the resolved graph.
+
+Gradle APIs can be used to influence the process of *artifact selection* -- the mapping of a graph to a set of artifacts.
+
+Gradle can then expose the results of artifact selection as an `ArtifactCollection`.
+More commonly, the results are exposed as a `FileCollection`, which is a flat list of files.
+
+[[sec:artifact-selection]]
+== Artifact selection
+
+*Artifact selection* operates on the dependency graph on a node-by-node basis.
+Each node in the graph may expose multiple sets of artifacts, but only one of those sets may be selected.
+For example, the `runtimeElements` variant of the Java plugins exposes a `jar`, `classes`, and `resources` artifact set.
+These three artifact sets represent the same distributable, but in different forms.
+
+For each node (variant) in a graph, Gradle performs attribute matching over each set of artifacts exposed by that node to determine the best artifact set.
+If no artifact sets match the requested attributes, Gradle will attempt to construct an <<artifact_transforms.adoc#artifact-transforms,artifact transform>> chain to satisfy the request.
+
+For more details on the attribute matching process, see the <<variant_attributes.adoc#sec:attribute-matching,attribute matching>> section.
+
+[[sec:implicit-artifact-selection]]
+== Implicit artifact selection
+
+By default, the attributes used for artifact selection are the same as those used for variant selection during graph resolution.
+These attributes are specified by the link:{javadocPath}/org/gradle/api/attributes/HasAttributes.html#getAttributes()[`Configuration#getAttributes()`] property.
+
+To perform artifact selection (and implicitly, graph resolution) using these default attributes, use the `FileCollection` and `ArtifactCollection` APIs.
+
+NOTE: Files can also be accessed from the configuration's `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedArtifact` and `ResolvedDependency` APIs.
+However, these APIs are in maintenance mode and are discouraged for use in new development.
+These APIs perform artifact selection using the default attributes.
+
+=== Resolving files
+
+To resolve files, we first define a task that accepts a `ConfigurableFileCollection` as input:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=file-resolution-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=file-resolution-task]"]
+====
+
+Then, we can wire up a resolvable configuration's files to the task's input.
+The `Configuration` directly implements `FileCollection` and can be wired directly.
+Alternatively, wiring through `Configuration#getIncoming()` is a more explicit approach:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=implicit-file-resolution]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=implicit-file-resolution]"]
+====
+
+Running both of these tasks, we can see the output is identical:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-files.out[]
+----
+
+=== Resolving artifacts
+
+Instead of consuming the files directly from the implicit artifact selection process, we can consume the artifacts, which contain both the files and the metadata.
+
+This process is slightly more complicated, as in order to maintain Configuration Cache compatibility, we need to split the fields of `ResolvedArtifactResult` into two task inputs:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=artifact-resolution-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=artifact-resolution-task]"]
+====
+
+This task is initialized similarly to the file resolution task:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=implicit-artifact-resolution]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=implicit-artifact-resolution]"]
+====
+
+Running this task, we can see that file metadata is included in the output:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-artifacts.out[]
+----
+
+[[sec:customizing-artifact-selection]]
+== Customizing artifact selection
+
+In some cases, it is desirable to customize the selection process.
+The `ArtifactView` API is the primary mechanism for influencing artifact selection in Gradle.
+
+An `ArtifactView` can:
+
+- Trigger artifact transforms
+- Select _alternative_ variants, such as sources or javadoc, for an entire resolution
+- Perform _lenient_ artifact selection and resolution
+- Filter selected artifacts
+
+NOTE: The `ArtifactView` can produce results as both a `FileCollection` and an `ArtifactCollection`.
+The below examples will only demonstrate using a `FileCollection` as the output.
+
+=== Triggering artifact transforms
+
+An `ArtifactView` can be used to trigger artifact selection using attributes different from those used to resolve the graph.
+
+For each node in the graph, artifact selection is performed for that node.
+Most commonly, this API is used to request attributes that are not present on any artifact set from the variant that artifacts are being selected from.
+When Gradle cannot find a matching artifact set from the node in question, it will attempt to satisfy the request by transforming the available artifact sets using the artifact transforms registered on the project.
+
+Below, we use the unzip example from the <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> chapter to demonstrate how to use the `ArtifactView` API to request attributes that trigger a transform:
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/kotlin",files="build.gradle.kts[tags=resolve-transformed-files]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-unzip/groovy",files="build.gradle[tags=resolve-transformed-files]"]
+====
+
+Gradle performs artifact selection using the graph resolution attributes specified on the configuration, concatenated with the attributes specified in the `attributes` block of the `ArtifactView`.
+
+The task output shows that the artifacts have been transformed:
+
+----
+include::{snippetsPath}/dependencyManagement/artifactTransforms-unzip/tests/artifactTransformUnzip.out[]
+----
+
+=== Performing variant reselection
+
+Standard artifact selection can only select between and transform artifact sets exposed by the node under selection.
+However, in some cases, it may be desirable to select artifacts from a variant _parallel_ to the graph node being selected.
+
+Consider the example component structure below, describing a typical local Java library with sources and javadoc:
+
+[source]
+----
+variant 'apiElements'
+    artifact set 'jar'
+    artifact set 'classes'
+    artifact set 'resources'
+variant 'runtimeElements'
+    artifact set 'jar'
+    artifact set 'classes'
+    artifact set 'resources'
+variant 'javadocElements'
+    artifact set 'jar'
+variant 'sourcesElements'
+    artifact set 'jar'
+----
+
+Resolving a Java runtime classpath will select the `runtimeElements` variant from the above example component.
+During standard artifact selection, Gradle will select solely from the artifact sets under `runtimeElements`.
+
+However, it is common to want to select all sources or all javadoc for every node in the graph.
+Consider the following example which selects all sources for a given runtime classpath:
+
+NOTE: This example uses incubating APIs.
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=variant-reselection]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=variant-reselection]"]
+====
+
+Using the `ArtifactView#withVariantReselection()` API, Gradle will optionally perform graph variant selection again before performing artifact selection on the new selected variant.
+When Gradle selects artifacts for the `runtimeElements` node, it will use the attributes specified on the `ArtifactView` to reselect the graph variant, thus selecting the `sourcesElements` variant instead.
+Then, traditional artifact selection will be performed on the `sourcesElements` variant to select the `jar` artifact set.
+
+As a result, the sources jar is resolved for each node:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-sources.out[]
+----
+
+When this API is used, the attributes used for variant reselection are specified solely by the `ArtifactView#getAttributes()` method.
+The graph resolution attributes specified on the configuration are completely ignored during variant reselection.
+
+=== Performing lenient artifact resolution
+
+The `ArtifactView` API can also be used to perform lenient artifact resolution.
+This allows artifact resolution to be performed on a graph that contains failures -- for example when a requested module was not found, the requested module version did not exist, or a conflict was not resolved.
+Furthermore, lenient artifact resolution can be used to resolve artifacts when the graph was successfully resolved, but the corresponding artifacts could not be downloaded.
+
+Consider the following example, where some dependencies may not exist:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/kotlin",files="build.gradle.kts[tags=lenient-resolution-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/groovy",files="build.gradle[tags=lenient-resolution-dependencies]"]
+====
+
+Lenient resolution is performed by using the `ArtifactView#lenient()` method:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/kotlin",files="build.gradle.kts[tags=resolve-lenient]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-lenient/groovy",files="build.gradle[tags=resolve-lenient]"]
+====
+
+We can see that the task succeeds with the failing artifact omitted:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-lenient/tests/resolve-lenient.out[]
+----
+
+=== Filtering artifacts
+
+The `ArtifactView` API can be used to filter specific artifacts from the resulting `FileCollection` or `ArtifactCollection`.
+
+`ArtifactViews` allow results to be filtered on a per-component basis.
+Using the `ArtifactView#componentFilter(Action)` method, artifacts from certain components may be filtered from the result.
+The action is passed the `ComponentIdentifier` of the component that owns the variant that artifacts are being selected for.
+
+Consider the following example, where we have one project dependency and one external dependency:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/kotlin",files="build.gradle.kts[tags=component-filter-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/groovy",files="build.gradle[tags=component-filter-dependencies]"]
+====
+
+Using the `componentFilter` method, we can specify filters that select only artifacts of a certain type:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/kotlin",files="build.gradle.kts[tags=resolve-component-filter]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution-componentFilter/groovy",files="build.gradle[tags=resolve-component-filter]"]
+====
+
+Notice how we resolve project dependencies and module dependencies separately:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-componentFilter/tests/resolve-component-filter.out[]
+----

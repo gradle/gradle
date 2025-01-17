@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.gradle
 
 import groovy.transform.CompileStatic
+import org.gradle.test.fixtures.Module
 
 @CompileStatic
 class VariantMetadataSpec {
@@ -52,8 +53,8 @@ class VariantMetadataSpec {
         attributes[name] = value
     }
 
-    void dependsOn(String group, String module, String version, String reason = null, Map<String, ?> attributes = [:]) {
-        dependencies << new DependencySpec(group, module, version, reason, attributes)
+    void dependsOn(String group, String module, String version, Map<String, ?> attributes = [:]) {
+        dependencies << new DependencySpec(group, module, version, null, attributes)
     }
 
     void dependsOn(String group, String module, String version, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
@@ -72,6 +73,14 @@ class VariantMetadataSpec {
     void dependsOn(String notation, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
         def gav = notation.split(':')
         dependsOn(gav[0], gav[1], gav[2], config)
+    }
+
+    void dependsOn(Module module) {
+        dependsOn(module.group, module.module, module.version)
+    }
+
+    void dependsOn(Module module, @DelegatesTo(value=DependencySpec, strategy=Closure.DELEGATE_FIRST) Closure<?> config) {
+        dependsOn(module.group, module.module, module.version, config)
     }
 
     void constraint(String group, String module, String version, String reason = null, Map<String, ?> attributes = [:]) {

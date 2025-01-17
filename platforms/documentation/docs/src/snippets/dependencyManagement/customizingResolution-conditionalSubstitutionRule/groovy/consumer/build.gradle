@@ -31,10 +31,10 @@ dependencies {
 }
 
 tasks.register('showJarFiles') {
-    def rootDir = project.rootDir
+    def settingsDir = project.layout.settingsDirectory.asFile
     def compileClasspath = configurations.compileClasspath
 
     doLast {
-        compileClasspath.files.each { println it.path - rootDir.path }
+        compileClasspath.files.each { println it.path - settingsDir.path }
     }
 }

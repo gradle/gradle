@@ -36,7 +36,7 @@ class MavenModuleArtifactResolutionIntegrationTest extends AbstractHttpDependenc
     def initBuild(MavenRepository repo) {
         buildFile << """
 repositories {
-    maven { url '$repo.uri' }
+    maven { url = '$repo.uri' }
 }
 """
     }

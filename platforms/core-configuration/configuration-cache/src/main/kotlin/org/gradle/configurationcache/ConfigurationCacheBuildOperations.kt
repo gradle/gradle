@@ -16,6 +16,7 @@
 
 package org.gradle.configurationcache
 
+import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
@@ -35,14 +36,14 @@ import java.io.File
 
 
 internal
-fun <T : Any> BuildOperationRunner.withLoadOperation(block: () -> Pair<LoadResult, T>) =
-    call(object : CallableBuildOperation<T> {
+fun BuildOperationRunner.withWorkGraphLoadOperation(block: () -> Pair<WorkGraphLoadResult, BuildTreeWorkGraph.FinalizedGraph>): BuildTreeWorkGraph.FinalizedGraph =
+    call(object : CallableBuildOperation<BuildTreeWorkGraph.FinalizedGraph> {
         override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
             .displayName("Load configuration cache state")
             .progressDisplayName("Loading configuration cache state")
-            .details(LoadDetails)
+            .details(WorkGraphLoadDetails)
 
-        override fun call(context: BuildOperationContext): T =
+        override fun call(context: BuildOperationContext): BuildTreeWorkGraph.FinalizedGraph =
             block().let { (opResult, returnValue) ->
                 context.setResult(opResult)
                 returnValue
@@ -51,12 +52,12 @@ fun <T : Any> BuildOperationRunner.withLoadOperation(block: () -> Pair<LoadResul
 
 
 internal
-fun BuildOperationRunner.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> StoreResult) =
+fun BuildOperationRunner.withWorkGraphStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> WorkGraphStoreResult): Unit =
     run(object : RunnableBuildOperation {
         override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
             .displayName("Store configuration cache state")
             .progressDisplayName("Storing configuration cache state")
-            .details(StoreDetails)
+            .details(WorkGraphStoreDetails)
 
         override fun run(context: BuildOperationContext) {
             block().let {
@@ -68,11 +69,11 @@ fun BuildOperationRunner.withStoreOperation(@Suppress("UNUSED_PARAMETER") cacheK
 
 
 private
-object LoadDetails : ConfigurationCacheLoadBuildOperationType.Details
+object WorkGraphLoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 
 
 internal
-data class LoadResult(val stateFiles: List<File>, val originInvocationId: String? = null) : ConfigurationCacheLoadBuildOperationType.Result {
+data class WorkGraphLoadResult(val stateFiles: List<File>, val originInvocationId: String? = null) : ConfigurationCacheLoadBuildOperationType.Result {
     override fun getCacheEntrySize(): Long = stateFiles.asSequence()
         .filter { it.isFile }
         .sumOf { it.length() }
@@ -82,15 +83,46 @@ data class LoadResult(val stateFiles: List<File>, val originInvocationId: String
 
 
 private
-object StoreDetails : ConfigurationCacheStoreBuildOperationType.Details
+object WorkGraphStoreDetails : ConfigurationCacheStoreBuildOperationType.Details
 
 
 internal
-data class StoreResult(val stateFiles: List<File>, val storeFailure: Throwable?) : ConfigurationCacheStoreBuildOperationType.Result {
+data class WorkGraphStoreResult(val stateFiles: List<File>, val storeFailure: Throwable?) : ConfigurationCacheStoreBuildOperationType.Result {
     override fun getCacheEntrySize(): Long = stateFiles.asSequence()
         .filter { it.isFile }
         .sumOf { it.length() }
 }
+
+
+internal
+fun BuildOperationRunner.withModelStoreOperation(block: () -> ModelStoreResult): Unit =
+    run(object : RunnableBuildOperation {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName("Store model in configuration cache")
+            .progressDisplayName("Storing model in configuration cache")
+
+        override fun run(context: BuildOperationContext) {
+            block().let {
+                context.setResult(it)
+                it.storeFailure?.let { failure -> context.failed(failure) }
+            }
+        }
+    })
+
+
+internal
+fun <T : Any> BuildOperationRunner.withModelLoadOperation(block: () -> T): T =
+    call(object : CallableBuildOperation<T> {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName("Load model from configuration cache")
+            .progressDisplayName("Loading model from configuration cache")
+
+        override fun call(context: BuildOperationContext): T = block()
+    })
+
+
+internal
+data class ModelStoreResult(val storeFailure: Throwable?)
 
 
 internal
@@ -120,35 +152,39 @@ class FingerprintCheckResult(
 
     override fun getStatus(): CheckStatus = when (checkResult) {
         is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
-        is CheckedFingerprint.Valid -> CheckStatus.VALID
-        is CheckedFingerprint.EntryInvalid -> CheckStatus.INVALID
-        is CheckedFingerprint.ProjectsInvalid -> CheckStatus.PARTIAL
-    }
-
-    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> {
-        return when (checkResult) {
-            is CheckedFingerprint.EntryInvalid -> listOf(BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason))
-            else -> emptyList()
-        }
-    }
-
-    override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> {
-        return when (checkResult) {
-            is CheckedFingerprint.ProjectsInvalid -> {
-                buildList(checkResult.invalidProjects.size) {
-                    // First reason is shown to the user.
-                    add(ProjectInvalidationReasonsImpl(checkResult.invalidProjects.getValue(checkResult.firstInvalidated)))
-                    // The rest is in alphabetical order.
-                    checkResult.invalidProjects.asSequence()
-                        .filterNot { it.key == checkResult.firstInvalidated }
-                        .map { ProjectInvalidationReasonsImpl(it.value) }
-                        .sortedWith(compareBy({ it.buildPath }, { it.projectPath }))
-                        .forEach { add(it) }
-                }
+        is CheckedFingerprint.Invalid -> CheckStatus.INVALID
+        is CheckedFingerprint.Valid -> {
+            when (checkResult.invalidProjects) {
+                null -> CheckStatus.VALID
+                else -> CheckStatus.PARTIAL
             }
-
-            else -> emptyList()
         }
+    }
+
+    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> = when (checkResult) {
+        is CheckedFingerprint.Invalid -> listOf(
+            BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason)
+        )
+
+        else -> emptyList()
+    }
+
+    override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> = when {
+        checkResult is CheckedFingerprint.Valid && checkResult.invalidProjects != null -> {
+            val invalidProjects = checkResult.invalidProjects
+            buildList(invalidProjects.size) {
+                // First reason is shown to the user.
+                add(ProjectInvalidationReasonsImpl(invalidProjects.first))
+                // The rest is in alphabetical order.
+                invalidProjects.all.asSequence()
+                    .filterNot { it.key == invalidProjects.firstProjectPath }
+                    .map { ProjectInvalidationReasonsImpl(it.value) }
+                    .sortedWith(compareBy({ it.buildPath }, { it.projectPath }))
+                    .forEach { add(it) }
+            }
+        }
+
+        else -> emptyList()
     }
 
     private
@@ -171,10 +207,10 @@ class FingerprintCheckResult(
         private val invalidationReasons: List<FingerprintInvalidationReason>
     ) : ProjectInvalidationReasons {
 
-        constructor(invalidation: CheckedFingerprint.ProjectInvalidationData) : this(
+        constructor(invalidation: CheckedFingerprint.InvalidProject) : this(
             invalidation.buildPath.path,
             invalidation.projectPath.path,
-            listOf(FingerprintInvalidationReasonImpl(invalidation.message.toString()))
+            listOf(FingerprintInvalidationReasonImpl(invalidation.reason.toString()))
         )
 
         override fun getBuildPath() = buildPath

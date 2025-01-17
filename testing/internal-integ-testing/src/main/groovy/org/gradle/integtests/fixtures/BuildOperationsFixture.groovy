@@ -99,6 +99,11 @@ class BuildOperationsFixture extends BuildOperationTreeQueries {
     }
 
     @Override
+    BuildOperationRecord singleOrNone(Pattern displayName) {
+        return getTree().singleOrNone(displayName)
+    }
+
+    @Override
     List<BuildOperationRecord> parentsOf(BuildOperationRecord child) {
         return getTree().parentsOf(child)
     }

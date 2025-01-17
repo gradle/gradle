@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -35,6 +35,78 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.13]]
+== Upgrading from 8.12 and earlier
+
+=== Potential breaking changes
+
+==== Changes to Test Report Aggregation and Jacoco Aggregation
+
+Several changes have been made to the incubating <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>> and <<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>> plugins.
+
+The plugins now create a single test results variant for each test suite, containing all test results for the entire suite, instead of one variant for each test target.
+This change allows the aggregation plugins to aggregate test suites with multiple targets, where previously this would result in an ambiguous variant selection error.
+
+In the future, as we continue to develop these plugins, we plan to once again create one results variant per test suite target, allowing test results from certain targets to be explicitly aggregated.
+
+The `testType` property on link:{javadocPath}/org/gradle/testing/jacoco/plugins/JacocoCoverageReport.html[JacocoCoverageReport] and link:{javadocPath}/org/gradle/api/tasks/testing/AggregateTestReport.html[AggregateTestReport] has been removed and replaced with a new `testSuiteName` property:
+
+Previously:
+
+[source,kotlin]
+----
+reporting {
+    reports {
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+            testType = TestSuiteType.UNIT_TEST
+        }
+    }
+}
+----
+
+Now:
+
+[source,kotlin]
+----
+reporting {
+    reports {
+        val testCodeCoverageReport by creating(JacocoCoverageReport::class) {
+            testSuiteName = "test"
+        }
+    }
+}
+----
+
+Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
+Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
+
+==== Changed behavior when calling `BuildLauncher#addJvmArguments`
+
+Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, that caused `BuildLauncher#addJvmArguments` to override flags coming from the `org.gradle.jvmargs` system property.
+Please ensure that you are not relying on this behavior when upgrading to Gradle 8.13.
+If system properties needs to be overridden, `BuildLauncher#setJvmArguments` should be used instead.
+
+=== Deprecations
+
+==== Recursively querying `AttributeContainer` in lazy provider
+
+In Gradle 9.0, querying the contents of an `AttributeContainer` from within an attribute value provider of the same container will become an error.
+
+The following example showcases the forbidden behavior:
+
+[source,java]
+----
+AttributeContainer container = getAttributeContainer();
+Attribute<String> firstAttribute = Attribute.of("first", String.class);
+Attribute<String> secondAttribute = Attribute.of("second", String.class);
+container.attributeProvider(firstAttribute, project.getProviders().provider(() -> {
+    // Querying the contents of the container within an attribute value provider
+    // will become an error.
+    container.getAttribute(secondAttribute);
+    return "first";
+}));
+----
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
@@ -43,6 +115,150 @@ The previous step will help you identify potential problems by issuing deprecati
 ==== Upgrade to Kotlin 2.0.21
 
 The embedded Kotlin has been updated from 2.0.20 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.0.21[Kotlin 2.0.21].
+
+==== Upgrade to Ant 1.10.15
+
+Ant has been updated to https://github.com/apache/ant/blob/rel/1.10.15/WHATSNEW[Ant 1.10.15].
+
+==== Upgrade to Zinc 1.10.4
+
+Zinc has been updated to https://github.com/sbt/zinc/releases/tag/v1.10.4[1.10.4].
+
+==== Swift SDK discovery
+
+To determine the location of the Mac OS X SDK for Swift, Gradle now passes the `--sdk macosx` arguments to `xcrun`.
+This is necessary because the SDK could be discovered inconsistently without this argument across different environments.
+
+==== Source level deprecation of TaskContainer.create methods
+
+Eager task creation methods on link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[the `TaskContainer` interface] have been marked `@Deprecated` and will generate compiler and IDE warnings when used in build scripts or plugin code.
+There is not yet a Gradle deprecation warning emitted for their use.
+
+However, if the build is configured to fail on warnings during Kotlin script or plugin code compilation, this behavior may cause the build to fail.
+
+A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
+
+=== Deprecations
+
+[[deprecated_ambiguous_transformation_chains]]
+==== Deprecated Ambiguous Transformation Chains
+
+Previously, when at least two equal-length chains of <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> were available that would produce compatible variants that would each satisfy a resolution request, Gradle would arbitrarily, and silently, pick one.
+
+Now, Gradle emits a deprecation warning that explains this situation:
+
+```text
+There are multiple distinct artifact transformation chains of the same length that would satisfy this request. This behavior has been deprecated. This will fail with an error in Gradle 9.0.
+Found multiple transformation chains that produce a variant of 'root project :' with requested attributes:
+  - color 'red'
+  - texture 'smooth'
+Found the following transformation chains:
+  - From configuration ':squareBlueSmoothElements':
+      - With source attributes:
+          - artifactType 'txt'
+          - color 'blue'
+          - shape 'square'
+          - texture 'smooth'
+      - Candidate transformation chains:
+          - Transformation chain: 'ColorTransform':
+              - 'BrokenColorTransform':
+                  - Converts from attributes:
+                      - color 'blue'
+                      - texture 'smooth'
+                  - To attributes:
+                      - color 'red'
+          - Transformation chain: 'ColorTransform2':
+              - 'BrokenColorTransform2':
+                  - Converts from attributes:
+                      - color 'blue'
+                      - texture 'smooth'
+                  - To attributes:
+                      - color 'red'
+ Remove one or more registered transforms, or add additional attributes to them to ensure only a single valid transformation chain exists.
+
+```
+
+In such a scenario, Gradle has no way to know which of the two (or more) possible transformation chains should be used.
+Picking an arbitrary chain can lead to inefficient performance or unexpected behavior changes when seemingly unrelated parts of the build are modified.
+This is potentially a very complex situation and the message now fully explains the situation by printing all the registered transforms in order, along with their source (input) variants for each candidate chain.
+
+When encountering this type of failure, build authors should either:
+
+1. Add additional, distinguishing attributes when registering transforms present in the chain, to ensure that only a single chain will be selectable to satisfy the request
+2. Request additional attributes to disambiguate which chain is selected (if they result in non-identical final attributes)
+3. Remove unnecessary registered transforms from the build
+
+This will become an error in Gradle 9.0.
+
+[[init_must_run_alone]]
+==== `init` must run alone
+The <<build_init_plugin.adoc#sec:build_init_tasks, `init` task>> must run by itself.
+This task should not be combined with other tasks in a single Gradle invocation.
+
+Running `init` in the same invocation as other tasks will become an error in Gradle 9.0.
+
+For instance, this wil *not* be allowed:
+
+[source]
+----
+> gradlew init tasks
+----
+
+[[task_project]]
+==== Calling `Task.getProject()` from a task action
+
+Calling link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] from a task action at execution time is now deprecated and will be made an error in Gradle 10.0.
+This method can still be used during configuration time.
+
+The deprecation is only issued if the configuration cache is **not** enabled.
+When the configuration cache is enabled, calls to link:{javadocPath}/org/gradle/api/Task.html#getProject--[Task.getProject()] are reported as configuration cache problems instead.
+
+This deprecation was originally introduced in <<upgrading_version_7.adoc#task_project, Gradle 7.4>> but was only issued when the <<configuration_cache#config_cache:stable,`STABLE_CONFIGURATION_CACHE`>> feature flag was enabled. That feature flag no longer controls this deprecation.
+This is another step towards moving users away from idioms that are incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release.
+
+Please refer to the <<configuration_cache#config_cache:requirements:use_project_during_execution, configuration cache documentation>> for alternatives to invoking `Task.getProject()` at execution time that are compatible with the configuration cache.
+
+[[groovy_space_assignment_syntax]]
+==== Groovy "space assignment" syntax
+
+Currently, there are multiple ways to set a property with Groovy DSL syntax:
+
+[source]
+---
+propertyName = value
+setPropertyName(value)
+setPropertyName value
+propertyName(value)
+propertyName value
+---
+
+The latter one, "space-assignment", is a Gradle-specific feature that is not part of the Groovy language.
+In regular Groovy, this is just a method call: `propertyName(value)`, and Gradle generates `propertyName` method in the runtime if this method hasn't been present already.
+This feature may be a source of confusion (especially for new users) and adds an extra layer of complexity for users and the Gradle codebase without providing any significant value.
+Sometimes, classes declare methods with the same name, and these may even have semantics that are different from a plain assignment.
+
+These generated methods are now deprecated and will be removed in Gradle 10.0, and both `propertyName value` and `propertyName(value)` will stop working unless the explicit method `propertyName` is defined.
+Use explicit assignment `propertyName = value` instead.
+
+For explicit methods, consider using the `propertyName(value)` syntax instead of `propertyName value` for clarity.
+For example, `jvmArgs "some", "arg"` can be replaced with `jvmArgs("some", "arg")` or with `jvmArgs = ["some", "arg"]` for `Test` tasks.
+
+If you have a big project, to replace occurrences of space-assignment syntax you can use, for example, the following `sed` command:
+[source]
+---
+find . -name 'build.gradle' -type f -exec sed -i.bak -E 's/([^A-Za-z]|^)(replaceme)[ \t]*([^= \t{])/\1\2 = \3/g' {} +
+---
+
+You should replace `replaceme` with one or more property names you want to replace, separated by `|`, e.g. `(url|group)`.
+
+[[dependency-insight-report-task-get-dependency-spec]]
+==== DependencyInsightReportTask.getDependencySpec
+The method was deprecated because it was not intended for public use in build scripts.
+
+[[reporting-base-dir]]
+==== ReportingExtension.baseDir
+`ReportingExtension.getBaseDir()`, ``ReportingExtension.setBaseDir(File)`, and `ReportingExtension.setBaseDir(Object)` were deprecated.
+They should be replaced with `ReportingExtension.getBaseDirectory()` property.
 
 [[changes_8.11]]
 == Upgrading from 8.10 and earlier
@@ -172,6 +388,28 @@ The link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getDepend
 
 Accessing the mutable project instance of other projects should be avoided.
 
+To discover details about all projects that were included in a resolution, inspect the full link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult].
+Project dependencies are exposed in the link:{javadocPath}/org/gradle/api/artifacts/result/DependencyResult.html[DependencyResult].
+See the user guide section on <<dependency_graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
+This is the only reliable way to find all projects that are used in a resolution.
+Inspecting only the declared `ProjectDependency`s may miss transitive or substituted project dependencies.
+
+To get the identity of the target project, use the new Isolated Projects safe project path method: link:{javadocPath}/org/gradle/api/artifacts/ProjectDependency.html#getPath()[`ProjectDependency#getPath()`].
+
+To access or configure the target project, consider this direct replacement:
+[source,kotlin]
+----
+val projectDependency: ProjectDependency = getSomeProjectDependency()
+
+// Old way:
+val someProject = projectDependency.dependencyProject
+
+// New way:
+val someProject = project.project(projectDependency.path)
+----
+
+This approach will not fetch project instances from different builds.
+
 [[deprecate_legacy_configuration_get_files]]
 ==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
 
@@ -236,15 +474,24 @@ Potential migrations include using `Object.equals(Object)` directly, or comparin
 [[deprecated_project_exec]]
 ==== Deprecated `Project#exec` and `Project#javaexec`
 
-The methods link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
+The link:{javadocPath}/org/gradle/api/Project.html#exec(groovy.lang.Closure)[Project#exec(Closure)],
 link:{javadocPath}/org/gradle/api/Project.html#exec(org.gradle.api.Action)[Project#exec(Action)],
 link:{javadocPath}/org/gradle/api/Project.html#javaexec(groovy.lang.Closure)[Project#javaexec(Closure)],
-link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] has been deprecated and will be removed in Gradle 9.0.
+link:{javadocPath}/org/gradle/api/Project.html#javaexec(org.gradle.api.Action)[Project#javaexec(Action)] methods have been deprecated and will be removed in Gradle 9.0.
 
-These methods cannot be used with the configuration cache and should be replaced with compatible alternatives.
-At execution time, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service or standard Java/Groovy/Kotlin APIs, like `java.lang.ProcessBuilder` to run processes.
-Running external processes at configuration time isn't recommended, but methods of <<configuration_cache.adoc#config_cache:requirements:external_processes, `ProviderFactory`>> or a custom
-link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] can be used if necessary, at the cost of making the process output an input to the build configuration.
+These methods are scheduled for removal as part of the ongoing effort to make writing configuration-cache-compatible code easier.
+There is no way to use these methods without breaking configuration cache requirements so it is recommended to migrate to a compatible alternative.
+The appropriate replacement for your use case depends on the context in which the method was previously called.
+
+At execution time, for example in `@TaskAction` or `doFirst`/`doLast` callbacks, the use of `Project` instance is not allowed when the configuration cache is enabled.
+To run external processes, tasks should use an <<service_injection.adoc#execoperations, injected `ExecOperation`>> service, which has the same API and can act as a drop-in replacement.
+The standard Java/Groovy/Kotlin process APIs, like `java.lang.ProcessBuilder` can be used as well.
+
+At configuration time, only special Provider-based APIs must be used to run external processes when the configuration cache is enabled.
+You can use link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#exec(org.gradle.api.Action)[`ProviderFactory.exec`] and
+link:{javadocPath}/org/gradle/api/provider/ProviderFactory.html#javaexec(org.gradle.api.Action)[`ProviderFactory.javaexec`] to obtain the output of the process.
+A custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation can be used for more sophisticated scenarios.
+The <<configuration_cache.adoc#config_cache:requirements:external_processes, configuration cache guide>> has a more elaborate example of using these APIs.
 
 [[detached_configurations_cannot_extend]]
 ==== Detached Configurations should not use `extendsFrom`
@@ -289,7 +536,7 @@ These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Ja
 
 - link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
 - Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
-    - Calling `setVerbose(false)` did nothing.
+- Calling `setVerbose(false)` did nothing.
 
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
@@ -422,7 +669,7 @@ We added a check to automatically disable file-system watching on macOS 11 (Big 
 
 ==== Possible change to JDK8-based compiler output when annotation processors are used
 
-The Java compilation infrastructure has been updated to use the <<implementing_gradle_plugins_binary.adoc#reporting_problems,Problems API>>.
+The Java compilation infrastructure has been updated to use the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
 This change will supply the Tooling API clients with structured, rich information about compilation issues.
 
 The feature should not have any visible impact on the usual build output, with JDK8 being an exception.
@@ -507,7 +754,7 @@ For the following use cases, consider these alternatives when replacing a `befor
 
 * **Adding dependencies**: Use a link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyFactory.html[DependencyFactory] and `addLater` or `addAllLater` on link:{javadocPath}/org/gradle/api/artifacts/DependencySet.html[DependencySet].
 * **Changing dependency versions**: Use <<using_preferred_versions,preferred version constraints>>.
-* **Adding excludes**: Use <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] to add excludes to a configuration.
+* **Adding excludes**: Use <<component_metadata_rules.adoc#component-metadata-rules,Component Metadata Rules>> to adjust dependency-level excludes, or link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] to add excludes to a configuration.
 * **Roles**: Configuration roles should be set upon creation and not changed afterward.
 * **Hierarchy**: Configuration hierarchy (`extendsFrom`) should be set upon creation. Mutating the hierarchy prior to resolution is highly discouraged but permitted within a link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#withDependencies-org.gradle.api.Action-[withDependencies] hook.
 * **Resolution Strategy**: Mutating a configuration's ResolutionStrategy is still permitted in a `beforeResolve` hook; however, this is not recommended.
@@ -643,7 +890,7 @@ In Gradle 8.8, this mechanism was extended to permit the retention configuration
 - Specifying `Cleanup.DISABLED` or `Cleanup.ALWAYS` will now prevent or force the cleanup of the local build cache
 - Build cache entry retention is now configured via an `init-script`, link:directory_layout.html#dir:gradle_user_home:configure_cache_cleanup[in the same manner as other caches].
 
-If you want build-cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
+If you want build cache entries to be retained for 30 days, **remove** any calls to the deprecated method:
 
 ```kotlin
 buildCache {
@@ -733,10 +980,10 @@ This can be fixed by adding the appropriate type to the cast, and the redundant 
 
 ```groovy
 // Before
-tasks.create("foo", { Task it -> it.description "Foo task" } as Action)
+tasks.create("foo", { Task it -> it.description = "Foo task" } as Action)
 
 // Fixed
-tasks.create("foo", { it.description "Foo task" } as Action<Task>)
+tasks.create("foo", { it.description = "Foo task" } as Action<Task>)
 ```
 
 ==== Upgrade to ASM 9.7
@@ -779,7 +1026,7 @@ ASM was upgraded from 9.5 to https://asm.ow2.io/versions.html[9.6] for better su
 
 The version catalog parser has been upgraded and is now compliant with https://toml.io/en/v1.0.0[version 1.0.0 of the TOML spec].
 
-This should not impact catalogs that use the <<version_catalogs.adoc#sub::toml-dependencies-format,recommended syntax>> or were generated by Gradle for publication.
+This should not impact catalogs that use the <<version_catalogs.adoc#sec::toml-dependencies-format,recommended syntax>> or were generated by Gradle for publication.
 
 === Deprecations
 
@@ -837,6 +1084,7 @@ To fix a deprecation warning, invalid URLs that require the legacy behavior shou
 | `file:relative/path%21` | `relative/path!` | Without a scheme, the path is taken as-is, without decoding.
 | `https://example.com/my folder/` | `https://example.com/my%20folder/` | Spaces are not valid in URLs.
 | `https://example.com/my%%badly%encoded%path` | `https://example.com/my%25%25badly%25encoded%25path` | `%` must be encoded as `%25` in URLs, and no `%`-escapes should be invalid.
+| file::somepath | somepath | URIs should be hierarchical.
 |===
 
 [[deprecate_self_resolving_dependency]]
@@ -1144,7 +1392,7 @@ Instead, the build logic can avoid iteration and mutation by declaring a `prefer
 This allows the dependency management engine to use the version declared on the constraint if no other version is declared.
 
 [[using_preferred_versions]]
-Consider the following example that replaces the above iteration with an indiscriminate <<rich_versions.adoc#sec:preferred-version,preferred>> version constraint:
+Consider the following example that replaces the above iteration with an indiscriminate <<dependency_versions.adoc#sec:preferred-version,preferred>> version constraint:
 
 =====
 [.multi-language-sample]
@@ -1251,6 +1499,9 @@ The embedded Kotlin has been updated to link:https://github.com/JetBrains/kotlin
 Gradle 8.4 now configures XML parsers with security features enabled.
 If your build logic depends on old XML parsers that don't support secure parsing, your build may fail.
 If you encounter a failure, check and update or remove any dependency on legacy XML parsers.
+
+If you are an Android user, please upgrade your AGP version to 8.3.0 or higher to fix the issue caused by AGP itself.
+See the link:https://issuetracker.google.com/u/0/issues/306301014[Update XML parser used in AGP for Gradle 8.4 compatibility] for more details.
 
 If you are unable to upgrade XML parsers coming from your build logic dependencies, you can force the use of the XML parsers built into the JVM.
 In OpenJDK, for example, this can be done by adding the following to `gradle.properties`:
@@ -1605,7 +1856,7 @@ output.map { it.asFile.path }
 `link:{javadocPath}/org/gradle/api/artifacts/ClientModule.html[ClientModule]` dependencies are deprecated and will be removed in Gradle 9.0.
 
 Client module dependencies were originally intended to allow builds to override incorrect or missing component metadata of external dependencies by defining the metadata locally.
-This functionality has since been replaced by <<component_metadata_rules.adoc#sec:component_metadata_rules,Component Metadata Rules>>.
+This functionality has since been replaced by <<component_metadata_rules.adoc#component-metadata-rules,Component Metadata Rules>>.
 
 Consider the following client module dependency example:
 
@@ -1845,7 +2096,7 @@ Current usages of these methods should migrate to `link:{javadocPath}/org/gradle
 [[deprecated_configuration_usage]]
 ==== Using configurations incorrectly
 
-Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html--[Configuration] are called inconsistently with the configuration's intended usage.
+Gradle will now warn at runtime when methods of link:{javadocPath}/org/gradle/api/artifacts/Configuration.html[Configuration] are called inconsistently with the configuration's intended usage.
 
 This change is part of a larger ongoing effort to make the intended behavior of configurations more consistent and predictable and to unlock further speed and memory improvements.
 

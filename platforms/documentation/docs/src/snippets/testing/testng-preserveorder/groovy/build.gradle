@@ -13,7 +13,7 @@ dependencies {
 // tag::test-config[]
 test {
     useTestNG {
-        preserveOrder true
+        preserveOrder = true
     }
 }
 // end::test-config[]

@@ -20,29 +20,16 @@ import com.google.common.collect.ImmutableSet;
 
 import java.lang.annotation.Annotation;
 
-public abstract class AbstractPropertyAnnotationHandler implements PropertyAnnotationHandler {
-    private final Class<? extends Annotation> annotationType;
+public abstract class AbstractPropertyAnnotationHandler extends AbstractAnnotationHandler implements PropertyAnnotationHandler {
     private final Kind kind;
-    private final ImmutableSet<Class<? extends Annotation>> allowedModifiers;
 
     protected AbstractPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Kind kind, ImmutableSet<Class<? extends Annotation>> allowedModifiers) {
-        this.annotationType = annotationType;
+        super(annotationType, allowedModifiers);
         this.kind = kind;
-        this.allowedModifiers = allowedModifiers;
-    }
-
-    @Override
-    public Class<? extends Annotation> getAnnotationType() {
-        return annotationType;
     }
 
     @Override
     public Kind getKind() {
         return kind;
-    }
-
-    @Override
-    public ImmutableSet<Class<? extends Annotation>> getAllowedModifiers() {
-        return allowedModifiers;
     }
 }

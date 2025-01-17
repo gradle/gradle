@@ -17,21 +17,22 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
+import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
 
 import javax.annotation.Nullable
 
 class AbstractMinimalProviderTest extends ProviderSpec<String> {
-    TestProvider provider = new TestProvider()
+    TestProvider<String> provider = new TestProvider(String)
 
     @Override
-    TestProvider providerWithNoValue() {
-        return new TestProvider()
+    TestProvider<String> providerWithNoValue() {
+        return new TestProvider(String)
     }
 
     @Override
-    TestProvider providerWithValue(String value) {
-        def p = new TestProvider()
+    TestProvider<String> providerWithValue(String value) {
+        def p = new TestProvider(String)
         p.value = value
         return p
     }
@@ -132,25 +133,77 @@ class AbstractMinimalProviderTest extends ProviderSpec<String> {
 
     def "toString() displays nice things"() {
         expect:
-        new TestProvider().toString() == "provider(java.lang.String)"
+        new TestProvider(String).toString() == "provider(java.lang.String)"
     }
 
-    static class TestProvider extends AbstractMinimalProvider {
+    def "exception contains classloader info when the same class loaded with different classloaders"() {
+        given:
+        def clSrc = new TestClassLoader("src")
+        def clTarget = new TestClassLoader("target")
+
+        def sourceType = clSrc.loadClass(TestValue.name)
+        def targetType = clTarget.loadClass(TestValue.name)
+
+        def provider = new TestProvider(sourceType)
+
+        when:
+        provider.asSupplier(Describables.of("someProp"), targetType, ValueSanitizers.forType(targetType))
+
+        then:
+        def e = thrown(IllegalArgumentException)
+
+        e.message == "Cannot set the value of someProp of type ${TestValue.name} loaded with TestClassLoader(target) using a provider of type ${TestValue.name} loaded with TestClassLoader(src)."
+    }
+
+    def "exception contains no classloader info when different types are requested"() {
+        given:
+        def targetType = String
+        def sourceType = Integer
+        def provider = new TestProvider(sourceType)
+
+        when:
+        provider.asSupplier(Describables.of("someProp"), targetType, ValueSanitizers.forType(targetType))
+
+        then:
+        def e = thrown(IllegalArgumentException)
+
+        e.message == "Cannot set the value of someProp of type ${targetType.name} using a provider of type ${sourceType.name}."
+    }
+
+    static class TestProvider<T> extends AbstractMinimalProvider<T> {
+        final Class<T> cls
+
         @Nullable
-        String value
+        T value
 
-        void value(String s) {
-            this.value = s
+        TestProvider(Class<T> cls) {
+            this.cls = cls
+        }
+
+        void value(T value) {
+            this.value = value
         }
 
         @Override
-        Class getType() {
-            return String
+        Class<T> getType() {
+            return cls
         }
 
         @Override
-        protected Value calculateOwnValue(ValueConsumer consumer) {
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return Value.ofNullable(value)
         }
+    }
+
+    static class TestClassLoader extends URLClassLoader {
+        private final String name
+
+        TestClassLoader(String name) {
+            super(new URL[]{TestValue.protectionDomain.codeSource.location}, null as ClassLoader)
+            this.name = name
+        }
+
+        @Override
+        String toString() { "TestClassLoader(${name})" }
     }
 }

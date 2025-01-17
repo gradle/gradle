@@ -51,7 +51,7 @@ public final class DefaultSpecificCapabilitySelector implements CapabilitySelect
     public String getDisplayName() {
         // We intentionally do not display the version here.
         // An exact version selector does not have a version.
-        return "capability selector '" + getGroup() + ":" + getName() + "'";
+        return "coordinates '" + getGroup() + ":" + getName() + "'";
     }
 
     /**

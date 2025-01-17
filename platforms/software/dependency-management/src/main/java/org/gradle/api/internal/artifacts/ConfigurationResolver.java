@@ -16,12 +16,15 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
+import org.gradle.internal.model.CalculatedValue;
 
 import java.util.List;
 
 /**
- * Resolves {@link ResolveContext}s and produces {@link ResolverResults}.
+ * Resolves {@link ConfigurationInternal}s and produces {@link ResolverResults}.
  * <p>
  * This resolution is lenient, except for some fatal failure cases,
  * in the sense that resolution failures in most cases will not cause exceptions
@@ -29,17 +32,21 @@ import java.util.List;
  */
 public interface ConfigurationResolver {
     /**
-     * Traverses enough of the graph to calculate the build dependencies of the given resolve context. All failures are packaged in the result.
+     * Traverses enough of the graph to calculate the build dependencies of the given configuration. All failures are packaged in the result.
+     *
+     * @param configuration The resolve context to resolve.
+     * @param futureCompleteResults The future value of the output of {@link #resolveGraph(ConfigurationInternal)}. See
+     * {@link DefaultTransformUpstreamDependenciesResolver} for why this is needed.
      */
-    ResolverResults resolveBuildDependencies(ResolveContext configuration);
+    ResolverResults resolveBuildDependencies(ConfigurationInternal configuration, CalculatedValue<ResolverResults> futureCompleteResults);
 
     /**
-     * Traverses the full dependency graph of the given resolve context. All failures are packaged in the result.
+     * Traverses the full dependency graph of the given configuration. All failures are packaged in the result.
      */
-    ResolverResults resolveGraph(ResolveContext resolveContext) throws ResolveException;
+    ResolverResults resolveGraph(ConfigurationInternal configuration) throws ResolveException;
 
     /**
-     * Returns the list of repositories available to resolve a given resolve context.
+     * Returns the list of repositories available to resolve a given configuration.
      */
     List<ResolutionAwareRepository> getAllRepositories();
 }

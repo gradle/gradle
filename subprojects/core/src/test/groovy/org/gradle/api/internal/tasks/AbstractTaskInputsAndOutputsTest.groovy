@@ -52,16 +52,18 @@ abstract class AbstractTaskInputsAndOutputsTest extends AbstractProjectBuilderSp
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         [:],
+        [:],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         [Internal],
+        [],
         { false },
         cacheFactory
     )
     def propertyHandlers = [new NoOpPropertyAnnotationHandler(Internal)]
-    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [], [], [], typeAnnotationMetadataStore, TestPropertyTypeResolver.INSTANCE, cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
     def walker = new DefaultPropertyWalker(typeMetadataStore, new TestImplementationResolver(), propertyHandlers)
 
     TaskInternal task

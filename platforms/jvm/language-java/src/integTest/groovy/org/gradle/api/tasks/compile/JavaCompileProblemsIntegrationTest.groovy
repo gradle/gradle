@@ -18,10 +18,10 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.DiagnosticToProblemListener
+import org.gradle.api.problems.FileLocation
+import org.gradle.api.problems.LineInFileLocation
+import org.gradle.api.problems.OffsetInFileLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.FileLocation
-import org.gradle.api.problems.internal.LineInFileLocation
-import org.gradle.api.problems.internal.OffsetInFileLocation
 import org.gradle.api.tasks.compile.fixtures.ProblematicClassGenerator
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -299,7 +299,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             fqid == 'compilation:java:compiler-err-warnings-and-werror'
             contextualLabel == 'warnings found and -Werror specified'
             !solutions.empty
-            additionalData.asMap == ["formatted": "error: warnings found and -Werror specified"]
+            details == "error: warnings found and -Werror specified"
         }
 
         // Based on the Java version, the types in the lint message will differ...
@@ -320,7 +320,7 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             verifyAll(getSingleLocation(ReceivedProblem.ReceivedFileLocation)) {
                 it.path == fooFileLocation.absolutePath
             }
-            additionalData.asMap["formatted"] == """\
+            details == """\
 $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -331,7 +331,7 @@ $fooFileLocation:5: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             solutions.empty
-            additionalData.asMap["formatted"] == """\
+            details == """\
 ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
         String s = (String)"Hello World";
                    ^"""
@@ -437,7 +437,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             // In JDK8, the compiler will not simplify the type to just "String"
-            additionalData.asMap["formatted"].contains("redundant cast to java.lang.String")
+            details.contains("redundant cast to java.lang.String")
         }
     }
 
@@ -465,7 +465,7 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
             fqid == 'compilation:java:compiler-warn-redundant-cast'
             contextualLabel == 'redundant cast to java.lang.String'
             // In JDK11, the compiler will not simplify the type to just "String"
-            additionalData.asMap["formatted"].contains("redundant cast to String")
+            details.contains("redundant cast to String")
         }
 
         where:
@@ -526,9 +526,9 @@ ${fooFileLocation}:9: warning: [cast] redundant cast to $expectedType
     ) {
         assert problem.contextualLabel != null, "Expected contextual label to be non-null, but was null"
 
-        def locations = problem.locations
+        def locations = problem.originLocations + problem.contextualLocations
         // We use this counter to assert that we have visited all locations
-        def assertedLocationCount = 0
+        def assertedLocationCount = 1
 
         if (expectLineLocation) {
             LineInFileLocation positionLocation = locations.find {

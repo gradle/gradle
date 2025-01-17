@@ -21,11 +21,6 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 
 import javax.annotation.Nullable
 
-import static org.hamcrest.CoreMatchers.notNullValue
-import static org.hamcrest.CoreMatchers.nullValue
-import static org.hamcrest.MatcherAssert.assertThat
-
-
 class ConfigurationCacheBuildOperationsFixture {
 
     final BuildOperationTreeQueries operations
@@ -35,49 +30,83 @@ class ConfigurationCacheBuildOperationsFixture {
     }
 
     boolean getReused() {
-        storeOperation() == null && loadOperation() != null
+        workGraphStoreOperation() == null && workGraphLoadOperation() != null
     }
 
     void assertStateLoaded() {
-        def load = loadOperation()
-        assertThat(load, notNullValue())
-        assertThat(load.failure, nullValue())
-        assertThat(storeOperation(), nullValue())
+        def load = workGraphLoadOperation()
+        assert load != null && load.failure == null
+        assert workGraphStoreOperation() == null
     }
 
     void assertStateLoadFailed() {
-        def load = loadOperation()
-        assertThat(load, notNullValue())
-        assertThat(load.failure, notNullValue())
-        assertThat(storeOperation(), nullValue())
+        def load = workGraphLoadOperation()
+        assert load != null && load.failure != null
+        assert workGraphStoreOperation() == null
     }
 
     void assertStateStored(boolean expectLoad = true) {
-        def store = storeOperation()
-        assertThat(store, notNullValue())
-        assertThat(store.failure, nullValue())
-        assertThat(loadOperation(), expectLoad ? notNullValue() : nullValue())
+        def store = workGraphStoreOperation()
+        assert store != null && store.failure == null
+        assert (workGraphLoadOperation() != null) == expectLoad
     }
 
     void assertStateStoreFailed() {
-        assertThat(loadOperation(), nullValue())
-        def store = storeOperation()
-        assertThat(store, notNullValue())
-        assertThat(store.failure, notNullValue())
+        def store = workGraphStoreOperation()
+        assert store != null && store.failure != null
+        assert workGraphLoadOperation() == null
+    }
+
+    void assertModelStored() {
+        def modelStore = modelStoreOperation()
+        assert modelStore != null && modelStore.failure == null
+        assert modelLoadOperation() == null
+    }
+
+    void assertModelStoreFailed() {
+        def modelStore = modelStoreOperation()
+        assert modelStore != null && modelStore.failure != null
+        assert modelLoadOperation() == null
+    }
+
+    void assertModelLoaded() {
+        def modelLoad = modelLoadOperation()
+        assert modelLoad != null && modelLoad.failure == null
+        assert modelStoreOperation() == null
     }
 
     void assertNoConfigurationCache() {
-        assertThat(loadOperation(), nullValue())
-        assertThat(storeOperation(), nullValue())
+        assertNoWorkGraphOperations()
+        assertNoModelOperations()
+    }
+
+    void assertNoWorkGraphOperations() {
+        assert workGraphStoreOperation() == null
+        assert workGraphLoadOperation() == null
+    }
+
+    void assertNoModelOperations() {
+        assert modelStoreOperation() == null
+        assert modelLoadOperation() == null
     }
 
     @Nullable
-    private BuildOperationRecord loadOperation() {
-        operations.firstMatchingRegex("Load (configuration cache|instant execution) state")
+    private BuildOperationRecord workGraphStoreOperation() {
+        operations.singleOrNone("Store configuration cache state")
     }
 
     @Nullable
-    private BuildOperationRecord storeOperation() {
-        operations.firstMatchingRegex("Store (configuration cache|instant execution) state.*")
+    private BuildOperationRecord workGraphLoadOperation() {
+        operations.singleOrNone("Load configuration cache state")
+    }
+
+    @Nullable
+    private BuildOperationRecord modelStoreOperation() {
+        operations.singleOrNone("Store model in configuration cache")
+    }
+
+    @Nullable
+    private BuildOperationRecord modelLoadOperation() {
+        operations.singleOrNone("Load model from configuration cache")
     }
 }

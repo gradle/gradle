@@ -264,7 +264,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             task war(type: War) {
-                duplicatesStrategy 'exclude'
+                duplicatesStrategy = 'exclude'
                 from('some-dir') {
                     into 'WEB-INF'
                 }

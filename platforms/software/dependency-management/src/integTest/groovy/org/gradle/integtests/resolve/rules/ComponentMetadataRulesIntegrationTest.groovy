@@ -182,7 +182,7 @@ dependencies {
             """
 class UpdatingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-            context.details.status "integration.changed" // verify that 'details' is enhanced
+            context.details.status = "integration.changed" // verify that 'details' is enhanced
             context.details.statusScheme = ["integration.changed", "milestone.changed", "release.changed"]
             context.details.changing = true
     }

@@ -1,6 +1,7 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 This sample shows how problems can be emitted via the Problems API and how those reports are consumed on the IDE-side.
+Visit the user manual to learn more about the link:{userManualPath}/reporting_problems.html#sec:reporting_problems[Problems API].
 
 ## Running the sample
 

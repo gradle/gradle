@@ -17,8 +17,8 @@
 package org.gradle.internal.buildevents
 
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatistics
+import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -32,7 +32,7 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(0, 0, 0))
 
         then:
-        (textOutputFactory as String) == ""
+        textOutputFactory.output == ""
         0 * _
     }
 
@@ -49,7 +49,10 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(1, 0, 0))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.TaskExecutionStatisticsReporter}{LIFECYCLE}1 actionable task: 1 executed\n"
+        textOutputFactory.category == TaskExecutionStatisticsReporter.canonicalName
+        textOutputFactory.logLevel == LogLevel.LIFECYCLE
+        textOutputFactory.output == """1 actionable task: 1 executed
+"""
     }
 
     def "reports only task counts > 0 (exec: #executed, from cache: #fromCache, up-to-date #upToDate)"() {
@@ -57,7 +60,8 @@ class TaskExecutionStatisticsReporterTest extends Specification {
         reporter.buildFinished(new TaskExecutionStatistics(executed, fromCache, upToDate))
 
         then:
-        TextUtil.normaliseLineSeparators(textOutputFactory as String) == "{org.gradle.internal.buildevents.TaskExecutionStatisticsReporter}{LIFECYCLE}$expected\n"
+        textOutputFactory.output == """$expected
+"""
 
         where:
         executed | fromCache | upToDate | expected

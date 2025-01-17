@@ -31,7 +31,7 @@ class MavenBomResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.addDefaultVariantDerivationStrategy()
         settingsFile << "rootProject.name = 'testproject'"
         buildFile << """
-            repositories { maven { url "${mavenHttpRepo.uri}" } }
+            repositories { maven { url = "${mavenHttpRepo.uri}" } }
             configurations { compile }
         """
         moduleA = mavenHttpRepo.module('group', 'moduleA', '2.0').allowAll().publish()

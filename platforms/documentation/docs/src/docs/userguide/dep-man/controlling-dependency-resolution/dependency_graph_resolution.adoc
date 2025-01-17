@@ -1,0 +1,72 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-graph-resolution]]
+= Dependency Graph Resolution
+
+The output of the _graph resolution_ phase is a fully resolved *dependency graph*, which is used as the input to the _artifact resolution_ phase.
+
+The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] API provides access to the resolved dependency graph without triggering artifact resolution.
+This API presents the resolved dependency graph, where each node in the graph is a variant of a component.
+
+Raw access to the dependency graph can be useful for a number of use cases:
+
+- Visualizing the dependency graph, for example generating a `.dot` file for Graphviz.
+- Exposing <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,diagnostics>> about a given resolution, similar to the `dependencies` or `dependencyInsight` tasks.
+- Resolving a subset of the artifacts for a dependency graph when used in conjunction with the `ArtifactView` API.
+
+Consider the following function that traverses a dependency graph, starting from the root node.
+Callbacks are notified for each node and edge in the graph.
+This function can be used as a base for any use case that requires traversing a dependency graph:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=graph-traversal-function]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=graph-traversal-function]"]
+====
+
+This function starts at the root variant, and performs a breadth-first traversal of the graph.
+The `ResolutionResult` API is lenient, so it is important to check whether a visited edge is unresolved (failed) or resolved.
+With this function, the node callback is always called before the edge callback for any given node.
+
+Below, we leverage the above traversal function to transform a dependency graph into a `.dot` file for visualization:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=define-graph-traversal-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
+====
+
+NOTE: A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <<writing_tasks.adoc#writing_tasks,Writing Tasks>> section.
+
+When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=register-graph-traversal-task]"]
+====
+
+NOTE: This example uses incubating APIs.
+
+Running this task, we get the following output:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dot.out[]
+----
+
+Compare this to the output of the `dependencies` task:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
+----
+
+Notice how the graph is the same for both representations.

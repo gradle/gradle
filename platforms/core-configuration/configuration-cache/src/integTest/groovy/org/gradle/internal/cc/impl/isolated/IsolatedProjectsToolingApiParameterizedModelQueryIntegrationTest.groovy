@@ -39,7 +39,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":", SomeToolingModel, SomeToolingModel) // only 2 models are created for 2 unique parameters of 4 requests
@@ -63,7 +63,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2", "fetch1", "fetch2"]))
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("configuring root")
         outputDoesNotContain("creating model")
     }
@@ -82,7 +82,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1", "fetch2"]))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":", SomeToolingModel, SomeToolingModel)
@@ -110,7 +110,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch2", "fetch1"]))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":", SomeToolingModel, SomeToolingModel)
@@ -139,7 +139,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         def models = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":", SomeToolingModel)
@@ -161,7 +161,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":", SomeToolingModel)
@@ -192,7 +192,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         def model1 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(SomeToolingModel, ":", ":a", ":b")
@@ -221,7 +221,7 @@ class IsolatedProjectsToolingApiParameterizedModelQueryIntegrationTest extends A
         def model2 = runBuildAction(new FetchParameterizedCustomModelForEachProject(["fetch1"]))
 
         then:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectsConfigured(":buildSrc", ":")
             modelsCreated(":a", SomeToolingModel)

@@ -117,66 +117,70 @@ abstract class MyWorkerTask
 tasks.register("myWorkTask", MyWorkerTask::class) {}
 // end::worker-executor[]
 
-// tag::file-system[]
-tasks.register("FileSystemOperations") {
-    doLast {
-        copy { // short for project.copy
-            from("src")
-            into("dest")
-        }
-    }
-}
-// end::file-system[]
-
 // tag::file-system-inject[]
 abstract class MyFileSystemOperationsTask
 @Inject constructor(private var fileSystemOperations: FileSystemOperations) : DefaultTask() {
 
     @TaskAction
     fun doTaskAction() {
-        fileSystemOperations.copy {
+        fileSystemOperations.sync {
             from("src")
             into("dest")
         }
     }
 }
 
-tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask::class) {}
+tasks.register("myInjectedFileSystemOperationsTask", MyFileSystemOperationsTask::class)
 // end::file-system-inject[]
 
-// tag::archive-op[]
-tasks.register("ArchiveOperations") {
+// tag::file-system-adhoc[]
+interface InjectedFsOps {
+    @get:Inject val fs: FileSystemOperations
+}
+
+tasks.register("myAdHocFileSystemOperationsTask") {
+    val injected = project.objects.newInstance<InjectedFsOps>()
     doLast {
-        zipTree() { "${project.projectDir}/sources.jar" } // short for project.zipTree
+        injected.fs.copy {
+            from("src")
+            into("dest")
+        }
     }
 }
-// end::archive-op[]
+// end::file-system-adhoc[]
 
 // tag::archive-op-inject[]
 abstract class MyArchiveOperationsTask
 @Inject constructor(
     private val archiveOperations: ArchiveOperations,
-    private val project: Project
+    private val layout: ProjectLayout,
+    private val fs: FileSystemOperations
 ) : DefaultTask() {
-
     @TaskAction
     fun doTaskAction() {
-        archiveOperations.zipTree("${project.projectDir}/sources.jar")
-    }
-}
-
-tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class) {}
-// end::archive-op-inject[]
-
-// tag::exec-op[]
-tasks.register("runCommand") {
-    doLast {
-        exec { // short for project.exec
-            commandLine("ls", "-la")
+        fs.sync {
+            from(archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")))
+            into(layout.buildDirectory.dir("unpacked-sources"))
         }
     }
 }
-// end::exec-op[]
+
+tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
+// end::archive-op-inject[]
+
+// tag::archive-op-adhoc[]
+interface InjectedArcOps {
+    @get:Inject val arcOps: ArchiveOperations
+}
+
+tasks.register("myAdHocArchiveOperationsTask") {
+    val injected = project.objects.newInstance<InjectedArcOps>()
+    val archiveFile = "${project.projectDir}/sources.jar"
+    doLast {
+        injected.arcOps.zipTree(archiveFile)
+    }
+}
+// end::archive-op-adhoc[]
 
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
@@ -190,8 +194,24 @@ abstract class MyExecOperationsTask
     }
 }
 
-tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class) {}
+tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 // end::exec-op-inject[]
+
+// tag::exec-op-adhoc[]
+interface InjectedExecOps {
+    @get:Inject val execOps: ExecOperations
+}
+
+tasks.register("myAdHocExecOperationsTask") {
+    val injected = project.objects.newInstance<InjectedExecOps>()
+
+    doLast {
+        injected.execOps.exec {
+            commandLine("ls", "-la")
+        }
+    }
+}
+// end::exec-op-adhoc[]
 
 // tag::tooling-model[]
 // Implements the ToolingModelBuilder interface.

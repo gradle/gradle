@@ -84,7 +84,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     private class ResultHandlerAdapter<R> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<R> {
         public ResultHandlerAdapter(ResultHandler<? super R> handler) {
-            super(handler, new ConnectionExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
+            super(handler, DefaultModelBuilder.this.createExceptionTransformer(new ConnectionExceptionTransformer.ConnectionFailureMessageProvider() {
                 @Override
                 public String getConnectionFailureMessage(Throwable failure) {
                     String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());

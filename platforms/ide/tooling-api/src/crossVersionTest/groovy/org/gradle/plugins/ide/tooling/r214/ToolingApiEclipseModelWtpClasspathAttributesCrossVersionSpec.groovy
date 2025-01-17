@@ -35,7 +35,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         exampleLib.dependsOn(exampleApi)
         exampleApi.publish()
         exampleLib.publish()
-        localMaven = "maven { url '${mavenRepo.uri}' }"
+        localMaven = "maven { url = '${mavenRepo.uri}' }"
     }
 
     def "Dependencies of a non-wtp project have no wtp deployment attributes"() {

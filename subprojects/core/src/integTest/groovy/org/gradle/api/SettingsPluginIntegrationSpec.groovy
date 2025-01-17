@@ -107,7 +107,7 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         relocatedSettingsFile.text = """
             pluginManagement {
                 repositories {
-                    maven { url "$mavenHttpRepo.uri" }
+                    maven { url = "$mavenHttpRepo.uri" }
                 }
             }
             plugins {

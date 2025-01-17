@@ -17,10 +17,7 @@
 package org.gradle.language.swift.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 class SwiftLibraryPluginIntegrationTest extends WellBehavedPluginTest {
     def "plugin can build with empty project with static lib"() {
         given:

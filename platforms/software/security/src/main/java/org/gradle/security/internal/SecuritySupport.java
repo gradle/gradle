@@ -59,9 +59,6 @@ public class SecuritySupport {
         }
     }
 
-    public static void assertInitialized() {
-    }
-
     public static boolean verify(File file, PGPSignature signature, PGPPublicKey publicKey) throws PGPException {
         signature.init(createContentVerifier(), publicKey);
         byte[] buffer = new byte[BUFFER];

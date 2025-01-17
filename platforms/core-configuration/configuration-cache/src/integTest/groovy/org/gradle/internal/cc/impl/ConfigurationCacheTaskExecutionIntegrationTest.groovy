@@ -312,7 +312,9 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
 
             abstract class TaskReader extends DefaultTask {
                 @InputFile abstract RegularFileProperty getFile()
-                @TaskAction def action() {}
+                @TaskAction def action() {
+                    assert(file.get().asFile.text == "foo")
+                }
             }
 
             abstract class TaskWriter extends DefaultTask {
@@ -335,12 +337,9 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
             }
         '''
 
-        when:
+        expect:
         2.times {
             configurationCacheRun 'clean', 'a'
         }
-
-        then:
-        file('build/output.txt').text == 'foo'
     }
 }

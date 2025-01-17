@@ -134,7 +134,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 configurations {
                     compile
@@ -221,7 +221,7 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
                 configurations {
                     compile
@@ -451,7 +451,7 @@ dependencies {
   parentConfig "org.test:moduleA:1.0"
 }
 repositories {
-    maven { url '$repo.uri' }
+    maven { url = '$repo.uri' }
 }
 
 task resolveChildFirst {

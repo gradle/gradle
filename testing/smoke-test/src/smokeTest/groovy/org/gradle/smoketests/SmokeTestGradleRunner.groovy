@@ -93,8 +93,8 @@ class SmokeTestGradleRunner extends GradleRunner {
         // TODO: Should we filter using the stable/public build operation class names?
         // This means we need to load classes and do an instanceof when we filter
         String buildOperationFilter = [
-            "org.gradle.configurationcache.StoreDetails",
-            "org.gradle.configurationcache.LoadDetails",
+            "org.gradle.configurationcache.WorkGraphStoreDetails",
+            "org.gradle.configurationcache.WorkGraphLoadDetails",
         ].join(BuildOperationTrace.FILTER_SEPARATOR)
 
         delegate.withArguments(delegate.getArguments() + [

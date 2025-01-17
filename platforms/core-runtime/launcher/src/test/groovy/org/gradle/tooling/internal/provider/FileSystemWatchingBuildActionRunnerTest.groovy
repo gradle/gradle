@@ -32,7 +32,6 @@ import org.gradle.internal.watch.options.FileSystemWatchingSettingsFinalizedProg
 import org.gradle.internal.watch.registry.WatchMode
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.internal.watch.vfs.VfsLogging
-import org.gradle.internal.watch.vfs.WatchLogging
 import spock.lang.Specification
 
 class FileSystemWatchingBuildActionRunnerTest extends Specification {
@@ -65,17 +64,16 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         _ * buildAction.startParameter >> startParameter
     }
 
-    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging, watch logging: #watchLogging)"() {
+    def "watching virtual file system is informed about watching the file system being #watchMode.description (VFS logging: #vfsLogging)"() {
         _ * startParameter.watchFileSystemMode >> watchMode
         _ * startParameter.projectCacheDir >> null
-        _ * startParameter.isWatchFileSystemDebugLogging() >> (watchLogging == WatchLogging.DEBUG)
         _ * startParameter.isVfsVerboseLogging() >> (vfsLogging == VfsLogging.VERBOSE)
 
         when:
         runner.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, watchLogging, buildOperationRunner) >> actuallyEnabled
+        1 * watchingHandler.afterBuildStarted(watchMode, vfsLogging, buildOperationRunner) >> actuallyEnabled
 
         then:
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
@@ -84,23 +82,18 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, watchLogging, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(watchMode, vfsLogging, buildOperationRunner, _)
 
         then:
         0 * _
 
         where:
-        watchMode          | vfsLogging         | watchLogging        | actuallyEnabled
-        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.NORMAL | true
-        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
-        WatchMode.DEFAULT  | VfsLogging.VERBOSE | WatchLogging.DEBUG  | false
-        WatchMode.DEFAULT  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
-        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.NORMAL | true
-        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.NORMAL | true
-        WatchMode.ENABLED  | VfsLogging.VERBOSE | WatchLogging.DEBUG  | true
-        WatchMode.ENABLED  | VfsLogging.NORMAL  | WatchLogging.DEBUG  | true
-        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.NORMAL | false
-        WatchMode.DISABLED | VfsLogging.NORMAL  | WatchLogging.DEBUG  | false
+        watchMode          | vfsLogging         | actuallyEnabled
+        WatchMode.DEFAULT  | VfsLogging.VERBOSE | true
+        WatchMode.DEFAULT  | VfsLogging.NORMAL  | false
+        WatchMode.ENABLED  | VfsLogging.VERBOSE | true
+        WatchMode.ENABLED  | VfsLogging.NORMAL  | true
+        WatchMode.DISABLED | VfsLogging.NORMAL  | false
     }
 
     def "watching enabled by default is disabled when project cache dir is specified"() {
@@ -111,7 +104,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         runner.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, _, buildOperationRunner)
+        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, buildOperationRunner)
 
         then:
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
@@ -120,7 +113,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, _, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, buildOperationRunner, _)
 
         then:
         0 * _
@@ -150,7 +143,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         runner.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.afterBuildStarted(WatchMode.ENABLED, _, _, buildOperationRunner) >> true
+        1 * watchingHandler.afterBuildStarted(WatchMode.ENABLED, _, buildOperationRunner) >> true
 
         then:
         1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled })
@@ -159,7 +152,7 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.ENABLED, _, _, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(WatchMode.ENABLED, _, buildOperationRunner, _)
 
         then:
         0 * _

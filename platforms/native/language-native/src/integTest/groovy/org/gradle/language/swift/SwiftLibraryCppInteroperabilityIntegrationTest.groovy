@@ -22,10 +22,8 @@ import org.gradle.nativeplatform.fixtures.app.CppGreeterFunctionUsesLogger
 import org.gradle.nativeplatform.fixtures.app.CppLogger
 import org.gradle.nativeplatform.fixtures.app.SwiftGreeterUsingCppFunction
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
-import spock.lang.Ignore
 
 @DoesNotSupportNonAsciiPaths(reason = "Swift sometimes fails when executed from non-ASCII directory")
-@Ignore("Inconsistent Swift SDK and tooling discovered on our Intel Macs")
 class SwiftLibraryCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
 
     def "can compile and link against a #linkage.toLowerCase() c++ library"() {

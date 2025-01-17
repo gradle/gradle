@@ -1,0 +1,213 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[declaring-dependencies-basics]]
+= Declaring Dependencies Basics
+
+[[sec:dependency-types]]
+== Types of dependencies
+
+There are three main types of dependencies in Gradle:
+
+1. *Module Dependencies*: Refer to libraries from external repositories.
+2. *Project Dependencies*: Refer to other projects in the same multi-project build.
+3. *File Dependencies*: Refer to local files or directories, such as `.jar` or `.aar` files.
+
+[[sec:module-dependencies]]
+=== 1. Module dependencies
+
+Module dependencies are the most common dependencies.
+They refer to a dependency that is identified by module coordinates (group, name, and version):
+
+====
+include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
+include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
+====
+
+Gradle offers multiple notations for declaring module dependencies, including string notation and map notation.
+
+- **String Notation:** Simplifies dependency declaration by combining the group, name, and version into a single string.
+- **Map Notation:** Allows for specifying each part of the coordinates separately.
+
+For advanced configurations, such as enforcing strict versions, you can also provide a closure when alongside these notations.
+
+[[sec:project-dependencies]]
+=== 2. Project dependencies
+
+Project dependencies allow you to reference other projects within a multi-project Gradle build.
+
+image::dependency-management-project-dependencies.png[]
+
+This is useful for organizing large projects into smaller, modular components:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
+====
+
+Gradle uses the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:project(java.lang.String)[`project()`] function to define a project dependency.
+This function takes the relative path to the target project within the build.
+The path is typically defined using a colon (`:`) to separate different levels of the project structure.
+
+Project dependencies are automatically resolved such that the dependent project is always built before the project that depends on it.
+
+[[sec:type-safe-project-accessors]]
+==== Type-safe project dependencies
+
+Type-safe project accessors are an incubating feature which must be enabled explicitly.
+Implementation may change at any time.
+
+To add support for type-safe project accessors, add `enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")` this to your `settings.gradle(.kts)` file:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/kotlin",files="settings.gradle.kts[tags=accessors]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="settings.gradle[tags=accessors]"]
+====
+
+One downside of using the `project(":some:path")` notation is the need to remember project paths for dependencies.
+Moreover, changing a project path requires manually updating every occurrence, increasing the risk of missing one.
+
+Instead, the experimental type-safe project accessors API provides IDE completion, making it easier to declare dependencies:
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/kotlin",files="web-service/build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-typeSafeProjectDependencies/groovy",files="web-service/build.gradle[tags=project-dependencies]"]
+====
+
+With this API, incorrectly specified projects in Kotlin DSL scripts trigger compilation errors, helping you avoid missed updates.
+
+Project accessors are based on project paths.
+For instance, the path `:commons:utils:some:lib` becomes `projects.commons.utils.some.lib`, while kebab-case (`some-lib`) and snake-case (`some_lib`) are converted to camel case: `projects.someLib`.
+
+[[sec:file-dependencies]]
+=== 3. File dependencies
+
+File dependencies allow you to include external JARs or other files directly into your project by referencing their file paths.
+File dependencies also allow you to add a set of files directly to a configuration without using a repository.
+
+NOTE: File dependencies are generally discouraged.
+Instead, prefer declaring dependencies on an external repository, or if necessary, declaring a maven or ivy repository using a `file://` URL.
+
+image::dependency-management-file-dependencies.png[]
+
+File dependencies are unique because they represent a direct reference to files on the filesystem without any associated <<glossary.adoc#sub:terminology_module_metadata,metadata>>, such as transitive dependencies, origin, or author information.
+
+====
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/declaringDependencies-fileDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+====
+
+In this example, each dependency explicitly specifies its location within the file system.
+Common methods for referencing these files include:
+
+- link:link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[`Project.files()`]: Accepts one or more file paths directly.
+- link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[`ProjectLayout.files()`]: Accepts one or more file paths directly.
+- link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:fileTree(java.lang.Object)[`Project.fileTree()`]: Defines a directory and includes or excludes specific file patterns.
+
+[NOTE]
+====
+The order of files in a `FileTree` is not guaranteed to be stable, even on the same computer.
+As a result, dependency configurations using `FileTree` may produce resolution results with varying order, which can impact the cacheability of tasks that use these results as inputs.
+To ensure more predictable and stable behavior, it is recommended to use the simpler `files` method where possible.
+====
+
+Alternatively, you can use a <<supported_repository_types.adoc#sec:flat-dir-resolver,flat directory>> repository to specify the source directory for multiple file dependencies.
+
+Ideally, you should use Maven or Ivy repository with a local URL:
+
+[source,groovy]
+----
+repositories {
+    maven {
+        url = 'file:///path/to/local/files' // Replace with your actual path
+    }
+}
+----
+
+To add files as dependencies, pass a <<working_with_files.adoc#sec:file_collections,file collection>> to the configuration:
+
+====
+include::sample[dir="snippets/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+====
+
+Note that file dependencies are not included in the published dependency descriptor for your project.
+However, they are available in transitive dependencies within the same build, meaning they can be used within the current build but not outside it.
+
+You should specify which tasks produce the files for a file dependency.
+Otherwise, the necessary tasks might not run when you depend on them transitively from another project:
+
+====
+include::sample[dir="snippets/artifacts/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
+include::sample[dir="snippets/artifacts/generatedFileDependencies/groovy",files="build.gradle[tags=generated-file-dependencies]"]
+====
+
+----
+$ gradle -q list
+include::{snippetsPath}/artifacts/generatedFileDependencies/tests/generatedFileDependencies.out[]
+----
+
+[[sec:gradle-distribution-dependencies]]
+== Gradle distribution-specific dependencies
+
+[[sec:api-dependencies]]
+=== Gradle API dependency
+
+You can declare a dependency on the API of the current version of Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleApi()[DependencyHandler.gradleApi()] method.
+This is useful when you are developing custom Gradle tasks or plugins:
+
+====
+include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=gradle-api-dependencies]"]
+====
+
+[[sec:testkit-dependencies]]
+=== Gradle TestKit dependency
+
+You can declare a dependency on the TestKit API of the current version of Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:gradleTestKit()[DependencyHandler.gradleTestKit()] method.
+This is useful for writing and executing functional tests for Gradle plugins and build scripts:
+
+====
+include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+====
+
+[[sec:groovy-dependencies]]
+=== Local Groovy dependency
+
+You can declare a dependency on the Groovy that is distributed with Gradle by using the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html#org.gradle.api.artifacts.dsl.DependencyHandler:localGroovy()[DependencyHandler.localGroovy()] method.
+This is useful when you are developing custom Gradle tasks or plugins in Groovy:
+
+====
+include::sample[dir="snippets/groovy/groovyDependency/kotlin",files="build.gradle.kts[tags=bundled-groovy-dependency]"]
+include::sample[dir="snippets/groovy/groovyDependency/groovy",files="build.gradle[tags=bundled-groovy-dependency]"]
+====
+
+[[sec:documenting-dependencies]]
+== Documenting dependencies
+
+When declaring a dependency or a <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, you can provide a reason to clarify why the dependency is included.
+This helps make your build script and the <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,dependency insight report>> easier to interpret:
+
+====
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies-dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
+====
+
+In this example, the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html#because(java.lang.String)[`because()`] method provides a reason for including the `asm` library, which helps explain its purpose in the context of the build:
+
+----
+$ gradle -q dependencyInsight --dependency asm
+include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencyReason/tests/dependencyReasonReport.out[]
+----

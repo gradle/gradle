@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@
 Gradle supports various sources for resolving dependencies, accommodating different metadata formats and connectivity methods.
 You can resolve dependencies from:
 
-- <<#sec:maven_repo,Maven-compatible artifact repositories>> (e.g., Maven Central)
-- <<#sec:ivy_repositories,Ivy-compatible artifact repositories>> (including custom layouts)
-- <<#sub:flat_dir_resolver,Local (flat) directories>>
+- <<#sec:maven-repo,Maven-compatible artifact repositories>> (e.g., Maven Central)
+- <<#sec:ivy-repositories,Ivy-compatible artifact repositories>> (including custom layouts)
+- <<#sec:flat-dir-resolver,Local (flat) directories>>
 
-[[sec:maven_repo]]
+[[sec:maven-repo]]
 == Maven repositories
 
 Many organizations host dependencies in Maven repositories.
@@ -33,7 +33,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
 ====
 
-[[sub:custom-maven-repo]]
+[[sec:custom-maven-repo]]
 === Composite Maven repository
 
 Sometimes, POMs are published in one location, and JARs in another.
@@ -46,13 +46,13 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 
 Gradle will first look for POMs and artifacts at the base URL, and if the artifact is not found, it will check the additional `artifactUrls`.
 
-[[sub:accessing_secured_maven_repositories]]
+[[sec:accessing_secured_maven_repositories]]
 === Authenticated Maven repository
 
 You can specify credentials for Maven repositories that require authentication.
-See <<supported_repository_protocols.adoc#supported_transport_protocols, Supported Repository Protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported-transport-protocols, Supported Repository Protocols>> for authentication options.
 
-[[sub:maven_local]]
+[[sec:maven-local]]
 === Local Maven repository
 
 Gradle can consume dependencies from a local Maven repository, that is repositories on the local file system:
@@ -72,7 +72,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
-NOTE: Gradle manages its own <<dependency_resolution_adv.adoc#sec:dependency_cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
+NOTE: Gradle manages its own <<dependency_caching.adoc#sec:dependency-cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
 
 Gradle uses the same logic as Maven to identify the location of your local Maven cache.
 If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`
@@ -81,12 +81,12 @@ Otherwise, Gradle defaults to `~/.m2/repository`.
 [[sec:case-for-maven-local]]
 TIP: As a general recommendation, avoid using `mavenLocal()`. Unlike Maven builds, Gradle can share artifacts between projects using project dependencies. Publishing to the local maven repo is not necessary for sharing artifacts between projects.
 
-[[sec:ivy_repositories]]
+[[sec:ivy-repositories]]
 == Ivy repositories
 
 Many organizations host dependencies in Ivy repositories.
 
-[[sub:defining_an_ivy_repository_with_a_standard_layout]]
+[[sec:defining-an-ivy-repository-with-a-standard-layout]]
 === Standard layout Ivy repository
 
 To declare an Ivy repository with the standard layout, simply specify the URL:
@@ -96,7 +96,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo]"]
 ====
 
-[[sub:defining_a_named_layout_for_an_ivy_repository]]
+[[sec:defining-a-named-layout-for-an-ivy-repository]]
 === Named layout Ivy repository
 
 You can specify that your repository follows the Ivy default layout:
@@ -109,7 +109,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 Valid named layout values are `gradle` (default), `maven`, and `ivy`.
 Refer to link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:layout(java.lang.String)[IvyArtifactRepository.layout(java.lang.String)] in the API documentation for more details.
 
-[[sub:defining_custom_pattern_layout_for_an_ivy_repository]]
+[[sec:defining-custom-pattern-layout-for-an-ivy-repository]]
 === Custom pattern layout Ivy repository
 
 To define an Ivy repository with a non-standard layout, you can set up a pattern layout:
@@ -133,13 +133,13 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo-with-m2compatible-layout]"]
 ====
 
-[[sub:accessing_secured_ivy_repositories]]
+[[sec:accessing-secured-ivy-repositories]]
 === Authenticated Ivy repository
 
 You can specify credentials for Ivy repositories that require authentication.
-See <<supported_repository_protocols.adoc#supported_transport_protocols,Supported Repository Protocols>> for authentication options.
+See <<supported_repository_protocols.adoc#supported-transport-protocols,Supported Repository Protocols>> for authentication options.
 
-[[sub:ivy_local]]
+[[sec:ivy-local]]
 === Local Ivy repository
 
 Gradle can consume dependencies from a local Ivy repository, that is repositories on the local file system:
@@ -149,7 +149,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=local-ivy-repo]"]
 ====
 
-[[sub:flat_dir_resolver]]
+[[sec:flat-dir-resolver]]
 == Flat directory repository
 
 Some projects store dependencies on a shared drive or within the project’s source code rather than using a binary repository.

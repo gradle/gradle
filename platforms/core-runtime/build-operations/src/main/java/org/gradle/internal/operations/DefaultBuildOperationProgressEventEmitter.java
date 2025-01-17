@@ -16,15 +16,17 @@
 
 package org.gradle.internal.operations;
 
+import org.gradle.internal.time.Clock;
+
 import javax.annotation.Nullable;
 
 public class DefaultBuildOperationProgressEventEmitter implements BuildOperationProgressEventEmitter {
 
-    private final BuildOperationTimeSupplier clock;
+    private final Clock clock;
     private final CurrentBuildOperationRef current;
     private final BuildOperationListener listener;
 
-    public DefaultBuildOperationProgressEventEmitter(BuildOperationTimeSupplier clock, CurrentBuildOperationRef current, BuildOperationListener listener) {
+    public DefaultBuildOperationProgressEventEmitter(Clock clock, CurrentBuildOperationRef current, BuildOperationListener listener) {
         this.clock = clock;
         this.current = current;
         this.listener = listener;

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.catalog.parser
 
-
 import com.google.common.collect.Interners
 import groovy.transform.CompileStatic
 import org.gradle.api.InvalidUserDataException
@@ -31,9 +30,7 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.InternalProblems
-import org.gradle.api.problems.internal.ProblemEmitter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -43,10 +40,7 @@ import java.util.function.Supplier
 class TomlCatalogFileParserTest extends Specification implements VersionCatalogErrorMessages {
 
     def supplier = Stub(Supplier)
-    def problems = new DefaultProblems(
-        [Stub(ProblemEmitter)]
-    )
-
+    def problems = TestUtil.problemsService()
     def createVersionCatalogBuilder() {
         new DefaultVersionCatalogBuilder(
             "libs",
@@ -425,7 +419,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     void hasPlugin(String alias, String id, String version) {
         assert model.hasPlugin(alias)
         def plugin = model.getPlugin(alias)
-        assert plugin != null : "Expected a plugin with alias '$alias' but it wasn't found"
+        assert plugin != null: "Expected a plugin with alias '$alias' but it wasn't found"
         assert plugin.id == id
         assert plugin.version.requiredVersion == version
     }
@@ -433,7 +427,7 @@ class TomlCatalogFileParserTest extends Specification implements VersionCatalogE
     void hasPlugin(String alias, @DelegatesTo(strategy = Closure.DELEGATE_FIRST, value = PluginSpec) Closure<Void> spec) {
         assert model.hasPlugin(alias)
         def plugin = model.getPlugin(alias)
-        assert plugin != null : "Expected a plugin with alias '$alias' but it wasn't found"
+        assert plugin != null: "Expected a plugin with alias '$alias' but it wasn't found"
         def pluginSpec = new PluginSpec(plugin)
         spec.delegate = pluginSpec
         spec.resolveStrategy = Closure.DELEGATE_FIRST

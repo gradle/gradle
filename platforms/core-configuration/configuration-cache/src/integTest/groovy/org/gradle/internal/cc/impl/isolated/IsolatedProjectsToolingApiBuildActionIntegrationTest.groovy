@@ -50,7 +50,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -69,7 +69,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         when:
@@ -86,7 +86,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -104,7 +104,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model4[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         file("a/build.gradle") << """
@@ -120,7 +120,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "this is project a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")
@@ -154,7 +154,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -171,7 +171,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         settingsFile << """
@@ -187,7 +187,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateRecreated {
+        fixture.assertModelRecreated {
             fileChanged("settings.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":b")
@@ -205,7 +205,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model4[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 
     def "invalidates cached model when model builder input changes"() {
@@ -236,7 +236,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectsConfigured(":", ":c")
             buildModelCreated()
@@ -253,7 +253,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         withIsolatedProjects("-Pshared-input=2", "-Da-input=14")
@@ -266,7 +266,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
 
         and:
         // TODO - should not invalidate all cached state
-        fixture.assertStateRecreated {
+        fixture.assertModelRecreated {
             gradlePropertyChanged()
             buildModelQueries = 1 // TODO:configuration-cache ???
             projectConfigured(":buildSrc")
@@ -284,7 +284,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model4[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         withIsolatedProjects("-Pshared-input=2", "-Da-input=2")
@@ -296,7 +296,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model5[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             systemPropertyChanged("a-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":")
@@ -314,7 +314,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model6[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         when:
         withIsolatedProjects("-Pshared-input=2", "-Da-input=2", "-Db-input=new")
@@ -326,7 +326,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model7[1].message == "It works from project :b"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             systemPropertyChanged("b-input")
             projectConfigured(":buildSrc")
             projectsConfigured(":")
@@ -359,7 +359,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -378,7 +378,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         when:
@@ -395,7 +395,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -413,7 +413,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model4[1].message == "It works from project :a"
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 
     def "caches execution of BuildAction that queries nullable custom tooling model"() {
@@ -438,7 +438,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model.empty
 
         and:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             projectConfigured(":b")
             buildModelCreated()
@@ -455,7 +455,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model2.empty
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("creating model")
 
         when:
@@ -470,7 +470,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model3.empty
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -486,7 +486,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         model4.empty
 
         and:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
     }
 
     def "caches execution of different BuildAction types"() {
@@ -501,7 +501,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":")
@@ -518,7 +518,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model2 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectConfigured(":buildSrc")
             buildModelCreated()
             modelsCreated(":")
@@ -535,7 +535,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model3 = runBuildAction(new FetchCustomModelForEachProject())
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         and:
         model3.size() == 1
@@ -547,7 +547,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model4 = runBuildAction(new FetchModelsMultipleTimesForEachProject())
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         and:
         model4.size() == 2
@@ -572,7 +572,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":")
             buildModelCreated()
             modelsCreated(":", SomeToolingModel)
@@ -588,7 +588,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model2 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":", ":a")
             buildModelCreated()
             modelsCreated(":a", SomeToolingModel)
@@ -604,7 +604,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model3 = runBuildAction(new FetchCustomModelForTargetProject(":"))
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         and:
         model3.message == "It works from project :"
@@ -615,7 +615,7 @@ class IsolatedProjectsToolingApiBuildActionIntegrationTest extends AbstractIsola
         def model4 = runBuildAction(new FetchCustomModelForTargetProject(":a"))
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
 
         and:
         model4.message == "It works from project :a"

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ Alternatively, you can run `gradle help --warning-mode=all` to see the deprecati
 Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed.
 The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
 +
-In particular, you will need to use at least a 2.x version of the https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow[*Shadow Plugin*].
+In particular, you will need to use at least a 2.x version of the https://plugins.gradle.org/plugin/com.gradleup.shadow[*Shadow Plugin*].
 . Run `gradle wrapper --gradle-version 5.0` to update the project to 5.0
 . Move to Java 8 or higher if you haven't already. Whereas Gradle 4.x requires Java 7, Gradle 5 requires Java 8 to run.
 . Read the <<#changes_5.0, Upgrading from 4.10>> section and make any necessary changes.
@@ -134,7 +134,7 @@ Java builds::
  * Gradle will no longer automatically apply annotation processors that are on the compile classpath — use link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorPath[CompileOptions.annotationProcessorPath] instead.
  * The `testClassesDir` property has been removed from the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task — use link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testClassesDirs[testClassesDirs] instead.
  * The `classesDir` property has been removed from both the _JDepend_ task and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]. Use the _JDepend.classesDirs_ and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs[SourceSetOutput.classesDirs] properties instead.
- * The `JavaLibrary(PublishArtifact, DependencySet)` constructor has been removed — this was used by the https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow[Shadow Plugin], so make sure you upgrade to at least version 2.x of that plugin.
+ * The `JavaLibrary(PublishArtifact, DependencySet)` constructor has been removed — this was used by the https://plugins.gradle.org/plugin/com.gradleup.shadow[Shadow Plugin], so make sure you upgrade to at least version 2.x of that plugin.
  * The `JavaBasePlugin.configureForSourceSet()` method has been removed.
  * You can no longer create your own instances of link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention], link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention], link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention], link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention], and link:{javadocPath}/org/gradle/api/plugins/ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].
  * The `Maven` Plugin used to publish the highly outdated Maven 2 metadata format. This has been changed and it will now publish Maven 3 metadata, just like the `Maven Publish` Plugin.
@@ -240,7 +240,7 @@ For example, you would replace `tasks.withType(JavaCompile).name` with `tasks.wi
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
- * Consider migrating to the built-in <<dependency_locking#dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
+ * Consider migrating to the built-in <<dependency_locking.adoc#sec:dependency-locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
 === Potential breaking changes
@@ -381,7 +381,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency.
 For example: `project(path: ':myJavaProject', configuration: 'default')`.
@@ -715,7 +715,7 @@ Make sure that the AWS account used to publish artifacts has the `s3:PutObjectAc
 }
 ----
 
-See <<declaring_repositories_adv.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<supported_repository_protocols.adoc#sec:s3-cross-account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration

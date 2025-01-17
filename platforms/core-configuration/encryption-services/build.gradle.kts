@@ -24,6 +24,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.hashing)
     api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.kotlinStdlib)
 
@@ -32,7 +33,6 @@ dependencies {
     implementation(projects.coreKotlinExtensions)
     implementation(projects.loggingApi)
     implementation(projects.persistentCache)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
 }
 tasks.isolatedProjectsIntegTest {

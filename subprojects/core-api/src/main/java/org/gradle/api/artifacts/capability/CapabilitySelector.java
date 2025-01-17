@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
  * <p>
  * A capability selector is attached to a {@link org.gradle.api.artifacts.component.ComponentSelector}
  * to specify the capability of the variant that should be selected from a given component.
- * <p>
  *
  * @implSpec Implementations must override equals and hash code
  *

@@ -695,7 +695,7 @@ abstract class AbstractDependencyMetadataRulesIntegrationTest extends AbstractMo
         buildFile << """
             repositories {
                 maven {
-                    url "$mavenGradleRepo.uri"
+                    url = "$mavenGradleRepo.uri"
                 }
             }
         """

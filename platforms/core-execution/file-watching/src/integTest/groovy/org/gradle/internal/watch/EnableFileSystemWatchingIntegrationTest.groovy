@@ -16,7 +16,7 @@
 
 package org.gradle.internal.watch
 
-import com.gradle.develocity.testing.annotations.LocalOnly
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.watch.registry.WatchMode
 

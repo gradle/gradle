@@ -504,7 +504,7 @@ public class AsmBackedClassGeneratorTest {
             fail();
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractGetterBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractGetterBean.getThing()."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractGetterBean.getThing(): String."));
         }
     }
 
@@ -515,7 +515,7 @@ public class AsmBackedClassGeneratorTest {
             fail();
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetterBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing()."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing(String)."));
         }
     }
 
@@ -526,7 +526,7 @@ public class AsmBackedClassGeneratorTest {
             fail();
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetMethodBean."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing()."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing(String)."));
         }
     }
 
@@ -538,7 +538,18 @@ public class AsmBackedClassGeneratorTest {
             fail();
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanInterface."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing()."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing(): String."));
+        }
+    }
+
+    @Test
+    public void cannotCreateInstanceOfInterfaceWithAbstractGetterAndNoSetterWithGenericParam() throws Exception {
+        try {
+            newInstance(GetterBeanGenericInterface.class);
+            fail();
+        } catch (ClassGenerationException e) {
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanGenericInterface."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanGenericInterface.getThing(): Provider<String>."));
         }
     }
 
@@ -549,7 +560,7 @@ public class AsmBackedClassGeneratorTest {
             fail();
         } catch (ClassGenerationException e) {
             assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.SetterBeanInterface."));
-            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method SetterBeanInterface.setThing()."));
+            assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method SetterBeanInterface.setThing(String)."));
         }
     }
 
@@ -1740,6 +1751,10 @@ public class AsmBackedClassGeneratorTest {
 
     public interface GetterBeanInterface {
         String getThing();
+    }
+
+    public interface GetterBeanGenericInterface {
+        Provider<String> getThing();
     }
 
     public interface SetterBeanInterface {

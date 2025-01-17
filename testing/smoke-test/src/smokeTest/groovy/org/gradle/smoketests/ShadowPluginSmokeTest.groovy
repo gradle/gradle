@@ -16,24 +16,26 @@
 
 package org.gradle.smoketests
 
-import org.gradle.api.internal.DocumentationRegistry
+
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Requires(UnitTestPreconditions.Jdk11OrLater)
 class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
-    @Issue('https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow')
-    @Issue('https://plugins.gradle.org/plugin/io.github.goooler.shadow')
-    def 'shadow plugin (#pluginId) #(pluginVersion)'() {
+    @Issue('https://plugins.gradle.org/plugin/com.gradleup.shadow')
+    def 'shadow plugin'() {
         given:
         buildFile << """
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 
             plugins {
                 id 'java' // or 'groovy' Must be explicitly applied
-                id '$pluginId' version '$pluginVersion'
+                id 'com.gradleup.shadow' version '$TestedVersions.shadow'
             }
 
             ${mavenCentralRepository()}
@@ -53,11 +55,8 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
 
         when:
-        def shadowJarRunner = runner('shadowJar')
-        if (hasDeprecations) {
-            shadowJarRunner.expectLegacyDeprecationWarning(FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
-        }
-        def result = shadowJarRunner.build()
+
+        def result = runner('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -69,11 +68,7 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         runner('clean').build()
-        shadowJarRunner = runner('shadowJar')
-        if (hasDeprecations) {
-            shadowJarRunner.expectLegacyDeprecationWarning(FILE_TREE_ELEMENT_GET_MODE_DEPRECATION)
-        }
-        result = shadowJarRunner.build()
+        result = runner('shadowJar').build()
 
         then:
         result.task(':shadowJar').outcome == SUCCESS
@@ -82,26 +77,14 @@ class ShadowPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         if (GradleContextualExecuter.isConfigCache()) {
             result.assertConfigurationCacheStateLoaded()
         }
-
-        where:
-        pluginId                            | pluginVersion                 | hasDeprecations
-        "com.github.johnrengelman.shadow"   | TestedVersions.shadow         | true
-        "io.github.goooler.shadow"          | TestedVersions.shadowFork     | false
     }
 
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'com.github.johnrengelman.shadow': Versions.of(TestedVersions.shadow),
-            'io.github.goooler.shadow': Versions.of(TestedVersions.shadowFork)
+            'com.gradleup.shadow': Versions.of(TestedVersions.shadow)
         ]
     }
-
-    public static final String FILE_TREE_ELEMENT_GET_MODE_DEPRECATION = "The FileTreeElement.getMode() method has been deprecated. " +
-        "This is scheduled to be removed in Gradle 9.0. " +
-        "Please use the getPermissions() method instead. " +
-        "Consult the upgrading guide for further information: " +
-        new DocumentationRegistry().getDocumentationFor("upgrading_version_8","unix_file_permissions_deprecated")
 
 
 }

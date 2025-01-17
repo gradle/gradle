@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.internal.Factory;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.process.ExecResult;
-import org.gradle.process.internal.AbstractExecHandleBuilder;
+import org.gradle.process.internal.BaseExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleState;
 import org.gradle.test.fixtures.file.TestFile;
@@ -38,7 +38,7 @@ import static org.gradle.util.internal.TextUtil.getPlatformLineSeparator;
 
 class ForkingGradleHandle extends OutputScrapingGradleHandle {
 
-    final private Factory<? extends AbstractExecHandleBuilder> execHandleFactory;
+    final private Factory<BaseExecHandleBuilder> execHandleFactory;
 
     private final OutputCapturer standardOutputCapturer;
     private final OutputCapturer errorOutputCapturer;
@@ -49,7 +49,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     private final DurationMeasurement durationMeasurement;
     private final AtomicReference<ExecHandle> execHandleRef = new AtomicReference<>();
 
-    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
+    public ForkingGradleHandle(PipedOutputStream stdinPipe, boolean isDaemon, Action<ExecutionResult> resultAssertion, String outputEncoding, Factory<BaseExecHandleBuilder> execHandleFactory, DurationMeasurement durationMeasurement) {
         this.resultAssertion = resultAssertion;
         this.execHandleFactory = execHandleFactory;
         this.isDaemon = isDaemon;
@@ -100,7 +100,7 @@ class ForkingGradleHandle extends OutputScrapingGradleHandle {
     }
 
     private ExecHandle buildExecHandle() {
-        AbstractExecHandleBuilder builder = execHandleFactory.create();
+        BaseExecHandleBuilder builder = execHandleFactory.create();
         assert builder != null;
         return builder
             .setStandardOutput(standardOutputCapturer.getOutputStream())

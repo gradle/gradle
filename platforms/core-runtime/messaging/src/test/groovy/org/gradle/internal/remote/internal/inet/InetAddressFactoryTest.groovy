@@ -27,43 +27,12 @@ class InetAddressFactoryTest extends Specification {
         factory.inetAddresses = addresses
     }
 
-    def "Loopback addresses are preferred"() {
-        when:
-        def loopback = [ip(127, 0, 0, 1)]
-        loopbackAddresses(loopback)
-        remoteAddresses([ip(192, 168, 17, 256)])
-
-        then:
-        factory.communicationAddresses == loopback
-    }
-
-    def "Use remote addresses if there are no loopback addresses"() {
-        when:
-        loopbackAddresses([])
-        def remote = [ip(192, 168, 18, 256)]
-        remoteAddresses(remote)
-
-        then:
-        factory.communicationAddresses == remote
-    }
-
-    def "Use 127.0.0.1 if there are no remote and no loopback addresses"() {
-        when:
-        loopbackAddresses([])
-        remoteAddresses([])
-
-        then:
-        factory.communicationAddresses == [InetAddress.getByName(null)]
-    }
-
     def "communication addresses are detected"() {
         when:
         loopbackAddresses([ip(127, 0, 0, 1), ip(127, 0, 0, 2)])
 
         then:
-        factory.communicationAddresses.every {
-            factory.isCommunicationAddress(it)
-        }
+        factory.isCommunicationAddress(factory.getLocalBindingAddress())
 
         !factory.isCommunicationAddress(ip(127, 0, 0, 3))
     }
@@ -96,7 +65,7 @@ class InetAddressFactoryTest extends Specification {
 
     def "Always returns some communication address"() {
         expect:
-        !new InetAddressFactory().communicationAddresses.empty
+        new InetAddressFactory().localBindingAddress
     }
 
     private defaultAddresses() {

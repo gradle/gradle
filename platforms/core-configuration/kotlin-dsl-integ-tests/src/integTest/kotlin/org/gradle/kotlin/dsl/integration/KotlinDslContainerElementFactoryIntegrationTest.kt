@@ -24,85 +24,169 @@ import org.junit.Test
 class KotlinDslContainerElementFactoryIntegrationTest : AbstractKotlinIntegrationTest() {
     @Test
     fun `a named domain object container gets a synthetic element factory function`() {
-        withBuildScript(
-            """
-            plugins {
-                `java`
-            }
-
-            configurations {
-                configuration("myConfiguration") { }
-            }
-
-            sourceSets {
-                sourceSet("mySourceSet") {
-                    println("created my source set!")
-                }
-            }
-        """
-        )
-
-        buildAndFail("dependencies") // no DCL support by default
-            .assertHasErrorOutput("Unresolved reference: configuration")
-
-        enableDclInGradleProperties()
-
-        with(build("dependencies")) {
-            assertTasksExecuted(":dependencies")
-            assertOutputContains("myConfiguration\nNo dependencies")
-        }
-
-        with(build("compileMySourceSetJava", enableDclCliFlag)) {
-            assertTasksSkipped(":compileMySourceSetJava")
-            assertOutputContains("created my source set!")
-        }
+        testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = false, withCustomElementFactoryName = false)
     }
 
     @Test
-    fun `can use custom names for container element factories`() {
-        withKotlinBuildSrc()
-        withFile("buildSrc/src/main/kotlin/myPlugin.gradle.kts", """
-            import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
+    fun `can use custom software type names for element factories`() {
+        testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = false, withCustomElementFactoryName = true)
+    }
 
-            abstract class MyExtension {
-                abstract val myElements: NamedDomainObjectContainer<MyElement>
-            }
+    @Test
+    fun `can use the declarative DSL with plugins block if the plugin is software-type-based`() {
+        testKtsDefinitionWithDeclarativePlugin(withPluginsBlock = true, withCustomElementFactoryName = true)
+    }
 
-            @ElementFactoryName("customName")
-            abstract class MyElement(val elementName: String) : Named {
-                override fun getName() = elementName
-            }
+    private fun testKtsDefinitionWithDeclarativePlugin(withPluginsBlock: Boolean, withCustomElementFactoryName: Boolean) {
+        val elementFactoryName = if (withCustomElementFactoryName) "customName" else "myElement"
+        val otherElementFactoryName = if (withCustomElementFactoryName) "customName" else "myOtherElement"
 
-            val myExtension = project.extensions.create("myExtension", MyExtension::class.java)
+        withCustomSoftwarePluginWithContainer(if (withCustomElementFactoryName) otherElementFactoryName else null)
 
-            tasks.register("printNames") {
-                val names = myExtension.myElements.names
-                doFirst {
-                    println(names)
-                }
-            }
-        """.trimIndent())
+        withBuildScript(
+            """
+            ${if (withPluginsBlock) "plugins { id(\"com.example.myPlugin\") }" else ""}
 
-        withBuildScript("""
-            plugins {
-                id("myPlugin")
-            }
-
-            myExtension {
+            mySoftwareType {
                 myElements {
-                    customName("one") { }
-                    customName("two") { }
+                    $elementFactoryName("one") { }
+                    $elementFactoryName("two") { }
+                }
+                myElementsConcreteContainer {
+                    $otherElementFactoryName("three") { }
+                    $otherElementFactoryName("four") { }
                 }
             }
-        """.trimIndent())
+
+            println("make sure this is not a declarative file")
+            """.trimIndent()
+        )
 
         buildAndFail("printNames") // no DCL support by default
-            .assertHasErrorOutput("Unresolved reference: customName")
+            .assertHasErrorOutput("Unresolved reference: $otherElementFactoryName")
 
         with(build("printNames", enableDclCliFlag)) {
             assertTaskExecuted(":printNames")
-            assertOutputContains("[one, two]")
+            assertOutputContains("[one, two, four, three]")
         }
+
+        // same as the CLI flag, putting the value to Gradle properties should enable DCL:
+        enableDclInGradleProperties()
+
+        with(build("printNames")) {
+            assertTaskExecuted(":printNames")
+            assertOutputContains("[one, two, four, three]")
+        }
+    }
+
+    private fun withEcosystemAndPluginBuildInBuildLogic() {
+        withFile(
+            "build-logic/build.gradle.kts", """
+                plugins {
+                    id("java-gradle-plugin")
+                    `kotlin-dsl`
+                }
+
+                repositories {
+                    mavenCentral()
+                }
+
+                gradlePlugin {
+                    plugins {
+                        create("myPlugin") {
+                            id = "com.example.myPlugin"
+                            implementationClass = "com.example.MyPlugin"
+                        }
+                        create("myEcosystemPlugin") {
+                            id = "com.example.myEcosystemPlugin"
+                            implementationClass = "com.example.MyEcosystemPlugin"
+                        }
+                    }
+                }
+            """.trimIndent()
+        )
+
+        withFile(
+            "settings.gradle.kts", """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+
+            plugins {
+                id("com.example.myEcosystemPlugin")
+            }
+        """.trimIndent()
+        )
+    }
+
+    private fun withCustomSoftwarePluginWithContainer(customElementFactoryName: String? = null) {
+        withEcosystemAndPluginBuildInBuildLogic()
+
+        withEcosystemPluginRegisteringMyPlugin()
+
+        withFile(
+            "build-logic/src/main/kotlin/MyPlugin.kt", """
+                package com.example
+
+                import org.gradle.api.Plugin
+                import org.gradle.api.Project
+                import org.gradle.api.Named
+                import org.gradle.api.NamedDomainObjectContainer
+                import org.gradle.api.internal.plugins.software.SoftwareType
+                import org.gradle.api.model.ObjectFactory
+                import org.gradle.declarative.dsl.model.annotations.ElementFactoryName
+                import javax.inject.Inject
+
+                abstract class MyPlugin @Inject constructor(private val project: Project) : Plugin<Project> {
+                    @get:SoftwareType(name = "mySoftwareType")
+                    abstract val mySoftwareType: MyExtension
+
+                    override fun apply(project: Project) {
+                        project.tasks.register("printNames") {
+                            val names = mySoftwareType.myElements.names + mySoftwareType.myElementsConcreteContainer.names
+                            doFirst {
+                                println(names)
+                            }
+                        }
+                    }
+                }
+
+                abstract class MyExtension @Inject constructor(objectFactory: ObjectFactory) {
+                    abstract val myElements: NamedDomainObjectContainer<MyElement>
+                    val myElementsConcreteContainer = MyContainerSubtype(objectFactory.domainObjectContainer(MyOtherElement::class.java))
+                }
+
+                class MyContainerSubtype @Inject constructor(backingContainer: NamedDomainObjectContainer<MyOtherElement>)
+                    : NamedDomainObjectContainer<MyOtherElement> by backingContainer
+
+                ${if (customElementFactoryName != null) """@ElementFactoryName("$customElementFactoryName")""" else ""}
+                abstract class MyElement(val elementName: String) : Named {
+                    override fun getName() = elementName
+                }
+
+                ${if (customElementFactoryName != null) """@ElementFactoryName("$customElementFactoryName")""" else ""}
+                abstract class MyOtherElement(val elementName: String) : Named {
+                    override fun getName() = elementName
+                }
+                """.trimIndent()
+        )
+    }
+
+    private fun withEcosystemPluginRegisteringMyPlugin() {
+        withFile(
+            "build-logic/src/main/kotlin/MyEcosystemPlugin.kt", """
+                package com.example
+
+                import org.gradle.api.Plugin
+                import org.gradle.api.initialization.Settings
+                import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
+
+                @RegistersSoftwareTypes(MyPlugin::class)
+                class MyEcosystemPlugin : Plugin<Settings> {
+                    override fun apply(settings: Settings) = Unit
+                }
+            """.trimIndent()
+        )
     }
 
     private fun enableDclInGradleProperties() =

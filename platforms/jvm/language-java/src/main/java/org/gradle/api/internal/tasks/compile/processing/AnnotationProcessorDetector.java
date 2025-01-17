@@ -30,6 +30,8 @@ import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -48,6 +50,7 @@ import java.util.Map;
  * Inspects a classpath to find annotation processors contained in it. If several versions of the same annotation processor are found,
  * the first one is returned, mimicking the behavior of {@link java.util.ServiceLoader}.
  */
+@ServiceScope(Scope.BuildTree.class)
 public class AnnotationProcessorDetector {
 
     public static final String PROCESSOR_DECLARATION = "META-INF/services/javax.annotation.processing.Processor";

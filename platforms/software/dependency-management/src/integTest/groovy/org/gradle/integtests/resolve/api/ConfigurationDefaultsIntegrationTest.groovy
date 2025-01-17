@@ -35,7 +35,7 @@ configurations {
     child.extendsFrom conf
 }
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 
 if (System.getProperty('explicitDeps')) {
@@ -130,7 +130,7 @@ subprojects {
     apply plugin: 'java'
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 }
 
@@ -196,7 +196,7 @@ include 'consumer', 'producer'
     apply plugin: 'java'
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         implementation {
@@ -214,11 +214,11 @@ include 'consumer', 'producer'
         buildFile << """
     apply plugin: 'java'
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
 
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     dependencies {
         implementation 'org.test:producer:1.0'
@@ -237,39 +237,6 @@ include 'consumer', 'producer'
                     compositeSubstitute()
                     module("org:default-dependency:1.0")
                 }
-            }
-        }
-    }
-
-    def "can use beforeResolve to specify default dependencies"() {
-        buildFile << """
-configurations.conf.incoming.beforeResolve {
-    if (configurations.conf.dependencies.empty) {
-        configurations.conf.dependencies.add project.dependencies.create("org:default-dependency:1.0")
-    }
-}
-"""
-        resolve.prepare()
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:default-dependency:1.0")
-            }
-        }
-
-        when:
-        executer.withArgument("-DexplicitDeps=yes")
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:explicit-dependency:1.0")
             }
         }
     }

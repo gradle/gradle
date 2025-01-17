@@ -18,8 +18,6 @@ package org.gradle.swiftpm.plugins
 
 import org.gradle.language.swift.SwiftVersion
 import org.gradle.nativeplatform.Linkage
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.swiftpm.internal.DefaultExecutableProduct
 import org.gradle.swiftpm.internal.DefaultLibraryProduct
 import org.gradle.swiftpm.tasks.GenerateSwiftPackageManagerManifest
@@ -28,7 +26,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 class SwiftPackageManagerExportPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

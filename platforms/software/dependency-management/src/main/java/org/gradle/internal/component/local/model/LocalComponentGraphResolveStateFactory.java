@@ -27,6 +27,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -42,17 +43,20 @@ public class LocalComponentGraphResolveStateFactory {
     private final ComponentIdGenerator idGenerator;
     private final LocalVariantGraphResolveStateBuilder metadataBuilder;
     private final CalculatedValueContainerFactory calculatedValueContainerFactory;
+    private final InMemoryCacheFactory cacheFactory;
 
     public LocalComponentGraphResolveStateFactory(
         AttributeDesugaring attributeDesugaring,
         ComponentIdGenerator idGenerator,
         LocalVariantGraphResolveStateBuilder metadataBuilder,
-        CalculatedValueContainerFactory calculatedValueContainerFactory
+        CalculatedValueContainerFactory calculatedValueContainerFactory,
+        InMemoryCacheFactory cacheFactory
     ) {
         this.attributeDesugaring = attributeDesugaring;
         this.idGenerator = idGenerator;
         this.metadataBuilder = metadataBuilder;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
+        this.cacheFactory = cacheFactory;
     }
 
     /**
@@ -135,7 +139,6 @@ public class LocalComponentGraphResolveStateFactory {
         LocalComponentGraphResolveMetadata metadata,
         LocalVariantGraphResolveStateFactory variantsFactory
     ) {
-
         return new DefaultLocalComponentGraphResolveState(
             idGenerator.nextComponentId(),
             metadata,
@@ -144,6 +147,7 @@ public class LocalComponentGraphResolveStateFactory {
             adHoc,
             variantsFactory,
             calculatedValueContainerFactory,
+            cacheFactory,
             null
         );
     }
@@ -237,7 +241,7 @@ public class LocalComponentGraphResolveStateFactory {
         }
 
         private LocalVariantGraphResolveState createVariantState(ConfigurationInternal configuration) {
-            return stateBuilder.create(
+            return stateBuilder.createConsumableVariantState(
                 configuration,
                 configurationsProvider,
                 componentId,

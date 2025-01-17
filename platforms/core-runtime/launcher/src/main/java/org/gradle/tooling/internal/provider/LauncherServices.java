@@ -24,13 +24,13 @@ import org.gradle.api.internal.tasks.userinput.DefaultUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.NonInteractiveUserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
+import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.deployment.internal.DeploymentRegistryInternal;
 import org.gradle.execution.WorkValidationWarningReporter;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.internal.build.BuildLayoutValidator;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -47,6 +47,7 @@ import org.gradle.internal.buildtree.ProblemReportingBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.file.StatStatistics;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
@@ -135,7 +136,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
             BuildLayoutValidator buildLayoutValidator,
             FileSystem fileSystem,
             BuildLifecycleAwareVirtualFileSystem virtualFileSystem,
-            ValueSnapshotter valueSnapshotter
+            ValueSnapshotter valueSnapshotter,
+            ExceptionProblemRegistry problemContainer
         ) {
             CaseSensitivity caseSensitivity = fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE;
             return new SubscribableBuildActionExecutor(
@@ -162,7 +164,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
                             new BuildTreeLifecycleBuildActionExecutor(buildModelServices, buildLayoutValidator, valueSnapshotter),
                             buildOperationRunner,
                             loggingBuildOperationProgressBroadcaster,
-                            buildOperationNotificationValve))));
+                            buildOperationNotificationValve,
+                            problemContainer))));
         }
 
         @Provides
@@ -210,7 +213,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
             InternalOptions options,
             StartParameter startParameter,
             InternalProblems problemsService,
-            ProblemStream problemStream
+            ProblemStream problemStream,
+            ExceptionProblemRegistry registry
         ) {
             return new InitProblems(
                 new InitDeprecationLoggingActionExecutor(
@@ -236,7 +240,9 @@ public class LauncherServices extends AbstractGradleModuleServices {
                                     ),
                                     buildStartedTime,
                                     buildRequestMetaData,
-                                    buildLoggerFactory),
+                                    buildLoggerFactory,
+                                    registry
+                                ),
                                 options),
                             gradleEnterprisePluginManager)),
                     eventEmitter,

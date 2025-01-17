@@ -36,6 +36,7 @@ dependencies {
     api(projects.fileTemp)
     api(projects.fileCollections)
     api(projects.processServices)
+    api(projects.persistentCache)
 
     api(libs.inject)
     api(libs.jsr305)
@@ -43,6 +44,7 @@ dependencies {
 
     implementation(projects.functional)
     implementation(projects.native)
+    implementation(projects.serialization)
 
     implementation(libs.guava)
     implementation(libs.asm)

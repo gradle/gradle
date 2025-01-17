@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -345,21 +345,21 @@ include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="api/
 [[sec:convention_plugins_vs_cross_configuration]]
 == Do not use cross-project configuration
 
-An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}//org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
+An improper way to share build logic between subprojects is _cross-project configuration_ via the link:{javadocPath}/org/gradle/api/Project.html#subprojects-groovy.lang.Closure-[`subprojects {}`] and link:{javadocPath}/org/gradle/api/Project.html#allprojects-groovy.lang.Closure-[`allprojects {}`] DSL constructs.
 
 TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
-With cross-configuration, build logic can be injected into a subproject which is not obvious when looking at its build script.
+With <<glossary.adoc#sub:cross_configuration,cross-project configuration>>, build logic can be injected into a subproject which is not obvious when looking at its build script.
 
-In the long run, cross-configuration usually grows in complexity and becomes a burden.
-Cross-configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
+In the long run, cross-project configuration usually grows in complexity and becomes a burden.
+Cross-project configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
 
-=== Convention plugins versus cross-configuration
+=== Convention plugins versus cross-project configuration
 
-The two most common uses of cross-configuration can be better modeled using convention plugins:
+The two most common uses of cross-project configuration can be better modeled using convention plugins:
 
 1. Applying plugins or other configurations to subprojects of a certain type. +
-Often, the cross-configuration logic is `if subproject is of type X, then configure Y`.
+Often, the cross-project configuration logic is `if subproject is of type X, then configure Y`.
 This is equivalent to applying `X-conventions` plugin directly to a subproject.
 2. Extracting information from subprojects of a certain type. +
-This use case can be modeled using <<cross_project_publications.adoc#sec:simple-sharing-artifacts-between-projects,outgoing configuration variants>>.
+This use case can be modeled using <<variant_model.adoc#sec:variant-aware-matching,outgoing configuration variants>>.

@@ -38,7 +38,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 apply plugin: 'java'
                 apply plugin: 'idea'
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
 """
         }
@@ -49,7 +49,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                     apply plugin: 'java-library'
                     apply plugin: 'idea'
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
 """
@@ -332,7 +332,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
                 allprojects {
                     apply plugin: 'java'
                     repositories {
-                        maven { url "${mavenRepo.uri}" }
+                        maven { url = "${mavenRepo.uri}" }
                     }
                 }
                 project(":c2") {

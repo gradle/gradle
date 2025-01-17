@@ -21,35 +21,15 @@ import org.gradle.tooling.TestFrameworkFailure;
 
 import java.util.List;
 
-public class DefaultTestFrameworkFailure implements TestFrameworkFailure {
+public class DefaultTestFrameworkFailure extends DefaultFailure implements TestFrameworkFailure {
 
-    private final String message;
-    private final String description;
-    private final List<? extends Failure> causes;
     private final String className;
     private final String stacktrace;
 
     public DefaultTestFrameworkFailure(String message, String description, List<? extends Failure> causes, String className, String stacktrace) {
-        this.message = message;
-        this.description = description;
-        this.causes = causes;
+        super(message, description, causes);
         this.className = className;
         this.stacktrace = stacktrace;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
-    }
-
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public List<? extends Failure> getCauses() {
-        return causes;
     }
 
     @Override

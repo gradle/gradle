@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 
 /**
- * The configuration of how to “publish” the different components of a project.
+ * The configuration of how to “publish” the different components of a project.
  *
  * @since 1.3
  */
@@ -52,8 +52,8 @@ public interface PublishingExtension {
      *   repositories {
      *     // Create an ivy publication destination named “releases”
      *     ivy {
-     *       name "releases"
-     *       url "http://my.org/ivy-repos/releases"
+     *       name = "releases"
+     *       url = "http://my.org/ivy-repos/releases"
      *     }
      *   }
      * }

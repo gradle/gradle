@@ -34,14 +34,14 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        organisation "org.custom"
-                        module "custom"
-                        revision "2.2"
+                        organisation = "org.custom"
+                        module = "custom"
+                        revision = "2.2"
                     }
                 }
             }
@@ -83,28 +83,28 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
-                        organisation "org.custom"
-                        module "custom"
-                        revision "2.2"
+                        organisation = "org.custom"
+                        module = "custom"
+                        revision = "2.2"
                         from components.java
                     }
                     ivyApi(IvyPublication) {
-                        organisation "org.custom"
-                        module "custom-api"
-                        revision "2"
+                        organisation = "org.custom"
+                        module = "custom-api"
+                        revision = "2"
                         configurations {
                             compile {}
                             runtime {}
                             "default" {
-                                extend "compile"
+                                extend("compile")
                             }
                         }
                         artifact(apiJar) {
-                            conf "compile,runtime"
+                            conf = "compile,runtime"
                         }
                     }
                 }
@@ -161,7 +161,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     main(IvyPublication) {
@@ -206,12 +206,12 @@ include 'projectB'
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     main(IvyPublication) {
                         from components.java
-                        module "duplicate"
+                        module = "duplicate"
                     }
                 }
             }
@@ -238,12 +238,12 @@ include 'projectB'
             publishing {
                 repositories {
                     ivy {
-                        name "ivy1"
-                        url "${ivyRepo.uri}"
+                        name = "ivy1"
+                        url = "${ivyRepo.uri}"
                     }
                     ivy {
-                        name "ivy2"
-                        url "${ivyRepo.uri}"
+                        name = "ivy2"
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {

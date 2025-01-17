@@ -59,7 +59,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                 // TODO:configuration-cache evaluate whether we need to unpack the type here
                 // GeneratedSubclasses.unpackType(value).typeName
                 value.javaClass.typeName
-            }) {
+            }, value) {
                 encoding.run { encode(value) }
             }
         }

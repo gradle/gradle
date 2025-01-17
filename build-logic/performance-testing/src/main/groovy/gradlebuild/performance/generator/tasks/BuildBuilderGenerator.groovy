@@ -36,7 +36,7 @@ import java.util.concurrent.Callable
 /**
  * Uses the build-builder to generate Gradle projects of different kinds.
  *
- * @see <a href="https://github.com/adammurdoch/build-builder">build builder</a>
+ * @see <a href="https://github.com/gradle/build-builder">build builder</a>
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 abstract class BuildBuilderGenerator extends ProjectGeneratorTask {

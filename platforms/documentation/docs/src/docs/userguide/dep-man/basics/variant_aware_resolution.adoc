@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[variant_aware_resolution]]
+[[seven-variant-aware-resolution]]
 = 7. Variant Aware Dependency Resolution
 
 In Gradle, dependency resolution is often thought of from the standpoint of a *consumer* and a *producer*.
@@ -28,6 +28,7 @@ For instance, if you're working with different architectures (like `arm64` and `
 2. The *consumer*, `myApp`, specifies the required *attributes* (e.g., `ArchType.ARM64`) in its resolvable configuration (`runtimeClasspath`).
 3. If the *consumer*, `myApp`, requires dependencies for the `arm64` architecture, Gradle will automatically pick the `arm64Elements` *variant* from the `myLib` *producer* and use its corresponding *artifact*.
 
+[[sub:a-coded-example]]
 == A coded example
 
 Consider a Java library where you create a new *variant* called `instrumentedJars` and want to ensure it’s selected for testing:
@@ -37,6 +38,7 @@ Consider a Java library where you create a new *variant* called `instrumentedJar
 
 Let's look at the build files of the producer and consumer.
 
+[[sub:producer-side]]
 == The producer side
 
 === 1. Create an instrumented JAR:
@@ -80,6 +82,7 @@ However, it now means that for runtime, the consumer has to choose between two v
 1. `runtimeElements`, the regular variant offered by the `java-library` plugin
 2. `instrumentedJars`, the variant we have created
 
+[[sub:consumer-side]]
 == The consumer side
 
 === 1. Add dependencies:

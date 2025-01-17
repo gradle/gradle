@@ -16,8 +16,6 @@
 
 package org.gradle.internal.locking;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.LockMode;
@@ -30,28 +28,35 @@ import java.util.function.Supplier;
 
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
-    private static final Action<Configuration> ACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().activateDependencyLocking();
-
-
-    private static final Action<Configuration> DEACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().deactivateDependencyLocking();
-
-
     private final Supplier<ConfigurationContainer> configurationContainer;
     private final DependencyLockingProvider dependencyLockingProvider;
+
+    private ConfigurationContainer configurations;
 
     public DefaultDependencyLockingHandler(Supplier<ConfigurationContainer> configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
         this.configurationContainer = configurationContainer;
         this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
+    private ConfigurationContainer getConfigurations() {
+        if (configurations == null) {
+            configurations = configurationContainer.get();
+        }
+        return configurations;
+    }
+
     @Override
     public void lockAllConfigurations() {
-        configurationContainer.get().all(ACTIVATE_LOCKING);
+        getConfigurations().configureEach(configuration ->
+            configuration.getResolutionStrategy().activateDependencyLocking()
+        );
     }
 
     @Override
     public void unlockAllConfigurations() {
-        configurationContainer.get().all(DEACTIVATE_LOCKING);
+        getConfigurations().configureEach(configuration ->
+            configuration.getResolutionStrategy().deactivateDependencyLocking()
+        );
     }
 
     @Override

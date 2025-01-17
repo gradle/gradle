@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency_management_in_gradle]]
+[[dependency-management-in-gradle]]
 = Dependency Management
 
 Software projects typically depend on other libraries to function.
@@ -49,36 +49,42 @@ include::sample[dir="snippets/dependencyManagement/introductionDependencies/groo
 
 In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_ from the link:https://repo1.maven.org/maven2/[Maven Central] and link:https://maven.google.com/[Google] _repositories_.
 
-== 1. Declaring Dependencies
+== 1. The Basics
 
-You can add external libraries to your Java project, such as Guava.
-These libraries are <<declaring_dependencies.adoc#declaring-basic-dependencies, _dependencies_>> of your project.
+If you want to understand the basics of dependency management and you are new to Gradle, start <<declaring_dependencies.adoc#one-declaring-dependencies,here>>.
+
+== 2. Declaring Dependencies
+
+You can add external libraries to your Java project, such as `Guava`.
+These libraries are <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,_dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
-
-== 2. Dependency Configurations
-
-You can declare dependencies for different scopes. For example, you can declare dependencies that are only used at compile time.
-Gradle calls the <<dependency_configurations.adoc#sec:what-are-dependency-configurations,scope of a dependency>> a _configuration_.
 
 == 3. Declaring Repositories
 
-You can <<declaring_repositories.adoc#declaring-basic-repositories,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
-
-During a build, Gradle locates and downloads the dependencies, a process called <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps,_dependency resolution_>>.
+You can <<declaring_repositories_basics.adoc#declaring-repositories-basics,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
+During a build, Gradle locates and downloads the dependencies, a process called _dependency resolution_.
 
 == 4. Centralizing Dependencies
 
-<<centralizing_dependencies.adoc#centralizing-dependencies, Centralizing dependencies>> in Gradle involves managing dependencies in a single location to ensure consistency and simplify dependency management across multiple projects.
+To keep dependencies and their versions declared in a <<platforms.adoc#platforms,single, manageable location>> (i.e., centralized), you can use _platforms_ and _version catalogs_.
 
-This is typically done using platforms and version catalogs.
-A platform is a set of modules intended to be used together.
-A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
+A _platform_ is a set of modules intended to be used together.
+A _version catalog_ is a centralized list of dependency coordinates that can be referenced in multiple projects.
 
-== 5. Dependency Constraints and Conflict Resolution
-
+== 5. Managing Dependencies
 Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
 This usually leads to failing builds.
 
-Gradle manages two types of conflicts: version conflicts, and capability conflicts.
+You can manage conflicts using <<resolution_rules.adoc#using-resolution-rules,resolution rules>> or <<dependency_locking.adoc#locking-versions,dependency locking>>.
 
-You can <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,customize Gradle's handling of dependencies and conflict resolution>> with a number of available APIs.
+== 6. Understanding Dependency Resolution
+
+In order to influence how Gradle resolves dependencies, it's important to understand <<variant_model.adoc#understanding_dependency_resolution_model,how it works>>. This section covers variants, attributes, capabilities and dependency caching.
+
+== 7. Controlling Dependency Resolution
+
+Once you have a grasp of how dependency resolution works, you can <<dependency_resolution_basics.adoc#dependency-resolution-basics,view, control and influence it>>. This section covers graph and artifact resolution, as well as artifact transforms.
+
+== 8. Publishing Libraries
+
+If you are considering publishing your library for consumption as a dependency, check out our <<publishing_setup.adoc#publishing_components,publishing chapter>>.

@@ -38,6 +38,11 @@ enum class Os(
         androidHome = "/opt/android/sdk",
         jprofilerHome = "/opt/jprofiler/jprofiler11.1.4"
     ),
+    ALPINE(
+        "Linux",
+        androidHome = "/not/supported",
+        jprofilerHome = "/not/supported"
+    ),
     WINDOWS(
         "Windows",
         androidHome = """C:\Program Files\android\sdk""",

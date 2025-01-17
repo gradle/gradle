@@ -16,6 +16,8 @@
 
 package org.gradle.internal.declarativedsl.common
 
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
@@ -49,7 +51,7 @@ class GradlePropertyApiAnalysisSchemaComponent : AnalysisSchemaComponent {
 
     override fun propertyExtractors(): List<PropertyExtractor> = listOf(propertyExtractor)
 
-    override fun typeDiscovery(): List<TypeDiscovery> = listOf(PropertyReturnTypeDiscovery(propertyExtractor))
+    override fun typeDiscovery(): List<TypeDiscovery> = listOf(PropertyReturnTypeDiscovery())
 }
 
 
@@ -106,19 +108,32 @@ class GradlePropertyApiPropertyExtractor(
 
 
 private
-class PropertyReturnTypeDiscovery(
-    private val propertyExtractor: PropertyExtractor
-) : TypeDiscovery {
-    override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
-        propertyExtractor.extractProperties(kClass).mapNotNullTo(mutableSetOf()) {
+class PropertyReturnTypeDiscovery : TypeDiscovery {
+    override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
+        typeDiscoveryServices.propertyExtractor.extractProperties(kClass).mapNotNullTo(mutableSetOf()) {
             propertyValueType(it.originalReturnType).classifier as? KClass<*>
         }
 }
 
 
 private
-fun isGradlePropertyType(type: KType): Boolean = type.classifier == Property::class
+val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class)
 
 
 private
-fun propertyValueType(type: KType): KType = type.arguments[0].type ?: error("expected a declared property type") // TODO: is this a user facing error?
+fun isGradlePropertyType(type: KType): Boolean = type.classifier in handledPropertyTypes
+
+
+private
+fun propertyValueType(type: KType): KType {
+    fun searchClassHierarchyForPropertyType(type: KType): KType? {
+        return when (val classifier = type.classifier) {
+            Property::class -> type
+            is KClass<*> -> classifier.supertypes.firstOrNull { superType -> searchClassHierarchyForPropertyType(superType) != null }
+            else -> null
+        }
+    }
+
+    val propertyType = searchClassHierarchyForPropertyType(type)
+    return propertyType?.arguments?.get(0)?.type ?: type
+}

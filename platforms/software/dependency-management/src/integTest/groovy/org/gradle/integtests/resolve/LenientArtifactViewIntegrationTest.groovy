@@ -228,7 +228,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
         buildFile """
             repositories {
                 maven {
-                    url '${mavenHttpRepo.uri}'
+                    url = "${mavenHttpRepo.uri}"
                     artifactUrls('http://does-not-exist.com')
                 }
             }
@@ -252,7 +252,7 @@ class LenientArtifactViewIntegrationTest extends AbstractHttpDependencyResolutio
     private void withRepo() {
         buildFile << """
             repositories {
-                maven { url '${mavenHttpRepo.uri}' }
+                maven { url = '${mavenHttpRepo.uri}' }
             }
         """
     }

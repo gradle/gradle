@@ -153,7 +153,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         and:
         buildFile << """
         repositories{
-            maven { url "${anotherRepo.uri}" }
+            maven { url = "${anotherRepo.uri}" }
         }
         """
 
@@ -211,7 +211,7 @@ Required by:
         and:
         buildFile << """
         repositories{
-            maven { url "${anotherRepo.uri}" }
+            maven { url = "${anotherRepo.uri}" }
         }
         """
 
@@ -320,7 +320,7 @@ Required by:
         buildFile.text = """
                 repositories {
                     mavenLocal()
-                    maven { url "${anotherRepo.uri}" }
+                    maven { url = "${anotherRepo.uri}" }
                 }
                 configurations { compile }
                 dependencies {
@@ -351,7 +351,7 @@ Required by:
         buildFile.text = """
                 repositories {
                     mavenLocal()
-                    maven { url "${anotherRepo.uri}" }
+                    maven { url = "${anotherRepo.uri}" }
                 }
                 configurations { compile }
                 dependencies {

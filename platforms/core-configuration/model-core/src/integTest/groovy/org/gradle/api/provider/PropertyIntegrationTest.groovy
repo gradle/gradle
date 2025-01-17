@@ -185,6 +185,8 @@ task thing(type: SomeTask) {
             def custom2 = extensions.create('custom2', SomeExtension)
             custom2.source = custom1.source
 
+            custom1.source = providers.gradleProperty('ABC')
+
             tasks.register('thing', SomeTask) {
                 prop = custom2.source
             }
@@ -198,7 +200,8 @@ task thing(type: SomeTask) {
         failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
 The value of this property is derived from:
   - extension 'custom2' property 'source'
-  - extension 'custom1' property 'source'""")
+  - extension 'custom1' property 'source'
+  - Gradle property 'ABC'""")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -372,6 +375,32 @@ assert custom.prop.get() == "value 3"
 custom.prop.convention(providers.provider { "\${'some value 4'.substring(5)}" })
 assert custom.prop.get() == "value 4"
 """
+
+        expect:
+        succeeds()
+    }
+
+    def "can set Long property value using an Integer"() {
+        given:
+        buildFile << """
+            interface SomeExtension {
+                Property<Long> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = 1
+            assert custom.prop.get() == 1L
+
+            custom.prop = providers.provider { 2 }
+            assert custom.prop.get() == 2L
+
+            custom.prop = null
+            custom.prop.convention(3)
+            assert custom.prop.get() == 3L
+
+            custom.prop.convention(providers.provider { 4 })
+            assert custom.prop.get() == 4L
+        """
 
         expect:
         succeeds()

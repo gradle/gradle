@@ -115,6 +115,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                         }
                         LOGGER.debug("Accepted connection from {} to {}.", socket.socket().getRemoteSocketAddress(), socket.socket().getLocalSocketAddress());
                         try {
+                            SocketBlockingUtil.configureNonblocking(socket);
                             action.execute(new SocketConnectCompletion(socket));
                         } catch (Throwable t) {
                             socket.close();

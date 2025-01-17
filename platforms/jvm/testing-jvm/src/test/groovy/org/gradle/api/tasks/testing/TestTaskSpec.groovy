@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.TestExecuter
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.api.internal.tasks.testing.report.TestReporter
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
 
@@ -37,9 +36,9 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
     def setup() {
         task = TestUtil.create(temporaryFolder).task(Test)
         task.testExecuter = testExecuter
-        task.testReporter = Mock(TestReporter)
         task.binaryResultsDirectory.set(task.project.file('build/test-results'))
         task.reports.junitXml.outputLocation.set(task.project.file('build/test-results'))
+        task.reports.html.outputLocation.set(task.project.file('build/test-report'))
         task.testClassesDirs = task.project.layout.files()
     }
 
@@ -278,8 +277,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         1 * testListener.beforeTest(_)
 
         when:
-        // rewire a mocked TestReporter as it gets removed by AbstractTestTask#createReporting()
-        task.testReporter = Mock(TestReporter)
         task.executeTests()
 
         then:
@@ -302,8 +299,6 @@ class TestTaskSpec extends AbstractProjectBuilderSpec {
         1 * closure.call()
 
         when:
-        // rewire a mocked TestReporter as it gets removed by AbstractTestTask#createReporting()
-        task.testReporter = Mock(TestReporter)
         task.executeTests()
 
         then:

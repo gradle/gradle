@@ -1,0 +1,3 @@
+++++
+<meta http-equiv="refresh" content="0;URL=variant_model.html#understanding_dependency_resolution_model">
+++++

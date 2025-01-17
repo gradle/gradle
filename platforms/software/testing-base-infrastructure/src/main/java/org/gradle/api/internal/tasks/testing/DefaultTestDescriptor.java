@@ -25,16 +25,17 @@ import javax.annotation.Nullable;
 @NonNullApi
 public class DefaultTestDescriptor extends AbstractTestDescriptor {
     private final String displayName;
+    @Nullable
     private final String className;
     private final String classDisplayName;
 
     @UsedByScanPlugin("test-distribution")
-    public DefaultTestDescriptor(Object id, String className, String name) {
+    public DefaultTestDescriptor(Object id, @Nullable String className, String name) {
         this(id, className, name, null, name);
     }
 
     @UsedByScanPlugin("test-distribution")
-    public DefaultTestDescriptor(Object id, String className, String name, @Nullable String classDisplayName, String displayName) {
+    public DefaultTestDescriptor(Object id, @Nullable String className, String name, @Nullable String classDisplayName, String displayName) {
         super(id, name);
         this.className = className;
         this.classDisplayName = classDisplayName == null ? className : classDisplayName;
@@ -43,7 +44,8 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
 
     @Override
     public String toString() {
-        return "Test " + getName() + "(" + className + ")";
+        String className = getClassName();
+        return "Test " + getName() + (className == null ? "" : ("(" + className + ")"));
     }
 
     @Override
@@ -51,6 +53,7 @@ public class DefaultTestDescriptor extends AbstractTestDescriptor {
         return false;
     }
 
+    @Nullable
     @Override
     public String getClassName() {
         return className;

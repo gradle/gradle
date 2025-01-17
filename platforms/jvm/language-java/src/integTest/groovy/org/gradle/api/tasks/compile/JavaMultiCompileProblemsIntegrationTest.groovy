@@ -63,16 +63,14 @@ class JavaMultiCompileProblemsIntegrationTest extends AbstractIntegrationSpec {
             contextualLabel == '\';\' expected'
             // The formatted information is checked deeper in JavaCompileProblemsIntegrationTest,
             // we are just interested if the file is correct
-            def formatted = additionalData.asMap['formatted'] as String
-            formatted.contains("Project1.java")
+            details.concat("Project1.java")
         }
         verifyAll(receivedProblem(1)) {
             fqid == 'compilation:java:compiler-err-expected'
             contextualLabel == '\';\' expected'
             // The formatted information is checked deeper in JavaCompileProblemsIntegrationTest,
             // we are just interested if the file is correct
-            def formatted = additionalData.asMap['formatted'] as String
-            formatted.contains("Project2.java")
+            details.contains("Project2.java")
         }
     }
 

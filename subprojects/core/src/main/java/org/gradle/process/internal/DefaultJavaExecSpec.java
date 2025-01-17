@@ -57,7 +57,7 @@ public class DefaultJavaExecSpec extends DefaultJavaForkOptions implements JavaE
         PathToFileResolver resolver,
         FileCollectionFactory fileCollectionFactory
     ) {
-        super(resolver, fileCollectionFactory, objectFactory.newInstance(DefaultJavaDebugOptions.class));
+        super(objectFactory, resolver, fileCollectionFactory);
         this.jvmArguments = objectFactory.listProperty(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.mainModule = objectFactory.property(String.class);

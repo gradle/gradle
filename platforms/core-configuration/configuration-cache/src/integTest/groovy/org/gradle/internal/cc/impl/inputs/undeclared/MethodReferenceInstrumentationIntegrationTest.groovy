@@ -20,6 +20,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.MapConstructor
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.util.internal.ToBeImplemented
 
 class MethodReferenceInstrumentationIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     @Override
@@ -29,15 +30,13 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
 
     def "reference #reference is instrumented in java"() {
         given:
-        testDirectory.create {
-            createDir("buildSrc") {
-                file("src/main/java/MethodRefInputs.java") << """
+        def classTemplate = { ownerKind, ownerName -> """
                 import java.io.*;
                 import java.nio.file.*;
                 import java.util.*;
                 import java.util.function.*;
 
-                public class MethodRefInputs {
+                public $ownerKind $ownerName {
                     @FunctionalInterface
                     interface ThrowingFunction<T, R> {
                         R apply(T value) throws Exception;
@@ -51,19 +50,27 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
                         $consumerStatement
                     }
 
-                    private static String readIS(InputStream in) throws Exception {
+                    static String readIS(InputStream in) throws Exception {
                         return new BufferedReader(new InputStreamReader(in, "UTF-8")).readLine();
                     }
                 }
-                """
+            """
+        }
+
+        testDirectory.create {
+            createDir("buildSrc") {
+                file("src/main/java/MethodRefInputsCls.java") << classTemplate("class", "MethodRefInputsCls")
+                file("src/main/java/MethodRefInputsInterface.java") << classTemplate("interface", "MethodRefInputsInterface")
             }
         }
 
         buildFile """
             tasks.register("echo") {
-                def value = MethodRefInputs.readInputWithReference(${input.expr})
+                def value1 = MethodRefInputsCls.readInputWithReference(${input.expr})
+                def value2 = MethodRefInputsInterface.readInputWithReference(${input.expr})
                 doLast {
-                    println("value = \$value")
+                    println("value1 = \$value1")
+                    println("value2 = \$value2")
                 }
             }
         """
@@ -72,7 +79,8 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
         configurationCacheRun("echo", "-D${systemProperty().path}=${systemProperty().expectedValue}")
 
         then:
-        outputContains("value = ${input.expectedValue}")
+        outputContains("value1 = ${input.expectedValue}")
+        outputContains("value2 = ${input.expectedValue}")
 
         problems.assertResultHasProblems(result) {
             withInput("Build file 'build.gradle': ${input.expectedInput}")
@@ -85,6 +93,181 @@ class MethodReferenceInstrumentationIntegrationTest extends AbstractConfiguratio
         fileEntry()      | "Function<File, Boolean>"                   | "File::isFile"             | "return String.valueOf(ref.apply(new File(input)));"
         fileEntry()      | "Supplier<Boolean>"                         | "new File(input)::isFile"  | "return String.valueOf(ref.get());"
         file()           | "ThrowingFunction<Path, BufferedReader>"    | "Files::newBufferedReader" | "try (BufferedReader in = ref.apply(Paths.get(input))) { return in.readLine(); }"
+    }
+
+    def "instruments bound method reference when receiver is a subtype"() {
+        given:
+        def input = fileEntry()
+        def classTemplate = { ownerKind, ownerName -> """
+                import java.io.*;
+                import java.nio.file.*;
+                import java.util.*;
+                import java.util.function.*;
+
+                public $ownerKind $ownerName {
+                    public static class MyFile extends File {
+                        public MyFile(String path) { super(path); }
+                    }
+
+                    public static String readInputWithReference(String input) throws Exception {
+                        return String.valueOf(checkExists(new MyFile(input)));
+                    }
+
+                    static boolean checkExists(MyFile myFile) {
+                        Supplier<Boolean> supplier = myFile::isFile;
+                        return supplier.get();
+                    }
+                }
+            """
+        }
+
+        testDirectory.create {
+            createDir("buildSrc") {
+                file("src/main/java/MethodRefInputsCls.java") << classTemplate("class", "MethodRefInputsCls")
+                file("src/main/java/MethodRefInputsInterface.java") << classTemplate("interface", "MethodRefInputsInterface")
+            }
+        }
+
+        buildFile """
+            tasks.register("echo") {
+                def value1 = MethodRefInputsCls.readInputWithReference(${input.expr})
+                def value2 = MethodRefInputsInterface.readInputWithReference(${input.expr})
+                doLast {
+                    println("value1 = \$value1")
+                    println("value2 = \$value2")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("echo")
+
+        then:
+        outputContains("value1 = ${input.expectedValue}")
+        outputContains("value2 = ${input.expectedValue}")
+
+        problems.assertResultHasProblems(result) {
+            withInput("Build file 'build.gradle': ${input.expectedInput}")
+        }
+    }
+
+    def "does not instrument bound method reference when receiver is a subtype that overrides the method"() {
+        given:
+        def input = fileEntry()
+        def classTemplate = { ownerKind, ownerName -> """
+                import java.io.*;
+                import java.nio.file.*;
+                import java.util.*;
+                import java.util.function.*;
+
+                public $ownerKind $ownerName {
+                    public static class MyFile extends File {
+                        public MyFile(String path) { super(path); }
+
+                        @Override public boolean isFile() { return false; }  // does not call super intentionally.
+                    }
+
+                    public static String readInputWithReference(String input) throws Exception {
+                        return String.valueOf(checkExists(new MyFile(input)));
+                    }
+
+                    static boolean checkExists(MyFile myFile) {
+                        Supplier<Boolean> supplier = myFile::isFile;
+                        return supplier.get();
+                    }
+                }
+            """
+        }
+
+        testDirectory.create {
+            createDir("buildSrc") {
+                file("src/main/java/MethodRefInputsCls.java") << classTemplate("class", "MethodRefInputsCls")
+                file("src/main/java/MethodRefInputsInterface.java") << classTemplate("interface", "MethodRefInputsInterface")
+            }
+        }
+
+        buildFile """
+            tasks.register("echo") {
+                def value1 = MethodRefInputsCls.readInputWithReference(${input.expr})
+                def value2 = MethodRefInputsInterface.readInputWithReference(${input.expr})
+                doLast {
+                    println("value1 = \$value1")
+                    println("value2 = \$value2")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("echo")
+
+        then:
+        outputContains("value1 = false")
+        outputContains("value2 = false")
+
+        problems.assertResultHasProblems(result) {
+            withNoInputs()
+        }
+    }
+
+    @ToBeImplemented
+    def "does not instrument bound method reference when receiver overrides the method but is declared as base type"() {
+        given:
+        def input = fileEntry()
+        def classTemplate = { ownerKind, ownerName -> """
+                import java.io.*;
+                import java.nio.file.*;
+                import java.util.*;
+                import java.util.function.*;
+
+                public $ownerKind $ownerName {
+                    public static class MyFile extends File {
+                        public MyFile(String path) { super(path); }
+
+                        @Override public boolean isFile() { return false; }  // does not call super intentionally.
+                    }
+
+                    public static String readInputWithReference(String input) throws Exception {
+                        return String.valueOf(checkExists(new MyFile(input)));
+                    }
+
+                    static boolean checkExists(File myFile) {
+                        Supplier<Boolean> supplier = myFile::isFile;
+                        return supplier.get();
+                    }
+                }
+            """
+        }
+
+        testDirectory.create {
+            createDir("buildSrc") {
+                file("src/main/java/MethodRefInputsCls.java") << classTemplate("class", "MethodRefInputsCls")
+                file("src/main/java/MethodRefInputsInterface.java") << classTemplate("interface", "MethodRefInputsInterface")
+            }
+        }
+
+        buildFile """
+            tasks.register("echo") {
+                def value1 = MethodRefInputsCls.readInputWithReference(${input.expr})
+                def value2 = MethodRefInputsInterface.readInputWithReference(${input.expr})
+                doLast {
+                    println("value1 = \$value1")
+                    println("value2 = \$value2")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("echo")
+
+        then:
+        outputContains("value1 = false")
+        outputContains("value2 = false")
+
+        problems.assertResultHasProblems(result) {
+            // TODO(mlopatkin): shouldn't have inputs but we rewrite File::isFile without taking the receiver type into account.
+            //   Same goes for `File foo = new MyFile(".."); foo.isFile();` that is also intercepted based on the static type of the receiver.
+            withInput("Build file 'build.gradle': ${input.expectedInput}")
+        }
     }
 
     def "reference #reference as #referenceType is instrumented in kotlin script"() {

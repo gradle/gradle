@@ -14,5 +14,7 @@
  * limitations under the License.
  */
 
-@org.gradle.api.NonNullApi
+@NonNullApi
 package org.gradle.platform.internal;
+
+import org.gradle.api.NonNullApi;

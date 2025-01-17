@@ -19,10 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
+import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
+import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
@@ -32,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Actions
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.util.TestUtil
@@ -39,26 +43,25 @@ import org.gradle.vcs.internal.VcsResolver
 import spock.lang.Shared
 import spock.lang.Specification
 
-import java.util.concurrent.TimeUnit
+import java.time.Duration
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
 
 class DefaultResolutionStrategySpec extends Specification {
 
-    def cachePolicy = Mock(DefaultCachePolicy)
+    def cachePolicy = new DefaultCachePolicy()
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
-    def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
+    def globalDependencySubstitutions = Mock(GlobalDependencyResolutionRules) {
+        getDependencySubstitutionRules() >> Stub(DependencySubstitutionRules)
+    }
     def componentSelectorConverter = Mock(ComponentSelectorConverter)
     def vcsResolver = Mock(VcsResolver)
+
     @Shared
     def dependencyLockingProvider = Mock(DependencyLockingProvider)
 
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock() {
-        module(_, _) >> { args ->
-            DefaultModuleIdentifier.newId(*args)
-        }
-    }
+    def moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions, vcsResolver, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, null, TestUtil.objectFactory())
 
     def "allows setting forced modules"() {
@@ -151,7 +154,6 @@ class DefaultResolutionStrategySpec extends Specification {
         def copy = strategy.copy()
 
         then:
-        1 * cachePolicy.copy() >> Mock(DefaultCachePolicy)
         !copy.is(strategy)
         !copy.cachePolicy.is(strategy.cachePolicy)
         !copy.componentSelection.is(strategy.componentSelection)
@@ -169,8 +171,6 @@ class DefaultResolutionStrategySpec extends Specification {
 
     def "provides a copy"() {
         given:
-        def newCachePolicy = Mock(DefaultCachePolicy)
-        cachePolicy.copy() >> newCachePolicy
         def newDependencySubstitutions = Mock(DependencySubstitutionsInternal)
         dependencySubstitutions.copy() >> newDependencySubstitutions
 
@@ -189,7 +189,7 @@ class DefaultResolutionStrategySpec extends Specification {
         copy.conflictResolution == ConflictResolution.strict
 
         strategy.cachePolicy == cachePolicy
-        copy.cachePolicy == newCachePolicy
+        copy.cachePolicy != cachePolicy
 
         strategy.dependencySubstitution == dependencySubstitutions
         copy.dependencySubstitution == newDependencySubstitutions
@@ -199,35 +199,55 @@ class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "configures changing modules cache with jdk5+ units"() {
+        given:
+        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
+        ResolvedModuleVersion moduleVersion = () -> id
+
         when:
         strategy.cacheChangingModulesFor(30000, "milliseconds")
 
         then:
-        1 * cachePolicy.cacheChangingModulesFor(30000, TimeUnit.MILLISECONDS)
+        !strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMillis(30000)).isMustCheck()
+        strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMillis(30001)).isMustCheck()
     }
 
     def "configures changing modules cache with jdk6+ units"() {
+        given:
+        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
+        ResolvedModuleVersion moduleVersion = () -> id
+
         when:
         strategy.cacheChangingModulesFor(5, "minutes")
 
         then:
-        1 * cachePolicy.cacheChangingModulesFor(5 * 60 * 1000, TimeUnit.MILLISECONDS)
+        !strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMinutes(5)).isMustCheck()
+        strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMinutes(6)).isMustCheck()
     }
 
     def "configures dynamic version cache with jdk5+ units"() {
+        given:
+        def moduleId = DefaultModuleIdentifier.newId("foo", "bar")
+        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
+
         when:
         strategy.cacheDynamicVersionsFor(10000, "milliseconds")
 
         then:
-        1 * cachePolicy.cacheDynamicVersionsFor(10000, TimeUnit.MILLISECONDS)
+        !strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofMillis(10000)).isMustCheck()
+        strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofMillis(10001)).isMustCheck()
     }
 
     def "configures dynamic version cache with jdk6+ units"() {
+        given:
+        def moduleId = DefaultModuleIdentifier.newId("foo", "bar")
+        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
+
         when:
         strategy.cacheDynamicVersionsFor(1, "hours")
 
         then:
-        1 * cachePolicy.cacheDynamicVersionsFor(1 * 60 * 60 * 1000, TimeUnit.MILLISECONDS)
+        !strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofHours(1)).isMustCheck()
+        strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofHours(2)).isMustCheck()
     }
 
     def "mutation is checked for public API"() {
@@ -270,7 +290,6 @@ class DefaultResolutionStrategySpec extends Specification {
 
     def "mutation is not checked for copy"() {
         given:
-        cachePolicy.copy() >> Mock(DefaultCachePolicy)
         dependencySubstitutions.copy() >> Mock(DependencySubstitutionsInternal)
         def validator = Mock(MutationValidator)
         strategy.setMutationValidator(validator)

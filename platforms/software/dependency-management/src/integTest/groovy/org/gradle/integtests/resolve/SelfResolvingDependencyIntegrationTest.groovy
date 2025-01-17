@@ -76,7 +76,7 @@ include "child1", "child2", "child3"
         buildFile << """
 allprojects {
     repositories {
-        maven { url '${mavenRepo.uri}' }
+        maven { url = '${mavenRepo.uri}' }
     }
     configurations {
         compile

@@ -398,6 +398,7 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
+        @SuppressWarnings("deprecation")
         final Sign signTask = project.getTasks().create(signTaskName, Sign.class, task -> {
             task.setDescription("Signs all artifacts in the '" + publicationToSign.getName() + "' publication.");
             task.sign(publicationToSign);
@@ -427,6 +428,7 @@ public abstract class SigningExtension {
         if (project.getTasks().getNames().contains(signTaskName)) {
             return project.getTasks().named(signTaskName, Sign.class).get();
         }
+        @SuppressWarnings("deprecation")
         final Sign signTask = project.getTasks().create(signTaskName, Sign.class, taskConfiguration);
         addSignaturesToConfiguration(signTask, getConfiguration());
         return signTask;

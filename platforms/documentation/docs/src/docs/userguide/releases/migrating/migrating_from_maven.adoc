@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ If you want, you can also use a Gradle build scan to identify opportunities to <
  . <<migmvn:integration_tests,Configure integration and functional tests>>.
 +
 Many tests can simply be migrated by configuring an extra source set.
-If you are using a third-party library, such as http://docs.fitnesse.org/FrontPage[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
+If you are using a third-party library, such as https://fitnesse.org/FitNesse/UserGuide.html[FitNesse], look to see whether  there is a suitable community plugin available on the https://plugins.gradle.org/[Gradle Plugin Portal].
 +
  . Replace Maven plugins with Gradle equivalents.
 +
@@ -133,7 +133,7 @@ If you want to include integration tests, you will have to <<migmvn:integration_
 `install`::
 Use the `publishToMavenLocal` task provided by the <<publishing_maven#publishing_maven:tasks,Maven Publish Plugin>>.
 +
-Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies_adv.adoc#sub:project_dependencies,inter-project dependencies>> and <<composite_builds#composite_builds,composite builds>>.
+Note that Gradle builds don't require you to "install" artifacts as you have access to more appropriate features like <<declaring_dependencies_basics.adoc#sec:project-dependencies,inter-project dependencies>> and <<composite_builds#composite_builds,composite builds>>.
 You should only use `publishToMavenLocal` for interoperating with Maven builds.
 +
 Gradle also allows you to resolve dependencies against the local Maven cache, as described in the <<migmvn:declaring_repos,Declaring repositories>> section.
@@ -191,7 +191,7 @@ This will run the tests and produce the required artifacts automatically.
 [[migmvn:migrating_deps]]
 == Migrating dependencies
 
-Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<dependency_configurations.adoc#sec:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
+Gradle's dependency management system is more flexible than Maven's, but it still supports the same concepts of repositories, declared dependencies, scopes (<<dependency_configurations.adoc#sub:what-are-dependency-configurations,dependency configurations>> in Gradle), and transitive dependencies.
 In fact, Gradle works with Maven-compatible repositories which makes it easy to migrate your dependencies.
 
 NOTE: One notable difference between the two tools is in how they manage version conflicts. Maven uses a "closest" match algorithm, whereas Gradle picks the newest.
@@ -204,7 +204,7 @@ Over the following sections, we will show you how to migrate the most common ele
 
 Gradle uses the same dependency identifier components as Maven: group ID, artifact ID and version.
 It also supports classifiers.
-All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies.adoc#declaring-basic-dependencies,Declaring Dependencies>> chapter.
+All you need to do is substitute the identifier information for a dependency into Gradle's syntax, which is described in the <<declaring_dependencies.adoc#one-declaring-dependencies,Declaring Dependencies>> chapter.
 
 For example, consider this Maven-style dependency on Log4J:
 
@@ -288,7 +288,7 @@ Dependencies with other scopes will be ignored.
 
 Gradle allows you to retrieve declared dependencies from any Maven-compatible or Ivy-compatible repository.
 Unlike Maven, it has no default repository and so you have to declare at least one.
-In order to have the same behavior as your Maven build, just configure <<declaring_repositories_adv.adoc#sub:maven_central,Maven Central>> in your Gradle build, like this:
+In order to have the same behavior as your Maven build, just configure <<declaring_repositories_basics.adoc#sec:maven-central,Maven Central>> in your Gradle build, like this:
 
 .Configuring the build to use Maven Central
 ====
@@ -296,13 +296,13 @@ include::sample[dir="snippets/mavenMigration/basic/kotlin",files="build.gradle.k
 include::sample[dir="snippets/mavenMigration/basic/groovy",files="build.gradle[tags=repositories]"]
 ====
 
-You can also use the `repositories {}` block to configure custom repositories, as described in the <<declaring_repositories_adv.adoc#sec:maven_repo,Repository Types>> chapter.
+You can also use the `repositories {}` block to configure custom repositories, as described in the <<supported_repository_types.adoc#sec:maven-repo,Repository Types>> chapter.
 
-Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories_adv.adoc#sub:maven_local,local Maven cache/repository>>.
+Lastly, Gradle allows you to resolve dependencies against the <<supported_repository_types.adoc#sec:maven-local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
-If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories_adv.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
+If you want to share published artifacts via the filesystem, consider configuring a <<supported_repository_types.adoc#sec:maven-repo,custom Maven repository>> with a `file://` URL.
 
-You might also be interested in learning about Gradle's own <<dependency_resolution_adv.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
+You might also be interested in learning about Gradle's own <<dependency_caching.adoc#sec:dependency-cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
 [[migmvn:controlling_dep_versions]]
 === Controlling dependency versions
@@ -315,7 +315,7 @@ On a per-project basis, you can use:
 
  * <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,Dependency constraints>>
  * <<migmvn:using_boms,Bills of materials>> (Maven BOMs)
- * <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,Overriding transitive versions>>
+ * <<dependency_versions.adoc#sec:enforcing-dependency-version,Overriding transitive versions>>
 
 There are even more, specialized options listed in the <<dependency_constraints.adoc#dependency-constraints,controlling transitive dependencies>> chapter.
 
@@ -332,7 +332,7 @@ Maven builds use exclusions to keep unwanted dependencies -- or unwanted _versio
 You can do the same thing with Gradle, but that's not necessarily the _right_ thing to do.
 Gradle provides other options that may be more appropriate for a given situation, so you really need to understand _why_ an exclusion is in place to migrate it properly.
 
-If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,excluding transitive dependencies>>.
+If you want to exclude a dependency for reasons unrelated to versions, then check out the section on <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,excluding transitive dependencies>>.
 It shows you how to attach an exclusion either to an entire configuration (often the most appropriate solution) or to a dependency.
 You can even easily apply an exclusion to all configurations.
 
@@ -368,7 +368,7 @@ include::sample[dir="snippets/mavenMigration/importBom/groovy",files="build.grad
 <1> Applies the Spring Boot Dependencies BOM
 <2> Adds a dependency whose version is defined by that BOM
 
-You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<platforms.adoc#sub:bom_import,importing version recommendations from a Maven BOM>>.
+You can learn more about this feature and the difference between `platform()` and `enforcedPlatform()` in the section on <<platforms.adoc#sec:bom-import,importing version recommendations from a Maven BOM>>.
 
 NOTE: You can use this feature to apply the `<dependencyManagement>` information from any dependency's POM to the Gradle build, even those that don't have a packaging type of `pom`. Both `platform()` and `enforcedPlatform()` will ignore any dependencies declared in the `<dependencies>` block.
 
@@ -407,7 +407,7 @@ include::sample[dir="snippets/mavenMigration/multiModule/groovy",files="settings
 > gradle projects
 include::{snippetsPath}/mavenMigration/multiModule/tests/projects.out[]
 ----
- 2. Replace cross-module dependencies with <<declaring_dependencies_adv.adoc#sub:project_dependencies,project dependencies>>.
+ 2. Replace cross-module dependencies with <<declaring_dependencies_basics.adoc#sec:project-dependencies,project dependencies>>.
  3. Replicate project inheritance with <<sharing_build_logic_between_subprojects#sec:sharing_logic_via_convention_plugins,convention plugins>>.
 +
 This basically involves creating a root project build script that injects shared configuration into the appropriate subprojects.
@@ -447,7 +447,7 @@ You can easily get the same behavior by combining conditions with secondary buil
 
 Let's say you have different deployment settings depending on the environment: local development (the default), a test environment, and production.
 To add profile-like behavior, you first create build scripts for each environment in the project root: `profile-default.gradle`, `profile-test.gradle`, and `profile-prod.gradle`.
-You can then conditionally apply one of those profile scripts based on a <<project_properties.adoc#sec:project_properties,project property>> of your own choice.
+You can then conditionally apply one of those profile scripts based on a <<build_environment.adoc#sec:project_properties,project property>> of your own choice.
 
 The following example demonstrates the basic technique using a project property called `buildProfile` and profile scripts that simply initialize an <<writing_build_scripts#sec:extra_properties,extra project property>> called `message`:
 

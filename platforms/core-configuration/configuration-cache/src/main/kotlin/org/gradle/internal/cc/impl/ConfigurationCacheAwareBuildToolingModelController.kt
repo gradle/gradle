@@ -51,15 +51,8 @@ class ConfigurationCacheAwareBuildToolingModelController(
         override fun getTarget() = delegate.target
 
         override fun getModel(modelName: String, parameter: ToolingModelParameterCarrier?): Any? {
-            return cache.loadOrCreateIntermediateModel(getTargetPath(), modelName, parameter) {
+            return cache.loadOrCreateIntermediateModel(target?.identity, modelName, parameter) {
                 delegate.getModel(modelName, parameter)
-            }
-        }
-
-        private
-        fun getTargetPath(): ProjectIdentityPath? {
-            return target?.run {
-                ProjectIdentityPath(identityPath, owner.identityPath, projectPath)
             }
         }
     }

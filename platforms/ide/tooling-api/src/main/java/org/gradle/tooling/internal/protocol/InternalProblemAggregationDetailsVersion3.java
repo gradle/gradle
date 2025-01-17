@@ -21,6 +21,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersio
 
 import java.util.List;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol.
+ */
 @NonNullApi
 public interface InternalProblemAggregationDetailsVersion3 extends InternalProblemDetailsVersion2 {
 

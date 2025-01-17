@@ -252,7 +252,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
     private String compileDependency(String configurationName, MavenModule module) {
         """
             repositories {
-                maven { url "$mavenRepo.uri" }
+                maven { url = "$mavenRepo.uri" }
             }
 
             dependencies {

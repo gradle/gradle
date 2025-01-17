@@ -141,7 +141,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void implicitFinalizeValue() {
-        if (!valueState.isUpgradedPropertyValue()) {
+        if (valueState.isUpgradedPropertyValue()) {
+            // Upgraded properties should not be finalized to simplify migration.
+            // This behaviour should be removed with Gradle 10.
+            valueState.warnOnUpgradedPropertyValueChanges();
+        } else {
             // Property prevents reads *and* mutations,
             // however CFCs only want automatic finalization on query,
             // so we do not #disallowChanges().
@@ -207,7 +211,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
                     throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
                 }
-                return true;
+                // Only visit the children of a CompositeFileCollection but not other types of FileCollections,
+                // since we might accidentally resolve them, for example we don't want to resolve Configurations
+                return fileCollection instanceof CompositeFileCollection;
             }
 
             @Override

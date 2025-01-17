@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.OperationStartEvent;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 import static org.gradle.internal.operations.trace.BuildOperationTrace.toSerializableModel;
@@ -32,8 +33,8 @@ class SerializedOperationStart implements SerializedOperation {
 
     final long startTime;
 
-    final Object details;
-    final String detailsClassName;
+    final @Nullable Object details;
+    final @Nullable String detailsClassName;
 
     SerializedOperationStart(BuildOperationDescriptor descriptor, OperationStartEvent startEvent) {
         this.id = descriptor.getId().getId();
@@ -45,11 +46,11 @@ class SerializedOperationStart implements SerializedOperation {
     }
 
     SerializedOperationStart(Map<String, ?> map) {
-        this.id = ((Integer) map.get("id")).longValue();
-        Integer parentId = (Integer) map.get("parentId");
+        this.id = ((Number) map.get("id")).longValue();
+        Number parentId = (Number) map.get("parentId");
         this.parentId = parentId == null ? null : parentId.longValue();
         this.displayName = (String) map.get("displayName");
-        this.startTime = (Long) map.get("startTime");
+        this.startTime = ((Number) map.get("startTime")).longValue();
         this.details = map.get("details");
         this.detailsClassName = (String) map.get("detailsClassName");
     }

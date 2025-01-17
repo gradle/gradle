@@ -57,7 +57,7 @@ allprojects {
 
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = '$mavenRepo.uri' } }
 }
 dependencies {
     compile files('test-lib.jar')
@@ -507,7 +507,7 @@ abstract class VariantArtifactTransform implements TransformAction<TransformPara
 }
 
 allprojects {
-    repositories { maven { url '$mavenRepo.uri' } }
+    repositories { maven { url = '$mavenRepo.uri' } }
     configurations.compile.attributes.attribute(usage, 'compile')
 }
 
@@ -636,7 +636,7 @@ task show {
 allprojects {
     repositories {
         maven {
-            url '$mavenHttpRepo.uri'
+            url = '$mavenHttpRepo.uri'
             metadataSources {
                 mavenPom()
                 artifact()
@@ -721,7 +721,7 @@ ${showFailuresTask(expression)}
     def "reports failure to download artifact when artifacts are queried"() {
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:test:1.0'
@@ -784,7 +784,7 @@ ${showFailuresTask(expression)}
         settingsFile << "include 'a'"
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:test:1.0'
@@ -837,7 +837,7 @@ ${showFailuresTask(expression)}
 
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
 }
 dependencies {
     compile 'org:missing-module:1.0'
@@ -917,7 +917,7 @@ Searched in the following locations:
 
         buildFile << """
 allprojects {
-    repositories { maven { url '$mavenHttpRepo.uri' } }
+    repositories { maven { url = '$mavenHttpRepo.uri' } }
     tasks.withType(Jar) {
         archiveFileName = project.name + '-' + name + ".jar"
         destinationDirectory = buildDir

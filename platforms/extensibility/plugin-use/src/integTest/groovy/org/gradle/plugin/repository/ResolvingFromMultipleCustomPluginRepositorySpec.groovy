@@ -76,9 +76,9 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
                 repositories {
                     ${repositories.collect {
             if (it instanceof MavenFileRepository) {
-                "maven { url '${it.uri}' }"
+                "maven { url = '${it.uri}' }"
             } else {
-                "ivy { url '${it.uri}' }"
+                "ivy { url = '${it.uri}' }"
             }
         }.join('\n')}
                 }
@@ -218,7 +218,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         settingsFile << """
             pluginManagement {
                 repositories {
-                    maven {url '${repoA.uri}' }
+                    maven {url = "${repoA.uri}" }
                     gradlePluginPortal()
                 }
             }
@@ -251,7 +251,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
         settingsFile << """
             pluginManagement {
                 repositories {
-                    maven {url '${repoA.uri}' }
+                    maven {url = "${repoA.uri}" }
                     gradlePluginPortal()
                 }
             }

@@ -16,17 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
-
 public interface VisitedArtifactResults {
     /**
      * Selects the artifacts for the matching variant of each node seen during traversal.
      * The implementation should attempt to select artifacts eagerly, but may be lazy where
      * the selection cannot happen until the results are queried.
      *
-     * @param variantSelector Performs variant selection
+     * @param consumerServices Services from the consumer used to perform artifact selection
      * @param spec Governs how artifacts are selected
      * @param lenient If true, ignore artifacts that are resolved, but unavailable
      */
-    SelectedArtifactResults select(ArtifactVariantSelector variantSelector, ArtifactSelectionSpec spec, boolean lenient);
+    SelectedArtifactResults select(
+        ArtifactSelectionServices consumerServices,
+        ArtifactSelectionSpec spec,
+        boolean lenient
+    );
 }

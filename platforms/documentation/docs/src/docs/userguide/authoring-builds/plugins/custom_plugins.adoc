@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ By applying plugins, users can easily add new features to their build process wi
 This plugin-based approach allows Gradle to be lightweight and modular.
 It also promotes code reuse and maintainability, as plugins can be shared across projects or within an organization.
 
-Before reading this chapter, it's recommended that you first read <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<partr1_gradle_init.adoc#partr1_gradle_init,Tutorial>>.
+Before reading this chapter, it's recommended that you first read <<gradle_directories.adoc#gradle_directories,Learning The Basics>> and complete the <<part1_gradle_init_project.adoc#part1_gradle_init,Tutorial>>.
 
 == Plugins Introduction
 
@@ -129,7 +129,7 @@ They are best used as *convention plugins* that share build logic across project
 
 To create a precompiled script plugin, you can:
 
-1. Use Gradle's Kotlin DSL - The plugin is a `.gradle.kts` file, and apply `id("kotlin-dsl")`.
+1. Use Gradle's Kotlin DSL - The plugin is a `.gradle.kts` file, and apply `` `kotlin-dsl` ``.
 2. Use Gradle's Groovy DSL - The plugin is a `.gradle` file, and apply `id("groovy-gradle-plugin")`.
 
 To apply a precompiled script plugin, you need to know its ID.

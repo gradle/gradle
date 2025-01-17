@@ -1,0 +1,390 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[component-metadata-rules]]
+= Modifying Dependency Metadata
+
+Each component pulled from a repository includes metadata, such as its group, name, version, and the various variants it provides along with their artifacts and dependencies.
+
+Occasionally, this metadata might be incomplete or incorrect.
+
+Gradle offers an API to address this issue, allowing you to write *component metadata rules* directly within the build script.
+These rules are applied after a module's metadata is downloaded, but before it's used in dependency resolution.
+
+[[sec:writing-metadata-rule]]
+== Writing a component metadata rule
+
+Component metadata rules are applied within the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html[`components`] section of the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`dependencies`] block in a build script or in the settings script.
+
+These rules can be defined in two ways:
+
+1. **Inline as an Action:** Directly within the `components` section.
+2. **As a Separate Class:** Implementing the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataRule.html[`ComponentMetadataRule`] interface.
+
+While inline actions are convenient for quick experimentation, it's generally recommended to define rules as separate classes.
+
+Rules written as isolated classes can be annotated with `@CacheableRule`, allowing their results to be cached and avoiding re-execution each time dependencies are resolved.
+
+TIP: A rule should always be cacheable to avoid major impacts on build performance and ensure faster build times.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=config-component-metadata-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=config-component-metadata-rule]"]
+====
+
+In this example, the `TargetJvmVersionRule` class implements link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataRule.html[`ComponentMetadataRule`] and is further configured using link:{javadocPath}/org/gradle/api/ActionConfiguration.html[`ActionConfiguration`].
+
+Gradle enforces isolation of instances of `ComponentMetadataRule`, requiring that all parameters must be `Serializable` or recognized Gradle types.
+
+Additionally, services like link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[`ObjectFactory`] can be injected into your rule's constructor using `@Inject`.
+
+A component metadata rule can be applied to all modules using `all(rule)` or to a specific module using `withModule(groupAndName, rule)`.
+Typically, a rule is tailored to enrich the metadata of a specific module, so the `withModule` API is preferred.
+
+[[sec:rules-in-settings]]
+=== Declaring rules in a central place
+
+NOTE: Declaring component metadata rules in settings is an incubating feature
+
+Component metadata rules can be declared in the `settings.gradle(.kts)` file for the entire build, rather than in each subproject individually.
+Rules declared in settings are applied to all projects by default unless overridden by project-specific rules.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=rule-in-settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=rule-in-settings]"]
+====
+
+By default, project-specific rules take precedence over settings rules.
+However, this behavior can be adjusted:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=prefer-settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=prefer-settings]"]
+====
+
+If this method is called and that a project or plugin declares rules, a warning will be issued.
+You can make this a failure instead by using this alternative:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=enforce-settings]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=enforce-settings]"]
+====
+
+The default behavior is equivalent to calling this method:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="settings.gradle.kts[tags=prefer-projects]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="settings.gradle[tags=prefer-projects]"]
+====
+
+[[sec:component-metadata-rules-details]]
+== Which parts of metadata can be modified?
+
+The Component Metadata Rules API focuses on the features supported by Gradle Module Metadata and the dependencies API.
+The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_model.adoc#sec:understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
+
+Variants can be modified through the following methods:
+
+- **`allVariants`**: Modify all variants of a component.
+- **`withVariant(name)`**: Modify a specific variant identified by its name.
+- **`addVariant(name)` or `addVariant(name, base)`**: Add a new variant from scratch or copy details from an existing variant (`base`).
+
+The following variant details can be modified:
+
+- **Attributes**: Use the `attributes {}` block to adjust <<variant_model.adoc#sec:abm-configuration-attributes,attributes>> that identify the variant.
+- **Capabilities**: Use the `withCapabilities {}` block to define the <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>> the variant provides.
+- **Dependencies**: Use the `withDependencies {}` block to manage the variant’s dependencies, including <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints.
+- **Dependency Constraints**: Use the `withDependencyConstraints {}` block to define the variant’s <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>, including rich versions.
+- **Published Files**: Use the `withFiles {}` block to specify the location of the files that make up the variant’s content.
+
+Additionally, several component-level properties can be changed:
+
+- **Component Attributes**: The only <<sec:custom-status-scheme,meaningful attribute>> here is `org.gradle.status`.
+- **Status Scheme**: Influence how the `org.gradle.status` attribute is interpreted during version selection.
+- **BelongsTo Property**: Used for <component_capabilities.adoc#sec:declaring-capabilities-external-modules,version alignment>> via virtual platforms.
+
+The format of a module's metadata affects how it maps to the variant-centric representation:
+
+- **Gradle Module Metadata**: The data structure is similar to the module’s `.module` file.
+- **POM Metadata**: For modules published with `.pom` metadata, fixed variants are derived as explained in the <<variant_model.adoc#sec:maven-mapping-to-variants,"Mapping POM Files to Variants">>, section.
+- **Ivy Metadata**: If a module was published with an `ivy.xml` file, Ivy configurations can be accessed in place of variants. Their dependencies, constraints, and files can be modified. You can also use `addVariant(name, baseVariantOrConfiguration)` to derive variants from Ivy configurations, such as defining <<variant_model.adoc#sec:ivy-mapping-to-variants,`compile` and `runtime` variants for the Java library plugin>>.
+
+Before using component metadata rules to adjust a module’s metadata, determine whether the module was published with **Gradle Module Metadata** (`.module` file) or **traditional metadata** (`.pom` or `ivy.xml`):
+
+- **Modules with Gradle Module Metadata**: These typically have complete metadata, but issues can still occur. Only apply component metadata rules if you've clearly identified a problem with the metadata. For dependency resolution issues, first consider using <<dependency_versions.adoc#sec:rich-version-constraints,dependency constraints with rich versions>>. If you're developing a library, note that dependency constraints are published as part of your own library’s metadata, making it easier to share the solution with consumers. In contrast, component metadata rules apply only within your own build.
+- **Modules with Traditional Metadata** (`.pom` or `ivy.xml`): These are more likely to have incomplete metadata since features like variants and dependency constraints aren’t supported in these formats. Such modules might have variants or constraints that were omitted or incorrectly defined as dependencies. In the following sections, we explore examples of OSS modules with incomplete metadata and the rules to add missing information.
+
+As a rule of thumb, you should contemplate if the rule you are writing also works out of context of your build.
+That is, does the rule still produce a correct and useful result if applied in any other build that uses the module(s) it affects?
+
+[[sec:fixing-dependency-details]]
+== Fixing incorrect dependency details
+
+Consider the Jaxen XPath Engine (version `1.1.3`) published on Maven Central.
+Its `pom` file declares several unnecessary dependencies in the `compile` scope, which were later removed in version `1.1.4`.
+If you need to work with version `1.1.3`, you can fix the metadata using the following rule:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-1]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=jaxen-rule-1]"]
+====
+
+In the `withDependencies` block, you have access to the full list of dependencies and can use Java collection methods to inspect and modify that list. You can also add dependencies using the `add(notation, configureAction)` method.
+Similarly, you can inspect and modify dependency constraints within the `withDependencyConstraints` block.
+
+In Jaxen version `1.1.4`, the `dom4j`, `jdom`, and `xerces` dependencies are still present but marked as **optional**.
+Optional dependencies are not processed automatically by Gradle or Maven, as they indicate <<feature_variants.adoc#feature_variants,feature variants>> that require additional dependencies.
+However, the `pom` file lacks information about these features and their corresponding dependencies.
+This can be represented in Gradle Module Metadata through variants and <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>>, which we can add via a component metadata rule.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-2]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=jaxen-rule-2]"]
+====
+
+In this example, we create a new variant called `runtime-dom4j` using the `addVariant(name, baseVariant)` method.
+This variant represents an optional feature, defined by the capability `jaxen-dom4j`.
+We then add the required dependency `dom4j:dom4j:1.6.1` to this feature.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=jaxen-dependencies]"]
+====
+
+By applying these rules, Gradle uses the enriched metadata to correctly resolve the optional dependencies when the `jaxen-dom4j` feature is required.
+
+[[sec:publish-variants-explicit-jars]]
+== Making variants published as classified jars explicit
+
+In modern builds, variants are often published as separate artifacts, each represented by its own jar file.
+For example, libraries may provide distinct jars for different Java versions, ensuring that the correct version is used at runtime or compile time based on the environment.
+
+For instance, version `0.7.9` of the asynchronous programming library Quasar, published on link:https://repo1.maven.org/maven2/co/paralleluniverse/quasar-core/0.7.9[Maven Central], includes both `quasar-core-0.7.9.jar` and `quasar-core-0.7.9-jdk8.jar`.
+Publishing jars with a classifier, such as `jdk8`, is common practice in Maven repositories.
+However, neither Maven nor Gradle metadata provides information about these classified jars.
+As a result, there is no clear way to determine their existence or any differences, such as dependencies, between the variants.
+
+In Gradle Module Metadata, variant information would be present.
+For the already published Quasar library, we can add this information using the following rule:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=quasar-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=quasar-rule]"]
+====
+
+In this case, the `jdk8` classifier clearly indicates the target Java version, which corresponds to a known attribute in the Java ecosystem.
+Since we need both compile and runtime variants for Java 8, we create two new variants using the existing compile and runtime variants as a base.
+This ensures that all other Java ecosystem attributes are set correctly, and dependencies are carried over.
+
+We assign the `TARGET_JVM_VERSION_ATTRIBUTE` to `8` for both new variants, remove any existing files with `removeAllFiles()`, and then add the `jdk8` jar using `addFile()`. Removing the files is necessary because the reference to the main jar `quasar-core-0.7.9.jar` is copied from the base variant.
+
+Finally, we enrich the existing compile and runtime variants with the information that they target Java 7 using `attribute(TARGET_JVM_VERSION_ATTRIBUTE, 7)`.
+
+With these changes, you can now request Java 8 versions for all dependencies on the compile classpath, and Gradle will automatically select the best-fitting variant. In the case of Quasar, this will be the `jdk8Compile` variant, which exposes the `quasar-core-0.7.9-jdk8.jar`.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=quasar-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=quasar-dependencies]"]
+====
+
+With this configuration, Gradle will select the Java 8 variant of Quasar for the compile classpath.
+
+[[sec:encoded-variants-explicit]]
+== Making variants encoded in versions explicit
+
+Another solution to publish multiple alternatives for the same library is the usage of a versioning pattern as done by the popular Guava library.
+Here, each new version is published twice by appending the classifier to the version instead of the jar artifact.
+In the case of Guava 28 for example, we can find a _28.0-jre_ (Java 8) and _28.0-android_ (Java 6) version on link:https://repo1.maven.org/maven2/com/google/guava/guava[Maven central].
+The advantage of using this pattern when working only with pom metadata is that both variants are discoverable through the version.
+The disadvantage is that there is no information as to what the different version suffixes mean semantically.
+So in the case of conflict, Gradle would just pick the highest version when comparing the version strings.
+
+Turning this into proper variants is a bit more tricky, as Gradle first selects a version of a module and then selects the best fitting variant.
+So the concept that variants are encoded as versions is not supported directly.
+However, since both variants are always published together we can assume that the files are physically located in the same repository.
+And since they are published with Maven repository conventions, we know the location of each file if we know module name and version.
+We can write the following rule:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=guava-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=guava-rule]"]
+====
+
+Similar to the previous example, we add runtime and compile variants for both Java versions.
+In the `withFiles` block however, we now also specify a relative path for the corresponding jar file which allows Gradle to find the file no matter if it has selected a _-jre_ or _-android_ version.
+The path is always relative to the location of the metadata (in this case `pom`) file of the selection module version.
+So with this rules, both Guava 28 "versions" carry both the _jdk6_ and _jdk8_ variants.
+So it does not matter to which one Gradle resolves.
+The variant, and with it the correct jar file, is determined based on the requested `TARGET_JVM_VERSION_ATTRIBUTE` value.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=guava-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=guava-dependencies]"]
+====
+
+[[sec:adding-variants-jars]]
+== Adding variants for native jars
+
+Jars with classifiers are also used to separate parts of a library for which multiple alternatives exists, for example native code, from the main artifact.
+This is for example done by the Lightweight Java Game Library (LWGJ), which publishes several platform specific jars to link:https://repo1.maven.org/maven2/org/lwjgl/lwjgl/3.2.3[Maven central] from which always one is needed, in addition to the main jar, at runtime.
+It is not possible to convey this information in pom metadata as there is no concept of putting multiple artifacts in relation through the metadata.
+In Gradle Module Metadata, each variant can have arbitrary many files and we can leverage that by writing the following rule:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=lwgj-rule]"]
+====
+
+This rule is quite similar to the Quasar library example above.
+Only this time we have five different runtime variants we add and nothing we need to change for the compile variant.
+The runtime variants are all based on the existing _runtime_ variant and we do not change any existing information.
+All Java ecosystem attributes, the dependencies and the main jar file stay part of each of the runtime variants.
+We only set the additional attributes `OPERATING_SYSTEM_ATTRIBUTE` and `ARCHITECTURE_ATTRIBUTE` which are defined as part of Gradle's <<building_cpp_projects.adoc#building_cpp_projects,native support>>.
+And we add the corresponding native jar file so that each runtime variant now carries two files: the main jar and the native jar.
+
+In the build script, we can now request a specific variant and Gradle will fail with a selection error if more information is needed to make a decision.
+
+Gradle is able to understand the common case where a single attribute is missing that would have removed the ambiguity.
+In this case, rather than listing information about all attributes on all available variants, Gradle helpfully lists only possible values for that attribute along with the variants each value would select.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=lwgj-dependencies]"]
+====
+
+Gradle fails to select a variant because a machine architecture needs to be chosen:
+
+----
+> Could not resolve all files for configuration ':runtimeClasspath'.
+   > Could not resolve org.lwjgl:lwjgl:3.2.3.
+     Required by:
+         project :
+      > The consumer was configured to find a library for use during runtime, compatible with Java 11, packaged as a jar, preferably optimized for standard JVMs, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. There are several available matching variants of org.lwjgl:lwjgl:3.2.3
+       The only attribute distinguishing these variants is 'org.gradle.native.architecture'. Add this attribute to the consumer's configuration to resolve the ambiguity:
+          - Value: 'x86-64' selects variant: 'natives-windows-runtime'
+          - Value: 'x86' selects variant: 'natives-windows-x86-runtime'
+----
+
+[[sec:making-library-flavors]]
+== Making different flavors of a library available through capabilities
+
+Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
+That is, instead of composing your flavor of the library from different feature variants, you select one of the pre-composed variants (offering everything in one jar).
+One such library is the well-known dependency injection framework Guice, published on link:https://repo1.maven.org/maven2/com/google/inject/guice/4.2.2[Maven central], which offers a complete flavor (the main jar) and a reduced variant without aspect-oriented programming support (`guice-4.2.2-no_aop.jar`).
+That second variant with a classifier is not mentioned in the pom metadata.
+With the following rule, we create compile and runtime variants based on that file and make it selectable through a capability named `com.google.inject:guice-no_aop`.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=guice-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=guice-rule]"]
+====
+
+The new variants also have the dependency on the standardized aop interfaces library `aopalliance:aopalliance` removed, as this is clearly not needed by these variants.
+Again, this is information that cannot be expressed in pom metadata.
+We can now select a `guice-no_aop` variant and will get the correct jar file *and* the correct dependencies.
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=guice-dependencies]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=guice-dependencies]"]
+====
+
+[[sec:adding-missing-capabilities]]
+== Adding missing capabilities to detect conflicts
+
+Another usage of capabilities is to express that two different modules, for example `log4j` and `log4j-over-slf4j`, provide alternative implementations of the same thing.
+By declaring that both provide the same capability, Gradle only accepts one of them in a dependency graph.
+This example, and how it can be tackled with a component metadata rule, is described in detail in the  <<component_capabilities.adoc#sec:declaring-capabilities-external-modules,feature modelling>> section.
+
+[[sec:making-ivy-modules-variant-aware]]
+== Making Ivy modules variant-aware
+
+Modules published using Ivy do not have variants available by default.
+
+However, _Ivy configurations_ can be mapped to variants as the `addVariant(name, baseVariantOrConfiguration)` accepts any Ivy configuration that was published as base.
+This can be used, for example, to define runtime and compile variants.
+An example of a corresponding rule can be found <<variant_model.adoc#sec:ivy-mapping-to-variants,here>>.
+Ivy details of Ivy configurations (e.g. dependencies and files) can also be modified using the `withVariant(configurationName)` API.
+However, modifying attributes or capabilities on Ivy configurations has no effect.
+
+For very Ivy specific use cases, the component metadata rules API also offers access to other details only found in Ivy metadata.
+These are available through the link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor] interface and can be accessed using `getDescriptor(IvyModuleDescriptor)` on the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext].
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+====
+
+[[sec:filter-maven-metadata]]
+== Filter using Maven metadata
+
+For Maven specific use cases, the component metadata rules API also offers access to other details only found in POM metadata.
+These are available through the link:{javadocPath}/org/gradle/api/artifacts/maven/PomModuleDescriptor.html[PomModuleDescriptor] interface and can be accessed using `getDescriptor(PomModuleDescriptor)` on the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext].
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=maven-packaging-component-metadata-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=maven-packaging-component-metadata-rule]"]
+====
+
+[[sec:modifying-metadata]]
+== Modifying metadata on the component level for alignment
+
+While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
+This information can influence the <<variant_model.adoc#understanding_dependency_resolution_model,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+
+The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
+It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
+
+[[sec:custom-status-scheme]]
+== Modifying metadata on the component level for version selection based on status
+
+Gradle and Gradle Module Metadata also allow attributes to be set on the whole component instead of a single variant.
+Each of these attributes carries special semantics as they influence version selection which is done _before_ variant selection.
+While variant selection can handle <<variant_attributes.adoc#sec:declaring-attributes,any custom attribute>>, version selection only considers attributes for which specific semantics are implemented.
+At the moment, the only attribute with meaning here is `org.gradle.status`.
+
+--
+The `org.gradle.status` module attribute indicates the lifecycle status or maturity level of a module or library:
+
+1. **`integration`**: This indicates that the module is under active development and may not be stable.
+2. **`milestone`**: A module with this status is more mature than one marked as `integration`.
+3. **`release`**: This status signifies that the module is stable and officially released.
+--
+
+It is therefore recommended to only modify this attribute, if any, on the component level.
+A dedicated API `setStatus(value)` is available for this.
+To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
+
+A module's status is taken into consideration when a <<dependency_versions.adoc#sec:single-version-declarations,_latest_ version selector>> is resolved.
+Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
+For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
+
+The interpretation of the status can be influenced by changing a module's _status scheme_ through the `setStatusScheme(valueList)` API.
+This concept models the different levels of maturity that a module transitions through over time with different publications.
+The default status scheme, ordered from least to most mature status, is `integration`, `milestone`, `release`.
+The `org.gradle.status` attribute must be set, to one of the values in the component's status scheme.
+Thus each component always has a status which is determined from the metadata as follows:
+
+- Gradle Module Metadata: the value that was published for the `org.gradle.status` attribute on the component
+- Ivy metadata: `status` defined in the ivy.xml, defaults to `integration` if missing
+- Pom metadata: `integration` for modules with a SNAPSHOT version, `release` for all others
+
+The following example demonstrates `latest` selectors based on a custom status scheme declared in a component metadata rule that applies to all modules:
+
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-metadataRule/groovy",files="build.gradle[tags=custom-status-scheme]"]
+====
+
+Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.
+Existing modules with the status `integration` are mapped to `nightly`.

@@ -59,7 +59,7 @@ tasks.withType(Checkstyle) {
 // tag::customize-checkstyle-report[]
         xml.required = false
         html.required = true
-        html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
+        html.stylesheet = resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
 // tag::enable-checkstyle-sarif-report[]
     }
 }

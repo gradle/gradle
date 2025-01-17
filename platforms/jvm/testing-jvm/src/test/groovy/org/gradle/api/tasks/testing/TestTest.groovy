@@ -41,6 +41,7 @@ import org.gradle.jvm.toolchain.internal.DefaultToolchainJavaLauncher
 import org.gradle.jvm.toolchain.internal.JavaToolchain
 import org.gradle.jvm.toolchain.internal.JavaToolchainInput
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.TestUtil
@@ -53,10 +54,10 @@ class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_2 = "pattern2"
     static final String TEST_PATTERN_3 = "pattern3"
 
-    private File classesDir
-    private File resultsDir
-    private File binResultsDir
-    private File reportDir
+    private TestFile classesDir
+    private TestFile resultsDir
+    private TestFile binResultsDir
+    private TestFile reportDir
 
     def testExecuterMock = Mock(TestExecuter)
     def testFrameworkMock = Mock(TestFramework)
@@ -103,10 +104,10 @@ class TestTest extends AbstractConventionTaskTest {
         1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 
-    def "generates report"() {
+    def "calls test reporter if set"() {
         given:
         configureTask()
-        final testReporter = Mock(TestReporter)
+        TestReporter testReporter = Mock()
         test.setTestReporter(testReporter)
 
         when:
@@ -114,6 +115,18 @@ class TestTest extends AbstractConventionTaskTest {
 
         then:
         1 * testReporter.generateReport(_ as TestResultsProvider, reportDir)
+        1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
+    }
+
+    def "generates test report if no reporter set"() {
+        given:
+        configureTask()
+
+        when:
+        test.executeTests()
+
+        then:
+        reportDir.assertContainsDescendants("index.html")
         1 * testExecuterMock.execute(_ as TestExecutionSpec, _ as TestResultProcessor)
     }
 

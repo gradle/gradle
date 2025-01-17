@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -39,10 +39,11 @@ By default, repositories include everything and exclude nothing:
 * If you declare both includes and excludes, then it includes only what is explicitly included and not excluded.
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
-When using a strict version, it is possible to use a version range, using <<dependency_versions.adoc#single-version-declarations,the format supported>> by Gradle.
+When using a strict version, it is possible to use a version range, using <<dependency_versions.adoc#sec:single-version-declarations,the format supported>> by Gradle.
 In addition, there are filtering options by resolution context: configuration name or even configuration attributes.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
 
+[[sec:declaring-content-repositories]]
 == Declaring content exclusively found in one repository
 
 Filters declared using the <<#sec:declaring-repository-filter,repository-level content filter>> are not exclusive.
@@ -72,7 +73,7 @@ Your options are either to declare all repositories in settings or to use non-ex
 
 === Maven repository filtering
 
-For <<supported_repository_types.adoc#sec:maven_repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.
+For <<supported_repository_types.adoc#sec:maven-repo,Maven repositories>>, it's often the case that a repository would either contain releases or snapshots.
 Gradle lets you declare what kind of artifacts are found in a repository using this DSL:
 
 ====

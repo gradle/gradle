@@ -16,24 +16,58 @@
 
 package org.gradle.api.internal.artifacts.type;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
-import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
-import java.util.function.Consumer;
+import javax.inject.Inject;
 
-public interface ArtifactTypeRegistry extends Factory<ArtifactTypeContainer> {
-    ImmutableAttributes mapAttributesFor(ImmutableAttributes attributes, Iterable<? extends ComponentArtifactMetadata> artifacts);
+public class ArtifactTypeRegistry {
 
-    ImmutableAttributes mapAttributesFor(File file);
+    private final Instantiator instantiator;
+    private final AttributesFactory attributesFactory;
+    private final CollectionCallbackActionDecorator callbackActionDecorator;
+    private final AttributeContainerInternal defaultArtifactAttributes;
+    private ArtifactTypeContainer artifactTypeDefinitions;
 
-    void visitArtifactTypes(Consumer<? super ImmutableAttributes> action);
+    @Inject
+    public ArtifactTypeRegistry(Instantiator instantiator, AttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator) {
+        this.instantiator = instantiator;
+        this.attributesFactory = attributesFactory;
+        this.callbackActionDecorator = callbackActionDecorator;
+        this.defaultArtifactAttributes = attributesFactory.mutable();
+    }
 
     /**
      * Default attributes added to all artifact variants during artifact selection.
      */
-    AttributeContainer getDefaultArtifactAttributes();
+    public AttributeContainerInternal getDefaultArtifactAttributes() {
+        return defaultArtifactAttributes;
+    }
+
+    public ArtifactTypeContainer getArtifactTypeContainer() {
+        if (artifactTypeDefinitions == null) {
+            artifactTypeDefinitions = instantiator.newInstance(DefaultArtifactTypeContainer.class, instantiator, attributesFactory, callbackActionDecorator);
+        }
+        return artifactTypeDefinitions;
+    }
+
+    public ImmutableMap<String, ImmutableAttributes> getArtifactTypeMappings() {
+        if (artifactTypeDefinitions == null) {
+            return ImmutableMap.of();
+        }
+
+        ImmutableMap.Builder<String, ImmutableAttributes> builder = ImmutableMap.builder();
+        for (ArtifactTypeDefinition artifactTypeDefinition : artifactTypeDefinitions) {
+            ImmutableAttributes attributes = ((AttributeContainerInternal) artifactTypeDefinition.getAttributes()).asImmutable();
+            builder.put(artifactTypeDefinition.getName(), attributes);
+        }
+
+        return builder.build();
+    }
 }

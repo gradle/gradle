@@ -18,7 +18,6 @@ package org.gradle.internal.declarativedsl.evaluator
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.declarative.dsl.evaluation.InterpretationSequence
 import org.gradle.groovy.scripts.ScriptSource
@@ -40,10 +39,12 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
 
-internal
+@ServiceScope(Scope.Build::class)
 interface DeclarativeKotlinScriptEvaluator {
     fun evaluate(
         target: Any,
@@ -85,10 +86,10 @@ class DefaultDeclarativeKotlinScriptEvaluator(
         scriptSource: ScriptSource,
         targetScope: ClassLoaderScope
     ): EvaluationResult<ConversionStepResult> {
-        val scriptContext = scriptContextFor(target, scriptSource, targetScope)
+        val scriptContext = scriptContextFor(target)
         return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> NotEvaluated(listOf(NoSchemaAvailable(scriptContext)), ConversionStepResult.CannotRunStep)
-            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target)
+            is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> runInterpretationSequence(scriptSource, built.sequence, target, targetScope)
         }
     }
 
@@ -96,20 +97,22 @@ class DefaultDeclarativeKotlinScriptEvaluator(
     fun runInterpretationSequence(
         scriptSource: ScriptSource,
         sequence: InterpretationSequence,
-        target: Any
+        target: Any,
+        classLoaderScope: ClassLoaderScope
     ): EvaluationResult<ConversionStepResult> =
         sequence.steps.map { step ->
-            stepRunner.runInterpretationSequenceStep(scriptSource.fileName, scriptSource.resource.text, step, ConversionStepContext(target, defaultAnalysisContext))
+            stepRunner.runInterpretationSequenceStep(
+                scriptSource.fileName,
+                scriptSource.resource.text,
+                step,
+                ConversionStepContext(target, { classLoaderScope.localClassLoader }, defaultAnalysisContext)
+            )
                 .also { if (it is NotEvaluated) return it }
         }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList(), partialStepResult = ConversionStepResult.CannotRunStep)
 
     private
-    fun scriptContextFor(
-        target: Any,
-        scriptSource: ScriptSource,
-        targetScope: ClassLoaderScope
-    ): DeclarativeScriptContext = when (target) {
-        is Settings -> LoadedSettingsScriptContext(target as SettingsInternal, targetScope, scriptSource)
+    fun scriptContextFor(target: Any): DeclarativeScriptContext = when (target) {
+        is Settings -> DeclarativeScriptContext.SettingsScript
         is Project -> DeclarativeScriptContext.ProjectScript
         else -> DeclarativeScriptContext.UnknownScript
     }

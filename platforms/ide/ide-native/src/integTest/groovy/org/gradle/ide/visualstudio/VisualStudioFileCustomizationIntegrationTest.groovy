@@ -178,8 +178,8 @@ EndGlobal
         when:
         buildFile << """
 tasks.withType(GenerateProjectFileTask) {
-    it.gradleExe "myCustomGradleExe"
-    it.gradleArgs "--configure-on-demand --another"
+    it.gradleExe = "myCustomGradleExe"
+    it.gradleArgs = "--configure-on-demand --another"
 }
 """
         and:

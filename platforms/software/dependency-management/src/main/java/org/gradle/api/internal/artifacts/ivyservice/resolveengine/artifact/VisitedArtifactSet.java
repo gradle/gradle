@@ -27,4 +27,10 @@ public interface VisitedArtifactSet {
      * @param spec Parameters controlling the artifact selection process
      */
     SelectedArtifactSet select(ArtifactSelectionSpec spec);
+
+    /**
+     * Legacy method of artifact selection, intended for use by
+     * {@link org.gradle.api.artifacts.LenientConfiguration}.
+     */
+    SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient);
 }

@@ -33,12 +33,12 @@ import org.gradle.jvm.toolchain.JavaToolchainDownload;
 import org.gradle.jvm.toolchain.JavaToolchainResolver;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform;
 import org.gradle.jvm.toolchain.internal.DefaultJavaToolchainRequest;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
-import org.gradle.platform.BuildPlatform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     private final DefaultJdkCacheDirectory cacheDirProvider;
     private final Provider<Boolean> downloadEnabled;
     private final BuildOperationRunner buildOperationRunner;
-    private final BuildPlatform buildPlatform;
+    private final CurrentBuildPlatform currentBuildPlatform;
 
     @Inject
     public DefaultJavaToolchainProvisioningService(
@@ -84,14 +84,14 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
         JdkCacheDirectory cacheDirProvider,
         ProviderFactory factory,
         BuildOperationRunner executor,
-        BuildPlatform buildPlatform
+        CurrentBuildPlatform currentBuildPlatform
     ) {
         this.toolchainResolverRegistry = (JavaToolchainResolverRegistryInternal) toolchainResolverRegistry;
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory)cacheDirProvider;
         this.downloadEnabled = factory.gradleProperty(AUTO_DOWNLOAD).map(Boolean::parseBoolean);
         this.buildOperationRunner = executor;
-        this.buildPlatform = buildPlatform;
+        this.currentBuildPlatform = currentBuildPlatform;
     }
 
     @Override
@@ -118,13 +118,15 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
                 "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
         }
 
+        // TODO: This should be refactored to leverage the new JavaToolchainResolverService but the current error handling makes it hard
+        // However, this exception handling is wrong as it may cause unreproducible behaviors since we can query a later resolver when a previous one fails.
         ToolchainDownloadFailureTracker downloadFailureTracker = new ToolchainDownloadFailureTracker();
         File successfulProvisioning = null;
         for (RealizedJavaToolchainRepository repository : repositories) {
             JavaToolchainResolver resolver = repository.getResolver();
             Optional<JavaToolchainDownload> download;
             try {
-                download = resolver.resolve(new DefaultJavaToolchainRequest(spec, buildPlatform));
+                download = resolver.resolve(new DefaultJavaToolchainRequest(spec, currentBuildPlatform.toBuildPlatform()));
             } catch (Exception e) {
                 downloadFailureTracker.addResolveFailure(repository.getRepositoryName(), e);
                 continue;

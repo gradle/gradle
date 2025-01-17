@@ -38,14 +38,19 @@ dependencies {
     api(projects.native)
     api(projects.persistentCache)
     api(projects.platformBase)
+    api(projects.processServices)
     api(projects.resources)
     api(projects.toolchainsJvmShared)
 
     api(libs.kotlinStdlib)
     api(libs.inject)
     api(libs.jsr305)
+    api(libs.nativePlatform) {
+        because("Required for SystemInfo")
+    }
 
     implementation(projects.diagnostics)
+    implementation(projects.fileTemp)
     implementation(projects.logging)
 
     implementation(libs.commonsIo)
@@ -55,6 +60,7 @@ dependencies {
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.logging))
 
+    testFixturesImplementation(projects.native)
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(libs.commonsCompress)
 
@@ -66,6 +72,7 @@ dependencies {
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
     crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
+    crossVersionTestImplementation(testFixtures(projects.toolchainsJvmShared))
 }
 
 packageCycles {

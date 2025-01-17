@@ -199,7 +199,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.1")).withModuleMetadata().publish()
 
         createBuildScripts("""
-            repositories { maven { url "${mavenRepo.uri}" } }
+            repositories { maven { url = "${mavenRepo.uri}" } }
             dependencies {
                 constraints {
                     api "org.test:foo:+"
@@ -260,7 +260,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
 
             publishing {
                 repositories {
-                    maven { url "${mavenRepo.uri}" }
+                    maven { url = "${mavenRepo.uri}" }
                 }
             }
 

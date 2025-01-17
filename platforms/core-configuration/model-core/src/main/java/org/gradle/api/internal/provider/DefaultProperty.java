@@ -21,6 +21,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 
@@ -100,7 +101,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     public ProviderInternal<? extends T> getProvider() {
         // TODO(mlopatkin) while calling getProvider is not going to cause StackOverflowError by itself, the returned provider is typically used in some recursive call.
         //  Without the safety net of the EvaluationContext, it can cause hard-to-debug exceptions.
-        try (EvaluationContext.ScopeContext context = openScope()) {
+        try (EvaluationScopeContext context = openScope()) {
             return getSupplier(context);
         }
     }
@@ -147,18 +148,18 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
-    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value) {
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationScopeContext context, ProviderInternal<? extends T> value) {
         // Discard this property from a provider chain, as it does not contribute anything to the calculation.
         return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected Value<? extends T> calculateValueFrom(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected Value<? extends T> calculateValueFrom(EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected ProviderInternal<? extends T> finalValue(EvaluationContext.ScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
+    protected ProviderInternal<? extends T> finalValue(EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
         return value.withFinalValue(consumer);
     }
 

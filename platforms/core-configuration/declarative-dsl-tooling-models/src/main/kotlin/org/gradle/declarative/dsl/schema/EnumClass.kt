@@ -17,6 +17,5 @@
 package org.gradle.declarative.dsl.schema
 
 interface EnumClass : DataType.ClassDataType {
-    val javaTypeName: String
     val entryNames: List<String>
 }

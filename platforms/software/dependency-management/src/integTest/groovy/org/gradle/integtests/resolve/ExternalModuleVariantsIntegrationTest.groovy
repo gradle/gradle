@@ -39,7 +39,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
             configurations {
                 compile
@@ -104,7 +104,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
 
         buildFile << """
             repositories {
-                ivy { url '${ivyRepo.uri}' }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 compile
@@ -245,7 +245,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
 
         buildFile << """
             repositories {
-                maven { url '${mavenRepo.uri}' }
+                maven { url = '${mavenRepo.uri}' }
             }
             configurations {
                 compile
@@ -300,7 +300,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
 
         buildFile << """
             repositories {
-                ivy { url '${ivyRepo.uri}' }
+                ivy { url = "${ivyRepo.uri}" }
             }
             configurations {
                 compile
@@ -471,7 +471,7 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
         buildFile << """
             allprojects {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 configurations {
                     compile

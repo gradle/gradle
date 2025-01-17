@@ -23,7 +23,7 @@ class ModelReportOutput {
         new ModelReportOutput(ModelReportParser.parse(text))
     }
 
-    public ModelReportOutput(ParsedModelReport parsedModelReport) {
+    ModelReportOutput(ParsedModelReport parsedModelReport) {
         this.parsedModelReport = parsedModelReport
     }
 

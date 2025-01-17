@@ -41,7 +41,7 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
                 linkage = [Linkage.STATIC, Linkage.SHARED]
             }
             publishing {
-                repositories { maven { url 'repo' } }
+                repositories { maven { url = file('repo') } }
             }
 """
         lib.writeToProject(testDirectory)
@@ -166,14 +166,14 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
             group = 'some.group'
             version = '1.2'
             publishing {
-                repositories { maven { url '${repoDir.toURI()}' } }
+                repositories { maven { url = '${repoDir.toURI()}' } }
             }
 
             library {
                 linkage = [Linkage.STATIC, Linkage.SHARED]
                 binaries.configureEach {
                     if (optimized) {
-                        compileTask.get().macros(WITH_FEATURE: "true")
+                        compileTask.get().setMacros(WITH_FEATURE: "true")
                     }
                 }
             }
@@ -187,11 +187,11 @@ class CppLibraryWithBothLinkagePublishingIntegrationTest extends AbstractInstall
         consumer.file("settings.gradle") << ""
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
-            repositories { maven { url '${repoDir.toURI()}' } }
+            repositories { maven { url = '${repoDir.toURI()}' } }
             dependencies { implementation 'some.group:greeting:1.2' }
             application {
                 binaries.get { it.optimized }.configure {
-                    compileTask.get().macros(WITH_FEATURE: "true")
+                    compileTask.get().setMacros(WITH_FEATURE: "true")
                 }
             }
         """

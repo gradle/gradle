@@ -21,9 +21,11 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.internal.tasks.TaskOptionsGenerator
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.options.OptionValues
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -319,6 +321,11 @@ class OptionReaderTest extends Specification {
         options[8].description == "Descr Field8"
         options[8].argumentType == List
         options[8].availableValues.isEmpty()
+
+        options[9].name == "field9"
+        options[9].description == "Descr Field9"
+        options[9].argumentType == String
+        options[9].availableValues == ["dynValue3", "dynValue4"] as Set
     }
 
     def "handles property field options"() {
@@ -422,7 +429,19 @@ class OptionReaderTest extends Specification {
         TaskOptionsGenerator.generate(new WithInvalidSomeOptionMethod(), reader).getAll()
         then:
         def e = thrown(OptionValidationException)
-        e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non-static, return a Collection<String> and take no parameters.";
+        e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidSomeOptionMethod'. Supported method must be non-static, return a Collection<String> or Provider<Collection<String>> and take no parameters."
+
+        when:
+        TaskOptionsGenerator.generate(new WithInvalidPropertyTypeSomeOptionMethod(), reader).getAll()
+        then:
+        e = thrown(OptionValidationException)
+        e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidPropertyTypeSomeOptionMethod'. Supported method must be non-static, return a Collection<String> or Provider<Collection<String>> and take no parameters."
+
+        when:
+        TaskOptionsGenerator.generate(new WithInvalidProviderCollectionTypeSomeOptionMethod(), reader).getAll()
+        then:
+        e = thrown(OptionValidationException)
+        e.message == "@OptionValues annotation not supported on method 'getValues' in class 'org.gradle.api.internal.tasks.options.OptionReaderTest\$WithInvalidProviderCollectionTypeSomeOptionMethod'. Supported method must be non-static, return a Collection<String> or Provider<Collection<String>> and take no parameters."
 
         when:
         TaskOptionsGenerator.generate(new TestClass8(), reader).getAll()
@@ -784,9 +803,17 @@ class OptionReaderTest extends Specification {
         @Option(description = "Descr Field8")
         List<String> field8
 
+        @Option(description = "Descr Field9")
+        String field9
+
         @OptionValues("field2")
         List<String> getField2Options() {
             return Arrays.asList("dynValue1", "dynValue2")
+        }
+
+        @OptionValues("field9")
+        Provider<List<String>> getField9Options() {
+            return TestUtil.providerFactory().provider { Arrays.asList("dynValue3", "dynValue4") }
         }
     }
 
@@ -861,6 +888,16 @@ class OptionReaderTest extends Specification {
     public static class WithInvalidSomeOptionMethod {
         @OptionValues("someOption")
         List<String> getValues(String someParam) { return Arrays.asList("something") }
+    }
+
+    public static class WithInvalidPropertyTypeSomeOptionMethod {
+        @OptionValues("someOption")
+        Property<List<String>> getValues() { null }
+    }
+
+    public static class WithInvalidProviderCollectionTypeSomeOptionMethod {
+        @OptionValues("someOption")
+        Property<String> getValues() { null }
     }
 
     public static class WithDuplicateSomeOptions {

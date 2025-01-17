@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -608,6 +608,15 @@ Set to `rich` to enable color and other rich output in the console output, regar
 +
 Set to `verbose` to enable color and other rich output like `rich` with output task names and outcomes at the lifecycle log level, (as is done by default in Gradle 3.5 and earlier).
 
+[[sec:command_line_problems]]
+=== Reporting problems
+
+`--no-problems-report`::
+Disable the generation of `build/reports/problems-report.html`, by default this report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
+
+`--problems-report`::
+Enable the generation of `build/reports/problems-report.html`. This is the default behaviour. The report is generated with problems provided to the <<reporting_problems.adoc#sec:reporting_problems,Problems API>>.
+
 [[sec:command_line_warnings]]
 === Showing or hiding warnings
 By default, Gradle won't display all warnings (e.g. deprecation warnings). Instead, Gradle will collect them and render a summary at the end of the build like:
@@ -652,10 +661,10 @@ The following options affect how builds are executed by changing what is built o
 Run the build as a <<composite_builds.adoc#composite_builds,composite>>, including the specified build.
 
 `--offline`::
-Specifies that the build should operate <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,without accessing network resources>>.
+Specifies that the build should operate <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,without accessing network resources>>.
 
 `-U`, `--refresh-dependencies`::
-Refresh the <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,state of dependencies>>.
+Refresh the <<dependency_caching.adoc#sec:controlling-dependency-caching-command-line,state of dependencies>>.
 
 `--continue`::
 <<command_line_interface.adoc#sec:continue_build_on_failure,Continue task execution>> after a task failure.
@@ -667,10 +676,10 @@ Run Gradle with all task actions disabled. Use this to show which task would hav
 Enables <<#sec:continuous_build,continuous build>>. Gradle does not exit and will re-execute tasks when task file inputs change.
 
 `--write-locks`::
-Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#dependency-locking,lock state>> persisted.
+Indicates that all resolved configurations that are _lockable_ should have their <<dependency_locking.adoc#locking-versions,lock state>> persisted.
 
 `--update-locks <group:name>[,<group:name>]*`::
-Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#dependency-locking,lock file>>.
+Indicates that versions for the specified modules have to be updated in the <<dependency_locking.adoc#locking-versions,lock file>>.
 +
 This flag also implies `--write-locks`.
 
@@ -722,7 +731,7 @@ Sets a <<build_environment.adoc#sec:gradle_system_properties,system property>> o
 Specifies an <<init_scripts.adoc#init_scripts,initialization script>>.
 
 `-P`, `--project-prop`::
-Sets a <<project_properties.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
+Sets a <<build_environment.adoc#sec:project_properties,project property>> of the root project, for example `-Pmyprop=myvalue`.
 
 `-Dorg.gradle.jvmargs`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that sets JVM arguments.
@@ -784,38 +793,4 @@ Full details on using these options are documented in the <<gradle_wrapper.adoc#
 Continuous Build allows you to automatically re-execute the requested tasks when file inputs change.
 You can execute the build in this mode using the `-t` or `--continuous` command-line option.
 
-For example, you can continuously run the `test` task and all dependent tasks by running:
-
-----
-$ gradle test --continuous
-----
-
-Gradle will behave as if you ran `gradle test` after a change to sources or tests that contribute to the requested tasks.
-This means unrelated changes (such as changes to build scripts) will not trigger a rebuild.
-To incorporate build logic changes, the continuous build must be restarted manually.
-
-Continuous build uses <<file_system_watching.adoc#sec:daemon_watch_fs,file system watching>> to detect changes to the inputs.
-If file system watching does not work on your system, then continuous build won't work either.
-In particular, continuous build does not work when using `--no-daemon`.
-
-When Gradle detects a change to the inputs, it will not trigger the build immediately.
-Instead, it will wait until no additional changes are detected for a certain period of time - the quiet period.
-You can configure the quiet period in milliseconds by the Gradle property `<<build_environment.adoc#sec:gradle_configuration_properties,org.gradle.continuous.quietperiod>>`.
-
-=== Terminating Continuous Build
-If Gradle is attached to an interactive input source, such as a terminal, the continuous build can be exited by pressing `CTRL-D` (On Microsoft Windows, it is required to also press `ENTER` or `RETURN` after `CTRL-D`).
-
-If Gradle is not attached to an interactive input source (e.g. is running as part of a script), the build process must be terminated (e.g. using the `kill` command or similar).
-
-If the build is being executed via the Tooling API, the build can be cancelled using the Tooling API's cancellation mechanism.
-
-Learn more in <<continuous_builds.adoc#continuous_builds>> Continuous Builds.
-
-[[sec:changes_to_symbolic_links]]
-==== Changes to symbolic links
-In general, Gradle will not detect changes to symbolic links or to files referenced via symbolic links.
-
-[[sec:changes_to_build_logic_are_not_considered]]
-==== Changes to build logic are not considered
-The current implementation does not recalculate the build model on subsequent builds.
-This means that changes to task configuration, or any other change to the build model, are effectively ignored.
+Learn more in <<continuous_builds.adoc#continuous_builds,Continuous Builds>>.

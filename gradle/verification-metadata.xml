@@ -70,6 +70,7 @@
       </ignored-keys>
       <trusted-keys>
          <trusted-key id="015479E1055341431B4545AB72475FD306B9CAB7" group="com.googlecode.javaewah"/>
+         <trusted-key id="0181A4828FA27B6BE6F1F5A68611CD28F472E006" group="org.jline"/>
          <trusted-key id="019082BC00E0324E2AEF4CF00D3B328562A119A7" group="org.openjdk.jmh"/>
          <trusted-key id="04543577D6A9CC626239C50C7ECBD740FF06AEB5">
             <trusting group="com.sun.xml.bind"/>
@@ -100,6 +101,10 @@
          <trusted-key id="1FA868A348719E88B6D0DE24C03EF1D7D692BCFF" group="org.scala-lang"/>
          <trusted-key id="21F0942275EA159A501D375328852008A47BB995" group="^com[.]google($|([.].*))" regex="true"/>
          <trusted-key id="253E8E4C6FB28D11748115C1249DEE8E2C07A0A2" group="com.github.javaparser"/>
+         <trusted-key id="2655176F748FD83725B4805FF2A01147D830C125">
+            <trusting group="com.github.docker-java"/>
+            <trusting group="org.testcontainers"/>
+         </trusted-key>
          <trusted-key id="28118C070CB22A0175A2E8D43D12CA2AC19F3181">
             <trusting group="com.fasterxml.jackson.core"/>
             <trusting group="com.fasterxml.woodstox"/>
@@ -826,6 +831,11 @@
             <pgp value="CB764D538CF417822B4108341CF69814023DEDE9"/>
          </artifact>
       </component>
+      <component group="dev.drewhamilton.poko" name="poko-annotations-jvm" version="0.16.0">
+         <artifact name="poko-annotations-jvm-0.16.0.jar">
+            <pgp value="09939C73246B4BA7444CAA453D002DBC5EA9615F"/>
+         </artifact>
+      </component>
       <component group="flot" name="flot" version="0.8.1">
          <artifact name="flot-0.8.1-min.js">
             <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f" origin="Verified" reason="Artifact is not signed"/>
@@ -886,8 +896,8 @@
             <pgp value="47EB6836245D2D40E89DFB4136D4E9618F3ADAB5"/>
          </artifact>
       </component>
-      <component group="io.gitlab.arturbosch.detekt" name="detekt-gradle-plugin" version="1.23.6">
-         <artifact name="detekt-gradle-plugin-1.23.6.jar">
+      <component group="io.gitlab.arturbosch.detekt" name="detekt-gradle-plugin" version="1.23.7">
+         <artifact name="detekt-gradle-plugin-1.23.7.jar">
             <pgp value="5F6C2148AD4911FE308110E5F0D0AE433308B042"/>
          </artifact>
       </component>
@@ -1040,6 +1050,11 @@
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
          <artifact name="zero-allocation-hashing-0.10.1.jar">
             <pgp value="CB3808E03CD602A6DC5B882552931F4B72B4F54C"/>
+         </artifact>
+      </component>
+      <component group="net.openhft" name="zero-allocation-hashing" version="0.16">
+         <artifact name="zero-allocation-hashing-0.16.jar">
+            <pgp value="A7D8BE3D575D6C5040E889331B6E3BDDD4415872"/>
          </artifact>
       </component>
       <component group="net.rubygrapefruit" name="ansi-control-sequence-util" version="0.3">
@@ -1403,9 +1418,9 @@
             <sha256 value="5ef4102929b54c1b368be19178475c941bff09322c838484bb4dee66b6649419" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.23">
-         <artifact name="gradle-guides-plugin-0.23.jar">
-            <sha256 value="d645e5bf6fdd881541e085289e28fa298b64ac8d208a006ac649756074732a6f" origin="Verified" reason="Artifact is not signed"/>
+      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.23.1">
+         <artifact name="gradle-guides-plugin-0.23.1.jar">
+            <sha256 value="e2945335aadc5d6e9307d9daf57fc3b2fc19f6d933445cc8d47bab1d7d48adc1" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="org.gradle.kotlin" name="plugins" version="1.3.6">
@@ -1421,6 +1436,11 @@
       <component group="org.iq80.snappy" name="snappy" version="0.4">
          <artifact name="snappy-0.4.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
+         </artifact>
+      </component>
+      <component group="org.jcommander" name="jcommander" version="1.85">
+         <artifact name="jcommander-1.85.jar">
+            <pgp value="1D85469D8559C2E1DF5F925131D2D79DF7E85DD3"/>
          </artifact>
       </component>
       <component group="org.jetbrains" name="annotations" version="13.0">
@@ -1448,11 +1468,6 @@
             <sha256 value="30e05222bc067fffb896a3276b5f1e3f29450bf1d9461d27a19ce0efc793b5cd" origin="Verified" reason="No asc file on plugins.gradle.org"/>
          </artifact>
       </component>
-      <component group="org.jetbrains.kotlin" name="kotlin-reflect" version="2.0.0">
-         <artifact name="kotlin-reflect-2.0.0.jar">
-            <sha256 value="111bd906921937f76da17760641116d04b57a7a12fcf980efe7c6767f45179f0" origin="Verified" reason="No asc file on plugins.gradle.org"/>
-         </artifact>
-      </component>
       <component group="org.jetbrains.kotlin" name="kotlin-stdlib-jdk7" version="1.6.21">
          <artifact name="kotlin-stdlib-jdk7-1.6.21.jar">
             <sha256 value="f1b0634dbb94172038463020bb2dd45ca26849f8ce29d625acb0f1569d11dbee" reason="Artifact is not signed"/>
@@ -1470,6 +1485,11 @@
       </component>
       <component group="org.jline" name="jline" version="3.22.0">
          <artifact name="jline-3.22.0.jar">
+            <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
+         </artifact>
+      </component>
+      <component group="org.jline" name="jline" version="3.26.3">
+         <artifact name="jline-3.26.3.jar">
             <pgp value="073F7A9345756F3B40CDB99E6C70A3B7599C5736"/>
          </artifact>
       </component>
@@ -1572,6 +1592,11 @@
             <pgp value="600D21219963F228200A72375365A8A69292AF1A"/>
          </artifact>
       </component>
+      <component group="org.scala-lang.modules" name="scala-xml_2.13" version="2.3.0">
+         <artifact name="scala-xml_2.13-2.3.0.jar">
+            <pgp value="F3D9FF1EE50634CC57D1E380C2952540150670BE"/>
+         </artifact>
+      </component>
       <component group="org.scijava" name="native-lib-loader" version="2.0.2">
          <artifact name="native-lib-loader-2.0.2.jar">
             <pgp value="DED5A0BEA2A8CC381CE986CEAA89D120A76C41E8"/>
@@ -1582,8 +1607,8 @@
             <sha256 value="8e6439fcc1f2fe87b5dfc20eb13289acba8047e9cfadf45ad3dc5c57a9bcd054" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="org.snakeyaml" name="snakeyaml-engine" version="2.6">
-         <artifact name="snakeyaml-engine-2.6.jar">
+      <component group="org.snakeyaml" name="snakeyaml-engine" version="2.7">
+         <artifact name="snakeyaml-engine-2.7.jar">
             <pgp value="120D6F34E627ED3A772EBBFE55C7E5E701832382"/>
          </artifact>
       </component>

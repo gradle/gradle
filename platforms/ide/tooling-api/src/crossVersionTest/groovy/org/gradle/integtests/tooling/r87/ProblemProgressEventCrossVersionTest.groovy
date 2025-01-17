@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r87
 
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -27,12 +28,11 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
-@ToolingApiVersion(">=8.7")
+@ToolingApiVersion(">=8.7 <8.12")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -87,8 +87,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
-            getProblems().${targetVersion >= GradleVersion.version("8.11") ? 'getReporter()' : 'forNamespace("org.example.plugin")'}).reporting {
-                it.${targetVersion < GradleVersion.version("8.8") ? 'label("shortProblemMessage").category("main", "sub", "id")' : 'id("id", "shortProblemMessage")'}
+            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
@@ -148,7 +148,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         when:
         withConnection {
             it.model(CustomModel)
-                .setJavaHome(jdk17.javaHome)
+                .setJavaHome(jdk21.javaHome)
                 .addProgressListener(listener)
                 .get()
         }
@@ -198,7 +198,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         @Override
         void statusChanged(ProgressEvent event) {
             if (event instanceof ProblemEvent) {
-                if (!(event instanceof SingleProblemEvent) || event.definition.id.name != "executing-gradle-on-jvm-versions-and-lower") {
+                if (!(event instanceof SingleProblemEvent) || event.problem.definition.id.name != "executing-gradle-on-jvm-versions-and-lower") {
                     this.problems.add(event)
                 }
             }

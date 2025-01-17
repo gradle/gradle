@@ -39,6 +39,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import static org.gradle.test.fixtures.server.http.BlockingHttpServer.getCurrentTimestamp;
+
 class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
     private final int timeoutMs;
     private final AtomicInteger counter;
@@ -130,11 +132,11 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
             int id = counter.incrementAndGet();
 
             RequestOutcome outcome = requestStarted(httpExchange);
-            System.out.printf("[%d] handling %s%n", id, outcome.getDisplayName());
+            System.out.printf("[%s][%d] handling %s%n", getCurrentTimestamp(), id, outcome.getDisplayName());
 
             try {
                 ResponseProducer responseProducer = selectProducer(id, httpExchange);
-                System.out.printf("[%d] sending response for %s%n", id, outcome.getDisplayName());
+                System.out.printf("[%s][%d] sending response for %s%n", getCurrentTimestamp(), id, outcome.getDisplayName());
                 if (!responseProducer.isFailure()) {
                     responseProducer.writeTo(id, httpExchange);
                 } else {
@@ -142,11 +144,11 @@ class ChainingHttpHandler implements HttpHandler, ResettableExpectations {
                     requestFailed(outcome, failure);
                     String stacktrace = ExceptionUtils.getStackTrace(failure);
                     dumpThreadsUponTimeout(stacktrace);
-                    System.out.printf("[%d] handling failed with exception %s%n", id, stacktrace);
+                    System.out.printf("[%s][%d] handling failed with exception %s%n", getCurrentTimestamp(), id, stacktrace);
                     sendFailure(httpExchange, 400, outcome);
                 }
             } catch (Throwable t) {
-                System.out.printf("[%d] handling %s failed with exception%n", id, outcome.getDisplayName());
+                System.out.printf("[%s][%d] handling %s failed with exception%n", getCurrentTimestamp(), id, outcome.getDisplayName());
                 try {
                     sendFailure(httpExchange, 500, outcome);
                 } catch (IOException e) {

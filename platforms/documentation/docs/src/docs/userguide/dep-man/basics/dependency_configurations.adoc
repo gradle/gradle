@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[dependency-configurations]]
+[[two-dependency-configurations]]
 = 2. Dependency Configurations
 
 Every dependency declared for a Gradle project applies to a specific scope.
@@ -49,7 +49,7 @@ They determine how and when dependencies are used in various stages of the build
 
 Configurations are a fundamental part of dependency resolution in Gradle.
 
-[[sec:what-are-dependency-configurations]]
+[[sub:what-are-dependency-configurations]]
 == Understanding dependency configurations
 
 Gradle represents the scope of a dependency with the help of a link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration].
@@ -99,6 +99,7 @@ These configurations represent the various classpaths needed for source code com
 
 |===
 
+[[sub:dependency-declaration-configurations]]
 === Dependency declaration Configurations
 
 The *dependency declaration configurations* (`compileOnly`, `implementation`, `runtimeOnly`) focus on declaring and managing dependencies based on their usage (compile time, runtime, API exposure):
@@ -128,6 +129,7 @@ dependencies {
 =====
 ====
 
+[[sub:other-configurations]]
 === Other Configurations
 
 There are other types of configurations (such as `runtimeClasspath`, `compileClasspath`, `apiElements`, `runtimeElements`), but they are not used to declare dependencies.
@@ -166,7 +168,7 @@ dependencies {
 
 Creating a custom configuration helps manage and isolate dependencies, ensuring they are only included in the relevant classpaths and build processes.
 
-[[sec:view-configurations]]
+[[sub:view-configurations]]
 == Viewing configurations
 
 The `dependencies` task provides an overview of the dependencies of your project.
@@ -187,4 +189,4 @@ implementation - Implementation only dependencies for source set 'main'.
 ----
 
 [.text-right]
-**Next Step:** <<declaring_repositories.adoc#declaring-basic-repositories,Learn about Declaring Repositories>> >>
+**Next Step:** <<declaring_repositories.adoc#three-declaring-repositories,Learn about Declaring Repositories>> >>

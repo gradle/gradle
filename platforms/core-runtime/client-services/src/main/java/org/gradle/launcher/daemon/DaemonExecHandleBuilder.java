@@ -17,15 +17,15 @@
 package org.gradle.launcher.daemon;
 
 import org.gradle.launcher.daemon.bootstrap.DaemonOutputConsumer;
+import org.gradle.process.internal.ClientExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
 public class DaemonExecHandleBuilder {
-    public ExecHandle build(List<String> args, File workingDir, DaemonOutputConsumer outputConsumer, InputStream inputStream, ExecHandleBuilder builder) {
+    public ExecHandle build(List<String> args, File workingDir, DaemonOutputConsumer outputConsumer, InputStream inputStream, ClientExecHandleBuilder builder) {
         builder.commandLine(args);
         builder.setWorkingDir(workingDir);
         builder.setStandardInput(inputStream);

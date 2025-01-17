@@ -16,7 +16,6 @@
 
 package org.gradle.workers.internal
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -62,6 +61,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             import java.io.File;
             import java.io.FileWriter;
             import org.gradle.api.problems.Problems;
+            import org.gradle.api.problems.ProblemId;
+            import org.gradle.api.problems.ProblemGroup;
             import org.gradle.internal.operations.CurrentBuildOperationRef;
 
             import org.gradle.workers.WorkAction;
@@ -78,8 +79,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     Exception wrappedException = new Exception("Wrapped cause");
                     // Create and report a problem
                     // This needs to be Java 6 compatible, as we are in a worker
-                     getProblems().getReporter().reporting(problem -> problem
-                            .id("type", "label")
+                    ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
+                    getProblems().getReporter().report(problemId, problem -> problem
                             .stackLocation()
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );

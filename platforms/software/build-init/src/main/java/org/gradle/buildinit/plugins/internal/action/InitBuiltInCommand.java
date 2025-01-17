@@ -20,11 +20,21 @@ import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
+// TODO: Consider moving the InitBuiltInCommand (and help) to core, as they are not Software Platform-specific
 @ServiceScope(Scope.Global.class)
 public class InitBuiltInCommand implements BuiltInCommand {
+    public static final String NAME = "init";
+
+    @Override
+    @Nonnull
+    public String getDisplayName() {
+        return NAME;
+    }
+
     @Override
     public List<String> asDefaultTask() {
         return Collections.emptyList();
@@ -32,6 +42,16 @@ public class InitBuiltInCommand implements BuiltInCommand {
 
     @Override
     public boolean commandLineMatches(List<String> taskNames) {
-        return taskNames.size() > 0 && taskNames.get(0).equals("init");
+        return !taskNames.isEmpty() && taskNames.stream().anyMatch(taskName -> taskName.equals(NAME));
+    }
+
+    @Override
+    public boolean requireEmptyBuildDefinition() {
+        return true;
+    }
+
+    @Override
+    public boolean isExclusive() {
+        return true;
     }
 }

@@ -1,0 +1,23 @@
+Test suite 'all tests' > Test suite 'ParallelSuite' > Test suite 'Worker 1' > Test parallelTest1(parallelTest1) succeeded
+Test suite 'all tests' > Test suite 'ParallelSuite' > Test suite 'Worker 2' > Test parallelTest2(parallelTest2) succeeded
+Test suite 'all tests' > Test suite 'ParallelSuite' > Test suite 'Worker 2' > Test parallelTest3(parallelTest3) succeeded
+Test suite 'all tests' > Test suite 'ParallelSuite' > Test suite 'Worker 1' succeeded
+Test suite 'all tests' > Test suite 'ParallelSuite' > Test suite 'Worker 2' succeeded
+Test suite 'all tests' > Test suite 'ParallelSuite' > Test suite 'Worker 3' succeeded
+Test suite 'all tests' > Test suite 'ParallelSuite' succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test0(test0) skipped
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test1(test1) succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test2(test2) succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test3(test3) skipped
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test4(test4) succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test5(test5) succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test6(test6) skipped
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test7(test7) succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test8(test8) succeeded
+Test suite 'all tests' > Test suite 'MyTestSuite' > Test test9(test9) skipped
+Test suite 'all tests' > Test suite 'MyTestSuite' succeeded
+Test suite 'all tests' > Test suite 'OuterNestingSuite' > Test suite 'DeeperNestingSuite' > Test suite 'InnerNestingSuite' > Test nestedTest(nestedTest) succeeded
+Test suite 'all tests' > Test suite 'OuterNestingSuite' > Test suite 'DeeperNestingSuite' > Test suite 'InnerNestingSuite' succeeded
+Test suite 'all tests' > Test suite 'OuterNestingSuite' > Test suite 'DeeperNestingSuite' succeeded
+Test suite 'all tests' > Test suite 'OuterNestingSuite' succeeded
+Test suite 'all tests' succeeded

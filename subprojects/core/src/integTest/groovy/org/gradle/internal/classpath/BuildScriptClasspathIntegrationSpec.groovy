@@ -138,7 +138,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
             buildscript {
                 repositories {
                     flatDir { dirs 'repo' }
-                    maven { url "${repo.uri}" }
+                    maven { url = "${repo.uri}" }
                 }
                 dependencies {
                     ${dependencies}

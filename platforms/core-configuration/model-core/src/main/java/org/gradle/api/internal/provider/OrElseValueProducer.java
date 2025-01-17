@@ -18,27 +18,30 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.internal.evaluation.EvaluationContext;
+import org.gradle.internal.evaluation.EvaluationOwner;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
-    private final EvaluationContext.EvaluationOwner owner;
+    private final EvaluationOwner owner;
     private final ProviderInternal<?> left;
     @Nullable
     private final ProviderInternal<?> right;
     private final ValueSupplier.ValueProducer leftProducer;
     private final ValueSupplier.ValueProducer rightProducer;
 
-    public OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left) {
+    public OrElseValueProducer(EvaluationScopeContext context, ProviderInternal<?> left) {
         this(context, left, null, ValueSupplier.ValueProducer.unknown());
     }
 
-    public OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, ProviderInternal<?> right) {
+    public OrElseValueProducer(EvaluationScopeContext context, ProviderInternal<?> left, ProviderInternal<?> right) {
         this(context, left, right, right.getProducer());
     }
 
-    private OrElseValueProducer(EvaluationContext.ScopeContext context, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
+    private OrElseValueProducer(EvaluationScopeContext context, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
         this.owner = Objects.requireNonNull(context.getOwner());
         this.left = left;
         this.right = right;
@@ -54,7 +57,7 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
 
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
-        try (EvaluationContext.ScopeContext ignored = EvaluationContext.current().open(owner)) {
+        try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
                     leftProducer.visitProducerTasks(visitor);

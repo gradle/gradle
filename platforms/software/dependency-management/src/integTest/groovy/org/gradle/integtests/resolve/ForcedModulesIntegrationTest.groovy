@@ -31,7 +31,7 @@ class ForcedModulesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
 apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+repositories { maven { url = "${mavenRepo.uri}" } }
 
 dependencies {
     implementation 'org:foo:1.3.3'
@@ -61,7 +61,7 @@ task checkDeps {
 
         buildFile << """
 apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+repositories { maven { url = "${mavenRepo.uri}" } }
 
 dependencies {
     implementation 'org:foo:1.3.3'
@@ -93,7 +93,7 @@ task checkDeps {
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	repositories { maven { url "${mavenRepo.uri}" } }
+	repositories { maven { url = "${mavenRepo.uri}" } }
 }
 
 project(':api') {
@@ -143,7 +143,7 @@ allprojects {
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	repositories { maven { url "${mavenRepo.uri}" } }
+	repositories { maven { url = "${mavenRepo.uri}" } }
 	group = 'org.foo.unittests'
 	version = '1.0'
 }
@@ -206,7 +206,7 @@ allprojects {
         buildFile << """
 allprojects {
 	apply plugin: 'java'
-	repositories { maven { url "${mavenRepo.uri}" } }
+	repositories { maven { url = "${mavenRepo.uri}" } }
 }
 
 project(':api') {
@@ -251,7 +251,7 @@ project(':tool') {
 
         buildFile << """
 apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+repositories { maven { url = "${mavenRepo.uri}" } }
 
 dependencies {
     implementation 'org:foo:1.3.3'
@@ -278,7 +278,7 @@ task checkDeps {
 
         buildFile << """
 apply plugin: 'java'
-repositories { maven { url "${mavenRepo.uri}" } }
+repositories { maven { url = "${mavenRepo.uri}" } }
 
 dependencies {
     implementation 'org:foo:1.0'

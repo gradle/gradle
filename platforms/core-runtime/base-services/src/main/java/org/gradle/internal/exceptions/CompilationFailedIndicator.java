@@ -16,5 +16,12 @@
 
 package org.gradle.internal.exceptions;
 
+import javax.annotation.Nullable;
+
 public interface CompilationFailedIndicator extends NonGradleCause {
+
+    @Nullable
+    String getDiagnosticCounts();
+
+    String getShortMessage();
 }

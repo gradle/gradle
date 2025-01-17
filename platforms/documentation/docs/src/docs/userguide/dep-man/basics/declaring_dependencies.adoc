@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring-basic-dependencies]]
+[[one-declaring-dependencies]]
 = 1. Declaring dependencies
 
 Declaring dependencies in Gradle involves specifying libraries or files that your project depends on.
@@ -34,6 +34,7 @@ The decisions we make in dependency management often depend on the type of proje
 
 image::declaring-dependencies-1.png[]
 
+[[sub:add-a-dependency]]
 == Adding a dependency
 
 To add a dependency in Gradle, you use the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`dependencies{}`] block in your build script.
@@ -54,15 +55,14 @@ dependencies {
 Note:
 
 1. Gradle automatically includes _transitive dependencies_, which are dependencies of your dependencies.
-2. Gradle offers several  <<dependency_configurations.adoc#dependency-configurations,_configuration_>> options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
-3. You can specify the <<declaring_repositories_adv.adoc#declaring-repositories,repositories>> where Gradle should look for dependencies in your build file.
+2. Gradle offers several  <<dependency_configurations.adoc#two-dependency-configurations,_configuration_>> options for dependencies, which define the scope in which dependencies are used, such as compile-time, runtime, or test-specific scenarios.
+3. You can specify the <<declaring_repositories_basics.adoc#declaring-repositories-basics,repositories>> where Gradle should look for dependencies in your build file.
 
-[[sec:dependency-types]]
+[[sub:dependency-types]]
 == Understanding types of dependencies
 
 There are three kinds of dependencies, module dependencies, project dependencies, and file dependencies.
 
-[[sub:module_dependencies]]
 === 1. Module dependencies
 
 Module dependencies are the most common dependencies.
@@ -73,7 +73,6 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
 ====
 
-[[sub:project_dependencies]]
 === 2. Project dependencies
 
 Project dependencies allow you to declare dependencies on other projects within the same build.
@@ -86,7 +85,6 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-project
 include::sample[dir="snippets/dependencyManagement/declaringDependencies-projectDependencies/groovy/web-service",files="build.gradle[tags=project-dependencies]"]
 ====
 
-[[sub:file_dependencies]]
 === 3. File dependencies
 
 In some projects, you might not rely on binary repository products like link:https://jfrog.com/artifactory/[JFrog Artifactory] or link:https://www.sonatype.com/products/sonatype-nexus-repository[Sonatype Nexus] for hosting and resolving external dependencies.
@@ -134,7 +132,7 @@ Where:
 
 Take a quick look at the link:https://mvnrepository.com/artifact/com.google.guava/guava[Guava page in Maven Central] as a reference.
 
-[[sec:listing_dependencies_basics]]
+[[sub:listing-project-dependencies]]
 == Listing project dependencies
 
 The `dependencies` task provides an overview of the dependencies of your project.
@@ -165,4 +163,4 @@ As for the `runtimeOnly` configuration, the `org.org.apache.commons:commons-lang
 We also see a list of transitive dependencies for `com.google.guava:guava:30.0-jre` (which are the dependencies for the `guava` library), such as `com.google.guava:failureaccess:1.0.1` in the `runtimeClasspath` configuration.
 
 [.text-right]
-**Next Step:** <<dependency_configurations.adoc#dependency-configurations,Learn about Dependency Configurations>> >>
+**Next Step:** <<dependency_configurations.adoc#two-dependency-configurations,Learn about Dependency Configurations>> >>

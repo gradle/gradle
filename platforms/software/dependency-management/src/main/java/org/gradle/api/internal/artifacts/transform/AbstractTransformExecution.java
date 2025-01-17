@@ -46,6 +46,8 @@ import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.operations.dependencies.transforms.ExecuteTransformActionBuildOperationType;
 import org.gradle.operations.dependencies.transforms.IdentifyTransformExecutionProgressDetails;
 import org.gradle.operations.dependencies.transforms.SnapshotTransformInputsBuildOperationType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
@@ -59,6 +61,8 @@ import static org.gradle.internal.properties.InputBehavior.INCREMENTAL;
 import static org.gradle.internal.properties.InputBehavior.NON_INCREMENTAL;
 
 abstract class AbstractTransformExecution implements UnitOfWork {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractTransformExecution.class);
     private static final CachingDisabledReason NOT_CACHEABLE = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching not enabled.");
     private static final CachingDisabledReason CACHING_DISABLED_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.NOT_CACHEABLE, "Caching disabled by property ('org.gradle.internal.transform-caching-disabled')");
 
@@ -142,6 +146,9 @@ abstract class AbstractTransformExecution implements UnitOfWork {
             @Override
             public TransformExecutionResult call(BuildOperationContext context) {
                 try {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Transforming {} with {}", subject.getDisplayName(), transform.getDisplayName());
+                    }
                     File workspace = executionRequest.getWorkspace();
                     InputChangesInternal inputChanges = executionRequest.getInputChanges().orElse(null);
                     TransformExecutionResult result = transform.transform(inputArtifactProvider, getOutputDir(workspace), dependencies, inputChanges);

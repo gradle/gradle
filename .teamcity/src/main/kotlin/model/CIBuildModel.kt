@@ -11,6 +11,7 @@ import common.VersionedSettingsBranch
 import common.toCapitalized
 import configurations.BuildDistributions
 import configurations.CheckLinks
+import configurations.CheckTeamCityKotlinDSL
 import configurations.CompileAll
 import configurations.DocsTestType
 import configurations.DocsTestType.CONFIG_CACHE_DISABLED
@@ -80,6 +81,7 @@ data class CIBuildModel(
                 SpecificBuild.Gradleception,
                 SpecificBuild.GradleceptionWithGroovy4,
                 SpecificBuild.CheckLinks,
+                SpecificBuild.CheckTeamCityKotlinDSL,
                 SpecificBuild.SmokeTestsMaxJavaVersion,
                 SpecificBuild.SantaTrackerSmokeTests,
                 SpecificBuild.ConfigCacheSantaTrackerSmokeTests,
@@ -154,6 +156,7 @@ data class CIBuildModel(
                 TestCoverage(40, TestType.configCache, Os.LINUX, JvmCategory.MAX_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AMD64),
                 TestCoverage(41, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
                 TestCoverage(42, TestType.configCache, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AMD64),
+                TestCoverage(43, TestType.quick, Os.ALPINE, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE)
             ),
         ),
         Stage(
@@ -398,6 +401,11 @@ enum class SpecificBuild {
     CheckLinks {
         override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
             return CheckLinks(model, stage)
+        }
+    },
+    CheckTeamCityKotlinDSL {
+        override fun create(model: CIBuildModel, stage: Stage): OsAwareBaseGradleBuildType {
+            return CheckTeamCityKotlinDSL(model, stage)
         }
     },
     TestPerformanceTest {

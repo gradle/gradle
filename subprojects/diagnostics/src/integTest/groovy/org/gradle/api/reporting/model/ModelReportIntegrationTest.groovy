@@ -22,6 +22,11 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 @UnsupportedWithConfigurationCache(because = "software model")
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
+    @Override
+    protected void setupExecuter() {
+        super.setupExecuter()
+    }
+
     def "displays basic structure of an empty project"() {
         given:
         buildFile

@@ -8,7 +8,6 @@ public class ServerPlugin implements Plugin<Project> {
     public void apply(Project project) {
         ServerExtension extension = project.getExtensions().create("server", ServerExtension.class);
         extension.getUrl().convention("https://www.myorg.com/server");
-        Deploy deployTask = project.getTasks().create("deploy", Deploy.class);
-        deployTask.getUrl().set(extension.getUrl());
+        project.getTasks().register("deploy", Deploy.class, deployTask -> deployTask.getUrl().set(extension.getUrl()));
     }
 }

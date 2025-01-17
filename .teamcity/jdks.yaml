@@ -1,145 +1,177 @@
-version: v1
+version: "v1"
 jdks:
-  - param: "linux.java7.oracle.64bit"
-    os: linux
-    arch: amd64
+  - params:
+      - "linux.java7.oracle.64bit"
+    os: "linux"
+    arch: "amd64"
     vendor: "oracle"
     version: "7u80"
-    sha256: bad9a731639655118740bee119139c1ed019737ec802a630dd7ad7aab4309623
-  - params: [ "linux.java8.openjdk.64bit", "linux.java8.oracle.64bit" ]
-    os: linux
-    arch: amd64
+    sha256: "bad9a731639655118740bee119139c1ed019737ec802a630dd7ad7aab4309623"
+  - params:
+      - "linux.java8.openjdk.64bit"
+      - "linux.java8.oracle.64bit"
+    os: "linux"
+    arch: "amd64"
     vendor: "oracle"
     version: "8u401"
-    sha256: 19684fccd7ff32a8400e952a643f0049449a772ef63b8037d5b917cbd137d173
-  - param: "linux.java11.openjdk.64bit"
-    os: linux
-    arch: amd64
+    sha256: "19684fccd7ff32a8400e952a643f0049449a772ef63b8037d5b917cbd137d173"
+  - params:
+      - "linux.java11.openjdk.64bit"
+    os: "linux"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-11.0.23+9"
-    sha256: 23e47ea7a3015be3240f21185fd902adebdcf76530757c9b482c7eb5bd3417c2
-  - params: [ "env.JAVA_HOME", "linux.java17.openjdk.64bit" ]
-    os: linux
-    arch: amd64
+    version: "jdk-11.0.25+9"
+    sha256: "191baa2e052627614022171400a917d28f0987dc54da48aaf07b06f552bb9884"
+  - params:
+      - "env.JAVA_HOME"
+      - "linux.java17.openjdk.64bit"
+    os: "linux"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-17.0.11+9"
-    sha256: aa7fb6bb342319d227a838af5c363bfa1b4a670c209372f9e6585bd79da6220c
-  - param: "linux.java21.openjdk.64bit"
-    os: linux
-    arch: amd64
+    version: "jdk-17.0.13+11"
+    sha256: "8682892fc02965930b9022c066fa164dd6f458ef4a5dc262016aa28333b30f49"
+  - params:
+      - "linux.java21.openjdk.64bit"
+    os: "linux"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-21.0.3+9"
-    sha256: fffa52c22d797b715a962e6c8d11ec7d79b90dd819b5bc51d62137ea4b22a340
-  - param: "linux.java23.openjdk.64bit"
-    os: linux
-    arch: amd64
+    version: "jdk-21.0.5+11"
+    sha256: "3c654d98404c073b8a7e66bffb27f4ae3e7ede47d13284c132d40a83144bfd8c"
+  - params:
+      - "linux.java23.openjdk.64bit"
+    os: "linux"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-23+30-ea-beta"
-    sha256: a322985986f0d0118a308841b34fabd3db78b5b49e31439d4b23bffb69053023
-  - params: [ "linux.java8.openjdk.aarch64", "linux.java8.oracle.aarch64" ]
-    os: linux
-    arch: aarch64
+    version: "jdk-23.0.1+11"
+    sha256: "2400267e4e9c0f6ae880a4d763af6caf18c673714bdee5debf8388b0b5d52886"
+  - params:
+      - "linux.java8.openjdk.aarch64"
+      - "linux.java8.oracle.aarch64"
+    os: "linux"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk8u422-b05"
-    sha256: af98a839ec238106078bd360af9e405dc6665c05ee837178ed13b92193681923
-  - param: "linux.java11.openjdk.aarch64"
-    os: linux
-    arch: aarch64
+    version: "jdk8u432-b06"
+    sha256: "383caabc20428e9500f2e07965317ed4387a0e336104483e29a9e06eeffbf26b"
+  - params:
+      - "linux.java11.openjdk.aarch64"
+    os: "linux"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-11.0.24+8"
-    sha256: 04e21301fedc76841fb03929ac6cacfbbda30b5693acfd515a8f34d4a0cdeb28
-  - params: [ "env.JAVA_HOME", "linux.java17.openjdk.aarch64" ]
-    os: linux
-    arch: aarch64
+    version: "jdk-11.0.25+9"
+    sha256: "f2087cc3abdd509b74facf8e43e81e36244d14c70dec080b8f3a662695417ca7"
+  - params:
+      - "env.JAVA_HOME"
+      - "linux.java17.openjdk.aarch64"
+    os: "linux"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-17.0.12+7"
-    sha256: 8257de06bf37f0c8f19f8d542e2ab5a4e17db3ca5f29d041bd0b02ab265db021
-  - param: "linux.java21.openjdk.aarch64"
-    os: linux
-    arch: aarch64
+    version: "jdk-17.0.13+11"
+    sha256: "0c17fa4f14c0d2cc9e9334f996fccdddc5da4459d768f3105c7ff0283c47bf62"
+  - params:
+      - "linux.java21.openjdk.aarch64"
+    os: "linux"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-21.0.4+7"
-    sha256: d768eecddd7a515711659e02caef8516b7b7177fa34880a56398fd9822593a79
-  - params: [ "windows.java8.openjdk.64bit", "windows.java8.oracle.64bit" ]
-    os: windows
-    arch: amd64
+    version: "jdk-21.0.5+11"
+    sha256: "6482639ed9fd22aa2e704cc366848b1b3e1586d2bf1213869c43e80bca58fe5c"
+  - params:
+      - "windows.java8.openjdk.64bit"
+      - "windows.java8.oracle.64bit"
+    os: "windows"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk8u392-b08"
-    sha256: 68711e896d0c40cd5accc06112a188c493658f9194a23fe8f8b6695394d9acf7
-  - param: "windows.java11.openjdk.64bit"
-    os: windows
-    arch: amd64
+    version: "jdk8u432-b06"
+    sha256: "7780436b818b3bf8be7b56832f9e3f1ab74233736c4c0e34b3ae7c32c95e966e"
+  - params:
+      - "windows.java11.openjdk.64bit"
+    os: "windows"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-11.0.23+9"
-    sha256: d7a9f8ceee9a5785dcbbcbec20a07b1366efec59ba652ef7e03f6f7d10f52b85
-  - params: [ "env.JAVA_HOME", "windows.java17.openjdk.64bit" ]
-    os: windows
-    arch: amd64
+    version: "jdk-11.0.25+9"
+    sha256: "472d59e54f81e86c79192b7d9291d94f6e29d6d56ef7ed1d8aa74fcc7df548dc"
+  - params:
+      - "env.JAVA_HOME"
+      - "windows.java17.openjdk.64bit"
+    os: "windows"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-17.0.11+9"
-    sha256: fdd6664d4131370398fbc8bfbb7b46dbfec4a22a090a511fe5c379dae188c390
-  - param: "windows.java21.openjdk.64bit"
-    os: windows
-    arch: amd64
+    version: "jdk-17.0.13+11"
+    sha256: "6b64255e1bd690b09a135d44ac6b0d6bd4490728a8bad81904941d2789d394c0"
+  - params:
+      - "windows.java21.openjdk.64bit"
+    os: "windows"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-21.0.3+9"
-    sha256: c43a66cff7a403d56c5c5e1ff10d3d5f95961abf80f97f0e35380594909f0e4d
-  - param: "windows.java23.openjdk.64bit"
-    os: windows
-    arch: amd64
+    version: "jdk-21.0.5+11"
+    sha256: "6f09d4a3598542313cca1540106d537c7092a54e415d569f7b928160a90d3128"
+  - params:
+      - "windows.java23.openjdk.64bit"
+    os: "windows"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-23+30-ea-beta"
-    sha256: d0991a38af15e0089c027177f8efb6f47b40c69f7847e291adc052f9b932fbfa
-  - param: "macos.java8.openjdk.64bit"
-    os: macos
-    arch: amd64
+    version: "jdk-23.0.1+11"
+    sha256: "eb1bc62060f17566b160fae8ce876ada5d639e2fd4781009a1219e971b9937dd"
+  - params:
+      - "macos.java8.openjdk.64bit"
+    os: "macos"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk8u412-b08"
-    sha256: fd62491f7634c1cbed7557d6b21db7ef4818fbc0e63e678110d9d92cbea4ad8c
-  - param: "macos.java11.openjdk.64bit"
-    os: macos
-    arch: amd64
+    version: "jdk8u432-b06"
+    sha256: "e5cc78b704cf96f7a6c4ad677048f79331f38cd37fbef6c86dce75e1bfe28895"
+  - params:
+      - "macos.java11.openjdk.64bit"
+    os: "macos"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-11.0.23+9"
-    sha256: 4dbd21d9a0311d321f5886eda50c3086026ed61d02e1a85f7b8c2e9ad557bf03
-  - params: [ "env.JAVA_HOME", "macos.java17.openjdk.64bit" ]
-    os: macos
-    arch: amd64
+    version: "jdk-11.0.25+9"
+    sha256: "fa6f88ebd8c3d2b4f5146cd45e4ef875cb2d073b6e95b60de86a1ce0bfdb463a"
+  - params:
+      - "env.JAVA_HOME"
+      - "macos.java17.openjdk.64bit"
+    os: "macos"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-17.0.11+9"
-    sha256: f8b96724618f4df557c47f11048d1084e98ed3eb87f0dbd5b84f768a80c3348e
-  - param: "macos.java21.openjdk.64bit"
-    os: macos
-    arch: amd64
+    version: "jdk-17.0.13+11"
+    sha256: "840535070200a944a6b582d258ee84608bd25c9f2b5d1cdddb58dfadb019675a"
+  - params:
+      - "macos.java21.openjdk.64bit"
+    os: "macos"
+    arch: "amd64"
     vendor: "temurin"
-    version: "jdk-21.0.3+9"
-    sha256: f777103aab94330d14a29bd99f3a26d60abbab8e2c375cec9602746096721a7c
-  - param: "macos.java8.zulu.aarch64"
-    os: macos
-    arch: aarch64
+    version: "jdk-21.0.5+11"
+    sha256: "b9b46f396ab5f3658fa5569af963896167c7f735cfec816359c04101fae38bdf"
+  - params:
+      - "macos.java8.zulu.aarch64"
+    os: "macos"
+    arch: "aarch64"
     vendor: "zulu"
     version: "zulu8.78.0.19-ca-jdk8.0.412"
-  - param: "macos.java11.openjdk.aarch64"
-    os: macos
-    arch: aarch64
+  - params:
+      - "macos.java11.openjdk.aarch64"
+    os: "macos"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-11.0.23+9"
-    sha256: 49122443bdeab2c9f468bd400f58f85a9ea462846faa79084fd6fd786d9b492d
-  - params: [ "env.JAVA_HOME", "macos.java17.openjdk.aarch64" ]
-    os: macos
-    arch: aarch64
+    version: "jdk-11.0.25+9"
+    sha256: "658f73050ab168109862d4e25eefeedb587063cc01128a78ea4081e8ec62edcf"
+  - params:
+      - "env.JAVA_HOME"
+      - "macos.java17.openjdk.aarch64"
+    os: "macos"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-17.0.11+9"
-    sha256: 09a162c58dd801f7cfacd87e99703ed11fb439adc71cfa14ceb2d3194eaca01c
-  - param: "macos.java21.openjdk.aarch64"
-    os: macos
-    arch: aarch64
+    version: "jdk-17.0.13+11"
+    sha256: "d8b2f77f755d06e81a540834c5be22ed86f3c8a51a20396606c074303f8f9e2d"
+  - params:
+      - "macos.java21.openjdk.aarch64"
+    os: "macos"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-21.0.3+9"
-    sha256: b6be6a9568be83695ec6b7cb977f4902f7be47d74494c290bc2a5c3c951e254f
-  - param: "macos.java23.openjdk.aarch64"
-    os: macos
-    arch: aarch64
+    version: "jdk-21.0.5+11"
+    sha256: "dc6db7347907d23743d13af935d3c10e8b3490acdf542115f578838227da0dab"
+  - params:
+      - "macos.java23.openjdk.aarch64"
+    os: "macos"
+    arch: "aarch64"
     vendor: "temurin"
-    version: "jdk-23+30-ea-beta"
-    sha256: 0d22abb1448bdf620d184e135da6e90621ca0caa0d468d19d99af55ea0c92a23
+    version: "jdk-23.0.1+11"
+    sha256: "9e69810a50c8183e01429243d0bb112e381a122c6e7be936b7c13c3cfe7b29a0"

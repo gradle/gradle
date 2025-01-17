@@ -18,16 +18,12 @@ package org.gradle.internal.model;
 
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 
@@ -61,11 +57,6 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
         return new CalculatedValueContainer<>(displayName, value);
     }
 
-    @Override
-    public <K, V> CalculatedValueCache<K, V> createCache(DisplayName type) {
-        return new DefaultCalculatedValueCache<>(type, this);
-    }
-
     private static class SupplierBackedCalculator<T> implements ValueCalculator<T> {
         private final Supplier<T> supplier;
 
@@ -76,38 +67,6 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
         @Override
         public T calculateValue(NodeExecutionContext context) {
             return supplier.get();
-        }
-    }
-
-    private static class DefaultCalculatedValueCache<K, V> implements CalculatedValueCache<K, V> {
-
-        private final DisplayName type;
-        private final Map<K, CalculatedValue<V>> cache = new ConcurrentHashMap<>();
-        private final CalculatedValueContainerFactory calculatedValueContainerFactory;
-
-        public DefaultCalculatedValueCache(DisplayName type, CalculatedValueContainerFactory calculatedValueContainerFactory) {
-            this.type = type;
-            this.calculatedValueContainerFactory = calculatedValueContainerFactory;
-        }
-
-        @Override
-        public V computeIfAbsent(K key, Function<K, V> factory) {
-            CalculatedValue<V> value = cache.computeIfAbsent(key, k ->
-                calculatedValueContainerFactory.create(
-                    Describables.of(k, type),
-                    context -> factory.apply(k)
-                )
-            );
-
-            // Calculate the value after adding the entry to the map, so that the value
-            // container can take care of thread synchronization
-            value.finalizeIfNotAlready();
-            return value.get();
-        }
-
-        @Override
-        public void clear() {
-            cache.clear();
         }
     }
 }

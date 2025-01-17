@@ -39,6 +39,11 @@ public interface TypeAnnotationMetadata {
      */
     ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata();
 
+    /**
+     * Information about the type and annotations of each method of the type (i.e. annotated methods that are not properties).
+     */
+    ImmutableSortedSet<FunctionAnnotationMetadata> getFunctionAnnotationMetadata();
+
     void visitValidationFailures(TypeValidationContext validationContext);
 
     /**

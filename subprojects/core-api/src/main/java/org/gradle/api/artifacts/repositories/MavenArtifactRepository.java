@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 import java.net.URI;
 import java.util.Set;
@@ -34,6 +35,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
      * @return The URL.
      */
     @Override
+    @Restricted
     URI getUrl();
 
     /**

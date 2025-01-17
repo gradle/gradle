@@ -19,11 +19,13 @@ import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
+import net.rubygrapefruit.platform.ProcessLauncher;
 import net.rubygrapefruit.platform.SystemInfo;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import net.rubygrapefruit.platform.file.FileSystems;
 import net.rubygrapefruit.platform.file.Files;
 import net.rubygrapefruit.platform.file.PosixFiles;
+import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
@@ -56,7 +58,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.platform.Architecture;
 import org.gradle.util.internal.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,6 +99,14 @@ public class NativeServices implements ServiceRegistrationProvider {
             @Override
             public boolean initialize(File nativeBaseDir, boolean useNativeIntegrations) {
                 if (useNativeIntegrations) {
+                    OperatingSystem operatingSystem = OperatingSystem.current();
+                    if (operatingSystem.isMacOsX()) {
+                        String version = operatingSystem.getVersion();
+                        if (VersionNumber.parse(version).getMajor() < 12) {
+                            LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                            return false;
+                        }
+                    }
                     try {
                         FileEvents.init(nativeBaseDir);
                         LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
@@ -226,7 +235,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     private void initializeNativeIntegrations(File userHomeDir, NativeServicesMode nativeServicesMode) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = shouldUseNativeIntegration(nativeServicesMode);
+        useNativeIntegrations = nativeServicesMode.isEnabled();
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
@@ -249,48 +258,6 @@ public class NativeServices implements ServiceRegistrationProvider {
             }
             LOGGER.info("Initialized native services in: {}", nativeBaseDir);
         }
-    }
-
-    private static boolean shouldUseNativeIntegration(NativeServicesMode nativeServicesMode) {
-        if (!nativeServicesMode.isEnabled()) {
-            return false;
-        }
-        if (isLinuxWithMusl()) {
-            LOGGER.debug("Native-platform is not available on Linux with musl libc.");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Our native libraries don't currently support musl libc.
-     * See <a href="https://github.com/gradle/gradle/issues/24875">#24875</a>.
-     */
-    private static boolean isLinuxWithMusl() {
-        if (!OperatingSystem.current().isLinux()) {
-            return false;
-        }
-
-        // Musl libc maps /lib/ld-musl-aarch64.so.1 into memory, let's try to find it
-        try {
-            File mapFilesDir = new File("/proc/self/map_files");
-            if (!mapFilesDir.isDirectory()) {
-                return false;
-            }
-            File[] files = mapFilesDir.listFiles();
-            if (files == null) {
-                return false;
-            }
-            for (File file : files) {
-                if (file.getCanonicalFile().getName().contains("-musl-")) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            // Ignored
-        }
-
-        return false;
     }
 
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
@@ -359,11 +326,6 @@ public class NativeServices implements ServiceRegistrationProvider {
     @Provides
     protected OperatingSystem createOperatingSystem() {
         return OperatingSystem.current();
-    }
-
-    @Provides
-    protected Architecture createArchitecture() {
-        return Architecture.current();
     }
 
     @Provides
@@ -447,6 +409,18 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    protected ProcessLauncher createProcessLauncher() {
+        if (useNativeIntegrations) {
+            try {
+                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+            } catch (NativeIntegrationUnavailableException e) {
+                LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
+            }
+        }
+        return new DefaultProcessLauncher();
+    }
+
+    @Provides
     protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
@@ -509,14 +483,6 @@ public class NativeServices implements ServiceRegistrationProvider {
 
             @Override
             public boolean useFileSystemWatching() {
-                OperatingSystem operatingSystem = OperatingSystem.current();
-                if (operatingSystem.isMacOsX()) {
-                    String version = operatingSystem.getVersion();
-                    if (VersionNumber.parse(version).getMajor() < 12) {
-                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                        return false;
-                    }
-                }
                 return isFeatureEnabled(NativeFeatures.FILE_SYSTEM_WATCHING);
             }
         };

@@ -28,7 +28,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.attributes.TestSuiteType;
+import org.gradle.api.attributes.TestSuiteName;
 import org.gradle.api.attributes.VerificationType;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -109,7 +109,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
                     view.componentFilter(projectComponent());
                     view.attributes(attributes -> {
                         attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.class, Category.VERIFICATION));
-                        attributes.attributeProvider(TestSuiteType.TEST_SUITE_TYPE_ATTRIBUTE, report.getTestType().map(tt -> objects.named(TestSuiteType.class, tt)));
+                        attributes.attributeProvider(TestSuiteName.TEST_SUITE_NAME_ATTRIBUTE, report.getTestSuiteName().map(tt -> objects.named(TestSuiteName.class, tt)));
                         attributes.attribute(VerificationType.VERIFICATION_TYPE_ATTRIBUTE, objects.named(VerificationType.class, VerificationType.JACOCO_RESULTS));
                         attributes.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.BINARY_DATA_TYPE);
                     });
@@ -129,7 +129,7 @@ public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
             testSuites.withType(JvmTestSuite.class).all(testSuite -> {
                 reporting.getReports().create(testSuite.getName() + "CodeCoverageReport", JacocoCoverageReport.class, report -> {
-                    report.getTestType().convention(testSuite.getTestType());
+                    report.getTestSuiteName().convention(testSuite.getName());
                 });
             });
         });

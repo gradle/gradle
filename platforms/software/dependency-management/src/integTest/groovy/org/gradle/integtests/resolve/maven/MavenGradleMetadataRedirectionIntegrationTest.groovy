@@ -33,7 +33,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
             apply plugin: 'java-library'
 
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
         """
         prepareResolution()
@@ -125,7 +125,7 @@ class MavenGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependen
 
             repositories {
                 maven {
-                    url "${mavenHttpRepo.uri}"
+                    url = "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
                         artifact()

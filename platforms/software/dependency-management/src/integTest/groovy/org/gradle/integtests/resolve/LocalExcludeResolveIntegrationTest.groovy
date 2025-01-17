@@ -60,7 +60,7 @@ class LocalExcludeResolveIntegrationTest extends AbstractDependencyResolutionTes
 
         and:
         buildFile << """
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url = "${mavenRepo().uri}" } }
 configurations { compile }
 dependencies {
     compile('${testModule.groupId}:${testModule.artifactId}:${testModule.version}') {
@@ -102,7 +102,7 @@ task check {
 
         buildFile << """
 repositories {
-    maven { url '${repo.uri}' }
+    maven { url = '${repo.uri}' }
 }
 configurations {
     excluded {
@@ -149,7 +149,7 @@ task test {
         testModule.dependsOn(fooModule).publish()
 
         buildFile << """
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url = "${mavenRepo().uri}" } }
 
 configurations { compile }
 
@@ -192,7 +192,7 @@ task check {
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-                repositories { maven { url "${mavenRepo.uri}" } }
+                repositories { maven { url = "${mavenRepo.uri}" } }
             }
 
             project(':a') {
@@ -279,7 +279,7 @@ task check {
         when:
         buildFile << """
 repositories {
-    maven { url '${mavenRepo.uri}' }
+    maven { url = '${mavenRepo.uri}' }
 }
 configurations {
     excluded {

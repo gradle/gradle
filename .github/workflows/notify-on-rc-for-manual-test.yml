@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Send Slack notification about new RCs for manual testing
         id: slack
-        uses: slackapi/slack-github-action@v1.23.0
+        uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
             {

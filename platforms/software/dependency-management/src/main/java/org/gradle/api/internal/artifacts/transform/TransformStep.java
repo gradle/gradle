@@ -28,8 +28,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.InputFingerprinter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -42,8 +40,6 @@ import java.io.File;
  * @see TransformChain
  */
 public class TransformStep implements TaskDependencyContainer, Describable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TransformStep.class);
-
     private final Transform transform;
     private final TransformInvocationFactory transformInvocationFactory;
     private final ProjectInternal owningProject;
@@ -66,10 +62,6 @@ public class TransformStep implements TaskDependencyContainer, Describable {
     }
 
     public Deferrable<Try<TransformStepSubject>> createInvocation(TransformStepSubject subjectToTransform, TransformUpstreamDependencies upstreamDependencies, @Nullable NodeExecutionContext context) {
-        if (LOGGER.isInfoEnabled()) {
-            LOGGER.info("Transforming {} with {}", subjectToTransform.getDisplayName(), transform.getDisplayName());
-        }
-
         InputFingerprinter inputFingerprinter = context != null ? context.getService(InputFingerprinter.class) : globalInputFingerprinter;
 
         Try<TransformDependencies> resolvedDependencies = upstreamDependencies.computeArtifacts();

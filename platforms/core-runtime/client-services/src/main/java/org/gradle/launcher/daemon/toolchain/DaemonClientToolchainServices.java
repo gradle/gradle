@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.cache.FileLockManager;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
+import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
@@ -37,10 +38,12 @@ import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
+import org.gradle.jvm.toolchain.internal.OsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.util.List;
 
@@ -54,19 +57,19 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
 
     public void configure(ServiceRegistration registration) {
         registration.add(ToolchainConfiguration.class, toolchainConfiguration);
-        registration.add(DefaultOsXJavaHomeCommand.class);
+        registration.add(OsXJavaHomeCommand.class, DefaultOsXJavaHomeCommand.class);
 
         // NOTE: These need to be kept in sync with ToolchainsJvmServices
-        registration.add(AsdfInstallationSupplier.class);
-        registration.add(IntellijInstallationSupplier.class);
-        registration.add(JabbaInstallationSupplier.class);
-        registration.add(SdkmanInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, AsdfInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, IntellijInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, JabbaInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, SdkmanInstallationSupplier.class);
 
-//        registration.add(MavenToolchainsInstallationSupplier.class);
+//        registration.add(InstallationSupplier.class, MavenToolchainsInstallationSupplier.class);
 
-        registration.add(LinuxInstallationSupplier.class);
-        registration.add(OsXInstallationSupplier.class);
-        registration.add(WindowsInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, LinuxInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, OsXInstallationSupplier.class);
+        registration.add(InstallationSupplier.class, WindowsInstallationSupplier.class);
     }
 
     @Provides
@@ -80,7 +83,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, JvmMetadataDetector jvmMetadataDetector, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
-        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, jvmMetadataDetector, gradleUserHomeTemporaryFileProvider);
+    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
+        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
     }
 }

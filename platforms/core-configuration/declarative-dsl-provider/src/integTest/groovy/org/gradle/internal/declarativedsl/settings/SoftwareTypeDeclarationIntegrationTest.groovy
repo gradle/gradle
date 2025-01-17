@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.settings
 
-import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.hamcrest.Matchers
@@ -77,7 +76,6 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
     /**
      * This test is not yet implemented because it requires a custom repository to be set up which is not possible yet with the declarative dsl.
      */
-    @NotYetImplemented
     def 'can declare and configure a custom software type from plugin published to a custom repository'() {
         given:
         def pluginBuilder = withSoftwareTypePlugins()
@@ -86,7 +84,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         file("settings.gradle.dcl") << """
             pluginManagement {
                 repositories {
-                    maven { url("$mavenHttpRepo.uri") }
+                    maven { url = uri("$mavenHttpRepo.uri") }
                 }
             }
             plugins {
@@ -97,7 +95,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
+        succeeds(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
         assertThatDeclaredValuesAreSetProperly()
@@ -283,6 +281,57 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("Failed to apply plugin class 'org.gradle.test.SoftwareTypeImplPlugin'.")
         failure.assertHasCause("Could not create an instance of type org.gradle.test.SoftwareTypeImplPlugin\$AnotherSoftwareTypeExtension.")
         failure.assertHasCause("Class SoftwareTypeImplPlugin.AnotherSoftwareTypeExtension is private.")
+    }
+
+    def 'can declare a software type plugin that registers its own extension'() {
+        given:
+        withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        run(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly()
+
+        and:
+        outputContains("Applying SoftwareTypeImplPlugin")
+        outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
+    }
+
+    def 'sensible error when software type plugin declares that it registers its own extension but does not'() {
+        given:
+        withSoftwareTypePluginThatFailsToRegistersItsOwnExtension().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
+        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but no extension with name 'testSoftwareType' was registered.")
+    }
+
+    def 'sensible error when software type plugin declares that it registers its own extension but registers the wrong object'() {
+        given:
+        withSoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failure.assertHasCause("A problem was found with the SoftwareTypeImplPlugin plugin.")
+        failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'testSoftwareType' does not match the value of the property.")
     }
 
     static String getPluginsFromIncludedBuild() {

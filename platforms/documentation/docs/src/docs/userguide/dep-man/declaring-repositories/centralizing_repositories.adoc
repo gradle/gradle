@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files
 
 The `dependencyResolutionManagement` repositories block accepts the same notations as in a project, including Maven or Ivy repositories, with or without credentials.
 
+[[sec:repositories-mode]]
 == Repositories mode
 
 By default, repositories declared in a project’s `build.gradle(.kts)` file will override those declared in `settings.gradle(.kts)`.
@@ -38,6 +39,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_projects]"]
 ====
 
+[[sec:available-modes]
 == Available modes
 
 There are three modes for dependency resolution management:
@@ -69,7 +71,7 @@ include::sample[dir="snippets/artifacts/defineRepositoryInSettings/kotlin",files
 include::sample[dir="snippets/artifacts/defineRepositoryInSettings/groovy",files="settings.gradle[tags=prefer_settings]"]
 ====
 
-[[sub:fail_build_on_project_repositories]]
+[[sec:fail-build-on-project-repositories]]
 Gradle will warn you if a project or plugin declares a repository when using this mode.
 
 To enforce that *only* repositories declared in `settings.gradle(.kts)` are used, you can configure Gradle to fail the build when a project plugin is declared:

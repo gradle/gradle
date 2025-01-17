@@ -16,12 +16,15 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.AdditionalData;
+
 /**
  * Additional data type that can be used to attach type validation information to a problem.
  */
 public interface TypeValidationData extends AdditionalData {
     String getPluginId();
     String getPropertyName();
+    String getFunctionName();
     String getParentPropertyName();
     String getTypeName();
 }

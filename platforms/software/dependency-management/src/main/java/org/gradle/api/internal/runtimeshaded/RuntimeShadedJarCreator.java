@@ -19,9 +19,7 @@ package org.gradle.api.internal.runtimeshaded;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
@@ -29,6 +27,7 @@ import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -163,12 +163,7 @@ class RuntimeShadedJarCreator {
         String serviceType = slashesToPeriods(relocatedApiClassName)[0];
         String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
-        if (!services.containsKey(serviceType)) {
-            services.put(serviceType, Lists.newArrayList(serviceProviders));
-        } else {
-            List<String> providers = services.get(serviceType);
-            providers.addAll(asList(serviceProviders));
-        }
+        services.computeIfAbsent(serviceType, k -> new ArrayList<>()).addAll(asList(serviceProviders));
     }
 
     private String[] slashesToPeriods(String... slashClassNames) {

@@ -49,7 +49,6 @@ internal
 class ConfigurationCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
-        val buildPath: Path
         val isEncrypted: Boolean
         val encryptionKeyHashCode: HashCode
         val gradleUserHomeDir: File
@@ -57,7 +56,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         val startParameterProperties: Map<String, Any?>
         val buildStartTime: Long
         val invalidateCoupledProjects: Boolean
-        val ignoreInputsInConfigurationCacheTaskGraphWriting: Boolean
+        val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
         fun gradleProperty(propertyName: String): String?
@@ -68,9 +67,10 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
         fun isRemoteScriptUpToDate(uri: URI): Boolean
+        fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
         while (true) {
             when (val input = read()) {
@@ -79,18 +79,18 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return CheckedFingerprint.EntryInvalid(host.buildPath, reason)
+                        return reason
                     }
                 }
 
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return CheckedFingerprint.Valid
+        return null
     }
 
     @Suppress("NestedBlockDepth")
-    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint {
+    suspend fun ReadContext.checkProjectScopedFingerprint(): CheckedFingerprint.InvalidProjects? {
         // TODO: log some debug info
         var firstInvalidatedPath: Path? = null
         val projects = hashMapOf<Path, ProjectInvalidationState>()
@@ -102,6 +102,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     state.buildPath = input.buildPath
                     state.projectPath = input.projectPath
                 }
+
                 is ProjectSpecificFingerprint.ProjectFingerprint -> {
                     // An input that is specific to a project. If it is out-of-date, then invalidate that project's values and continue checking values
                     // Don't check a value for a project that is already out-of-date
@@ -135,13 +136,13 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return if (firstInvalidatedPath == null) {
-            CheckedFingerprint.Valid
-        } else {
-            val invalidatedProjects = projects.filterValues { it.isInvalid }.mapValues {
-                it.value.toProjectInvalidationData()
-            }
-            CheckedFingerprint.ProjectsInvalid(firstInvalidatedPath, invalidatedProjects)
+        return firstInvalidatedPath?.let { path ->
+            CheckedFingerprint.InvalidProjects(
+                path,
+                projects
+                    .filterValues { it.isInvalid }
+                    .mapValues { it.value.toProjectInvalidationData() }
+            )
         }
     }
 
@@ -177,7 +178,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
     private
     fun MutableMap<Path, ProjectInvalidationState>.entryFor(path: Path) = computeIfAbsent(path, ::ProjectInvalidationState)
 
-    @Suppress("CyclomaticComplexMethod")
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
     private
     fun check(input: ConfigurationCacheFingerprint): InvalidationReason? = structuredMessageOrNull {
         when (input) {
@@ -258,14 +259,15 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     host.startParameterProperties != startParameterProperties ->
                         text("the set of Gradle properties has changed: ").text(detailedMessageForChanges(startParameterProperties, host.startParameterProperties))
 
-                    host.ignoreInputsInConfigurationCacheTaskGraphWriting != ignoreInputsInConfigurationCacheTaskGraphWriting ->
-                        text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsInTaskGraphSerialization.PROPERTY_NAME}) has changed")
+                    host.ignoreInputsDuringConfigurationCacheStore != ignoreInputsDuringConfigurationCacheStore ->
+                        text("the value of ignored configuration inputs flag (${StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME}) has changed")
 
                     host.instrumentationAgentUsed != instrumentationAgentUsed ->
                         text("the instrumentation Java agent ${if (instrumentationAgentUsed) "is no longer available" else "is now applied"}")
 
                     host.ignoredFileSystemCheckInputs != ignoredFileSystemCheckInputPaths ->
                         text("the set of paths ignored in file-system-check input tracking (${StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME}) has changed")
+
                     else -> null
                 }
             }
@@ -289,6 +291,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                 }
                 ifOrNull(currentWithoutIgnored != snapshotWithoutIgnored) {
                     text("the set of system properties prefixed by ").reference(prefix).text(" has changed: ").text(detailedMessageForChanges(snapshotWithoutIgnored, currentWithoutIgnored))
+                }
+            }
+
+            is ConfigurationCacheFingerprint.MissingBuildSrcDir -> input.run {
+                val hasBuildSrc = host.hasValidBuildSrc(buildSrcDir)
+                ifOrNull(hasBuildSrc) {
+                    text("a buildSrc build at ").reference(displayNameOf(buildSrcDir))
+                        .text(" has been added")
                 }
             }
         }
@@ -483,7 +493,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             }
         }
 
-        fun toProjectInvalidationData(): CheckedFingerprint.ProjectInvalidationData {
+        fun toProjectInvalidationData(): CheckedFingerprint.InvalidProject {
             val buildPath = this.buildPath
             val projectPath = this.projectPath
             require(buildPath != null) {
@@ -492,7 +502,7 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
             require(projectPath != null) {
                 "projectPath for project $identityPath wasn't loaded from the fingerprint"
             }
-            return CheckedFingerprint.ProjectInvalidationData(buildPath, projectPath, invalidationReason)
+            return CheckedFingerprint.InvalidProject(buildPath, projectPath, invalidationReason)
         }
     }
 }

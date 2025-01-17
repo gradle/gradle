@@ -105,7 +105,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         def repoDeclaration = """
             repositories {
                 maven {
-                    url("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                 }
             }
         """
@@ -133,7 +133,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         def repoDeclaration = """
             repositories {
                 maven {
-                    url("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                 }
             }
         """
@@ -161,7 +161,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         def repoDeclaration = """
             repositories {
                 maven {
-                    url("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                 }
             }
         """
@@ -189,7 +189,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         def repoDeclaration = """
             repositories {
                 maven {
-                    url("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                 }
             }
         """
@@ -219,7 +219,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         def repoDeclaration = """
             repositories {
                 maven {
-                    url("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                 }
             }
         """
@@ -249,7 +249,7 @@ class PluginBuildsIntegrationTest extends AbstractPluginBuildIntegrationTest {
         def repoDeclaration = """
             repositories {
                 maven {
-                    url("${mavenRepo.uri}")
+                    url = "${mavenRepo.uri}"
                 }
             }
         """

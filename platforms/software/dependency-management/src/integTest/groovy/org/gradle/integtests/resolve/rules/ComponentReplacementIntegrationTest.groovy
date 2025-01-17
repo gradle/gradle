@@ -29,7 +29,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             configurations { conf }
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             task resolvedFiles {
                 dependsOn 'dependencies'

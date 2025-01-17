@@ -34,8 +34,6 @@
     binaryLiteral='regexp:0[bB][01]([01_]*[01])?'
     hexLiteral='regexp:0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?'
     longLiteral='regexp:[1-9]([0-9_]*[0-9])?[lL]|[0-9][lL]|0[bB][01]([01_]*[01])?[lL]|0[xX][0-9a-fA-F]([0-9a-fA-F_]*[0-9a-fA-F])?[lL]'
-
-    backtickIdentifier='regexp:`[^`\r\n]*`'
   ]
 }
 
@@ -44,29 +42,28 @@
 
 root ::= statements
 
-statement ::= (assignment | expression)
-statements ::= (statement semis?)*
+statement ::= (assignment | block | functionChain)
+statements ::= (statement SEMI*)*
 
-assignment ::= directlyAssignableExpression EQ primaryExpression {pin=2}
-expression ::= simpleIdentifier postfixUnarySuffixes
-
-semis ::= SEMI+
-
+assignment ::= directlyAssignableExpression EQ assignmentValue {pin=2}
 directlyAssignableExpression ::= simpleIdentifier navigationSuffix?
+assignmentValue ::= (simpleIdentifier (navigationSuffix* valueArguments)?) | literalOrIdentifier
 
-postfixUnarySuffixes ::= (valueArguments? annotatedLambda) | (navigationSuffix* valueArguments)
-
+block ::= simpleIdentifier valueArguments? annotatedLambda
 annotatedLambda ::= LB statements RB {pin=1}
 
+functionChain ::= simpleIdentifier postfixUnarySuffixes
+postfixUnarySuffixes ::= (navigationSuffix+ valueArguments) | (valueArguments (navigationSuffix valueArguments)*)
+
 valueArguments ::= LP (valueArgument (COMA valueArgument)* COMA?)? RP {pin=2}
-valueArgument ::= (simpleIdentifier EQ)? primaryExpression postfixUnarySuffixes?
+valueArgument ::= (simpleIdentifier EQ)? (functionChain | literalOrIdentifier)
 
 navigationSuffix ::= DOT simpleIdentifier {pin=1}
 
-primaryExpression ::= literalConstant | simpleIdentifier | stringLiteral
+literalOrIdentifier ::= literalConstant | simpleIdentifier | stringLiteral
 literalConstant ::= "null" | booleanLiteral | binaryLiteral | hexLiteral | integerLiteral | longLiteral
 booleanLiteral ::= "true" | "false" {pin=1}
 
 stringLiteral ::= string
 
-simpleIdentifier ::= id | backtickIdentifier
+simpleIdentifier ::= id

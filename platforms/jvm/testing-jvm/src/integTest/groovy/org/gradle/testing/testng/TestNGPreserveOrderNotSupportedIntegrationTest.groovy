@@ -29,7 +29,7 @@ class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegration
             apply plugin: 'java'
             ${mavenCentralRepository()}
             dependencies { testImplementation 'org.testng:testng:5.14.4' }
-            test { useTestNG { preserveOrder true } }
+            test { useTestNG { preserveOrder = true } }
         """
 
         file("src/test/java/SimpleTest.java") << """

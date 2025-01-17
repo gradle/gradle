@@ -72,7 +72,7 @@ class ExtendingConfigurationsIntegrationTest extends AbstractDependencyResolutio
 
         buildFile << """
 repositories {
-    maven { url "${mavenRepo.uri}" }
+    maven { url = "${mavenRepo.uri}" }
 }
 configurations {
     one
@@ -119,7 +119,7 @@ task checkResolveParentThenChild {
 
         buildFile << """
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
             configurations {
                 superConfiguration
@@ -151,7 +151,7 @@ task checkResolveParentThenChild {
             def attr = Attribute.of('org.example.attr', String)
 
             repositories {
-                maven { url "${mavenRepo.uri}" }
+                maven { url = "${mavenRepo.uri}" }
             }
 
             configurations {

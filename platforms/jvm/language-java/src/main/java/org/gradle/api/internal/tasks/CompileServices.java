@@ -65,12 +65,12 @@ public class CompileServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        CachingClassDependenciesAnalyzer createClassAnalyzer(StringInterner interner, GeneralCompileCaches cache) {
+        ClassDependenciesAnalyzer createClassAnalyzer(StringInterner interner, GeneralCompileCaches cache) {
             return new CachingClassDependenciesAnalyzer(new DefaultClassDependenciesAnalyzer(interner), cache.getClassAnalysisCache());
         }
 
         @Provides
-        CachingClassSetAnalyzer createClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
+        ClassSetAnalyzer createClassSetAnalyzer(FileHasher fileHasher, StreamHasher streamHasher, ClassDependenciesAnalyzer classAnalyzer,
                                                        FileOperations fileOperations, FileSystemAccess fileSystemAccess, GeneralCompileCaches cache) {
             return new CachingClassSetAnalyzer(
                 new DefaultClassSetAnalyzer(fileHasher, streamHasher, classAnalyzer, fileOperations),
@@ -82,7 +82,7 @@ public class CompileServices extends AbstractGradleModuleServices {
 
     private static class UserHomeScopeServices implements ServiceRegistrationProvider {
         @Provides
-        UserHomeScopedCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+        GeneralCompileCaches createCompileCaches(GlobalScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
             return new UserHomeScopedCompileCaches(cacheBuilderFactory, inMemoryCacheDecoratorFactory, interner);
         }
     }

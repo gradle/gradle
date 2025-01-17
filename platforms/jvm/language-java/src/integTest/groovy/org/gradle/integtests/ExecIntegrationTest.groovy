@@ -25,6 +25,8 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.TestJavaMain
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -84,6 +86,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         if (task == 'javaexecProjectMethod') {
             expectExecMethodDeprecation("The Project.javaexec(Closure) method", "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)")
+            expectTaskProjectDeprecation()
         }
         succeeds task
 
@@ -142,6 +145,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         if (task == 'execProjectMethod') {
             expectExecMethodDeprecation("The Project.exec(Closure) method", "ExecOperations.exec(Action) or ProviderFactory.exec(Action)")
+            expectTaskProjectDeprecation()
         }
         succeeds task
 
@@ -385,8 +389,10 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         expect:
         if (task == 'execProjectMethod') {
             expectExecMethodDeprecation("The Project.exec(Closure) method", "ExecOperations.exec(Action) or ProviderFactory.exec(Action)")
+            expectTaskProjectDeprecation()
         } else if (task == 'javaexecProjectMethod') {
             expectExecMethodDeprecation("The Project.javaexec(Closure) method", "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)")
+            expectTaskProjectDeprecation()
         }
         succeeds task
 
@@ -411,6 +417,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
+        if (method.startsWith("project.")) {
+            expectTaskProjectDeprecation()
+        }
         succeeds("run")
 
         then:
@@ -422,6 +431,37 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "exec"             | execSpec()     | "Using method exec(Closure)"           | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
         "project.javaexec" | javaExecSpec() | "The Project.javaexec(Closure) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
         "javaexec"         | javaExecSpec() | "Using method javaexec(Closure)"       | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31282")
+    @Requires(UnitTestPreconditions.NotWindows)
+    def "running multiple tasks that fork processes is multi-thread safe"() {
+        def numOfProjects = 1000
+        numOfProjects.times {
+            settingsFile << """
+                include 'project$it'
+            """
+            file("project${it}/build.gradle") << """
+                abstract class MyExec extends DefaultTask {
+                    @Inject
+                    abstract ExecOperations getExecOperations()
+
+                    @TaskAction
+                    void doIt() {
+                        def script = new File(temporaryDir, "script.sh")
+                        script.text = "#!/bin/bash"
+                        script.executable = true
+                        execOperations.exec {
+                            commandLine script.absolutePath
+                        }
+                        script.delete()
+                    }
+                }
+                tasks.register("run", MyExec)
+            """
+        }
+        expect:
+        succeeds("run", "--max-workers=100", "--parallel")
     }
 
     @UnsupportedWithConfigurationCache(because = "Runs external process at configuration time")
@@ -519,6 +559,9 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
+        if (method.startsWith("project.")) {
+            expectTaskProjectDeprecation()
+        }
         succeeds("run")
 
         then:
@@ -643,6 +686,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         expectExecMethodDeprecation(expectedDeprecatedMethod, replacements)
+        expectTaskProjectDeprecation()
         succeeds("run")
 
         then:
@@ -690,8 +734,91 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | javaExecSpec("spec") | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
+    def "project.#method uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            tasks.register("run") {
+                doLast {
+                    project.${method} {
+                        $configuration
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    def "execOperations.#method uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            def execOperations = services.get(ExecOperations)
+            tasks.register("run") {
+                doLast {
+                    execOperations.${method} {
+                        $configuration
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        method     | configuration
+        "exec"     | execSpecWithJavaExecutable()
+        "javaexec" | javaExecSpec()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/31942")
+    def "#task task uses project dir as working dir by default"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            def execOperations = services.get(ExecOperations)
+            tasks.register("run", $task) {
+                $configuration
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("user.dir=${testDirectory.file("a").absolutePath}")
+
+        where:
+        task       | configuration
+        "Exec"     | execSpecWithJavaExecutable()
+        "JavaExec" | javaExecSpec()
+    }
+
     private static def execSpec(def owner = "") {
         "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
+    }
+
+    private static def execSpecWithJavaExecutable(def owner = "") {
+        """
+            ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
+            ${prop(owner, "args")}('-cp',${javaExecClasspath()}, '${TestJavaMain.name}', "Hello")
+        """
     }
 
     private static def echoCommandLineArgs(String message) {
@@ -722,5 +849,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             "This is scheduled to be removed in Gradle 9.0. " +
             "Use $replacements instead. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_project_exec")
+    }
+
+    private void expectTaskProjectDeprecation() {
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. "+
+            "This will fail with an error in Gradle 10.0. " +
+            "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 }

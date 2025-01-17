@@ -21,6 +21,7 @@ import org.gradle.exemplar.test.normalizer.GradleOutputNormalizer;
 import org.gradle.exemplar.test.normalizer.JavaObjectSerializationOutputNormalizer;
 import org.gradle.exemplar.test.runner.SampleModifiers;
 import org.gradle.exemplar.test.runner.SamplesOutputNormalizers;
+import org.gradle.integtests.fixtures.executer.DependencyReplacingSampleModifier;
 import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
 import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ConfigurationCacheOutputCleaner;
@@ -35,8 +36,6 @@ import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.SpringBootWebAppTestOutputNormalizer;
 import org.gradle.integtests.fixtures.logging.ZincScalaCompilerOutputNormalizer;
 import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
-import org.gradle.test.precondition.Requires;
-import org.gradle.test.preconditions.UnitTestPreconditions;
 
 @SamplesOutputNormalizers({
     SampleOutputNormalizer.class,
@@ -57,9 +56,9 @@ import org.gradle.test.preconditions.UnitTestPreconditions;
 })
 @SampleModifiers({
     SetMirrorsSampleModifier.class,
-    MoreMemorySampleModifier.class
+    MoreMemorySampleModifier.class,
+    DependencyReplacingSampleModifier.class
 })
-@Requires(value = UnitTestPreconditions.KotlinOnlySupportsJdk21Earlier.class, reason = "Kotlin cannot compile on Java 22 in samples yet")
 /*
  * To run the samples tests:
  *

@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ModuleResolveState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 
 import java.util.Collection;
@@ -53,9 +54,14 @@ class DefaultConflictResolutionResult implements ConflictResolutionResult {
     }
 
     @Override
-    public void withParticipatingModules(Action<? super ModuleIdentifier> action) {
+    public void withParticipatingModules(Action<? super ModuleIdentifier> action, ConflictResolutionResult result) {
+        ModuleResolveState winningModule = result.getSelected().getModule();
+        action.execute(winningModule.getId());
+
         for (ModuleIdentifier module : participatingModules) {
-            action.execute(module);
+            if (!module.equals(winningModule.getId())) {
+                action.execute(module);
+            }
         }
     }
 

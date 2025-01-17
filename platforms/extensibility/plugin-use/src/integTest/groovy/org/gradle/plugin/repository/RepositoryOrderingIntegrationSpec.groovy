@@ -35,7 +35,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
         and:
         buildFile """
             buildscript {
-                repositories { maven { url "$buildscriptRepoUri" } }
+                repositories { maven { url = "$buildscriptRepoUri" } }
                 dependencies { classpath "my:plugin:1.0" }
             }
 

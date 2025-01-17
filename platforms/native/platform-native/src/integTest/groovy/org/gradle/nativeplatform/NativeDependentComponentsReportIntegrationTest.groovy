@@ -766,4 +766,5 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             }
         '''.stripIndent()
     }
+
 }

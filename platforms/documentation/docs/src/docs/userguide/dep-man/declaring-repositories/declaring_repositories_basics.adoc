@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[declaring-repositories]]
+[[declaring-repositories-basics]]
 = Declaring Repositories Basics
 
 Gradle can resolve local or external dependencies from one or many repositories based on Maven, Ivy or flat directory formats.
@@ -26,11 +26,11 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-changin
 
 To centralize repository declarations in your `settings.gradle(.kts)` file, head over to <<centralizing_repositories.adoc#centralized-repository-declaration,Centralizing Repository Declarations>>.
 
-[[sec:declaring_public_repository]]
+[[sec:declaring-public-repository]]
 == Declaring a publicly-available repository
 
 Organizations building software may want to leverage public binary repositories to download and consume publicly available dependencies.
-Popular public repositories include <<#sub:maven_central,Maven Central>> and the <<#sub:maven_google,Google Android>> repository.
+Popular public repositories include <<#sec:maven-central,Maven Central>> and the <<#sec:maven-google,Google Android>> repository.
 
 Gradle provides built-in shorthand notations for these widely-used repositories.
 
@@ -39,9 +39,9 @@ image::dependency-management-shortcut-repositories.png[]
 Under the covers, Gradle resolves dependencies from the respective URL of the public repository defined by the shorthand notation.
 All shorthand notations are available via the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.RepositoryHandler.html[RepositoryHandler] API.
 
-Alternatively, you can <<#sec:declaring_custom_repository,explicitly specify the URL of the repository>> for more fine-grained control.
+Alternatively, you can <<#sec:declaring-custom-repository,explicitly specify the URL of the repository>> for more fine-grained control.
 
-[[sub:maven_central]]
+[[sec:maven-central]]
 === Maven Central repository
 
 Maven Central is a popular repository hosting open source libraries for consumption by Java projects.
@@ -53,7 +53,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-central]"]
 ====
 
-[[sub:maven_google]]
+[[sec:maven-google]]
 === Google Maven repository
 
 The Google repository hosts Android-specific artifacts including the Android SDK. For usage examples, see the link:https://developer.android.com/studio/build/dependencies.html#google-maven[relevant Android documentation].
@@ -65,7 +65,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-google]"]
 ====
 
-[[sec:declaring_custom_repository]]
+[[sec:declaring-custom-repository]]
 == Declaring a custom repository by URL
 
 Most enterprise projects set up a binary repository available only within an intranet.
@@ -80,18 +80,18 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-like-repo]"]
 ====
 
-Gradle supports additional <<supported_repository_protocols.adoc#supported_transport_protocols,protocols>> beyond `http` and `https`, such as `file`, `sftp`, and `s3` for custom URLs.
+Gradle supports additional <<supported_repository_protocols.adoc#supported-transport-protocols,protocols>> beyond `http` and `https`, such as `file`, `sftp`, and `s3` for custom URLs.
 
 For full coverage, see the section on <<supported_repository_types.adoc#repository-types,supported repository types>>.
 
-You can also <<supported_repository_types.adoc#sub:defining_custom_pattern_layout_for_an_ivy_repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
+You can also <<supported_repository_types.adoc#sec:defining-custom-pattern-layout-for-an-ivy-repository,define your own repository layout>> by using `ivy { }` repositories, as they are very flexible in terms of how modules are organised in a repository:
 
 ====
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=ivy-repo]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=ivy-repo]"]
 ====
 
-[[sec:declaring_multiple_repositories]]
+[[sec:declaring-multiple-repositories]]
 == Declaring multiple repositories
 
 You can define more than one repository for resolving dependencies.
@@ -107,9 +107,9 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 The order of repository declaration determines the order that Gradle will search for dependencies during resolution.
 If Gradle finds a dependency's metadata in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
 
-You can learn more about the inner workings of <<dependency_resolution_adv.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+You can learn more about the inner workings of <<variant_model.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
 
-[[sub:plugin-repos]]
+[[sec:plugin-repos]]
 == Plugin repositories
 
 [[sec:plugin-vs-build-repos]]

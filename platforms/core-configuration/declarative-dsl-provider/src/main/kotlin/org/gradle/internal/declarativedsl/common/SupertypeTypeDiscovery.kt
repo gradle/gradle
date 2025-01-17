@@ -31,7 +31,7 @@ internal
 class SupertypeTypeDiscovery : AnalysisSchemaComponent {
     override fun typeDiscovery(): List<TypeDiscovery> = listOf(
         object : TypeDiscovery {
-            override fun getClassesToVisitFrom(kClass: KClass<*>): Iterable<KClass<*>> =
+            override fun getClassesToVisitFrom(typeDiscoveryServices: TypeDiscovery.TypeDiscoveryServices, kClass: KClass<*>): Iterable<KClass<*>> =
                 withAllPotentiallyDeclarativeSupertypes(kClass)
         }
     )

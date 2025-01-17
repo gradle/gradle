@@ -30,7 +30,6 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -57,13 +56,13 @@ public class DelegatingProjectDependency implements ProjectDependencyInternal {
     }
 
     @Override
-    public Path getIdentityPath() {
-        return delegate.getIdentityPath();
+    public ProjectIdentity getTargetProjectIdentity() {
+        return delegate.getTargetProjectIdentity();
     }
 
     @Override
-    public ProjectIdentity getTargetProjectIdentity() {
-        return delegate.getTargetProjectIdentity();
+    public String getPath() {
+        return delegate.getPath();
     }
 
     @Override

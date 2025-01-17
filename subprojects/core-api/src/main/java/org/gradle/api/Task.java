@@ -19,6 +19,8 @@ package org.gradle.api;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import groovy.lang.MissingPropertyException;
+import groovy.transform.stc.ClosureParams;
+import groovy.transform.stc.SimpleType;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.ExtensionAware;
@@ -284,7 +286,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @param onlyIfClosure code to execute to determine if task should be run
      */
-    void onlyIf(Closure onlyIfClosure);
+    void onlyIf(Closure<?> onlyIfClosure);
 
     /**
      * Do not track the state of the task.
@@ -367,7 +369,7 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @param onlyIfClosure code to execute to determine if task should be run
      */
-    void setOnlyIf(Closure onlyIfClosure);
+    void setOnlyIf(Closure<?> onlyIfClosure);
 
     /**
      * <p>Execute the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
@@ -443,7 +445,9 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doFirst(@DelegatesTo(Task.class) Closure action);
+    Task doFirst(@DelegatesTo(Task.class)
+                 @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+                 Closure action);
 
     /**
      * <p>Adds the given {@link Action} to the beginning of this task's action list.</p>
@@ -482,7 +486,9 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @param action The action closure to execute.
      * @return This task.
      */
-    Task doLast(@DelegatesTo(Task.class) Closure action);
+    Task doLast(@DelegatesTo(Task.class)
+                @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
+                Closure action);
 
     /**
      * <p>Returns if this task is enabled or not.</p>
@@ -841,9 +847,13 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     /**
      * Registers a {@link BuildService} that is used by this task so
      * {@link BuildServiceRegistration#getMaxParallelUsages() its constraint on parallel execution} can be honored.
+     * <p>
+     * This is not necessary for task properties declared as {@link org.gradle.api.services.ServiceReference}s.
+     * </p>
      *
      * @param service The service provider.
      * @since 6.1
+     * @see org.gradle.api.services.ServiceReference
      */
     void usesService(Provider<? extends BuildService<?>> service);
 }

@@ -42,11 +42,12 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
-    implementation(projects.daemonProtocol)
     implementation(projects.daemonServices)
     implementation(projects.native)
     implementation(projects.serviceRegistryBuilder)
 
+
+    testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
 
     testRuntimeOnly(projects.distributionsCore) {

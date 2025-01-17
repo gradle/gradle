@@ -68,7 +68,7 @@ class MavenProfileResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """
@@ -133,7 +133,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
         and:
         buildFile << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
             configurations { compile }
             dependencies { compile 'groupA:artifactA:1.2' }
@@ -203,7 +203,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """
@@ -269,7 +269,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """
@@ -331,7 +331,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """
@@ -403,7 +403,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """
@@ -467,7 +467,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """
@@ -536,7 +536,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
 
         and:
         buildFile << """
-repositories { maven { url '${mavenHttpRepo.uri}' } }
+repositories { maven { url = '${mavenHttpRepo.uri}' } }
 configurations { compile }
 dependencies { compile 'groupA:artifactA:1.2' }
 """

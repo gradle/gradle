@@ -22,10 +22,12 @@ import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class TaskActionIntegrationTest extends AbstractIntegrationSpec {
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")
-    def "nags when task action uses Task.project and feature preview is enabled"() {
-        settingsFile """
-            enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
-        """
+    def "nags when task action uses Task.project"() {
+        if (featureFlag) {
+            settingsFile """
+                enableFeaturePreview 'STABLE_CONFIGURATION_CACHE'
+            """
+        }
         buildFile """
             task broken {
                 doLast {
@@ -35,11 +37,14 @@ class TaskActionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
+        executer.expectDocumentedDeprecationWarning("Invocation of Task.project at execution time has been deprecated. This will fail with an error in Gradle 10.0. This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
         succeeds("broken")
 
         then:
         noExceptionThrown()
+
+        where:
+        featureFlag << [true, false]
     }
 
     @UnsupportedWithConfigurationCache(because = "tests unsupported behaviour")

@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 
 Both platforms and version catalogs help manage dependency versions in a project, but they serve different purposes and have different effects on dependency resolution:
 
+[[sec:version-catalogs]]
 == Version Catalogs
 
 - **Purpose:** A version catalog centralizes and standardizes dependency coordinates (group, name, version) and provides type-safe accessors in the build script, making dependencies easier to manage.
@@ -29,6 +30,7 @@ Both platforms and version catalogs help manage dependency versions in a project
 mylib = { group = "com.example", name = "mylib", version = "1.0.0" }
 ----
 
+[[sec:platforms]]
 == Platforms
 
 - **Purpose:** A platform is a module in the dependency graph that enforces or aligns versions of dependencies (including transitive dependencies). It influences dependency resolution and ensures version consistency across different modules.
@@ -48,9 +50,10 @@ dependencies {
 }
 ----
 
+[[sec:catalog-platform]]
 == Using a catalog with a platform
 
-Even if a version catalog defines a version for a dependency, Gradle might pick a different version during resolution if another component (e.g., a platform or a transitive dependency) suggests a different version (unless <<platforms.adoc#sub:enforced_platform,`enforcedPlatform`>> is used).
+Even if a version catalog defines a version for a dependency, Gradle might pick a different version during resolution if another component (e.g., a platform or a transitive dependency) suggests a different version (unless <<platforms.adoc#sec:enforced-platform,`enforcedPlatform`>> is used).
 
 For example, a version catalog may define `mylib` as version `1.0.0`, but if a platform enforces `2.0.0`, Gradle will select version `2.0.0`.
 

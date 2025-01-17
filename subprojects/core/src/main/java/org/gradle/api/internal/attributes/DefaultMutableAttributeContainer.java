@@ -23,6 +23,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.isolation.Isolatable;
 
 import javax.annotation.Nullable;
@@ -40,14 +41,19 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
 
-    private final DefaultAttributesFactory attributesFactory;
+    private final AttributesFactory attributesFactory;
+    private final AttributeValueIsolator attributeValueIsolator;
 
-    public DefaultMutableAttributeContainer(DefaultAttributesFactory attributesFactory) {
+    private ImmutableAttributes immutableValue;
+
+    public DefaultMutableAttributeContainer(AttributesFactory attributesFactory, AttributeValueIsolator attributeValueIsolator) {
         this.attributesFactory = attributesFactory;
+        this.attributeValueIsolator = attributeValueIsolator;
     }
 
     @Override
     public String toString() {
+        maybeEmitRecursiveQueryDeprecation();
         final Map<Attribute<?>, Object> sorted = new TreeMap<>(Comparator.comparing(Attribute::getName));
         lazyAttributes.keySet().forEach(key -> sorted.put(key, lazyAttributes.get(key).toString()));
         attributes.keySet().forEach(key -> sorted.put(key, attributes.get(key).toString()));
@@ -56,6 +62,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
 
     @Override
     public Set<Attribute<?>> keySet() {
+        maybeEmitRecursiveQueryDeprecation();
         // Need to copy the result since if the user calls getAttribute() while iterating over the returned set,
         // realizing a lazy attribute will add to the eager `attributes` map and remove from the `lazyAttributes`.
         // This avoids a ConcurrentModificationException.
@@ -72,7 +79,8 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     private <T> void doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
-        attributes.put(key, attributesFactory.isolate(value));
+        immutableValue = null;
+        attributes.put(key, attributeValueIsolator.isolate(value));
         removeLazyAttributeIfPresent(key);
     }
 
@@ -131,6 +139,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
 
     @Override
     public <T> T getAttribute(Attribute<T> key) {
+        maybeEmitRecursiveQueryDeprecation();
         Isolatable<?> value = attributes.get(key);
         if (value == null) {
             if (lazyAttributes.containsKey(key)) {
@@ -145,10 +154,22 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
 
     @Override
     public ImmutableAttributes asImmutable() {
+        maybeEmitRecursiveQueryDeprecation();
         realizeAllLazyAttributes();
-        return attributesFactory.fromMap(attributes);
+        if (immutableValue == null) {
+            immutableValue = attributesFactory.fromMap(attributes);
+        }
+        return immutableValue;
     }
 
+    private void maybeEmitRecursiveQueryDeprecation() {
+        if (realizingAttributes) {
+            DeprecationLogger.deprecateBehaviour("Querying the contents of an attribute container while realizing attributes of the container.")
+                .willBecomeAnErrorInGradle9()
+                .withUpgradeGuideSection(8, "attribute_container_recursive_query")
+                .nagUser();
+        }
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -178,6 +199,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     }
 
     private <T> void removeAttributeIfPresent(Attribute<T> key) {
+        immutableValue = null;
         attributes.remove(key);
     }
 

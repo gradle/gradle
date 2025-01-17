@@ -16,6 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.integtests.fixtures.ToBeFixedForIsolatedProjects
 import org.gradle.process.ShellScript
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
@@ -23,10 +26,10 @@ import spock.lang.Issue
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "value source without parameters can be used as task input"() {
-         given:
-         def configurationCache = newConfigurationCacheFixture()
+        given:
+        def configurationCache = newConfigurationCacheFixture()
 
-         buildFile("""
+        buildFile("""
             import org.gradle.api.provider.*
 
             abstract class GreetValueSource implements ValueSource<String, ValueSourceParameters.None> {
@@ -640,5 +643,254 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             withProblem("Build file 'build.gradle': cannot serialize object of type 'java.lang.Thread', a subtype of 'java.lang.Thread', as these are not supported with the configuration cache.")
             problemsWithStackTraceCount = 0
         }
+    }
+
+    def 'reentrant fingerprint'() {
+        def configurationCache = newConfigurationCacheFixture()
+        given:
+        buildFile """
+            abstract class CustomValueSource implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getString()
+                }
+                @Override String obtain() {
+                    return parameters.string.get()
+                }
+            }
+            abstract class PrintTask extends DefaultTask {
+                @Input abstract Property<String> getMessage()
+                @TaskAction def doIt() {
+                    println message.get()
+                }
+            }
+            tasks.register('build', PrintTask) {
+                message = providers.of(CustomValueSource) {
+                    parameters {
+                        string = provider {
+                            System.getProperty('MY_SYSTEM_PROPERTY', '42')
+                        }
+                    }
+                }.get() // explicitly calling get to trigger reentrant fingerprint behavior
+            }
+        """
+        when:
+        configurationCacheRun 'build'
+        then:
+        outputContains '42'
+        configurationCache.assertStateStored()
+        when:
+        configurationCacheRun 'build'
+        then:
+        outputContains '42'
+        configurationCache.assertStateLoaded()
+        when:
+        configurationCacheRun 'build', '-DMY_SYSTEM_PROPERTY=2001'
+        then:
+        outputContains '2001'
+        configurationCache.assertStateStored()
+    }
+
+    def 'fingerprint does not block'() {
+        given:
+        buildFile """
+            abstract class CustomValueSource implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getString()
+                }
+                @Override String obtain() {
+                    return parameters.string.get()
+                }
+            }
+            abstract class PrintTask extends DefaultTask {
+                @Input abstract Property<String> getMessage()
+                @TaskAction def doIt() {
+                    println message.get()
+                }
+            }
+            tasks.register('build', PrintTask) {
+                message = providers.of(CustomValueSource) {
+                    parameters {
+                        string = provider {
+                            String prop = null
+                             def t = Thread.start {
+                                prop = System.getProperty('MY_SYSTEM_PROPERTY', '42')
+                            }
+                            t.join(5_000)
+                            if (t.isAlive()) {
+                                println(t.getStackTrace().join("\\n\\t"))
+                                throw new RuntimeException("deadlock")
+                            }
+                            prop
+                        }
+                    }
+                }.get() // explicitly calling get to trigger reentrant fingerprint behavior
+            }
+        """
+        when:
+        configurationCacheRun 'build'
+        then:
+        outputContains '42'
+        when:
+        configurationCacheRun 'build'
+        then:
+        outputContains '42'
+        when:
+        configurationCacheRun 'build', "-DMY_SYSTEM_PROPERTY=2001"
+        then:
+        outputContains '2001'
+    }
+
+    @ToBeFixedForIsolatedProjects(because = 'ValueSource instances cannot be shared across projects')
+    def "value source can be shared across projects"() {
+        given:
+        createDirs 'foo', 'bar'
+        settingsFile """
+            import org.gradle.api.provider.*
+
+            include 'foo', 'bar'
+
+            abstract class StringValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    println "StringValueSource obtained"
+                    new String('42')
+                }
+            }
+
+            abstract class ValueCheckerService implements ${BuildService.name}<${BuildServiceParameters.name}.None>{
+
+                private Object value = null
+
+                synchronized def check(Object o) {
+                    if (value === null) {
+                        value = o
+                    } else {
+                        assert value === o
+                        println 'The values are the same'
+                    }
+                }
+            }
+
+            abstract class ValueTask extends DefaultTask {
+                @Input abstract Property<Object> getValue()
+                @ServiceReference('valueChecker') abstract Property<ValueCheckerService> getService()
+                @TaskAction def check() {
+                    service.get().check(value.get())
+                }
+            }
+
+            def service = gradle.sharedServices.registerIfAbsent('valueChecker', ValueCheckerService) {}
+
+            def sharedValue = providers.of(StringValueSource) {}
+            gradle.allprojects {
+                tasks.register('check', ValueTask) {
+                    value = sharedValue
+                }
+            }
+        """
+
+        and:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('StringValueSource obtained') == 1
+        output.count('The values are the same') == 2
+
+        and:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('StringValueSource obtained') == 1
+        output.count('The values are the same') == 2
+
+        and:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "value source can be shared across build services"() {
+        given:
+        createDirs 'foo', 'bar'
+        settingsFile """
+            import org.gradle.api.provider.*
+
+            rootProject.name = 'root'
+            include 'foo', 'bar'
+
+            abstract class StringValueSource implements ValueSource<String, ValueSourceParameters.None> {
+                @Override String obtain() {
+                    println "StringValueSource obtained"
+                    new String('42')
+                }
+            }
+
+            abstract class ValueProviderService implements ${BuildService.name}<Parameters>{
+
+                interface Parameters extends ${BuildServiceParameters.name} {
+                    Property<Object> getValue()
+                }
+
+                Object getValue() {
+                    parameters.value.get()
+                }
+            }
+
+            abstract class ValueCheckerService implements ${BuildService.name}<${BuildServiceParameters.name}.None>{
+
+                private Object value = null
+
+                synchronized def check(Object o) {
+                    if (value === null) {
+                        value = o
+                    } else {
+                        assert value === o
+                        println 'The values are the same'
+                    }
+                }
+            }
+
+            abstract class ValueTask extends DefaultTask {
+                @ServiceReference('valueProvider') abstract Property<ValueProviderService> getValueProvider()
+                @ServiceReference('valueChecker') abstract Property<ValueCheckerService> getValueChecker()
+                @TaskAction def check() {
+                    valueChecker.get().check(valueProvider.get().value)
+                }
+            }
+
+            def valueChecker = gradle.sharedServices.registerIfAbsent('valueChecker', ValueCheckerService) {}
+
+            def sharedValue = providers.of(StringValueSource) {}
+            gradle.allprojects {
+                def provider = gradle.sharedServices.registerIfAbsent(name + 'ValueProvider', ValueProviderService) {
+                    parameters {
+                        value = sharedValue
+                    }
+                }
+                tasks.register('check', ValueTask) {
+                    valueProvider = provider
+                }
+            }
+        """
+
+        and:
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('StringValueSource obtained') == 1
+        output.count('The values are the same') == 2
+
+        and:
+        configurationCacheRun 'check'
+
+        then:
+        output.count('StringValueSource obtained') == 1
+        output.count('The values are the same') == 2
+
+        and:
+        configurationCache.assertStateLoaded()
     }
 }

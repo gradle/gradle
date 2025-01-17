@@ -54,7 +54,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model[0].message == "It works from project :"
         model[1].message == "It works from project :a"
 
-        fixture.assertStateStored {
+        fixture.assertModelStored {
             projectsConfigured(":buildSrc", ":b")
             buildModelCreated()
             modelsCreated(":", ":a")
@@ -71,7 +71,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
 
         then:
         model2.size() == 2
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("Callback before")
 
 
@@ -88,7 +88,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model3[0].message == "updated message for root"
         model3[1].message == "It works from project :a"
 
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("build.gradle")
             projectConfigured(":buildSrc")
             modelsCreated(":")
@@ -106,7 +106,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
 
         then:
         model4.size() == 2
-        fixture.assertStateLoaded()
+        fixture.assertModelLoaded()
         outputDoesNotContain("Callback before")
 
 
@@ -124,7 +124,7 @@ class IsolatedProjectsToolingApiGradleLifecycleIntegrationTest extends AbstractI
         model5[1].message == "updated message for :a"
 
         and:
-        fixture.assertStateUpdated {
+        fixture.assertModelUpdated {
             fileChanged("a/build.gradle")
             projectConfigured(":buildSrc")
             projectConfigured(":")

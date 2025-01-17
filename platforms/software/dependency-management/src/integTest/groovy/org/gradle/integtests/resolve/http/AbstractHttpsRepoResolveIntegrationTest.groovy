@@ -150,15 +150,15 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
     private void setupBuildFile(String repoType, boolean withCredentials = false) {
         def credentials = """
 credentials {
-    username 'user'
-    password 'secret'
+    username = 'user'
+    password = 'secret'
 }
 """
 
         buildFile << """
 repositories {
     $repoType {
-        url '${server.uri}/repo1'
+        url = '${server.uri}/repo1'
         ${withCredentials ? credentials : ''}
     }
 }

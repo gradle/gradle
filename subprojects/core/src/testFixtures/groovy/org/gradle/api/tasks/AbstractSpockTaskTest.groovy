@@ -21,6 +21,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
@@ -28,21 +29,47 @@ import org.gradle.api.internal.project.taskfactory.DefaultTaskClassInfoStore
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
+import org.gradle.api.provider.Property
 import org.gradle.api.specs.Spec
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.id.ConfigurationCacheableIdFactory
 import org.gradle.internal.Actions
 import org.gradle.internal.MutableBoolean
+import org.gradle.internal.properties.annotations.DefaultTypeMetadataStore
+import org.gradle.internal.properties.annotations.MissingPropertyAnnotationHandler
+import org.gradle.internal.properties.annotations.NoOpPropertyAnnotationHandler
+import org.gradle.internal.properties.annotations.PropertyTypeResolver
 import org.gradle.internal.reflect.DirectInstantiator
+import org.gradle.internal.reflect.annotations.AnnotationCategory
+import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+
+import javax.annotation.Nullable
+import java.lang.annotation.Annotation
 
 import static org.junit.Assert.assertFalse
 
 abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
 
-    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory())
+    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        [:],
+        [:],
+        ["java", "groovy"],
+        [],
+        [Object, GroovyObject],
+        [ConfigurableFileCollection, Property],
+        [Internal],
+        [],
+        { false },
+        cacheFactory
+    )
+    def propertyHandlers = [new NoOpPropertyAnnotationHandler(Internal)]
+    def typeMetadataStore = new DefaultTypeMetadataStore([], propertyHandlers, [], [], [], typeAnnotationMetadataStore, new TestPropertyResolver(), cacheFactory, MissingPropertyAnnotationHandler.MISSING_INPUT_OUTPUT_HANDLER)
+    def taskClassInfoStore = new DefaultTaskClassInfoStore(new TestCrossBuildInMemoryCacheFactory(), typeMetadataStore)
     def taskIdentityFactory = new TaskIdentityFactory(new ConfigurationCacheableIdFactory())
     def taskFactory = new AnnotationProcessingTaskFactory(DirectInstantiator.INSTANCE, taskClassInfoStore, new TaskFactory())
 
@@ -251,5 +278,13 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
 
         then:
         task.getOnlyIf().isSatisfiedBy(task)
+    }
+
+    private class TestPropertyResolver implements PropertyTypeResolver {
+        @Nullable
+        @Override
+        Class<? extends Annotation> resolveAnnotationType(Map<AnnotationCategory, Annotation> propertyAnnotations) {
+            propertyAnnotations.get(AnnotationCategory.TYPE)?.annotationType()
+        }
     }
 }

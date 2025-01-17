@@ -20,10 +20,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.BuildWorkExecutor;
-import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.service.ServiceRegistry;
 

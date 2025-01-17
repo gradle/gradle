@@ -24,14 +24,17 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimePropertyResolver
 
 
 interface EvaluationAndConversionSchema : EvaluationSchema {
+    fun conversionSchemaForScriptTarget(target: Any): ConversionSchema
+}
+
+interface ConversionSchema {
     val runtimePropertyResolvers: List<RuntimePropertyResolver>
     val runtimeFunctionResolvers: List<RuntimeFunctionResolver>
     val runtimeCustomAccessors: List<RuntimeCustomAccessors>
 }
 
-
 interface InterpretationSequenceStepWithConversion<R : Any> : InterpretationSequenceStep {
     override val evaluationSchemaForStep: EvaluationAndConversionSchema
     fun getTopLevelReceiverFromTarget(target: Any): R
-    fun whenEvaluated(resultReceiver: R)
+    fun whenEvaluated(target: Any, resultReceiver: R)
 }

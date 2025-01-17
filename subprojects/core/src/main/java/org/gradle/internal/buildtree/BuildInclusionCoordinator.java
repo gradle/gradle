@@ -23,10 +23,16 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.work.Synchronizer;
+import org.gradle.internal.work.WorkerLeaseService;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -37,12 +43,38 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class BuildInclusionCoordinator {
     private final Set<IncludedBuildState> loadedBuilds = new CopyOnWriteArraySet<>();
     private final List<IncludedBuildState> libraryBuilds = new CopyOnWriteArrayList<>();
+    private final Map<BuildState, BuildSynchronizer> synchronizers = new ConcurrentHashMap<>();
     private final GlobalDependencySubstitutionRegistry substitutionRegistry;
+    private final WorkerLeaseService workerLeaseService;
     private boolean registerRootSubstitutions;
-    private final Set<BuildState> registering = new HashSet<>();
 
-    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry) {
+    private static class BuildSynchronizer {
+        final Synchronizer lock;
+        boolean isInProgress;
+
+        BuildSynchronizer(WorkerLeaseService workerLeaseService) {
+            this.lock = workerLeaseService.newResource();
+        }
+
+        void withLock(Runnable action) {
+            lock.withLock(() -> {
+                if (isInProgress) {
+                    return;
+                }
+                try {
+                    isInProgress = true;
+                    action.run();
+                } finally {
+                    isInProgress = false;
+                }
+            });
+        }
+
+    }
+
+    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService) {
         this.substitutionRegistry = substitutionRegistry;
+        this.workerLeaseService = workerLeaseService;
     }
 
     public void prepareForInclusion(IncludedBuildState build, boolean asPlugin) {
@@ -62,7 +94,7 @@ public class BuildInclusionCoordinator {
 
     private void registerGlobalLibrarySubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds) {
-            doRegisterSubstitutions(includedBuild);
+            registerSubstitutionsFor(includedBuild);
         }
     }
 
@@ -70,62 +102,48 @@ public class BuildInclusionCoordinator {
         if (build instanceof RootBuildState) {
             registerGlobalLibrarySubstitutions();
         } else {
-            makeSubstitutionsAvailableFor(build, new HashSet<>());
+            withLockForBuild(build, () -> makeSubstitutionsAvailableFor(build));
         }
     }
 
     public void registerSubstitutionsProvidedBy(BuildState build) {
         if (build instanceof RootBuildState && registerRootSubstitutions) {
             // Make root build substitutions available
-            doRegisterSubstitutions((RootBuildState) build);
+            registerSubstitutionsFor((RootBuildState) build);
         }
     }
 
     public void prepareForPluginResolution(IncludedBuildState build) {
-        synchronized (registering) {
-            if (!registering.add(build)) {
-                return;
-            }
-            try {
-                build.ensureProjectsConfigured();
-                makeSubstitutionsAvailableFor(build, new HashSet<>());
-            } finally {
-                registering.remove(build);
-            }
-        }
+        withLockForBuild(build, build::ensureProjectsConfigured);
+        makeSubstitutionsAvailableFor(build);
     }
 
-    private void makeSubstitutionsAvailableFor(BuildState build, Set<BuildState> seen) {
-        // A build can see all the builds that it includes
-        if (!seen.add(build)) {
-            return;
-        }
-        synchronized (registering) {
-            boolean added = registering.add(build);
-            try {
-                for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
-                    BuildState target = reference.getTarget();
-                    if (!registering.contains(target) && target instanceof IncludedBuildState) {
-                        doRegisterSubstitutions((IncludedBuildState) target);
-                        makeSubstitutionsAvailableFor(target, seen);
-                    }
-                }
-            } finally {
-                if (added) {
-                    registering.remove(build);
+    private void makeSubstitutionsAvailableFor(BuildState build) {
+        Deque<BuildState> stack = new ArrayDeque<>();
+        Set<BuildState> seen = new HashSet<>();
+
+        stack.push(build);
+        seen.add(build);
+
+        while (!stack.isEmpty()) {
+            BuildState current = stack.pop();
+
+            for (IncludedBuildInternal reference : current.getMutableModel().includedBuilds()) {
+                BuildState child = reference.getTarget();
+
+                if (seen.add(child) && child instanceof IncludedBuildState) {
+                    registerSubstitutionsFor((IncludedBuildState) child);
+                    stack.push(child);
                 }
             }
         }
     }
 
-    private void doRegisterSubstitutions(CompositeBuildParticipantBuildState build) {
-        synchronized (registering) {
-            registering.add(build);
-            try {
-                substitutionRegistry.registerSubstitutionsFor(build);
-            } finally {
-                registering.remove(build);
-            }
-        }
+    private void registerSubstitutionsFor(CompositeBuildParticipantBuildState build) {
+        withLockForBuild(build, () -> substitutionRegistry.registerSubstitutionsFor(build));
+    }
+
+    private void withLockForBuild(BuildState build, Runnable action) {
+        synchronizers.computeIfAbsent(build, b -> new BuildSynchronizer(workerLeaseService)).withLock(action);
     }
 }

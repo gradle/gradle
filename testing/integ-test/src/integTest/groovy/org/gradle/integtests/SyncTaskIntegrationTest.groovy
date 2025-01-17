@@ -17,12 +17,13 @@ package org.gradle.integtests
 
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.StableConfigurationCacheDeprecations
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Issue
 
-class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
+class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
     def 'copies files and removes extra files from destDir'() {
         given:
@@ -396,6 +397,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         when:
+        expectTaskGetProjectDeprecations()
         run 'syncIt'
 
         then:
@@ -431,6 +433,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         expect:
+        expectTaskGetProjectDeprecations()
         fails 'syncIt'
 
         cleanup:
@@ -570,6 +573,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         when:
+        expectTaskGetProjectDeprecations()
         run 'syncIt'
 
         then:
@@ -610,6 +614,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         when:
+        expectTaskGetProjectDeprecations()
         run 'syncIt'
 
         then:
@@ -657,6 +662,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         '''.stripIndent()
 
         when:
+        expectTaskGetProjectDeprecations()
         run 'syncIt'
 
         then:

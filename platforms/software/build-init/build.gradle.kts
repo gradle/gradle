@@ -25,19 +25,21 @@ dependencies {
     api(libs.jsr305)
     api(libs.maven3Settings)
 
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.baseServices)
+    api(projects.buildInitSpecs)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServices)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.logging)
     api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.jvmServices)
     api(projects.workers)
-    api(projects.daemonServices)
 
+    implementation(projects.buildInitSpecsApi)
     implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
@@ -113,3 +115,7 @@ packageCycles {
 }
 
 integTest.testJvmXmx = "1g"
+
+tasks.isolatedProjectsIntegTest {
+    enabled = true
+}

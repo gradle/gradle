@@ -49,7 +49,7 @@ subprojects {
 
     checkstyle {
         toolVersion = '$version'
-        configFile rootProject.file("checkstyle.xml")
+        configFile = rootProject.file("checkstyle.xml")
     }
 }
 

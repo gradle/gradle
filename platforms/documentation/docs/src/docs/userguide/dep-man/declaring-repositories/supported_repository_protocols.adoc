@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[supported_transport_protocols]]
+[[supported-transport-protocols]]
 = Supported Protocols
 
 Gradle supports a variety of transport protocols for Maven and Ivy repositories.
 
+[[sec:supported-protocols]]
 == Supported transport protocols
 
 These protocols determine how Gradle communicates with the repositories to resolve dependencies.
@@ -31,15 +32,15 @@ These protocols determine how Gradle communicates with the repositories to resol
 
 | `http`
 | username/password
-| <<#sec:authentication_schemes, Documentation>>
+| <<#sec:authentication-schemes, Documentation>>
 
 | `https`
 | username/password
-| <<#sec:authentication_schemes, Documentation>>
+| <<#sec:authentication-schemes, Documentation>>
 
 | `sftp`
 | username/password
-| <<#sec:authentication_schemes, Documentation>>
+| <<#sec:authentication-schemes, Documentation>>
 
 | `s3`
 | access key/secret key/session token or Environment variables
@@ -86,9 +87,10 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-ivy-gcs-repository]"]
 ====
 
+[[sec:configure-auth-schemes]]
 == Configuring authentication schemes
 
-[[sec:authentication_schemes]]
+[[sec:authentication-schemes]]
 === HTTP(S) authentication schemes configuration
 
 When configuring a repository that uses HTTP or HTTPS transport protocols, several authentication schemes are available.
@@ -125,7 +127,7 @@ Digest access authentication over HTTP.
 link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication]::
 Authentication based on a custom HTTP header, such as private tokens or OAuth tokens.
 
-[[sub:preemptive_authentication]]
+[[sec:preemptive-authentication]]
 === Using preemptive authentication
 
 By default, Gradle submits credentials only when a server responds with an authentication challenge (HTTP 401).
@@ -137,7 +139,7 @@ include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gr
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=preemptive-authentication]"]
 ====
 
-[[sub:http-header-auth]]
+[[sec:http-header-auth]]
 === Using HTTP header authentication
 
 For Maven repositories that require token-based, OAuth2, or other HTTP header-based authentication, you can use link:{javadocPath}/org/gradle/api/credentials/HttpHeaderCredentials.html[HttpHeaderCredentials] and link:{javadocPath}/org/gradle/authentication/http/HttpHeaderAuthentication.html[HttpHeaderAuthentication]:
@@ -152,7 +154,7 @@ include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gr
 
 When configuring a repository that uses AWS S3, several options and settings are available.
 
-[[sub:s3_configuration_properties]]
+[[sec:s3-configuration-properties]]
 ==== S3 configuration properties
 
 The following system properties can be used to configure interactions with S3 repositories:
@@ -163,7 +165,7 @@ Overrides the AWS S3 endpoint when using a non-AWS, S3 API-compatible storage se
 `org.gradle.s3.maxErrorRetry`::
 Specifies the maximum number of retry attempts when the S3 server responds with an HTTP 5xx status code. The default value is 3 if not specified.
 
-[[sub:s3_url_formats]]
+[[sec:s3-url-formats]]
 ==== S3 URL formats
 
 S3 URLs must use the 'virtual-hosted-style' format:
@@ -179,7 +181,7 @@ s3://<bucketName>[.<regionSpecificEndpoint>]/<s3Key>
 - `s3.eu-central-1.amazonaws.com`: The optional region-specific endpoint.
 - `/maven/release`: The AWS S3 key (a unique identifier for an object within a bucket).
 
-[[sub:s3_proxy_settings]]
+[[sec:s3-proxy-settings]]
 ==== S3 proxy settings
 
 A proxy for S3 can be configured using the following system properties:
@@ -197,7 +199,7 @@ A proxy for S3 can be configured using the following system properties:
 ** `http.proxyPassword`
 ** `http.nonProxyHosts`
 
-[[sub:s3_v4_signatures]]
+[[sec:s3-v4-signatures]]
 ==== S3 V4 Signatures (AWS4-HMAC-SHA256)
 
 Some S3 regions (e.g., `eu-central-1` in Frankfurt) require that all HTTP requests are signed using AWS’s signature version 4.
@@ -221,7 +223,7 @@ Failing to specify the region-specific endpoint for such buckets results in:
 - *Slower builds*: Due to increased network latency.
 - *Higher transmission failure rates*: Due to additional network overhead.
 
-[[sub:s3_cross_account]]
+[[sec:s3-cross-account]]
 ==== S3 Cross Account Access
 
 In organizations with multiple AWS accounts (e.g., one per team), the bucket owner may differ from the artifact publisher or consumers.
@@ -234,7 +236,7 @@ Ensure the publisher has the required IAM permissions (`PutObjectAcl` and `PutOb
 
 When configuring a repository that uses Google Cloud Storage (GCS), several configuration options and settings are available.
 
-[[sub:gcs_configuration_properties]]
+[[sec:gcs-configuration-properties]]
 ==== GCS configuration properties
 
 You can use the following system properties to configure interactions with link:https://cloud.google.com/storage/[GCS] repositories:
@@ -245,7 +247,7 @@ Overrides the Google Cloud Storage endpoint, useful when working with a storage 
 `org.gradle.gcs.servicePath`::
 Specifies the root service path from which the GCS client builds requests, with a default value of `/`.
 
-[[sub:gcs_url_formats]]
+[[sec:gcs-url-formats]]
 ==== GCS URL formats
 
 GCS URLs use a 'virtual-hosted-style' format and must adhere to the following structure:
@@ -263,7 +265,7 @@ gcs://<bucketName>/<objectKey>
 * `myBucket`: The bucket name.
 * `/maven/release`: The GCS object key.
 
-[[sec:handling_credentials]]
+[[sec:handling-credentials]]
 == Handling credentials
 
 Repository credentials should never be hardcoded in your build script but kept external.

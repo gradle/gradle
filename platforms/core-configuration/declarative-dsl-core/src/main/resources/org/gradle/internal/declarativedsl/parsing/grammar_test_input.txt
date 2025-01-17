@@ -2,6 +2,8 @@ a = 1
 b = this
 c = null
 x = true
+a = f(7)
+a = f.g.h(7)
 
 rootProject.name = "something"
 
@@ -9,18 +11,34 @@ block {
     a = 1
     b = 2
 }
+block("param") {
+    a = 1
+}
 
-f(1)
+f()
 f(x=y)
 f.g.h.i.j.k(test)
 f(1, x, "s", g())
 f(a = b, c = d)
 
+id("plugin").version("7")
+f(1).g(2).h(3)
+
 // errors
 // 5
 // a = (1)
+// a = f(1).g(2)
+// a = "foo".bar(1)
 // a.b.c = 1
 // d = a.b.c
 // a.b {d = 1}
 // a.b.c {d = 1}
-// f(1).g(2).h(3)
+// 1 { foo = "bar" }
+// f(block{})
+// f(1).x
+// x.f(1).y
+// f(1).x.f(2)
+// "function"(1)
+// 1(2)
+// true(3)
+// null(4)

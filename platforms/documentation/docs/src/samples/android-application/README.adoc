@@ -15,5 +15,5 @@ To build the application:
 $ ./gradlew build
 ----
 
-For more information, we suggest reading link:{userManualPath}/getting_started.html[Getting Started with Gradle].
+For more information, we suggest reading link:{userManualPath}/getting_started_dev.html[Getting Started with Gradle].
 You can also find https://developer.android.com/guide[Android development related information inside the guides provided by the Android team].

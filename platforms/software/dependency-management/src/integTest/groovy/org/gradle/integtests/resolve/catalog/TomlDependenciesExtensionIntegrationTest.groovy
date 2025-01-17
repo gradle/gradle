@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.api.internal.catalog.problems.VersionCatalogErrorMessages
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
-import org.gradle.api.problems.internal.FileLocation
+import org.gradle.api.problems.FileLocation
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.resolve.PluginDslSupport
@@ -345,7 +345,7 @@ lib = "org.gradle.test:lib:1.0"
         """
         file("buildSrc/build.gradle") << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
             dependencies {
                 implementation libs.lib
@@ -370,7 +370,7 @@ build-src-lib="org.gradle.test:buildsrc-lib:1.0"
 """
         file("buildSrc/build.gradle") << """
             repositories {
-                maven { url "${mavenHttpRepo.uri}" }
+                maven { url = "${mavenHttpRepo.uri}" }
             }
 
             dependencies {
@@ -425,7 +425,7 @@ from-included="org.gradle.test:other:1.1"
 
             dependencyResolutionManagement {
                 repositories {
-                    maven { url "${mavenHttpRepo.uri}" }
+                    maven { url = "${mavenHttpRepo.uri}" }
                 }
             }
         """

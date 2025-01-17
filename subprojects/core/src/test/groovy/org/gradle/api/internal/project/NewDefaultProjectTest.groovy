@@ -33,7 +33,7 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
 
         then:
         rootTasks.size() == 2
-        rootTasks[project]*.path as Set == [":bar", ":buildEnvironment", ":components", ":dependencies", ":dependencyInsight", ":dependentComponents", ":foo", ":help", ":javaToolchains", ":model", ":outgoingVariants", ":projects", ":properties", ":resolvableConfigurations", ":tasks", ":foo"] as Set
+        rootTasks[project]*.path as Set == [":bar", ":buildEnvironment", ":components", ":dependencies", ":dependencyInsight", ":dependentComponents", ":foo", ":help", ":init", ":javaToolchains", ":model", ":outgoingVariants", ":projects", ":properties", ":resolvableConfigurations", ":tasks", ":wrapper", ":foo"] as Set
         rootTasks[a]*.path as Set == [":a:bar", ":a:buildEnvironment", ":a:components", ":a:dependencies", ":a:dependencyInsight", ":a:dependentComponents", ":a:foo", ":a:help", ":a:javaToolchains", ":a:model", ":a:outgoingVariants", ":a:projects", ":a:properties", ":a:resolvableConfigurations", ":a:tasks", ":a:foo"] as Set
 
         aTasks.size() == 1
@@ -51,7 +51,7 @@ class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
 
         then:
         rootTasks.size() == 1
-        rootTasks[project]*.path as Set == [":bar", ":buildEnvironment", ":components", ":dependencies", ":dependencyInsight", ":dependentComponents", ":foo", ":help", ":javaToolchains", ":model", ":outgoingVariants", ":projects", ":properties", ":resolvableConfigurations", ":tasks", ":foo"] as Set
+        rootTasks[project]*.path as Set == [":bar", ":buildEnvironment", ":components", ":dependencies", ":dependencyInsight", ":dependentComponents", ":foo", ":help", ":init", ":javaToolchains", ":model", ":outgoingVariants", ":projects", ":properties", ":resolvableConfigurations", ":tasks", ":wrapper", ":foo"] as Set
 
         aTasks.size() == 1
         aTasks[a]*.path as Set == [":a:bar", ":a:buildEnvironment", ":a:components", ":a:dependencies", ":a:dependencyInsight", ":a:dependentComponents", ":a:foo", ":a:help", ":a:javaToolchains", ":a:model", ":a:outgoingVariants", ":a:projects", ":a:properties", ":a:resolvableConfigurations", ":a:tasks", ":a:foo"] as Set

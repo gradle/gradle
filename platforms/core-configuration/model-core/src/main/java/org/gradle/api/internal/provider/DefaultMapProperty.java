@@ -18,10 +18,8 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
@@ -30,24 +28,25 @@ import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 /**
  * The implementation for {@link MapProperty}.
  * <p>
- *     Value suppliers for map properties are implementations of {@link MapSupplier}.
+ * Value suppliers for map properties are implementations of {@link MapSupplier}.
  * </p>
  * <p>
- *     Increments to map property values are implementations of {@link MapCollector}.
+ * Increments to map property values are implementations of {@link MapCollector}.
  * </p>
  *
  * This class mimics much of the behavior {@link AbstractCollectionProperty} provides for regular collections
@@ -161,13 +160,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (entries == null) {
             unsetValueAndDefault();
         } else {
-            setSupplier(new CollectingSupplier(new EntriesFromMap<>(entries), false));
+            setSupplier(newCollectingSupplierOf(new EntriesFromMap<>(entries)));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(checkMapProvider(provider)), false));
+        setSupplier(newCollectingSupplierOf(new MapCollectors.EntriesFromMapProvider<>(checkMapProvider(provider))));
     }
 
     @Override
@@ -184,61 +183,62 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void put(K key, V value) {
-        getConfigurer().put(key, value);
+        Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
+        Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
+        addExplicitCollector(new SingleEntry<>(key, value));
     }
 
     @Override
     public void put(K key, Provider<? extends V> providerOfValue) {
-        getConfigurer().put(key, providerOfValue);
+        Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
+        Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
+        ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
+        if (p.getType() != null && !valueType.isAssignableFrom(p.getType())) {
+            throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
+                Map.class.getName(), valueType.getName(), p.getType().getName()));
+        }
+        addExplicitCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
     }
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        getConfigurer().putAll(entries);
+        addExplicitCollector(new EntriesFromMap<>(entries));
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        getConfigurer().putAll(provider);
+        addExplicitCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
     }
 
     @Override
     public void insert(K key, Provider<? extends V> providerOfValue) {
-        withActualValue(it -> it.put(key, providerOfValue));
+        withActualValue(() -> put(key, providerOfValue));
     }
 
     @Override
     public void insert(K key, V value) {
-        withActualValue(it -> it.put(key, value));
+        withActualValue(() -> put(key, value));
     }
 
     @Override
     public void insertAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        withActualValue(it -> it.putAll(provider));
+        withActualValue(() -> putAll(provider));
     }
 
     @Override
     public void insertAll(Map<? extends K, ? extends V> entries) {
-        withActualValue(it -> it.putAll(entries));
+        withActualValue(() -> putAll(entries));
     }
 
-    private void addExplicitCollector(MapCollector<K, V> collector, boolean ignoreAbsent) {
+    private void addExplicitCollector(MapCollector<K, V> collector) {
         assertCanMutate();
-        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue).absentIgnoringIfNeeded(ignoreAbsent);
-        setSupplier(explicitValue.plus(collector.absentIgnoringIfNeeded(ignoreAbsent)));
+        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue);
+        setSupplier(explicitValue.plus(collector));
     }
 
-    private Configurer getConfigurer() {
-        return getConfigurer(false);
-    }
-
-    private Configurer getConfigurer(boolean ignoreAbsent) {
-        return new Configurer(ignoreAbsent);
-    }
-
-    protected void withActualValue(Action<Configurer> action) {
+    protected void withActualValue(Runnable action) {
         setToConventionIfUnset();
-        action.execute(getConfigurer(true));
+        action.run();
     }
 
     private boolean isNoValueSupplier(MapSupplier<K, V> valueSupplier) {
@@ -277,14 +277,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         if (value == null) {
             setConvention(noValueSupplier());
         } else {
-            setConvention(new CollectingSupplier(new EntriesFromMap<>(value), false));
+            setConvention(newCollectingSupplierOf(new EntriesFromMap<>(value)));
         }
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(new CollectingSupplier(new EntriesFromMapProvider<>(Providers.internal(valueProvider)), false));
+        setConvention(newCollectingSupplierOf(new EntriesFromMapProvider<>(Providers.internal(valueProvider))));
         return this;
     }
 
@@ -311,8 +311,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         } else if (value.hasFixedValue()) {
             setSupplier(new FixedSupplier(uncheckedNonnullCast(value.getFixedValue()), uncheckedCast(value.getSideEffect())));
         } else {
-            CollectingProvider<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
-            setSupplier(new CollectingSupplier(new EntriesFromMapProvider<>(asCollectingProvider)));
+            CollectingSupplier<K, V> asCollectingProvider = uncheckedNonnullCast(value.getChangingValue());
+            setSupplier(asCollectingProvider);
         }
     }
 
@@ -336,12 +336,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected Value<? extends Map<K, V>> calculateValueFrom(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         return value.calculateValue(consumer);
     }
 
     @Override
-    protected MapSupplier<K, V> finalValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
+    protected MapSupplier<K, V> finalValue(EvaluationScopeContext context, MapSupplier<K, V> value, ValueConsumer consumer) {
         Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
             return new FixedSupplier(result.getWithoutSideEffect(), uncheckedCast(result.getSideEffect()));
@@ -353,7 +353,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(EvaluationContext.ScopeContext context, MapSupplier<K, V> value) {
+    protected ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue(EvaluationScopeContext context, MapSupplier<K, V> value) {
         return value.calculateExecutionTimeValue();
     }
 
@@ -391,7 +391,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         protected Value<? extends Set<K>> calculateOwnValue(ValueConsumer consumer) {
-            try (EvaluationContext.ScopeContext context = DefaultMapProperty.this.openScope()) {
+            try (EvaluationScopeContext context = DefaultMapProperty.this.openScope()) {
                 beforeRead(context, consumer);
                 return getSupplier(context).calculateKeys(consumer);
             }
@@ -404,11 +404,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         public NoValueSupplier(Value<? extends Map<K, V>> value) {
             this.value = value.asType();
             assert value.isMissing();
-        }
-
-        @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return emptySupplier();
         }
 
         @Override
@@ -428,7 +423,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            // nothing + something = nothing
+            // nothing + something = nothing.
             return this;
         }
 
@@ -450,11 +445,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private class EmptySupplier implements MapSupplier<K, V> {
         @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return this;
-        }
-
-        @Override
         public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
@@ -472,7 +462,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
             // empty + something = something
-            return new CollectingSupplier(collector);
+            return newCollectingSupplierOf(collector);
         }
 
         @Override
@@ -517,14 +507,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         @Override
         public MapSupplier<K, V> plus(MapCollector<K, V> collector) {
-            MapCollector<K, V> left = new FixedValueCollector<>(entries, sideEffect);
-            PlusCollector<K, V> newCollector = new PlusCollector<>(left, collector);
-            return new CollectingSupplier(newCollector);
-        }
-
-        @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return this;
+            return newCollectingSupplierOf(new FixedValueCollector<>(entries, sideEffect)).plus(collector);
         }
 
         @Override
@@ -543,198 +526,108 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    private class CollectingSupplier implements MapSupplier<K, V> {
-        private final MapCollector<K, V> collector;
-        // TODO-RC: can we get rid of this? Can we only keep this in Collectors? Changing execution time value is the only case that needs this.
-        private final boolean ignoreAbsent;
+    private CollectingSupplier<K, V> newCollectingSupplierOf(MapCollector<K, V> collector) {
+        return new CollectingSupplier<>(keyCollector, entryCollector, collector);
+    }
 
-        public CollectingSupplier(MapCollector<K, V> collector, boolean ignoreAbsent) {
-            this.collector = collector;
-            this.ignoreAbsent = ignoreAbsent;
+
+    private static class CollectingSupplier<K, V> extends AbstractCollectingSupplier<MapCollector<K, V>, Map<K, V>> implements MapSupplier<K, V> {
+        private final ValueCollector<K> keyCollector;
+        private final MapEntryCollector<K, V> entryCollector;
+
+        public CollectingSupplier(
+            ValueCollector<K> keyCollector,
+            MapEntryCollector<K, V> entryCollector,
+            MapCollector<K, V> collector
+        ) {
+            this(keyCollector, entryCollector, AppendOnceList.of(collector));
         }
 
-        public CollectingSupplier(MapCollector<K, V> collector) {
-            this(collector, false);
+        public CollectingSupplier(
+            ValueCollector<K> keyCollector,
+            MapEntryCollector<K, V> entryCollector,
+            AppendOnceList<MapCollector<K, V>> collectors
+        ) {
+            super(collectors);
+            this.keyCollector = keyCollector;
+            this.entryCollector = entryCollector;
         }
 
+        @Nullable
         @Override
-        public MapSupplier<K, V> absentIgnoring() {
-            return ignoreAbsent ? this : new CollectingSupplier(collector, true);
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return collector.calculatePresence(consumer);
+        @SuppressWarnings("unchecked")
+        public Class<Map<K, V>> getType() {
+            return (Class) Map.class;
         }
 
         @Override
         public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
-            // TODO - don't make a copy when the collector already produces an immutable collection
-            ImmutableSet.Builder<K> builder = ImmutableSet.builder();
-            Value<Void> result = collector.collectKeys(consumer, keyCollector, builder);
-            if (result.isMissing()) {
-                return result.asType();
-            }
-            return Value.of(ImmutableSet.copyOf(builder.build())).withSideEffect(SideEffect.fixedFrom(result));
-        }
-
-        @Override
-        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
-            // TODO - don't make a copy when the collector already produces an immutable collection
-            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
-            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
-            // with the same key
-            Map<K, V> entries = new LinkedHashMap<>();
-            Value<Void> result = collector.collectEntries(consumer, entryCollector, entries);
-            if (result.isMissing()) {
-                return result.asType();
-            }
-            return Value.of(ImmutableMap.copyOf(entries)).withSideEffect(SideEffect.fixedFrom(result));
-        }
-
-        @Override
-        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
-            MapCollector<K, V> left = this.collector.absentIgnoringIfNeeded(ignoreAbsent);
-            MapCollector<K, V> right = addedCollector;
-            PlusCollector<K, V> newCollector = new PlusCollector<>(left, right);
-            return new CollectingSupplier(newCollector);
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
-            List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> execTimeValues = collectExecutionTimeValues();
-            ExecutionTimeValue<Map<K, V>> fixedOrMissing = fixedOrMissingValueOf(execTimeValues);
-            return fixedOrMissing != null
-                ? fixedOrMissing
-                : ExecutionTimeValue.changingValue(new CollectingProvider<>(execTimeValues));
-        }
-
-        /**
-         * Try to simplify the set of execution values to either a missing value or a fixed value.
-         */
-        @Nullable
-        private ExecutionTimeValue<Map<K, V>> fixedOrMissingValueOf(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values) {
-            boolean fixed = true;
-            boolean changingContent = false;
-            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
-                if (value.isMissing()) {
-                    return ExecutionTimeValue.missing();
-                }
-                if (value.isChangingValue()) {
-                    fixed = false;
-                } else if (value.hasChangingContent()) {
-                    changingContent = true;
-                }
-            }
-            if (fixed) {
-                SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
-                ImmutableMap<K, V> entries = collectEntries(values, sideEffectBuilder);
-                return maybeChangingContent(ExecutionTimeValue.fixedValue(entries), changingContent)
-                    .withSideEffect(sideEffectBuilder.build());
-            }
-            return null;
-        }
-
-        private List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> collectExecutionTimeValues() {
-            List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values = new ArrayList<>();
-            collector.calculateExecutionTimeValue(values::add);
-            return values;
-        }
-
-        private ImmutableMap<K, V> collectEntries(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values, SideEffectBuilder<? super Map<K, V>> sideEffectBuilder) {
-            Map<K, V> entries = new LinkedHashMap<>();
-            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value : values) {
-                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
-                sideEffectBuilder.add(SideEffect.fixedFrom(value));
-            }
-            return ImmutableMap.copyOf(entries);
-        }
-
-        private ExecutionTimeValue<Map<K, V>> maybeChangingContent(ExecutionTimeValue<Map<K, V>> value, boolean changingContent) {
-            return changingContent ? value.withChangingContent() : value;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return collector.getProducer();
-        }
-
-        @Override
-        public String toString() {
-            return collector.toString();
-        }
-    }
-
-    private static class CollectingProvider<K, V> extends AbstractMinimalProvider<Map<K, V>> {
-        private final List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values;
-
-        public CollectingProvider(List<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> values) {
-            this.values = values;
-        }
-
-        @Nullable
-        @Override
-        public Class<Map<K, V>> getType() {
-            return uncheckedCast(Map.class);
-        }
-
-        @Override
-        public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
-            return ExecutionTimeValue.changingValue(this);
+            return calculateValue(
+                (builder, collector) -> collector.collectKeys(consumer, keyCollector, builder),
+                ImmutableSet.<K>builder(),
+                ImmutableSet.Builder::build
+            );
         }
 
         @Override
         protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
+            // TODO - don't make a copy when the collector already produces an immutable collection
+            return calculateValue(
+                (builder, collector) -> collector.collectEntries(consumer, entryCollector, builder),
+                // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
+                // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
+                // with the same key
+                new LinkedHashMap<K, V>(),
+                ImmutableMap::copyOf
+            );
+        }
+
+        @Override
+        public MapSupplier<K, V> plus(MapCollector<K, V> addedCollector) {
+            return new CollectingSupplier<>(keyCollector, entryCollector, collectors.plus(addedCollector));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public ExecutionTimeValue<? extends Map<K, V>> calculateExecutionTimeValue() {
+            return calculateExecutionTimeValue(
+                collector -> (ExecutionTimeValue<? extends Map<K, V>>) collector.calculateExecutionTimeValue(),
+                this::calculateFixedExecutionTimeValue,
+                this::calculateChangingExecutionTimeValue
+            );
+        }
+
+        private ExecutionTimeValue<? extends Map<K, V>> calculateFixedExecutionTimeValue(
+            List<ExecutionTimeValue<? extends Map<K, V>>> values,
+            SideEffectBuilder<Map<K, V>> sideEffectBuilder
+        ) {
+            // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
+            // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
+            // with the same key.
             Map<K, V> entries = new LinkedHashMap<>();
-            SideEffectBuilder<? super Map<K, V>> sideEffectBuilder = SideEffect.builder();
-            for (ExecutionTimeValue<? extends Map<? extends K, ? extends V>> executionTimeValue : values) {
-                Value<? extends Map<? extends K, ? extends V>> value = executionTimeValue.toProvider().calculateValue(consumer);
-                if (value.isMissing()) {
-                    return Value.missing();
-                } else {
-                    entries.putAll(value.getWithoutSideEffect());
-                    sideEffectBuilder.add(SideEffect.fixedFrom(value));
-                }
+            for (ExecutionTimeValue<? extends Map<K, V>> value : values) {
+                entryCollector.addAll(value.getFixedValue().entrySet(), entries);
+                sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
-
-            return Value.of(ImmutableMap.copyOf(entries)).withSideEffect(sideEffectBuilder.build());
-        }
-    }
-
-    private class Configurer {
-        private final boolean ignoreAbsent;
-
-        public Configurer(boolean ignoreAbsent) {
-            this.ignoreAbsent = ignoreAbsent;
+            return ExecutionTimeValue.fixedValue(ImmutableMap.copyOf(entries));
         }
 
-        void addCollector(MapCollector<K, V> collector) {
-            addExplicitCollector(collector, ignoreAbsent);
+        private ExecutionTimeValue<? extends Map<K, V>> calculateChangingExecutionTimeValue(
+            List<ExecutionTimeValue<? extends Map<K, V>>> values
+        ) {
+            return ExecutionTimeValue.changingValue(new CollectingSupplier<>(
+                keyCollector,
+                entryCollector,
+                values.stream().map(this::toCollector).collect(toAppendOnceList())
+            ));
         }
 
-        public void put(K key, V value) {
-            Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
-            Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-            addCollector(new SingleEntry<>(key, value));
-        }
-
-        public void put(K key, Provider<? extends V> providerOfValue) {
-            Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
-            Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
-            ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
-            if (p.getType() != null && !valueType.isAssignableFrom(p.getType())) {
-                throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
-                    Map.class.getName(), valueType.getName(), p.getType().getName()));
+        private MapCollector<K, V> toCollector(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
+            Preconditions.checkArgument(!value.isMissing(), "Cannot get a collector for the missing value");
+            if (value.isChangingValue() || value.hasChangingContent() || value.getSideEffect() != null) {
+                return new EntriesFromMapProvider<>(value.toProvider());
             }
-            addCollector(new EntryWithValueFromProvider<>(key, Providers.internal(providerOfValue)));
-        }
-
-        public void putAll(Map<? extends K, ? extends V> entries) {
-            addCollector(new EntriesFromMap<>(entries));
-        }
-
-        public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-            addCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
+            return new EntriesFromMap<>(value.getFixedValue());
         }
     }
 
@@ -766,14 +659,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            visitor.execute(ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect));
-        }
-
-        @Override
-        public MapCollector<K, V> absentIgnoring() {
-            // always present
-            return this;
+        public ExecutionTimeValue<? extends Map<? extends K, ? extends V>> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(entries).withSideEffect(sideEffect);
         }
 
         @Override
@@ -789,147 +676,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         @Override
         public String toString() {
             return entries.toString();
-        }
-    }
-
-    private static abstract class AbstractPlusCollector<K, V> implements MapCollector<K, V> {
-
-        protected final MapCollector<K, V> left;
-        protected final MapCollector<K, V> right;
-
-        private AbstractPlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
-            this.left = left;
-            this.right = right;
-        }
-
-        @Override
-        public ValueProducer getProducer() {
-            return left.getProducer().plus(right.getProducer());
-        }
-
-        @Override
-        public String toString() {
-            return left + " + " + right;
-        }
-    }
-
-    private static class PlusCollector<K, V> extends AbstractPlusCollector<K, V> {
-
-        public PlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
-            super(left, right);
-        }
-
-        @Override
-        public MapCollector<K, V> absentIgnoring() {
-            return new AbsentIgnoringPlusCollector<K, V>(left, right);
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> leftValue = left.collectEntries(consumer, collector, dest);
-            if (leftValue.isMissing()) {
-                return leftValue;
-            }
-            Value<Void> rightValue = right.collectEntries(consumer, collector, dest);
-            if (rightValue.isMissing()) {
-                return rightValue;
-            }
-
-            return Value.present()
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
-        }
-
-        @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            Value<Void> result = left.collectKeys(consumer, collector, dest);
-            if (result.isMissing()) {
-                return result;
-            }
-            return right.collectKeys(consumer, collector, dest);
-        }
-
-        @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            left.calculateExecutionTimeValue(visitor);
-            right.calculateExecutionTimeValue(visitor);
-        }
-    }
-
-    /**
-     * A plus collector that either produces a composition of both of its left and right sides,
-     * or Value.present() with empty content (if left or right side are missing).
-     */
-    private static class AbsentIgnoringPlusCollector<K, V> extends AbstractPlusCollector<K, V> {
-
-        private AbsentIgnoringPlusCollector(MapCollector<K, V> left, MapCollector<K, V> right) {
-            super(left, right);
-        }
-
-        @Override
-        public boolean calculatePresence(ValueConsumer consumer) {
-            return true;
-        }
-
-        @Override
-        public MapCollector<K, V> absentIgnoring() {
-            return this;
-        }
-
-        @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Map<K, V> candidates = new LinkedHashMap<>();
-            // we cannot use dest directly because we don't want to emit any entries if either left or right are missing
-            Value<Void> leftValue = left.collectEntries(consumer, collector, candidates);
-            if (leftValue.isMissing()) {
-                return Value.present();
-            }
-            Value<Void> rightValue = right.collectEntries(consumer, collector, candidates);
-            if (rightValue.isMissing()) {
-                return Value.present();
-            }
-            dest.putAll(candidates);
-            return Value.present()
-                .withSideEffect(SideEffect.fixedFrom(leftValue))
-                .withSideEffect(SideEffect.fixedFrom(rightValue));
-        }
-
-        @Override
-        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            ImmutableSet.Builder<K> candidateKeys = ImmutableSet.builder();
-            Value<Void> leftResult = left.collectKeys(consumer, collector, candidateKeys);
-            if (leftResult.isMissing()) {
-                return Value.present();
-            }
-            Value<Void> rightResult = right.collectKeys(consumer, collector, candidateKeys);
-            if (rightResult.isMissing()) {
-                return Value.present();
-            }
-            dest.addAll(candidateKeys.build());
-            return rightResult;
-        }
-
-        @Override
-        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
-            boolean[] anyMissing = {false};
-            ImmutableList.Builder<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> toVisit = ImmutableList.builder();
-            Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> safeVisitor = value -> {
-                if (value.isMissing()) {
-                    anyMissing[0] = true;
-                } else {
-                    toVisit.add(value);
-                }
-            };
-            left.calculateExecutionTimeValue(safeVisitor);
-            right.calculateExecutionTimeValue(safeVisitor);
-            if (!anyMissing[0]) {
-                toVisit.build().forEach(it -> visitor.execute(it));
-            }
         }
     }
 }

@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.DecompressionCoordinator;
 import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
+import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
@@ -41,9 +42,11 @@ import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.cache.internal.scopes.DefaultBuildTreeScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.BuildTreeScopedCacheBuilderFactory;
+import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -60,6 +63,8 @@ import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
@@ -218,13 +223,26 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
-        protected ExecFactory createExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
-            return execFactory.forContext()
-                .withFileResolver(fileResolver)
-                .withFileCollectionFactory(fileCollectionFactory)
-                .withInstantiator(instantiator)
-                .withObjectFactory(objectFactory)
-                .build();
+        ExecFactory createExecFactory(
+            FileResolver fileResolver,
+            FileCollectionFactory fileCollectionFactory,
+            Instantiator instantiator,
+            ObjectFactory objectFactory,
+            ExecutorFactory executorFactory,
+            TemporaryFileProvider temporaryFileProvider,
+            BuildCancellationToken buildCancellationToken,
+            ClientExecHandleBuilderFactory execHandleFactory
+        ) {
+            return DefaultExecActionFactory.of(
+                fileResolver,
+                fileCollectionFactory,
+                instantiator,
+                executorFactory,
+                temporaryFileProvider,
+                buildCancellationToken,
+                objectFactory,
+                execHandleFactory
+            );
         }
 
         @Provides

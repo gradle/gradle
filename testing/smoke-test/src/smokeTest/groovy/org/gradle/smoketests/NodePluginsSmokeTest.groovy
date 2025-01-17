@@ -38,9 +38,9 @@ class NodePluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements 
             if (testedPluginId == 'com.moowork.node') {
                 onPlugin('com.moowork.node') {
                     failsWith([
-                        (missingAnnotationMessage { type('com.moowork.gradle.node.npm.NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
-                        (methodShouldNotBeAnnotatedMessage {type('com.moowork.gradle.node.npm.NpmSetupTask').kind('setter').method('setArgs').annotation('Internal').includeLink()}): ERROR,
-                        (missingAnnotationMessage { type('com.moowork.gradle.node.yarn.YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
+                            (missingAnnotationMessage { type('com.moowork.gradle.node.npm.NpmSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
+                            (methodShouldNotBeAnnotatedMessage {type('com.moowork.gradle.node.npm.NpmSetupTask').kind('setter').method('setArgs').annotation('Internal').includeLink()}): ERROR,
+                            (missingAnnotationMessage { type('com.moowork.gradle.node.yarn.YarnSetupTask').property('args').missingInputOrOutput().includeLink() }): ERROR,
                     ])
                 }
             } else {

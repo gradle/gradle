@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",fil
 
 In this example, `libs` represents the catalog, and `groovy` is a dependency available in it.
 
-Where the version catalog defining `libs.groovy.core` is a `libs.version.toml` file in the `gradle` directory:
+Where the version catalog defining `libs.groovy.core` is a `libs.versions.toml` file in the `gradle` directory:
 
 [source,toml]
-.gradle/libs.version.toml
+.gradle/libs.versions.toml
 ----
 [libraries]
 groovy-core = { group = "org.codehaus.groovy", name = "groovy", version = "3.0.5" }
@@ -41,13 +41,14 @@ Version catalogs offer several advantages:
 - *Centralized Version Management*: Each catalog is visible to all projects in a build.
 - *Dependency Bundles*: Catalogs can group commonly used dependencies into <<#sec:dependency-bundles,bundles>>.
 - *Version Separation*: Catalogs can separate dependency coordinates from version information, allowing shared version declarations.
-- *Conflict Resolution*: Like regular dependency notation, version catalogs declare requested <<#sec:common-version-numbers,versions>> but do not enforce them during <<dependency_resolution_adv#understanding_dependency_resolution,conflict resolution>>.
+- *Conflict Resolution*: Like regular dependency notation, version catalogs declare requested <<#sec:common-version-numbers,versions>> but do not enforce them during <<dependency_constraints.adoc#dependency-constraints,conflict resolution>>.
 
 While version catalogs define versions, they don't influence the dependency resolution process.
 Gradle may still select different versions due to dependency graph conflicts or constraints applied through platforms or dependency management APIs.
 
 WARNING: Versions declared in a catalog are typically not enforced, meaning the actual version used in the build may differ based on dependency resolution.
 
+[[sec:accessing-catalog]]
 == Accessing a catalog
 
 To access items in a version catalog defined in the standard `libs.versions.toml` file located in the `gradle` directory, you use the `libs` object in your build scripts.
@@ -67,11 +68,11 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_catalog_equiv]"]
 ====
 
-[[sub:type-unsafe-access-to-catalog]]
+[[sec:type-unsafe-access-to-catalog]]
 Accessors map directly to the aliases and versions defined in the TOML file, offering type-safe access to dependencies and plugins.
 This enables IDEs to provide autocompletion, highlight typos, and identify missing dependencies as errors.
 
-[[sub:mapping-aliases-to-accessors]]
+[[sec:mapping-aliases-to-accessors]]
 === Aliases and type-safe accessors
 
 Aliases in a version catalog consist of identifiers separated by a dash (`-`), underscore (`_`), or dot (`.`).
@@ -91,7 +92,7 @@ Type-safe accessors are generated for each alias, normalized to dot notation:
 |`libs.androidx.awesome.lib`
 |===
 
-[[sub:version-catalog-declaration]]
+[[sec:version-catalog-declaration]]
 == Creating a catalog
 
 [[sub:conventional-dependencies-toml]]
@@ -101,7 +102,7 @@ Version catalogs are conventionally declared using a `libs.versions.toml` file l
 include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy",files="gradle/libs.versions.toml[]"]
 ====
 
-[[sub::toml-dependencies-format]]
+[[sec::toml-dependencies-format]]
 === The TOML catalog format
 
 The https://toml.io/[TOML] file has four sections:
@@ -116,7 +117,7 @@ The TOML file format is very lenient and lets you write "dotted" properties as s
 [[sec:common-version-numbers]]
 ==== Versions
 
-Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<rich_versions.adoc#rich-version-constraints,rich version>>:
+Versions can be declared either as a single string, in which case they are interpreted as a _required_ version, or as a <<dependency_versions.adoc#sec:rich-version-constraints,rich version>>:
 
 [source,toml]
 ----
@@ -127,11 +128,11 @@ my-lib = { strictly = "[1.0, 2.0[", prefer = "1.2" } # Rich version
 
 Supported members of a version declaration are:
 
-- `require`: the <<rich_versions.adoc#sec:required-version,required version>>
-- `strictly`: the <<rich_versions.adoc#sec:strict-version,strict version>>
-- `prefer`: the <<rich_versions.adoc#sec:preferred-version,preferred version>>
-- `reject`: the list of <<rich_versions.adoc#sec:rejected-version,rejected versions>>
-- `rejectAll`: a boolean to reject all <<rich_versions.adoc#sec:rejected-version,versions>>
+- `require`: the <<dependency_versions.adoc#sec:required-version,required version>>
+- `strictly`: the <<dependency_versions.adoc#sec:strict-version,strict version>>
+- `prefer`: the <<dependency_versions.adoc#sec:preferred-version,preferred version>>
+- `reject`: the list of <<dependency_versions.adoc#sec:rejected-version,rejected versions>>
+- `rejectAll`: a boolean to reject all <<dependency_versions.adoc#sec:rejected-version,versions>>
 
 ==== Libraries
 
@@ -188,7 +189,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-settings/kotlin",fil
 include::sample[dir="snippets/dependencyManagement/catalogs-settings/groovy",files="build.gradle[tags=use_dependency_bundle]"]
 ====
 
-[[sec:plugins_ver]]
+[[sec:plugins-ver]]
 ==== Plugins
 
 This section defines the plugins and their versions by mapping plugin IDs to version numbers.
@@ -306,7 +307,7 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml/kotlin",files="
 include::sample[dir="snippets/dependencyManagement/catalogs-toml/groovy",files="settings.gradle[tags=additional_catalog]"]
 ====
 
-[[sec:multiple]]
+[[sec:multiple-catalogs]]
 == Importing multiple catalogs
 
 You can declare multiple catalogs to organize dependencies better by using the link:{javadocPath}/org/gradle/api/initialization/Settings.html#dependencyResolutionManagement(org.gradle.api.Action)[Settings API]:
@@ -340,6 +341,7 @@ dependencies {
 To minimize the risk of naming conflicts, each catalog generates an extension applied to all projects, so it's advisable to choose a unique name. One effective approach is to select a name that ends with `Libs`.
 ====
 
+[[sec:changing-catalog-name]]
 == Changing the catalog name
 
 By default, the `libs.versions.toml` file is used as input for the `libs` catalog.

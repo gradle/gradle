@@ -16,12 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.operations.NoOpBuildOperationProgressEventEmitter;
-
 public class ProblemsProgressEventEmitterHolder {
-    private static InternalProblems problemsService = new DefaultProblems(ImmutableList.<ProblemEmitter>of(new NoOpProblemEmitter()), null, CurrentBuildOperationRef.instance());
+    private static InternalProblems problemsService = null;
 
     public static void init(InternalProblems problemsService) {
         ProblemsProgressEventEmitterHolder.problemsService = problemsService;
@@ -29,7 +25,7 @@ public class ProblemsProgressEventEmitterHolder {
 
     public static InternalProblems get() {
         if (problemsService == null) {
-            throw new IllegalStateException("Problems service was null. At the same time, the event emitter is: " + new NoOpBuildOperationProgressEventEmitter());
+            throw new IllegalStateException("Problems service is not initialized.");
         }
         return problemsService;
     }

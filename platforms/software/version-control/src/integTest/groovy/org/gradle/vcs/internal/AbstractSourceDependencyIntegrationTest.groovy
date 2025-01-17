@@ -78,7 +78,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         file("child/build.gradle").text = """
             buildscript {
                 repositories {
-                    maven { url '${mavenRepo.uri}' }
+                    maven { url = '${mavenRepo.uri}' }
                 }
                 dependencies {
                     classpath "other:other:1.0"

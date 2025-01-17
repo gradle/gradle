@@ -33,7 +33,6 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
-import org.gradle.api.internal.provider.EvaluationContext;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -43,6 +42,7 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.DynamicObject;
@@ -996,14 +996,14 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                 // Collect any container level add actions added since the last call to configure()
                 onCreate = onCreate.mergeFrom(getEventRegister().getAddActions());
 
-                try (EvaluationContext.ScopeContext scope = openScope()) {
+                try (EvaluationScopeContext scope = openScope()) {
                     // Create the domain object
                     object = createDomainObject();
                     // Configuring the domain object may cause circular evaluation, but after initializing this.object
                     // calculateOwnValue short-circuits it at a cost of exposing a partially constructed value.
                     // Because of that the circular evaluation that goes through this provider doesn't cause stack overflow.
                     // To avoid breaking existing code, we open a nested evaluation scope here to allow re-entering the chain.
-                    try (EvaluationContext.ScopeContext ignored = scope.nested()) {
+                    try (EvaluationScopeContext ignored = scope.nested()) {
                         // Register the domain object
                         doAdd(object, onCreate);
                         realized(AbstractDomainObjectCreatingProvider.this);

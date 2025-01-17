@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.io.NullOutputStream;
@@ -36,11 +37,13 @@ import java.io.OutputStream;
  */
 public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
     private final LoggingManagerInternal loggingManager;
+    private final Stoppable stoppable;
     private final BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate, LoggingManagerInternal loggingManager) {
+    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate, LoggingManagerInternal loggingManager, Stoppable stoppable) {
         this.delegate = delegate;
         this.loggingManager = loggingManager;
+        this.stoppable = stoppable;
     }
 
     @Override
@@ -56,6 +59,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<C
             return delegate.execute(action, parameters, buildRequestContext);
         } finally {
             loggingManager.stop();
+            stoppable.stop();
         }
     }
 

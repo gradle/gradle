@@ -41,7 +41,7 @@ class RemoteDependencyResolveConsoleIntegrationTest extends AbstractDependencyRe
 
         buildFile << """
             repositories {
-                maven { url '${server.uri}' }
+                maven { url = '${server.uri}' }
             }
             configurations { compile }
             dependencies {

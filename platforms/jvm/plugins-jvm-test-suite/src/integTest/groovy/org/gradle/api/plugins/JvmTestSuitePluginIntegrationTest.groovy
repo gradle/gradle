@@ -47,16 +47,14 @@ class JvmTestSuitePluginIntegrationTest extends AbstractIntegrationSpec implemen
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the test Test Suite's test target.
+Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - :Test:unspecified (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = test
-    - org.gradle.testsuite.target.name = test
-    - org.gradle.testsuite.type        = unit-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = test
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsPath (artifactType = directory)""".stripIndent())
 
@@ -75,8 +73,6 @@ Artifacts
             testing {
                 suites {
                     integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-
                         dependencies {
                             implementation project()
                         }
@@ -93,16 +89,14 @@ Artifacts
 --------------------------------------------------
 Variant testResultsElementsForIntegrationTest (i)
 --------------------------------------------------
-Directory containing binary results of running tests for the integrationTest Test Suite's integrationTest target.
+Binary results obtained from running all targets in the 'integrationTest' Test Suite.
 
 Capabilities
     - :Test:unspecified (default capability)
 Attributes
-    - org.gradle.category              = verification
-    - org.gradle.testsuite.name        = integrationTest
-    - org.gradle.testsuite.target.name = integrationTest
-    - org.gradle.testsuite.type        = integration-test
-    - org.gradle.verificationtype      = test-results
+    - org.gradle.category         = verification
+    - org.gradle.testsuite.name   = integrationTest
+    - org.gradle.verificationtype = test-results
 Artifacts
     - $resultsPath (artifactType = directory)""".stripIndent())
 
@@ -110,7 +104,7 @@ Artifacts
         hasIncubatingLegend()
     }
 
-    def "Test suites in different projects can use same test type"() {
+    def "Test suites in different projects can have the same name"() {
         def subADir = createDir("subA")
         subADir.file("build.gradle") << """
             plugins {
@@ -121,9 +115,7 @@ Artifacts
 
             testing {
                 suites {
-                    integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
+                    integrationTest(JvmTestSuite)
                 }
             }""".stripIndent()
 
@@ -137,9 +129,7 @@ Artifacts
 
             testing {
                 suites {
-                    integrationTest(JvmTestSuite) {
-                        testType = TestSuiteType.INTEGRATION_TEST
-                    }
+                    integrationTest(JvmTestSuite)
                 }
             }""".stripIndent()
 
@@ -160,9 +150,5 @@ Artifacts
 
         expect:
         succeeds('allIntegrationTests')
-    }
-
-    private String systemFilePath(String path) {
-        return path.replace('/', File.separator)
     }
 }

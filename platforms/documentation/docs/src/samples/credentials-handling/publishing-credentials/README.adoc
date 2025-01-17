@@ -1,4 +1,4 @@
-NOTE: You can open this sample in an <<gradle_ides.adoc#gradle_ides,IDE that supports Gradle>>.
+NOTE: You can open this sample in an link:{userManualPath}/gradle_ides.html#gradle_ides[IDE that supports Gradle].
 
 This sample shows how credentials can be used when publishing artifacts to a Maven repository using link:{userManualPath}/build_environment.html#sec:project_properties[project properties].
 This approach allows you to keep sensitive configuration out of your project's source code and inject it only when needed.

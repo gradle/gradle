@@ -100,6 +100,6 @@ class StoringInterpretationSchemaBuilder(
             step.evaluationSchemaForStep.also { schemaHandler(stepIdentifier.key, it.analysisSchema) }
         }
         override fun getTopLevelReceiverFromTarget(target: Any): R = step.getTopLevelReceiverFromTarget(target)
-        override fun whenEvaluated(resultReceiver: R) = step.whenEvaluated(resultReceiver)
+        override fun whenEvaluated(target: Any, resultReceiver: R) = step.whenEvaluated(target, resultReceiver)
     }
 }

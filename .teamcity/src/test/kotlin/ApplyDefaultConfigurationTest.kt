@@ -72,6 +72,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(
             listOf(
+                "EC2_BUILD_CUSTOMIZATIONS",
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
@@ -96,6 +97,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(
             listOf(
+                "EC2_BUILD_CUSTOMIZATIONS",
                 "KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS",
                 "GRADLE_RUNNER",
                 "KILL_ALL_GRADLE_PROCESSES",

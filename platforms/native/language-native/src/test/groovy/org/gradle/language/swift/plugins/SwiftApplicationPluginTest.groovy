@@ -20,8 +20,6 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftApplication
 import org.gradle.language.swift.SwiftExecutable
 import org.gradle.language.swift.tasks.SwiftCompile
-import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
-import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -29,7 +27,6 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Rule
 import spock.lang.Specification
 
-@RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5_OR_OLDER)
 class SwiftApplicationPluginTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())

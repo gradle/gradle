@@ -250,7 +250,7 @@ task execStartScript(type: Exec) {
         and:
         buildFile << """
 repositories {
-    maven { url '$mavenRepo.uri' }
+    maven { url = '$mavenRepo.uri' }
 }
 
 dependencies {
@@ -307,15 +307,15 @@ application.executableDir = 'foo/bar'
     def "includes transitive implementation dependencies in distribution"() {
         given:
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-        buildFile << """
-            allprojects {
+        createDirs("utils", "core")
+        settingsFile << """
+            include 'utils', 'core'
+            gradle.lifecycle.beforeProject {
                 repositories {
-                    maven { url '$mavenRepo.uri' }
+                    maven { url = '$mavenRepo.uri' }
                 }
             }
         """
-        createDirs("utils", "core")
-        file('settings.gradle') << "include 'utils', 'core'"
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
@@ -353,17 +353,16 @@ application.executableDir = 'foo/bar'
     def "includes transitive runtime dependencies in runtime classpath"() {
         given:
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-        buildFile << """
-        allprojects {
-            repositories {
-                maven { url '$mavenRepo.uri' }
-            }
-            apply plugin: 'java'
-        }
-        """
-
         createDirs("utils", "core", "foo", "bar")
-        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
+        settingsFile << """
+            include 'utils', 'core', 'foo', 'bar'
+            gradle.lifecycle.beforeProject {
+                apply plugin: 'java'
+                repositories {
+                    maven { url = '$mavenRepo.uri' }
+                }
+            }
+        """
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'
@@ -407,16 +406,16 @@ dependencies {
     def "includes transitive implementation dependencies in test runtime classpath"() {
         given:
         mavenRepo.module('org.gradle.test', 'implementation', '1.0').publish()
-        buildFile << """
-        allprojects {
-            repositories {
-                maven { url '$mavenRepo.uri' }
-            }
-            apply plugin: 'java'
-        }
-        """
         createDirs("utils", "core", "foo", "bar")
-        file('settings.gradle') << "include 'utils', 'core', 'foo', 'bar'"
+        settingsFile << """
+            include 'utils', 'core', 'foo', 'bar'
+            gradle.lifecycle.beforeProject {
+                apply plugin: 'java'
+                repositories {
+                    maven { url = '$mavenRepo.uri' }
+                }
+            }
+        """
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'application'

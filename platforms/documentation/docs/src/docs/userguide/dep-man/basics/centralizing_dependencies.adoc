@@ -1,4 +1,4 @@
-// Copyright (C) 2023 Gradle, Inc.
+// Copyright (C) 2024 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-[[centralizing-dependencies]]
+[[four-centralizing-dependencies]]
 = 4. Centralizing dependencies
 
 Central dependencies can be managed in Gradle using various techniques such as platforms and version catalogs.
 Each approach offers its own advantages and helps in centralizing and managing dependencies efficiently.
 
+[[sub:using-platforms]]
 == Using platforms
 
 A platform is a set of dependency constraints designed to manage the transitive dependencies of a library or application.
@@ -51,6 +52,7 @@ include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencie
 
 By including the `spring-boot-dependencies` platform dependency, you ensure that all Spring components use the versions defined in the BOM file.
 
+[[sub:using-catalogs]]
 == Using a Version catalog
 
 A version catalog is a centralized list of dependency coordinates that can be referenced in multiple projects.
@@ -71,4 +73,4 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml-simple/groovy",
 ====
 
 [.text-right]
-**Next Step:** <<dependency_constraints_conflicts.adoc#dependency-constraints-conflicts,Learn about Dependency Constrains and Conflict Resolution>> >>
+**Next Step:** <<dependency_constraints_conflicts.adoc#five-dependency-constraints-conflicts,Learn about Dependency Constraints and Conflict Resolution>> >>

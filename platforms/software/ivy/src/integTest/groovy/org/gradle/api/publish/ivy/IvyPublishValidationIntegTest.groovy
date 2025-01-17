@@ -47,7 +47,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -108,7 +108,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -149,7 +149,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication)
@@ -175,7 +175,7 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
             publishing {
                 repositories {
-                    ivy { url "${ivyRepo.uri}" }
+                    ivy { url = "${ivyRepo.uri}" }
                 }
                 publications {
                     ivy(IvyPublication) {
@@ -195,11 +195,11 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
 
         where:
         metadata        | message
-        "branch ''"     | "Invalid publication 'ivy': branch cannot be an empty string. Use null instead"
-        "branch 'a\tb'" | "Invalid publication 'ivy': branch cannot contain ISO control character '\\u0009'"
-        "status ''"     | "Invalid publication 'ivy': status cannot be an empty string. Use null instead"
-        "status 'a\tb'" | "Invalid publication 'ivy': status cannot contain ISO control character '\\u0009'"
-        "status 'a/b'"  | "Invalid publication 'ivy': status cannot contain '/'"
+        "branch = ''"     | "Invalid publication 'ivy': branch cannot be an empty string. Use null instead"
+        "branch = 'a\tb'" | "Invalid publication 'ivy': branch cannot contain ISO control character '\\u0009'"
+        "status = ''"     | "Invalid publication 'ivy': status cannot be an empty string. Use null instead"
+        "status = 'a\tb'" | "Invalid publication 'ivy': status cannot contain ISO control character '\\u0009'"
+        "status = 'a/b'"  | "Invalid publication 'ivy': status cannot contain '/'"
     }
 
     def "fails with reasonable error message for invalid #invalidComponent name"() {
@@ -213,8 +213,8 @@ class IvyPublishValidationIntegTest extends AbstractIvyPublishIntegTest {
             publishing {
                 repositories {
                     ivy {
-                        name '${repoName}'
-                        url "${ivyRepo.uri}"
+                        name = '${repoName}'
+                        url = "${ivyRepo.uri}"
                     }
                 }
                 publications {

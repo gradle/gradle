@@ -35,7 +35,7 @@ class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyReso
 
         buildFile << """
 repositories {
-    maven { url "${repo.uri}"}
+    maven { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -99,7 +99,7 @@ Required by:
 
         buildFile << """
 repositories {
-    maven { url "${repo.uri}"}
+    maven { url = "${repo.uri}"}
 }
 configurations { missing }
 dependencies {
@@ -172,7 +172,7 @@ Required by:
         buildFile << """
 allprojects {
     repositories {
-        maven { url "${repo.uri}"}
+        maven { url = "${repo.uri}"}
     }
     configurations {
         compile
@@ -248,7 +248,7 @@ Required by:
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -295,7 +295,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -332,7 +332,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -369,7 +369,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -406,7 +406,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${ivyHttpRepo.uri}"
+        url = "${ivyHttpRepo.uri}"
     }
 }
 configurations { broken }
@@ -440,7 +440,7 @@ task showBroken {
         buildFile << """
 repositories {
     maven {
-        url "${mavenHttpRepo.uri}"
+        url = "${mavenHttpRepo.uri}"
     }
 }
 configurations { compile }

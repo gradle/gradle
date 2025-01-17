@@ -24,6 +24,7 @@ import kotlinx.metadata.flagsOf
 import kotlinx.metadata.jvm.JvmMethodSignature
 import org.gradle.api.Action
 import org.gradle.api.Incubating
+import org.gradle.api.Project
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.Hashing.hashString
@@ -69,12 +70,61 @@ fun fragmentsFor(accessor: Accessor): Fragments = when (accessor) {
     is Accessor.ForTask -> fragmentsForTask(accessor)
     is Accessor.ForContainerElement -> fragmentsForContainerElement(accessor)
     is Accessor.ForModelDefault -> fragmentsForModelDefault(accessor)
+    is Accessor.ForSoftwareType -> fragmentsForSoftwareType(accessor)
     is Accessor.ForContainerElementFactory -> fragmentsForContainerElementFactory(accessor)
+}
+
+private fun fragmentsForSoftwareType(accessor: Accessor.ForSoftwareType): Fragments = accessor.run {
+    val className = "${accessor.spec.softwareTypeName.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val functionName = spec.softwareTypeName.original
+    val (kotlinProjectType, jvmProjectType) = accessibleTypesFor(TypeAccessibility.Accessible(SchemaType.of<Project>()))
+    val (kotlinModelType, _) = accessibleTypesFor(accessor.spec.modelType)
+
+    className to sequenceOf(
+        AccessorFragment(
+            source = """
+                /**
+                 * Applies the "$functionName" software type to the project and configures the model with the [configure] action.
+                 */
+                @Incubating
+                fun Project.`${functionName}`(configure: Action<in ${spec.modelType.type.kotlinString}>) {
+                    applySoftwareType(this, "$functionName", configure)
+                }
+            """.trimIndent(),
+            signature = JvmMethodSignature(
+                functionName,
+                "(L$jvmProjectType;Lorg/gradle/api/Action;)V"
+            ),
+            bytecode = {
+                publicStaticMethod(signature, annotations = {
+                    visitAnnotation(Type.getDescriptor(Incubating::class.java), true).visitEnd()
+                }) {
+                    ALOAD(0)
+                    LDC(functionName)
+                    ALOAD(1)
+                    invokeRuntime("applySoftwareType", "(L${Project::class.internalName};L${String::class.internalName};L${Action::class.internalName};)V")
+                    RETURN()
+                }
+            },
+            metadata = {
+                kmPackage.functions += newFunctionOf(
+                    flags = publicFunctionWithAnnotationsFlags, // has @Incubating
+                    receiverType = kotlinProjectType,
+                    valueParameters = listOf(
+                        newValueParameterOf("configure", newClassTypeOf(Action::class.java.name.replace(".", "/"), KmTypeProjection(KmVariance.IN, kotlinModelType)))
+                    ),
+                    returnType = KotlinType.unit,
+                    name = functionName,
+                    signature = signature
+                )
+            }
+    ))
 }
 
 private fun fragmentsForContainerElementFactory(accessor: Accessor.ForContainerElementFactory): Fragments = accessor.run {
     val elementFactoryName = accessor.spec.name.original
-    val className = "${accessor.spec.name.original.uppercaseFirstChar()}ContainerElementFactoriesKt"
+    val elementFactoryHash = hashString(accessor.toString()).toCompactString() // with multiple factories having the same name, resolve ambiguity with the hash
+    val className = "${accessor.spec.name.original.uppercaseFirstChar()}${elementFactoryHash}ContainerElementFactoriesKt"
     val (kotlinElementType, _) = accessibleTypesFor(accessor.spec.elementType)
     val (kotlinReceiverType, jvmReceiverType) = accessibleTypesFor(accessor.spec.receiverType)
     val elementTypeKotlinString = accessor.spec.elementType.type.kotlinString

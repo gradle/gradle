@@ -21,6 +21,12 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 
 class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+    def setup() {
+        file("gradle.properties") << """
+            org.gradle.kotlin.dsl.dcl=true
+        """
+    }
+
     def "can configure build-level defaults for property objects in a software type (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -277,9 +283,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
 
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("foo"))
 
-        file("non-declarative/build.gradle${extension}") << """
-            plugins { id("com.example.test-software-type-impl") }
-        """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
+        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
 
         when:
         run(":declarative:printTestSoftwareTypeExtensionConfiguration")
@@ -308,9 +312,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
             include("declarative")
         """
 
-        file("non-declarative/build.gradle${extension}") << """
-            plugins { id("com.example.test-software-type-impl") }
-        """ + getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
+        file("non-declarative/build.gradle${extension}") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setFooBar("bar"))
         file("declarative/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("bar"))
 
         when:

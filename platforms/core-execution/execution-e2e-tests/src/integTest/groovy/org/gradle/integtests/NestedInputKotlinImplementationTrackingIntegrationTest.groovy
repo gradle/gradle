@@ -191,7 +191,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['1.4', '1.5', '1.6'].contains(kotlinLanguageVersion)) {
+        if (['1.6', '1.7'].contains(kotlinLanguageVersion)) {
             executer.expectDeprecationWarning("w: Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
         }
         run "myTask"
@@ -200,7 +200,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         executedAndNotSkipped(":myTask")
 
         where:
-        kotlinLanguageVersion << KotlinGradlePluginVersions.LANGUAGE_VERSIONS
+        kotlinLanguageVersion << new KotlinGradlePluginVersions().languageVersionsSupportedByLatestStableOrRc()
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation, TestFile projectDir = temporaryFolder.testDirectory) {

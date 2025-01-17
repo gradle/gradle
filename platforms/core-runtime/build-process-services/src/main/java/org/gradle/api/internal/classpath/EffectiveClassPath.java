@@ -16,14 +16,11 @@
 
 package org.gradle.api.internal.classpath;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.DefaultClassPath;
 
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,17 +30,10 @@ public class EffectiveClassPath extends DefaultClassPath {
     }
 
     private static List<File> findAvailableClasspathFiles(ClassLoader classLoader) {
-        List<URL> rawClasspath = ClasspathUtil.getClasspath(classLoader).getAsURLs();
+        List<File> fileClasspath = ClasspathUtil.getClasspath(classLoader).getAsFiles();
         List<File> classpathFiles = new ArrayList<File>();
-        for (URL url : rawClasspath) {
-            if (url.getProtocol().equals("file")) {
-                try {
-                    File classpathFile = new File(url.toURI());
-                    addClasspathFile(classpathFile, classpathFiles);
-                } catch (URISyntaxException e) {
-                    throw new UncheckedIOException(e);
-                }
-            }
+        for (File classpathFile : fileClasspath) {
+            addClasspathFile(classpathFile, classpathFiles);
         }
 
         // The file names passed to -cp are canonicalised by the JVM when it creates the system classloader, and so the file names are

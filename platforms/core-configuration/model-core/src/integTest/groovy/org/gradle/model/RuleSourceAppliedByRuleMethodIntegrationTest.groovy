@@ -510,7 +510,6 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         '''
 
         expect:
-        succeeds("tasks")
         fails("model")
     }
 

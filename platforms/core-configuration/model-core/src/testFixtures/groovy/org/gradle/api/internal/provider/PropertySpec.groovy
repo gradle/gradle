@@ -24,6 +24,8 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
+import org.gradle.internal.evaluation.CircularEvaluationException
+import org.gradle.internal.evaluation.EvaluationContext
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.internal.TextUtil
@@ -3059,7 +3061,7 @@ The value of this provider is derived from:
             consumer.accept(provider)
 
             then:
-            EvaluationContext.CircularEvaluationException ex = thrown()
+            CircularEvaluationException ex = thrown()
             assertExceptionHasExpectedCycle(ex, provider, prop)
 
             where:
@@ -3078,7 +3080,7 @@ The value of this provider is derived from:
             consumer.accept(provider)
 
             then:
-            EvaluationContext.CircularEvaluationException ex = thrown()
+            CircularEvaluationException ex = thrown()
             assertExceptionHasExpectedCycle(ex, provider, prop)
 
             where:

@@ -26,7 +26,33 @@ import java.lang.annotation.Target
 @Retention(RetentionPolicy.RUNTIME)
 @Target([ElementType.METHOD, ElementType.TYPE])
 @ExtensionAnnotation(ToBeFixedForIsolatedProjectsExtension.class)
-public @interface ToBeFixedForIsolatedProjects {
+@interface ToBeFixedForIsolatedProjects {
+    /**
+     * Set to some {@link Skip} to skip the annotated test.
+     */
+    Skip skip() default Skip.DO_NOT_SKIP;
 
     String because() default "";
+
+    /**
+     * Reason for skipping a test with isolated projects.
+     */
+    enum Skip {
+
+        /**
+         * Do not skip this test, this is the default.
+         */
+        DO_NOT_SKIP {
+            @Override String getReason() { throw new UnsupportedOperationException("Must not be skipped") }
+        },
+
+        /**
+         * Use this reason on tests that intermittently fail with isolated projects.
+         */
+        FLAKY {
+            @Override String getReason() { "flaky" }
+        };
+
+        abstract String getReason();
+    }
 }

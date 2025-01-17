@@ -20,13 +20,9 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
-import org.gradle.util.internal.TextUtil
-
 import spock.lang.Specification
 
 class AbstractTestLoggerTest extends Specification {
-    static String sep = TextUtil.platformLineSeparator
-
     StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     AbstractTestLogger logger
 
@@ -44,7 +40,11 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(rootDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}Test Run STARTED${sep}"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.INFO
+        textOutputFactory.output == """
+Test Run STARTED
+"""
     }
 
     def "log Gradle worker event"() {
@@ -54,7 +54,11 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(workerDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}Gradle Worker 2 STARTED${sep}"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.INFO
+        textOutputFactory.output == """
+Gradle Worker 2 STARTED
+"""
     }
 
     def "log outer suite event"() {
@@ -64,7 +68,11 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(outerSuiteDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{ERROR}${sep}OuterSuiteClass STARTED${sep}"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.ERROR
+        textOutputFactory.output == """
+OuterSuiteClass STARTED
+"""
     }
 
     def "log inner suite event"() {
@@ -74,7 +82,11 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(innerSuiteDescriptor, TestLogEvent.PASSED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{QUIET}${sep}OuterSuiteClass > InnerSuiteClass {identifier}PASSED{normal}$sep"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.QUIET
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass {identifier}PASSED{normal}
+"""
 
     }
 
@@ -85,7 +97,11 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(classDescriptor, TestLogEvent.SKIPPED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{WARN}${sep}OuterSuiteClass > InnerSuiteClass > TestClass {info}SKIPPED{normal}${sep}"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.WARN
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass > TestClass {info}SKIPPED{normal}
+"""
     }
 
     def "log test method event"() {
@@ -95,27 +111,47 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.FAILED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{LIFECYCLE}${sep}OuterSuiteClass > InnerSuiteClass > TestClass > a test {failure}FAILED{normal}${sep}"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.LIFECYCLE
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass > TestClass > a test {failure}FAILED{normal}
+"""
     }
 
     def "log standard out event"() {
         createLogger(LogLevel.INFO)
 
         when:
-        logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_OUT, "this is a${sep}standard out${sep}event")
+        logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_OUT, """this is a
+standard out
+event""")
+
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > InnerSuiteClass > TestClass > a test STANDARD_OUT${sep}this is a${sep}standard out${sep}event"
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass > TestClass > a test STANDARD_OUT
+this is a
+standard out
+event"""
     }
 
     def "log standard error event"() {
         createLogger(LogLevel.DEBUG)
 
         when:
-        logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_ERROR, "this is a${sep}standard error${sep}event")
+        logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_ERROR, """this is a
+standard error
+event""")
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{DEBUG}${sep}OuterSuiteClass > InnerSuiteClass > TestClass > a test STANDARD_ERROR${sep}this is a${sep}standard error${sep}event"
+        textOutputFactory.category == "TestEventLogger"
+        textOutputFactory.logLevel == LogLevel.DEBUG
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass > TestClass > a test STANDARD_ERROR
+this is a
+standard error
+event"""
+
     }
 
     def "log test method event with lowest display granularity"() {
@@ -125,7 +161,9 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.FAILED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}Test Run > Gradle Worker 2 > OuterSuiteClass > InnerSuiteClass > TestClass > a test {failure}FAILED{normal}${sep}"
+        textOutputFactory.output == """
+Test Run > Gradle Worker 2 > OuterSuiteClass > InnerSuiteClass > TestClass > a test {failure}FAILED{normal}
+"""
     }
 
     def "log test method event with highest display granularity"() {
@@ -135,7 +173,9 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.FAILED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}a test {failure}FAILED{normal}${sep}"
+        textOutputFactory.output == """
+a test {failure}FAILED{normal}
+"""
     }
 
     def "logging of atomic test whose ancestors don't have a test class"() {
@@ -147,7 +187,9 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}Tests > foo.bar.TestClass.a test STARTED${sep}"
+        textOutputFactory.output == """
+Tests > foo.bar.TestClass.a test STARTED
+"""
     }
 
     def "logging of atomic test whose parent is a method"() {
@@ -159,7 +201,9 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > streamOfTests() > a test STARTED${sep}"
+        textOutputFactory.output == """
+OuterSuiteClass > streamOfTests() > a test STARTED
+"""
     }
 
     def "logging of orphan atomic test"() {
@@ -170,7 +214,9 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STARTED)
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}foo.bar.TestClass.a test STARTED${sep}"
+        textOutputFactory.output == """
+foo.bar.TestClass.a test STARTED
+"""
     }
 
     def "logs header just once per batch of events with same type and for same test"() {
@@ -181,8 +227,9 @@ class AbstractTestLoggerTest extends Specification {
         logger.logEvent(methodDescriptor, TestLogEvent.STANDARD_OUT, "event 2")
 
         then:
-        textOutputFactory.toString() == "{TestEventLogger}{INFO}${sep}OuterSuiteClass > InnerSuiteClass\
- > TestClass > a test STANDARD_OUT${sep}event 1{TestEventLogger}{INFO}event 2"
+        textOutputFactory.output == """
+OuterSuiteClass > InnerSuiteClass > TestClass > a test STANDARD_OUT
+event 1event 2"""
     }
 
     void createLogger(LogLevel level, int displayGranularity = 2) {

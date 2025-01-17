@@ -15,19 +15,19 @@ plugins {
 
 description = "Provides a platform dependency to align all distribution versions"
 
-val antVersion = "1.10.14"
+val antVersion = "1.10.15"
 // Don't forget to bump versions in
 // subprojects/base-services/src/main/java/org/gradle/internal/classanalysis/AsmConstants.java
 // when upgrading ASM.
 val asmVersion = "9.7"
-val awsS3Version = "1.12.651"
+val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.78.1"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
-val nativePlatformVersion = "0.22-milestone-26"
+val nativePlatformVersion = "0.22-milestone-27"
 val slf4jVersion = "1.7.36"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
@@ -73,7 +73,7 @@ dependencies {
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.29.0") }}
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleFileEvents)      { version { strictly("0.2.3") }}
+        api(libs.gradleFileEvents)      { version { strictly("0.2.5") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
@@ -106,6 +106,8 @@ dependencies {
         api(libs.jacksonAnnotations)    { version { strictly(jacksonVersion) }}
         api(libs.jacksonCore)           { version { strictly(jacksonVersion) }}
         api(libs.jacksonDatabind)       { version { strictly(jacksonVersion) }}
+        api(libs.jacksonDatatypeJdk8)   { version { strictly(jacksonVersion) }}
+        api(libs.jacksonDatatypeJsr310) { version { strictly(jacksonVersion) }}
         api(libs.jacksonKotlin)         { version { strictly(jacksonVersion) }}
         api(libs.jakartaActivation)     { version { strictly("2.0.1") }}
         api(libs.jakartaXmlBind)        { version { strictly("3.0.0") }}
@@ -166,7 +168,7 @@ dependencies {
         // compile only
         api(libs.maven3Compat)          { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
         api(libs.maven3PluginApi)       { version { strictly(mavenVersion); because("required for maven2gradle in init plugin") }}
-        api(libs.zinc)                  { version { strictly("1.9.6") }}
+        api(libs.zinc)                  { version { strictly("1.10.4") } }
 
         // test only
         api(libs.aircompressor)         { version { strictly("0.8") }}
@@ -178,6 +180,7 @@ dependencies {
         api(libs.bytebuddyAgent)        { version { strictly(bytebuddyVersion) }}
         api(libs.cglib)                 { version { strictly("3.2.6") }}
         api(libs.compileTesting)        { version { strictly("0.21.0")}}
+        api(libs.dockerJavaApi)         { version { strictly("3.4.0")}}
         api(libs.equalsverifier)        { version { strictly("2.1.6") }}
         api(libs.guice)                 { version { strictly("5.1.0") }}
         api(libs.httpmime)              { version { strictly("4.5.10") }}
@@ -219,8 +222,8 @@ dependencies {
         api(libs.sshdOsgi)              { version { rejectAll(); because("It contains sshd-core and sshd-common classes") }}
         api(libs.sshdScp)               { version { strictly(sshdVersion) }}
         api(libs.sshdSftp)              { version { strictly(sshdVersion) }}
-        api(libs.testcontainers)        { version { strictly("1.12.5") }}
-        api(libs.testcontainersSpock)   { version { strictly("1.12.5") }}
+        api(libs.testcontainers)        { version { strictly("1.20.4") }}
+        api(libs.testcontainersSpock)   { version { strictly("1.20.4") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
         api(libs.xerces)                { version { strictly("2.12.0") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}

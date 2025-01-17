@@ -26,7 +26,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.internal.JavaCompilerFactory;
-import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
@@ -44,7 +44,7 @@ public class JavaToolchainServices extends AbstractGradleModuleServices {
             WorkerDaemonFactory workerDaemonFactory,
             JavaForkOptionsFactory forkOptionsFactory,
             WorkerDirectoryProvider workerDirectoryProvider,
-            ExecHandleFactory execHandleFactory,
+            ClientExecHandleBuilderFactory execHandleFactory,
             AnnotationProcessorDetector processorDetector,
             ClassPathRegistry classPathRegistry,
             ActionExecutionSpecFactory actionExecutionSpecFactory,
