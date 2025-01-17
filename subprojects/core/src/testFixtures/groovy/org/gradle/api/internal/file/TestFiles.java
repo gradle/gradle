@@ -253,7 +253,7 @@ public class TestFiles {
             .withFileCollectionFactory(fileCollectionFactory(baseDir))
             .withInstantiator(TestUtil.instantiatorFactory().inject())
             .withExecHandleFactory(execHandleFactory(baseDir))
-            .withObjectFactory(objectFactory())
+            .withObjectFactory(objectFactory(baseDir))
             .build();
     }
 

@@ -298,7 +298,7 @@ class TestTest extends AbstractConventionTaskTest {
         def invalidExecutable = temporaryFolder.file("invalidExecutable")
 
         when:
-        task.executable = invalidExecutable
+        task.executable = invalidExecutable.absolutePath
         task.javaLauncher.get()
 
         then:

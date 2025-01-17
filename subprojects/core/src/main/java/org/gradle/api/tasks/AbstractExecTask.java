@@ -15,9 +15,11 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
@@ -35,7 +37,6 @@ import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
@@ -189,29 +190,11 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Nullable
     @Optional
     @Input
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getExecutable() {
+    public Property<String> getExecutable() {
         return execSpec.getExecutable();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setExecutable(@Nullable String executable) {
-        execSpec.setExecutable(executable);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setExecutable(Object executable) {
-        execSpec.setExecutable(executable);
     }
 
     /**
@@ -228,26 +211,9 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Override
     @Internal
-    @ToBeReplacedByLazyProperty
     // TODO:LPTR Should be a content-less @InputDirectory
-    public File getWorkingDir() {
+    public DirectoryProperty getWorkingDir() {
         return execSpec.getWorkingDir();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setWorkingDir(File dir) {
-        execSpec.setWorkingDir(dir);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setWorkingDir(Object dir) {
-        execSpec.setWorkingDir(dir);
     }
 
     /**
@@ -264,17 +230,8 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public Map<String, Object> getEnvironment() {
+    public MapProperty<String, Object> getEnvironment() {
         return execSpec.getEnvironment();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        execSpec.setEnvironment(environmentVariables);
     }
 
     /**

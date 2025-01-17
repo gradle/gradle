@@ -71,7 +71,6 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -148,7 +147,7 @@ class TestUtil {
         return services().get(TestProblems)
     }
 
-    static ObjectFactory objectFactory(TestFile baseDir) {
+    static ObjectFactory objectFactory(File baseDir) {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
         return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)

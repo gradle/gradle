@@ -560,6 +560,6 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
 // https://github.com/gradle/gradle-private/issues/3380
 fun Test.configureAndroidUserHome() {
     val androidUserHomeForTest = project.layout.buildDirectory.dir("androidUserHomeForTest/$name").get().asFile.absolutePath
-    environment["ANDROID_PREFS_ROOT"] = androidUserHomeForTest
-    environment["ANDROID_USER_HOME"] = androidUserHomeForTest
+    environment("ANDROID_PREFS_ROOT", androidUserHomeForTest)
+    environment("ANDROID_USER_HOME", androidUserHomeForTest)
 }
