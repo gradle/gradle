@@ -18,15 +18,39 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.buildtree.BuildActionRunner;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
+import org.gradle.workers.internal.IsolatableSerializerRegistry;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(BuildEventListenerFactory.class, ToolingApiBuildEventListenerFactory.class);
-//        registration.add(IsolatableSerializerRegistry.class);
-//        registration.addProvider(new WorkersServices.GradleUserHomeServices());
+        registration.add(IsolatableSerializerRegistry.class);
+        registration.addProvider(new MyServiceRegistrationProvider());
+    }
+
+
+    public static class MyServiceRegistrationProvider implements ServiceRegistrationProvider {
+        @Provides
+        ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
+            // Return a dummy implementation of this as creating a real hasher drags ~20 more services
+            // along with it, and a hasher isn't actually needed on the worker process side at the moment.
+            return new ClassLoaderHierarchyHasher() {
+                @Nullable
+                @Override
+                public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
     }
 
     @Override

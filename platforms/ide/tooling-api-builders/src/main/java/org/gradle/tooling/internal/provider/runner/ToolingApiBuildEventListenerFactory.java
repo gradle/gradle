@@ -36,6 +36,7 @@ import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoa
 import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
+import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import java.util.List;
 
@@ -47,7 +48,8 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
     private final BuildOperationIdFactory idFactory;
     private final List<OperationResultPostProcessorFactory> postProcessorFactories;
 
-    ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories) {
+    @SuppressWarnings("unused")
+    ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.ancestryTracker = ancestryTracker;
         this.idFactory = idFactory;
         this.postProcessorFactories = postProcessorFactories;

@@ -250,7 +250,7 @@ public class ProblemsProgressEventUtils {
     }
     @SuppressWarnings("unchecked")
     private InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
-        SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
+        SerializedPayload payload = null; //payloadSerizalizer.serialize(additionalData);
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
