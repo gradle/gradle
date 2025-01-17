@@ -1,6 +1,5 @@
 import gradle.kotlin.dsl.accessors._23cdd86de02729e5f5eded3732f08da5.kotlin
 import gradle.kotlin.dsl.accessors._23cdd86de02729e5f5eded3732f08da5.libs
-import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.compileOnlyApi
 import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.main
 import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.sourceSets
 import gradlebuild.basics.ImplementationCompletenessAttribute
