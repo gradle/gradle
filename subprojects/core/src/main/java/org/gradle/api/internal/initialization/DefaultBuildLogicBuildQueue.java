@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
@@ -24,6 +25,10 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.work.Synchronizer;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -37,6 +42,7 @@ import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
+    private final BuildOperationRunner runner;
     private final FileLockManager fileLockManager;
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ProjectCacheDir projectCacheDir;
@@ -44,15 +50,33 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private FileLock fileLock = null;
 
     public DefaultBuildLogicBuildQueue(
+        BuildOperationRunner runner,
         FileLockManager fileLockManager,
         BuildTreeWorkGraphController buildTreeWorkGraphController,
         ProjectCacheDir projectCacheDir,
         WorkerLeaseService workerLeaseService
     ) {
+        this.runner = runner;
         this.fileLockManager = fileLockManager;
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.projectCacheDir = projectCacheDir;
         this.resource = workerLeaseService.newResource();
+    }
+
+    private static class OperationDetails {
+        private final List<String> requestedTasks;
+
+        public List<String> getRequestedTasks() {
+            return requestedTasks;
+        }
+
+        OperationDetails(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
+            ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(tasks.size());
+            tasks.forEach(ti -> {
+                builder.add(ti.getBuildIdentifier().getBuildPath() + ":" + ti.getTaskPath());
+            });
+            requestedTasks = builder.build();
+        }
     }
 
     @Override
@@ -66,7 +90,18 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
             // all tasks already executed
             return continuationUnderLock.get();
         }
-        return withBuildLogicQueueLock(() -> doBuild(remaining, continuationUnderLock));
+        return runner.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                return withBuildLogicQueueLock(() -> doBuild(tasks, continuationUnderLock));
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Build build logic for " + requester.getDisplayName().getDisplayName())
+                    .details(new OperationDetails(tasks));
+            }
+        });
     }
 
     @Override
