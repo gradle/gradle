@@ -90,7 +90,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                             new ModelClassLoaderFactory())),
                     new ClasspathInferer(),
                     classLoaderCache)));
-        return new ProblemsProgressEventUtils(payloadSerializer);
+        return new ProblemsProgressEventUtils(payloadSerializer, null);
     }
 
     private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {

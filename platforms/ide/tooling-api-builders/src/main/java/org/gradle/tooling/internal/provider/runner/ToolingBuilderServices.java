@@ -25,6 +25,8 @@ public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(BuildEventListenerFactory.class, ToolingApiBuildEventListenerFactory.class);
+//        registration.add(IsolatableSerializerRegistry.class);
+//        registration.addProvider(new WorkersServices.GradleUserHomeServices());
     }
 
     @Override

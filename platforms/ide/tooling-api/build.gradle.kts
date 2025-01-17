@@ -44,7 +44,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
-    api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)

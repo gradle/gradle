@@ -54,8 +54,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     def runTask() {
         def listener = new ProblemProgressListener()
         withConnection { connection ->
-            connection.newBuild().forTasks('reportProblem')
+            connection.newBuild().forTasks("compileJava", 'reportProblem')
                 .addProgressListener(listener)
+                .setStandardOutput(System.out)
+                .setStandardError(System.err)
 //                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5006")
                 .run()
         }
@@ -103,6 +105,14 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
+        file("src/main/java/Main.java") << """
+            public class Main {
+                public static void main(String[] args) {
+                    System.out.println("Hello, world!");
+                }
+            }
+        """
+
         withReportProblemTask """
             getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
                 def someData = getObjectFactory().newInstance(SomeData)

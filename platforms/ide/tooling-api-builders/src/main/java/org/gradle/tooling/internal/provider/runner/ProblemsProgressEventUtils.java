@@ -57,8 +57,11 @@ import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.build.event.types.DefaultSuccessResult;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
@@ -75,8 +78,11 @@ import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import javax.annotation.Nullable;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -94,9 +100,11 @@ public class ProblemsProgressEventUtils {
     private static final InternalSeverity WARNING = new DefaultSeverity(1);
     private static final InternalSeverity ERROR = new DefaultSeverity(2);
     private final PayloadSerializer payloadSerizalizer;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public ProblemsProgressEventUtils(PayloadSerializer payloadSerializer) {
+    public ProblemsProgressEventUtils(PayloadSerializer payloadSerializer, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.payloadSerizalizer = payloadSerializer;
+        this.isolatableSerializerRegistry = IsolatableSerializerRegistry.singleton != null ? IsolatableSerializerRegistry.singleton : null;
     }
 
     InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
@@ -220,6 +228,26 @@ public class ProblemsProgressEventUtils {
     }
 
 
+    private byte[] serialize(Isolatable<?> isolatable) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
+            isolatableSerializerRegistry.writeIsolatable(encoder, isolatable);
+            encoder.flush();
+        } catch (Exception e) {
+            throw new RuntimeException("Could not serialize unit of work.", e);
+        }
+        return outputStream.toByteArray();
+    }
+
+    private Isolatable<?> deserialize(byte[] bytes) {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
+        try {
+            return isolatableSerializerRegistry.readIsolatable(decoder);
+        } catch (Exception e) {
+            throw new RuntimeException("Could not deserialize unit of work.", e);
+        }
+    }
     @SuppressWarnings("unchecked")
     private InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
         SerializedPayload payload = payloadSerizalizer.serialize(additionalData);
