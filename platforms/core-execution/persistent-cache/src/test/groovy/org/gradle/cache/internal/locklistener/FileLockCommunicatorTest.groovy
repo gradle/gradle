@@ -25,7 +25,7 @@ import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 class FileLockCommunicatorTest extends ConcurrentSpecification {
 
     def addressFactory = new InetAddressFactory()
-    def communicator = new FileLockCommunicator(new InetAddressProvider() {
+    def communicator = new DefaultFileLockCommunicator(new InetAddressProvider() {
         @Override
         InetAddress getWildcardBindingAddress() {
             return addressFactory.wildcardBindingAddress
@@ -58,7 +58,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         FileLockPacketPayload receivedPayload
 
         start {
-            def packet = communicator.receive()
+            def packet = communicator.receive().get()
             receivedPayload = communicator.decode(packet)
         }
 
@@ -67,7 +67,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        communicator.pingOwner(communicator.getPort(), 155, "lock")
+        communicator.pingOwner(addressFactory.localBindingAddress, communicator.getPort(), 155, "lock")
 
         then:
         poll {
@@ -80,7 +80,7 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         FileLockPacketPayload receivedPayload
 
         start {
-            def packet = communicator.receive()
+            def packet = communicator.receive().get()
             receivedPayload = communicator.decode(packet)
         }
 
@@ -104,14 +104,14 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     def "may not receive after the stop"() {
         communicator.stop()
         when:
-        communicator.receive()
+        def result = communicator.receive()
         then:
-        thrown(GracefullyStoppedException)
+        !result.isPresent()
     }
 
     def "pinging on a port that nobody listens is safe"() {
         when:
-        communicator.pingOwner(6666, 166, "lock")
+        communicator.pingOwner(addressFactory.localBindingAddress, 6666, 166, "lock")
 
         then:
         noExceptionThrown()
