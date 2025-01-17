@@ -24,6 +24,9 @@ import java.util.Set;
 
 /**
  * Lists available JDKs installed in the global Gradle user home
+ * <p>
+ * Currently in the Build scope because of FileOperations which is Build scoped, all other dependencies are in the UserHome scope
+ * which should be this service's scope.
  */
 @ServiceScope(Scope.Build.class)
 public interface JdkCacheDirectory {

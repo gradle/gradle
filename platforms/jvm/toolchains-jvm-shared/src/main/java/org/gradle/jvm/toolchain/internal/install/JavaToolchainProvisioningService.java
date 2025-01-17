@@ -21,12 +21,15 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.LocalBinaryResource;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 
 import java.io.File;
 import java.net.URI;
 
+@ServiceScope({Scope.Build.class})
 public interface JavaToolchainProvisioningService {
 
     File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;

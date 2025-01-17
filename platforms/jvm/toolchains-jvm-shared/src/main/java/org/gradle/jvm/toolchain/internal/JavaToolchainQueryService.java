@@ -48,7 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.Predicate;
 
-@ServiceScope({Scope.Global.class, Scope.Project.class})
+@ServiceScope(Scope.Build.class)
 public class JavaToolchainQueryService {
 
     private static final class ToolchainLookupKey {
@@ -109,7 +109,7 @@ public class JavaToolchainQueryService {
         FileFactory fileFactory,
         JavaToolchainProvisioningService provisioningService,
         JavaInstallationRegistry registry,
-        JavaToolchainSpec fallbackToolchainSpec
+        CurrentJvmToolchainSpec fallbackToolchainSpec
     ) {
         this(detector, fileFactory, provisioningService, registry, fallbackToolchainSpec, Jvm.current().getJavaHome());
     }

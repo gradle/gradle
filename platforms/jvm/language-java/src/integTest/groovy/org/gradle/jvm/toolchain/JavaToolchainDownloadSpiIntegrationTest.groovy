@@ -58,7 +58,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         failure = executer
-                .withTasks("compileJava")
+                .withTasks("compileJava", "-s")
                 .requireOwnGradleUserHomeDir("needs to not have cached toolchains")
                 .withToolchainDownloadEnabled()
                 .runWithFailure()
