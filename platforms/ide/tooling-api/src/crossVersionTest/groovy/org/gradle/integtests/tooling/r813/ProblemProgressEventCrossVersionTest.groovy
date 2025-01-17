@@ -108,6 +108,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 def someData = getObjectFactory().newInstance(SomeData)
                 someData.name = "someData"
                 def isolatedData = getIsolatableFactory().isolate(someData).isolate()
+
                 it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
