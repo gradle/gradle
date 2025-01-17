@@ -37,14 +37,14 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final Throwable exception;
     private final AdditionalData additionalData;
 
-    protected DefaultProblem(
+    public DefaultProblem(
         ProblemDefinition problemDefinition,
         @Nullable String contextualLabel,
         List<String> solutions,
         List<ProblemLocation> originLocations,
         List<ProblemLocation> contextualLocations,
         @Nullable String details,
-        Throwable exception,
+        @Nullable Throwable exception,
         @Nullable AdditionalData additionalData
     ) {
         this.problemDefinition = problemDefinition;
