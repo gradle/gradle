@@ -62,7 +62,8 @@ val task = tasks.register<Jar>("jarGradleApi") {
             componentFilter { componentId -> componentId is ProjectComponentIdentifier }
         }.files
     }) {
-        exclude("**/*.jar")
+        // TODO Use better filtering
+        include("**/*.class")
     }
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
     // This is needed because of the duplicate package-info.class files
