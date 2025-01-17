@@ -29,7 +29,7 @@ public class TaskStateInternal implements TaskState {
     private boolean actionable = true;
     private boolean didWork;
     private RuntimeException failure;
-    private TaskExecutionOutcome outcome;
+    private volatile TaskExecutionOutcome outcome;
 
     @Nullable
     private String skipReasonMessage;
