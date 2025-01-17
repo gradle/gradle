@@ -232,7 +232,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(versionRange(8, 19), currentJvm)
 
         when:
-        def filter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec)
+        def filter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec, Jvm.current())
         def toolchain = queryService.findMatchingToolchain(filter)
 
         then:
@@ -285,7 +285,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         def queryService = setupInstallations(versionRange(8, 19), currentJvm)
 
         when:
-        def currentJvmFilter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec)
+        def currentJvmFilter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec, Jvm.current())
         def currentJvmToolchain = queryService.findMatchingToolchain(currentJvmFilter).get()
         then:
         !currentJvmToolchain.isFallbackToolchain()
@@ -314,7 +314,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         fallbackToolchain.isFallbackToolchain()
 
         when:
-        def currentJvmFilter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec)
+        def currentJvmFilter = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec, Jvm.current())
         def currentJvmToolchain = queryService.findMatchingToolchain(currentJvmFilter).get()
         then:
         !currentJvmToolchain.isFallbackToolchain()
@@ -519,7 +519,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         JavaToolchainProvisioningService provisioningService,
         File currentJavaHome = Jvm.current().getJavaHome()
     ) {
-        def fallbackToolchainSpec = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec.class)
+        def fallbackToolchainSpec = TestUtil.objectFactory().newInstance(CurrentJvmToolchainSpec.class, Jvm.current())
         new JavaToolchainQueryService(detector, TestFiles.fileFactory(), provisioningService, registry, fallbackToolchainSpec, currentJavaHome)
     }
 }

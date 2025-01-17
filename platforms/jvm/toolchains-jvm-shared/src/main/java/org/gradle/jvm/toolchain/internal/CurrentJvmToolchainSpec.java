@@ -23,12 +23,12 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 
 import javax.inject.Inject;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.Global.class)
 public abstract class CurrentJvmToolchainSpec extends DefaultToolchainSpec {
 
     @Inject
-    public CurrentJvmToolchainSpec() {
-        getLanguageVersion().set(JavaLanguageVersion.of(Jvm.current().getJavaVersion().getMajorVersion()));
+    public CurrentJvmToolchainSpec(Jvm currentJvm) {
+        getLanguageVersion().set(JavaLanguageVersion.of(currentJvm.getJavaVersion().getMajorVersion()));
 
         // disallow changing property values
         finalizeProperties();

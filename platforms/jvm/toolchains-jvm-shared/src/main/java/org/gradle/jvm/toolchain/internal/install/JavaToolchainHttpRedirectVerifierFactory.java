@@ -17,12 +17,15 @@
 package org.gradle.jvm.toolchain.internal.install;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 
+@ServiceScope(Scope.Global.class)
 public class JavaToolchainHttpRedirectVerifierFactory {
 
     public HttpRedirectVerifier createVerifier(URI toolchainUri) {
