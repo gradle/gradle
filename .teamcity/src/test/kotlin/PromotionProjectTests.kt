@@ -147,7 +147,7 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
+        val expectedGradleParams = """-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier% "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride %additional.gradle.parameters%"""
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepSnapshot checkNeedToPromote")
