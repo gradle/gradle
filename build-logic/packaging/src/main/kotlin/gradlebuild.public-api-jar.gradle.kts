@@ -66,7 +66,7 @@ val task = tasks.register<Jar>("jarGradleApi") {
     }
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
     // This is needed because of the duplicate package-info.class files
-    duplicatesStrategy = DuplicatesStrategy.WARN
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 // The consumable configuration containing the public Gradle API artifact
