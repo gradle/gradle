@@ -110,7 +110,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/gro
 
 During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
 
-Since no variants exist supplying artifacts of requested format (as none contain the `artifactType` attribute with a value of `"transformed-jar"`), Gradle attempts to construct a chain of transformations that will supply it.
+Since no variants exist supplying artifacts of requested format (as none contain the `artifactType` attribute with a value of `"transformed-jar"`), Gradle attempts to construct a chain of transformations that will supply the proper artifact.
 
 Gradle's search finds `MyTransform`, which is registered as producing the requested format, so it will automatically be run.
 Running this transform action modifies the artifacts of an existing source variant to produce new artifacts that are delivered to the consumer, in the requested format.
@@ -177,7 +177,7 @@ IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a v
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
-TIP: Gradle applies transformations to artifacts, not variants.
+TIP: Gradle applies transformations to artifacts, not variants. New variants are *not* produced.
 
 == Leveraging Artifact Views
 
@@ -196,7 +196,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groov
 [[sec:artifact-transform-chains]]
 == Understanding Artifact Transforms Chains
 
-When Gradle resolves a configuration and a dependency does not have a variant with the requested attributes, it attempts to find a chain of one or more Artifact Transforms that can be run sequentially to create the desired variant.
+When Gradle resolves a configuration and a dependency does not have a variant with the requested attributes, it attempts to find a chain of one or more Artifact Transforms that can be run sequentially to create the desired artifact.
 This process is called **Artifact Transform selection**:
 
 image::artifact-transform-5.png[]

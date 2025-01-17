@@ -43,7 +43,7 @@ The graph itself focuses on component variants, not the artifacts (files) associ
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[`ResolvedComponentResult`] - Represents a resolved component in the raw dependency graph.
 - link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[`ResolvedVariantResult`] - Represents a resolved variant of a component in the raw dependency graph.
 
-See <<dependency_graph_resolution.adoc#dependency-graph-resolution,Dependency Graph Resolution>> to learn more.
+See <<dependency_graph_resolution.adoc#dependency-graph-resolution,Graph Resolution>> to learn more.
 
 [[sec:artifact-resolution]]
 == 2. Artifact Resolution
@@ -61,8 +61,19 @@ The  link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView
 
 See <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
 
-An link:{javadocPath}/org/gradle/api/artifacts/transform/package-summary.html[`ArtifactTransform`] allow converting one artifact type into another during the resolution process, enabling custom transformations such as extracting ZIP files or converting JARs to a different format.
+== Controlling Resolution
 
-Transforms are seamlessly integrated with link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactViews`], enabling transformations to produce artifacts in the required format dynamically.
+An link:{javadocPath}/org/gradle/api/artifacts/transform/package-summary.html[`ArtifactTransform`] modifies the content of an artifact during dependency resolution, such as converting JAR files into custom formats.
+
+An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] provides a filtered view of resolved artifacts, enabling you to query and retrieve the transformed outputs.
+
+When used together:
+
+1. Register a `ArtifactTransform` to process artifacts.
+2. Configure an `ArtifactView` to filter artifacts based on attributes.
+3. Query the transformed artifacts via the `ArtifactView` to access or process the transformed files.
 
 See <<artifact_views.adoc#artifact-views,Artifact Views>> and <<artifact_transforms.adoc#artifact-transforms,Artifact Transforms>> to learn more.
+
+[.text-right]
+**Next Step:** <<dependency_graph_resolution.adoc#dependency-graph-resolution,Learn about Graph Resolution>> >>

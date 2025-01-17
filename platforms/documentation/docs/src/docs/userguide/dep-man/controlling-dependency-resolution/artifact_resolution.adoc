@@ -117,7 +117,7 @@ It queries the graph for specific artifacts, enabling artifact resolution with d
 Think of a configuration's `getFiles()` output as an `ArtifactView` that uses the same attributes as the graph resolution.
 However, an explicit `ArtifactView` allows you to resolve artifacts from the graph with different attributes.
 
-There are several ways to leverage Artifact Views in Gradle:
+There are several ways to leverage <<artifact_views.adoc#artifact-views,Artifact Views>> in Gradle:
 
 1. **Lenient Resolution**: Using `artifactView` with `lenient=true` allows you to ignore missing dependencies.
 2. **Component Filtering**: Using `artifactView` with `componentFilter` lets you exclude specific dependencies from the results.
@@ -125,3 +125,6 @@ There are several ways to leverage Artifact Views in Gradle:
 - Normally, an artifact must match both the graph's attributes and the `ArtifactView` attributes.
 - With `withVariantReselection`, you can select artifacts from any available variants within a component.
 4. **Trigger Transforms**: Trigger an `artifactTransform`.
+
+[.text-right]
+**Next Step:** <<artifact_views.adoc#artifact-views,Learn about Artifact Views>> >>

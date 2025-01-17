@@ -154,6 +154,5 @@ Notice how we resolve project dependencies and module dependencies separately:
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution-componentFilter/tests/resolve-component-filter.out[]
 ----
 
-
-
-
+[.text-right]
+**Next Step:** <<artifact_transforms.adoc#artifact-transforms,Learn about Artifact Transforms>> >>

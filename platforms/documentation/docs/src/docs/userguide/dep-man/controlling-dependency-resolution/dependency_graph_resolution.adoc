@@ -72,3 +72,6 @@ include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResu
 ----
 
 Notice how the graph is the same for both representations.
+
+[.text-right]
+**Next Step:** <<artifact_resolution.adoc#artifact-resolution,Learn about Artifact Resolution>> >>
