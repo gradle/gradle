@@ -177,7 +177,7 @@ IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a v
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
-TIP: Gradle applies transformations to artifacts, not variants. New variants are *not* produced.
+TIP: Gradle applies transformations to artifacts, not variants.
 
 == Leveraging Artifact Views
 
