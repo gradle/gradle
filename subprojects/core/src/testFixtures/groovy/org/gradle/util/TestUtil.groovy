@@ -23,6 +23,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.MutationGuards
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
@@ -62,12 +63,15 @@ import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.DefaultBuildOperationsParameters
 import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.CrossBuildSessionParameters
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.test.fixtures.file.TestDirectoryProvider
@@ -163,7 +167,8 @@ class TestUtil {
     }
 
     static StateTransitionControllerFactory stateTransitionControllerFactory() {
-        return new StateTransitionControllerFactory(new TestWorkerLeaseService())
+        def buildOperationsParameters = new DefaultBuildOperationsParameters(new CrossBuildSessionParameters(new StartParameterInternal()))
+        return new StateTransitionControllerFactory(new TestWorkerLeaseService(), buildOperationsParameters, new TestBuildOperationRunner())
     }
 
     private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Action<ServiceRegistration> registrations = {}) {
