@@ -129,7 +129,7 @@ public interface ProblemSpec {
      * @return this
      * @since 8.13
      */
-    ProblemSpec additionalData(AdditionalData additionalData);
+    ProblemSpec additionalData(Object additionalData);
 
     /**
      * The exception causing this problem.

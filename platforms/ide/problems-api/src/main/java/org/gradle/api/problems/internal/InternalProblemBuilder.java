@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
@@ -76,7 +75,7 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config);
 
     @Override
-    InternalProblemBuilder additionalData(AdditionalData additionalData);
+    InternalProblemBuilder additionalData(Object additionalData);
 
     @Override
     InternalProblemBuilder withException(Throwable t);

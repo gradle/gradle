@@ -17,20 +17,29 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultProblemDetails;
+import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
+import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.tooling.internal.provider.serialization.StreamedValue;
+import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 public class StreamedValueConsumer implements BuildEventConsumer {
 
     private final ProviderOperationParameters providerParameters;
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public StreamedValueConsumer(ProviderOperationParameters providerParameters, PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.providerParameters = providerParameters;
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     @Override
@@ -40,18 +49,21 @@ public class StreamedValueConsumer implements BuildEventConsumer {
             StreamedValue value = (StreamedValue) message;
             Object deserializedValue = payloadSerializer.deserialize(value.getSerializedModel());
             providerParameters.onStreamedValue(deserializedValue);
-//        } else if (message instanceof DefaultProblemEvent) {
-//            DefaultProblemEvent problemEvent = (DefaultProblemEvent) message;
-//            InternalProblemDetailsVersion2 details = problemEvent.getDetails();
-//            if (details instanceof DefaultProblemDetails) {
-//                InternalAdditionalData additionalData = ((DefaultProblemDetails) details).getAdditionalData();
-//                if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
-//                    Object deserialize = payloadSerializer.deserialize((SerializedPayload) ((InternalPayloadSerializedAdditionalData) additionalData).get());
-//                    System.out.println(deserialize);
-//                }
-////                providerParameters.onProblemDetails(((DefaultProblemDetails) details).get());
-//            }
-//            delegate.dispatch(message);
+        } else if (message instanceof DefaultProblemEvent) {
+            DefaultProblemEvent problemEvent = (DefaultProblemEvent) message;
+            InternalProblemDetailsVersion2 details = problemEvent.getDetails();
+            if (details instanceof DefaultProblemDetails) {
+                InternalAdditionalData additionalData = ((DefaultProblemDetails) details).getAdditionalData();
+                if (additionalData instanceof InternalPayloadSerializedAdditionalData) {
+                    Object o = ((InternalPayloadSerializedAdditionalData) additionalData).get();
+                    if (o != null) {
+                        Object deserialize = payloadSerializer.deserialize((SerializedPayload) o);
+                        System.out.println(deserialize);
+                    }
+                }
+//                providerParameters.onProblemDetails(((DefaultProblemDetails) details).get());
+            }
+            delegate.dispatch(message);
         } else {
             delegate.dispatch(message);
         }

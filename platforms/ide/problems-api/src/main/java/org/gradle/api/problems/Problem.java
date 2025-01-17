@@ -99,5 +99,5 @@ public interface Problem {
      * @since 8.13
      */
     @Nullable
-    AdditionalData getAdditionalData();
+    Object getAdditionalData();
 }

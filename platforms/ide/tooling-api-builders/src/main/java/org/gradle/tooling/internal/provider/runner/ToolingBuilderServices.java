@@ -24,7 +24,6 @@ import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
-import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -33,7 +32,7 @@ public class ToolingBuilderServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(BuildEventListenerFactory.class, ToolingApiBuildEventListenerFactory.class);
-        registration.add(IsolatableSerializerRegistry.class);
+//        registration.add(IsolatableSerializerRegistry.class);
         registration.addProvider(new MyServiceRegistrationProvider());
     }
 

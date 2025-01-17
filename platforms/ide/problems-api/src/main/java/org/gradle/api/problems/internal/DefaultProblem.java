@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
 
@@ -35,7 +34,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final List<ProblemLocation> contextualLocations;
     private final String details;
     private final Throwable exception;
-    private final AdditionalData additionalData;
+    private final Object additionalData;
 
     protected DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -45,7 +44,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
         List<ProblemLocation> contextualLocations,
         @Nullable String details,
         Throwable exception,
-        @Nullable AdditionalData additionalData
+        @Nullable Object additionalData
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -96,7 +95,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
     }
 
     @Override
-    public AdditionalData getAdditionalData() {
+    public Object getAdditionalData() {
         return additionalData;
     }
 

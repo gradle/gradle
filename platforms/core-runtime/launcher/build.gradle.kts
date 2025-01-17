@@ -38,6 +38,7 @@ dependencies {
     api(projects.snapshots)
     api(projects.time)
     api(projects.toolingApi)
+    api(projects.workers)
 
     // This project contains the Gradle client, daemon and tooling API provider implementations.
     // It should be split up, but for now, add dependencies on both the client and daemon pieces

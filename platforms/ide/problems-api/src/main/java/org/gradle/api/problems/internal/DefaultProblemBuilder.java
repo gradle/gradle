@@ -48,7 +48,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private DocLink docLink;
     private List<String> solutions;
     private Throwable exception;
-    private AdditionalData additionalData;
+    private Object additionalData;
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
@@ -284,7 +284,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
 
     @Override
-    public InternalProblemBuilder additionalData(AdditionalData additionalData) {
+    public InternalProblemBuilder additionalData(Object additionalData) {
         this.additionalData = additionalData;
         return this;
     }

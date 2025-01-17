@@ -39,6 +39,7 @@ import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoa
 import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
+import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 /**
  * Shared services for a tooling API provider connection.
@@ -75,7 +76,9 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter) {
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter,
+        IsolatableSerializerRegistry isolatableSerializerRegistry
+    ) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,
@@ -95,7 +98,8 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
             userInput,
             userInputReader,
             shutdownCoordinator,
-            notifyDaemonClientExecuter
+            notifyDaemonClientExecuter,
+            isolatableSerializerRegistry
         );
     }
 

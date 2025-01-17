@@ -82,6 +82,7 @@ import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor;
+import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import java.util.List;
 
@@ -91,6 +92,8 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 public class LauncherServices extends AbstractGradleModuleServices {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
+//        registration.add(BuildEventListenerFactory.class, ToolingApiBuildEventListenerFactory.class);
+        registration.add(IsolatableSerializerRegistry.class);
         registration.add(BuildActionRunner.class, ExecuteBuildActionRunner.class);
         registration.addProvider(new ToolingGlobalScopeServices());
     }
@@ -110,6 +113,19 @@ public class LauncherServices extends AbstractGradleModuleServices {
         BuildLoggerFactory createBuildLoggerFactory(StyledTextOutputFactory styledTextOutputFactory, WorkValidationWarningReporter workValidationWarningReporter) {
             return new BuildLoggerFactory(styledTextOutputFactory, workValidationWarningReporter, Time.clock(), null);
         }
+
+//        @Provides
+//        ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
+//            // Return a dummy implementation of this as creating a real hasher drags ~20 more services
+//            // along with it, and a hasher isn't actually needed on the worker process side at the moment.
+//            return new ClassLoaderHierarchyHasher() {
+//                @Nullable
+//                @Override
+//                public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
+//                    throw new UnsupportedOperationException();
+//                }
+//            };
+//        }
     }
 
     static class ToolingBuildSessionScopeServices implements ServiceRegistrationProvider {

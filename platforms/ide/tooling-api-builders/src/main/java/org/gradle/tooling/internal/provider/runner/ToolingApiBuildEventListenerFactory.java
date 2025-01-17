@@ -47,12 +47,13 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
     private final BuildOperationAncestryTracker ancestryTracker;
     private final BuildOperationIdFactory idFactory;
     private final List<OperationResultPostProcessorFactory> postProcessorFactories;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    @SuppressWarnings("unused")
     ToolingApiBuildEventListenerFactory(BuildOperationAncestryTracker ancestryTracker, BuildOperationIdFactory idFactory, List<OperationResultPostProcessorFactory> postProcessorFactories, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.ancestryTracker = ancestryTracker;
         this.idFactory = idFactory;
         this.postProcessorFactories = postProcessorFactories;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     @Override
@@ -81,7 +82,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return listeners.build();
     }
 
-    public static ProblemsProgressEventUtils createProblemProgressEventUtils() {
+    public ProblemsProgressEventUtils createProblemProgressEventUtils() {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         PayloadSerializer payloadSerializer = new PayloadSerializer(
             new WellKnownClassLoaderRegistry(
@@ -92,7 +93,7 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
                             new ModelClassLoaderFactory())),
                     new ClasspathInferer(),
                     classLoaderCache)));
-        return new ProblemsProgressEventUtils(payloadSerializer, null);
+        return new ProblemsProgressEventUtils(payloadSerializer, isolatableSerializerRegistry);
     }
 
     private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {

@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.GeneralData;
@@ -77,7 +76,6 @@ import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import javax.annotation.Nullable;
@@ -249,8 +247,8 @@ public class ProblemsProgressEventUtils {
         }
     }
     @SuppressWarnings("unchecked")
-    private InternalAdditionalData toInternalAdditionalData(@Nullable AdditionalData additionalData) {
-        SerializedPayload payload = null; //payloadSerizalizer.serialize(additionalData);
+    private InternalAdditionalData toInternalAdditionalData(@Nullable Object additionalData) {
+        byte[] payload = additionalData instanceof Isolatable ? serialize((Isolatable<?>) additionalData) : null;
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
