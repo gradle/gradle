@@ -73,7 +73,7 @@ Gradle also supports the concept of <<dependency_versions.adoc#sec:rich-version-
 *** If no clear intersection exists, the highest version from the largest range will be selected. If no version exists in the highest range, the resolution fails.
 ** If a `strictly` version is declared that is lower than the highest, resolution will fail.
 
-For version ranges, Gradle needs to perform intermediate metadata lookups to determine which versions are available, as explained in <<#sec:how-gradle-downloads-deps>>.
+For version ranges, Gradle needs to perform intermediate metadata lookups to determine what variations are available, as explained in <<#sec:how-gradle-downloads-deps>>.
 
 [[sec:base-version-comparison]]
 ==== Versions with qualifiers

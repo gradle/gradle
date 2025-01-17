@@ -389,7 +389,7 @@ See the {metadata-file-spec}[Gradle Module Metadata specification] for more info
 [[sec:maven-mapping-to-variants]]
 === Mapping of Maven POM metadata to variants
 
-Modules published on a Maven repository are automatically converted into variant-aware modules.
+Modules published to a Maven repository are automatically converted into variant-aware modules when resolved by Gradle.
 
 There is no way for Gradle to know which kind of _component_ was published:
 

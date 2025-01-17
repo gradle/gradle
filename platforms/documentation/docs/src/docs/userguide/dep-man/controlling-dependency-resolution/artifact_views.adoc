@@ -33,7 +33,7 @@ The below examples will only demonstrate using a `FileCollection` as the output.
 An `ArtifactView` can be used to trigger artifact selection using attributes different from those used to resolve the graph.
 
 For each node in the graph, artifact selection is performed for that node.
-Most commonly, this API is used to request attributes that are not present on any artifact set from the variant that artifacts are being selected from.
+Most commonly, this API is used to request attributes that are not present on the variant that artifacts are being selected from.
 When Gradle cannot find a matching artifact set from the node in question, it will attempt to satisfy the request by transforming the available artifact sets using the artifact transforms registered on the project.
 
 Below, we use the unzip example from the <<artifact_transforms.adoc#sec:implementing-artifact-transforms,artifact transforms>> chapter to demonstrate how to use the `ArtifactView` API to request attributes that trigger a transform:
@@ -53,7 +53,7 @@ include::{snippetsPath}/dependencyManagement/artifactTransforms-unzip/tests/arti
 
 == 2. Performing variant reselection
 
-Standard artifact selection can only select between and transform artifact sets exposed by the node under selection.
+Standard artifact selection can only select between variants of the component selected by the result of graph selection.
 However, in some cases, it may be desirable to select artifacts from a variant _parallel_ to the graph node being selected.
 
 Consider the example component structure below, describing a typical local Java library with sources and javadoc:
@@ -131,7 +131,7 @@ include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolu
 The `ArtifactView` API can be used to filter specific artifacts from the resulting `FileCollection` or `ArtifactCollection`.
 
 `ArtifactViews` allow results to be filtered on a per-component basis.
-Using the `ArtifactView#componentFilter(Action)` method, artifacts from certain components may be filtered from the result.
+Using the `ArtifactView#componentFilter(Action)` method, artifacts from the selected variant can be filtered from the resolved result.
 The action is passed the `ComponentIdentifier` of the component that owns the variant that artifacts are being selected for.
 
 Consider the following example, where we have one project dependency and one external dependency:
