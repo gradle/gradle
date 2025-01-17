@@ -34,9 +34,10 @@ import java.nio.file.Paths
 class CheckBadMerge {
     private static final THREAD_POOL = Executors.newCachedThreadPool()
 
-    private static final List<String> MONITORED_FILES = [
+    private static final List<String> MONITORED_PATHS = [
         "subprojects/docs/src/docs/release/notes.md",
         "platforms/documentation/docs/src/docs/release/notes.md",
+        "platforms/documentation/docs/src/docs/release/release-notes-assets/",
         "subprojects/launcher/src/main/resources/release-features.txt",
         "platforms/core-runtime/launcher/src/main/resources/release-features.txt"
     ]
@@ -66,14 +67,14 @@ class CheckBadMerge {
         // The correct state we are looking for is:
         // 1. It's a merge commit.
         // 2. One of its parent commits is from master only.
-        // 3. Another parent commit is from master and release branch.
+        // 3. Another parent commit is not from master but from release branch.
         // Otherwise, skip this commit.
         List<String> p1Branches = branchesOf(parentCommits[0])
         List<String> p2Branches = branchesOf(parentCommits[1])
 
         if (p1Branches.contains("origin/master") && !p2Branches.contains("origin/master") && p2Branches.any { it.startsWith("origin/release") }) {
-            List<String> badFiles = MONITORED_FILES.grep { isBadFileInMergeCommit(it, commit, parentCommits[0], parentCommits[1]) }
-            if (!badFiles.isEmpty()) {
+            List<String> badFiles = filesFromMerge(commit).findAll {gitFile -> MONITORED_PATHS.any { forbiddenPath -> gitFile.startsWith(forbiddenPath)} }
+            if (!badFiles.empty) {
                 throw new RuntimeException("Found bad files in merge commit $commit: $badFiles")
             } else {
                 println("No bad files found in $commit")
@@ -83,44 +84,8 @@ class CheckBadMerge {
         }
     }
 
-    /**
-     * Check if the given file is "bad": we should only use the release note from the master branch.
-     * This means that every line in the merge commit version should be either:
-     * - Only exists on `master`.
-     * - Exists on `master` and `releaseX`.
-     * If any line is only present on `releaseX` version, then it's a bad file.
-     * Also, we ignore empty lines.
-     */
-    static boolean isBadFileInMergeCommit(String filePath, String mergeCommit, String masterCommit, String releaseCommit) {
-        try {
-            List<String> mergeCommitFileLines = showFileOnCommit(mergeCommit, filePath).readLines()
-            List<String> masterCommitFileLines = showFileOnCommit(masterCommit, filePath).readLines()
-            List<String> releaseCommitFileLines = showFileOnCommit(releaseCommit, filePath).readLines()
-            for (String line in mergeCommitFileLines) {
-                if (line.trim().isEmpty()) {
-                    continue
-                }
-                if (!masterCommitFileLines.contains(line) && releaseCommitFileLines.contains(line)) {
-                    println("Found bad file $filePath in merge commit $mergeCommit: '$line' only exists in $releaseCommit but not in $masterCommit")
-                    return true
-                }
-            }
-        } catch (AbortException ignore) {
-            return false
-        }
-        return false
-    }
-
-    static class AbortException extends RuntimeException {
-    }
-
-    static String showFileOnCommit(String commit, String filePath) {
-        ExecResult execResult = exec("git show $commit:$filePath")
-        if (execResult.returnCode != 0 && execResult.stderr ==~ /path '.*' exists on disk, but not in '.*'/) {
-            println("File $filePath does not exist on commit $commit, skip.")
-            throw new AbortException()
-        }
-        return execResult.stdout
+    static List<String> filesFromMerge(String commit) {
+        getStdout("git diff --name-only $commit^1..$commit").readLines()
     }
 
     static List<String> branchesOf(String commit) {
@@ -132,7 +97,7 @@ class CheckBadMerge {
     }
 
     static List<String> parentCommitsOf(String commit) {
-        return getStdout("git show --format=%P --no-patch $commit")
+        return getStdout("git show --format=%P --no-patch --no-show-signature $commit")
             .split(" ").collect { it.trim() }.grep { !it.isEmpty() }
     }
 

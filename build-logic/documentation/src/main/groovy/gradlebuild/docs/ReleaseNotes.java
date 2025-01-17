@@ -17,6 +17,7 @@
 package gradlebuild.docs;
 
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 
 public abstract class ReleaseNotes {
@@ -39,6 +40,11 @@ public abstract class ReleaseNotes {
      * The Javascript embedded in the release notes
      */
     public abstract RegularFileProperty getReleaseNotesJsFile();
+
+    /**
+     * The location of the release notes assets
+     */
+    public abstract DirectoryProperty getReleaseNotesAssets();
 
     /**
      * The Jquery file to include in the release notes.
