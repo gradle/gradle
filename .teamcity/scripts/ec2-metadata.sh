@@ -29,4 +29,4 @@ if [ $IS_EC2_INSTANCE -ne 0 ]; then
 fi
 
 EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
-echo "##teamcity[addBuildTag '$EC2_INSTANCE_TYPE']"
+echo "##teamcity[addBuildTag 'ec2-instance-type=$EC2_INSTANCE_TYPE']"
