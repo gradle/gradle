@@ -46,7 +46,9 @@ pluginManager.withPlugin("gradlebuild.jvm-library") {
     val extractorClasspathConfig by configurations.creating
 
     dependencies {
-        extractorClasspathConfig("org.gradle:java-api-extractor")
+        // FIXME Here it seems we can't refer to libs.javaAbiExtractor, why?
+        //       Would be nice if we didn't have to supply the version number redundantly
+        extractorClasspathConfig("org.gradle.buildtool.internal:java-abi-extractor:0.1.2")
     }
 
     val extractJavaAbi by tasks.registering(ExtractJavaAbi::class) {
