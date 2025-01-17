@@ -181,7 +181,7 @@ TIP: Gradle applies transformations to artifacts, not variants.
 
 == Leveraging Artifact Views
 
-To leverage <<artifact_views.adoc#artifact_views,Artifact Views>> with Artifact Transforms, you can configure a custom `ArtifactView` to access the transformed artifacts.
+To leverage <<artifact_views.adoc#artifact-views,Artifact Views>> with Artifact Transforms, you can configure a custom `ArtifactView` to access the transformed artifacts.
 This allows you to apply transformations to the artifacts in the view and further process or consume them.
 Typically, `artifactView` is used with a specific transform type to modify or manipulate the artifacts as they are resolved.
 
