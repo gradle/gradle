@@ -177,19 +177,20 @@ IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a v
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
-TIP: Gradle applies transformations to artifacts, not variants!
+TIP: Gradle applies transformations to artifacts, not variants.
 
 == Leveraging Artifact Views
 
-To leverage <<artifact_views.adoc#artifact_views,Artifact Views>> for Artifact Transforms, you can configure a custom `ArtifactView` to access the transformed artifacts.
+To leverage <<artifact_views.adoc#artifact_views,Artifact Views>> with Artifact Transforms, you can configure a custom `ArtifactView` to access the transformed artifacts.
 This allows you to apply transformations to the artifacts in the view and further process or consume them.
 Typically, `artifactView` is used with a specific transform type to modify or manipulate the artifacts as they are resolved.
 
-The example below demonstrates how to define a custom artifact transform (`TestTransform`), register it, and then use it to manipulate artifacts, allowing the consumer configuration to resolve transformed artifacts (`stub`).
+In the example below, the `TestTransform` class defines a transformation and the transformation is registered to process artifacts of type "jar" into artifacts of type "stub".
+The `consumer` configuration is then created to resolve artifacts of type "stub", and the `testArtifact` task queries and prints the resolved artifact's attributes, demonstrating the successful transformation from JAR to STUB:
 
 ====
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views]"]
-include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
 ====
 
 [[sec:artifact-transform-chains]]

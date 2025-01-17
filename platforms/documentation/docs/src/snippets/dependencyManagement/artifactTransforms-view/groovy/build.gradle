@@ -14,7 +14,9 @@ repositories {
     mavenCentral()
 }
 
-// tag::artifact-views[]
+// tag::artifact-views-with-custom-attribute[]
+// The TestTransform class implements TransformAction,
+// transforming input JAR files into text files with specific content
 abstract class TestTransform implements TransformAction<TransformParameters.None> {
     @InputArtifact
     abstract Provider<FileSystemLocation> getInputArtifact()
@@ -22,11 +24,11 @@ abstract class TestTransform implements TransformAction<TransformParameters.None
     @Override
     void transform(TransformOutputs outputs) {
         def outputFile = outputs.file("transformed-stub.txt")
-        outputFile.text = "Transformed from ${inputArtifact.get().asFile.name}"
+        outputFile.text = "Transformed from ${getInputArtifact().get().asFile.name}"
     }
 }
 
-// Register the transform
+// The transform is registered to convert artifacts from the type "jar" to "stub"
 dependencies {
     registerTransform(TestTransform) {
         from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "jar")
@@ -34,7 +36,8 @@ dependencies {
     }
 }
 
-// Define a configuration to resolve the transformed artifact
+
+// A consumer configuration is defined to resolve artifacts of type "stub"
 def consumer = configurations.create("consumer") {
     canBeConsumed = false
     canBeResolved = true
@@ -47,15 +50,24 @@ def consumer = configurations.create("consumer") {
     }
 }
 
-// Task to resolve and display transformed artifact information
+// The testArtifact task queries and prints the attributes of resolved artifacts,
+// showing the type conversion in action.
 tasks.register("testArtifact") {
-    def resolvedArtifacts = consumer.incoming.artifacts.artifactFiles
+    def resolvedArtifacts = consumer.incoming.artifactView {
+        attributes {
+            attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
+        }
+    }.artifacts.resolvedArtifacts
 
     doLast {
-        println("Transformed artifacts:")
-        resolvedArtifacts.files.each {
-            println("- ${it.absolutePath}")
+        resolvedArtifacts.get().each {
+            println "Resolved artifact variant:"
+            println "- ${it.variant}"
+            println "Resolved artifact attributes:"
+            println "- ${it.variant.attributes}"
+            println "Resolved artifact type:"
+            println "- ${it.variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)}"
         }
     }
 }
-// end::artifact-views[]
+// end::artifact-views-with-custom-attribute[]
