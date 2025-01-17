@@ -8,6 +8,8 @@ dependencies {
     implementation("gradlebuild:basics")
     implementation("gradlebuild:module-identity")
 
+    implementation("org.gradle.buildtool.internal:java-abi-extractor:0.1.2")
+
     implementation(projects.documentation) {
         // TODO turn this around: move corresponding code to this project and let docs depend on it
         because("API metadata generation is part of the DSL guide")

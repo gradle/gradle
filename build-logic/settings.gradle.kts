@@ -40,6 +40,7 @@ dependencyResolutionManagement {
             url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeGroup("org.gradle.buildtool.internal")
             }
         }
         mavenCentral()
