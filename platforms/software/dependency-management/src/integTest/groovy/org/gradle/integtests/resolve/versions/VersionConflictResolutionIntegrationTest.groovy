@@ -138,7 +138,6 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
 
-        createDirs("api", "impl", "tool")
         settingsFile << """
             include 'api', 'impl', 'tool'
             dependencyResolutionManagement {
@@ -2187,7 +2186,6 @@ parentFirst
         mavenRepo.module('org', 'lib', '1.0').publish()
         mavenRepo.module('org', 'other', '1.0').publish()
 
-        createDirs("sub")
         settingsFile << """
             include 'sub'
         """

@@ -424,32 +424,17 @@ baz:1.0 requested
         mavenRepo.module("com", "foo", "1.0").publish()
         mavenRepo.module("com", "bar", "1.0").publish()
         mavenRepo.module("com", "baz", "1.0").publish()
-        createDirs("lib", "tool")
         settingsFile << """
-            include 'lib', 'tool'
+            include 'lib'
+            include 'tool'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
         """
+
         buildFile << """
-            allprojects {
-               repositories {
-                  maven { url = "${mavenRepo.uri}" }
-               }
-
-                apply plugin: 'java-library'
-            }
-
-            project(":lib") {
-                dependencies {
-                   api "org:dep:1.0"
-                }
-            }
-
-            project(":tool") {
-                apply plugin: 'java-test-fixtures'
-                dependencies {
-                    api "com:baz:1.0"
-                    testFixturesApi "com:foo:1.0"
-                    testFixturesImplementation "com:bar:1.0"
-                }
+            plugins {
+                id("java-library")
             }
 
             dependencies {
@@ -458,6 +443,31 @@ baz:1.0 requested
                 testImplementation(testFixtures(project(":tool"))) // intentional duplication
             }
         """
+
+        file("lib/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+               api "org:dep:1.0"
+            }
+        """
+
+        file("tool/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+
+            dependencies {
+                api "com:baz:1.0"
+                testFixturesApi "com:foo:1.0"
+                testFixturesImplementation "com:bar:1.0"
+            }
+
+        """
+
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
 
         when:
@@ -488,14 +498,11 @@ testCompileClasspath
 
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "requested dependency attributes are reported on dependency result as desugared attributes"() {
-        createDirs("platform")
         settingsFile << "include 'platform'"
         buildFile << """
-            project(":platform") {
-                apply plugin: 'java-platform'
+            plugins {
+                id("java-library")
             }
-
-            apply plugin: 'java-library'
 
             dependencies {
                 implementation(platform(project(":platform")))
@@ -512,6 +519,12 @@ testCompileClasspath
             }
         """
 
+        file("platform/build.gradle") << """
+            plugins {
+                id("java-platform")
+            }
+        """
+
         expect:
         succeeds 'checkDependencyAttributes'
     }
@@ -523,39 +536,37 @@ testCompileClasspath
         mavenRepo.module('org', 'baz', '1.0').publish()
         mavenRepo.module('org', 'gaz', '1.0').publish()
 
-        file("producer/build.gradle") << """
-            plugins {
-              id 'java-library'
-              id 'java-test-fixtures'
-            }
-            dependencies {
-              testFixturesApi('org:foo:1.0')
-              testFixturesImplementation('org:bar:1.0')
-              testFixturesImplementation('org:baz:1.0')
-
-              api('org:baz:1.0')
-              implementation('org:gaz:1.0')
-            }
-            """
-                    buildFile << """
-            plugins {
-              id 'java-library'
-            }
-
-            allprojects {
-               repositories {
-                  maven { url = "${mavenRepo.uri}" }
-               }
-            }
-
-            dependencies {
-              implementation(project(':producer'))
-              testImplementation(testFixtures(project(':producer')))
-            }
-        """
-        createDirs("producer")
         settingsFile << """
             include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+                id("java-test-fixtures")
+            }
+            dependencies {
+                testFixturesApi('org:foo:1.0')
+                testFixturesImplementation('org:bar:1.0')
+                testFixturesImplementation('org:baz:1.0')
+
+                api('org:baz:1.0')
+                implementation('org:gaz:1.0')
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(project(':producer'))
+                testImplementation(testFixtures(project(':producer')))
+            }
         """
 
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
@@ -590,30 +601,30 @@ testRuntimeClasspath
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "reports if we try to get dependencies from a different variant"() {
         mavenRepo.module('org', 'foo', '1.0').publish()
+        settingsFile << """
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
         file("producer/build.gradle") << """
             plugins {
-              id 'java-library'
-              id 'java-test-fixtures'
+                id("java-library")
+                id("java-test-fixtures")
             }
             dependencies {
-              testFixturesApi('org:foo:1.0')
+                testFixturesApi('org:foo:1.0')
             }
             """
         buildFile << """
             plugins {
-              id 'java-library'
-            }
-
-            allprojects {
-               repositories {
-                  maven { url = "${mavenRepo.uri}" }
-               }
+                id("java-library")
             }
 
             dependencies {
-              implementation(project(':producer'))
-              testImplementation(testFixtures(project(':producer')))
+                implementation(project(':producer'))
+                testImplementation(testFixtures(project(':producer')))
             }
 
             task resolve {
@@ -628,10 +639,6 @@ testRuntimeClasspath
                 }
             }
         """
-        createDirs("producer")
-        settingsFile << """
-            include 'producer'
-        """
 
         when:
         fails 'resolve'
@@ -644,44 +651,45 @@ testRuntimeClasspath
     @ToBeFixedForConfigurationCache(because = "task exercises the resolution result API")
     def "resolved variant of a selected node shouldn't be null"() {
         buildFile << """
-        apply plugin: 'java-library'
-
-        ${mavenCentralRepository()}
-
-        configurations.all {
-            resolutionStrategy.capabilitiesResolution.withCapability('com.google.collections:google-collections') {
-                selectHighestVersion()
+            plugins {
+                id("java-library")
             }
-        }
-        dependencies {
-            implementation 'com.google.guava:guava:28.1-jre'
-            implementation 'com.google.collections:google-collections:1.0'
-            components {
-                withModule('com.google.guava:guava') {
-                    allVariants {
-                        withCapabilities {
-                           addCapability('com.google.collections', 'google-collections', id.version)
+
+            ${mavenCentralRepository()}
+
+            configurations.all {
+                resolutionStrategy.capabilitiesResolution.withCapability('com.google.collections:google-collections') {
+                    selectHighestVersion()
+                }
+            }
+            dependencies {
+                implementation 'com.google.guava:guava:28.1-jre'
+                implementation 'com.google.collections:google-collections:1.0'
+                components {
+                    withModule('com.google.guava:guava') {
+                        allVariants {
+                            withCapabilities {
+                               addCapability('com.google.collections', 'google-collections', id.version)
+                            }
                         }
                     }
                 }
             }
-        }
 
-        task resolve {
-            def compileClasspath = configurations.compileClasspath
-            doLast {
-                def result = compileClasspath.incoming.resolutionResult
-                result.allDependencies {
-                    assert it instanceof ResolvedDependencyResult
-                    assert it.resolvedVariant != null
+            task resolve {
+                def compileClasspath = configurations.compileClasspath
+                doLast {
+                    def result = compileClasspath.incoming.resolutionResult
+                    result.allDependencies {
+                        assert it instanceof ResolvedDependencyResult
+                        assert it.resolvedVariant != null
+                    }
                 }
             }
-        }
         """
 
         expect:
         succeeds 'resolve'
-
     }
 
     private void withResolutionResultDumper(String... configurations) {
@@ -745,9 +753,9 @@ testRuntimeClasspath
 
     @Issue("https://github.com/gradle/gradle/issues/26334")
     def "resolution result does not report duplicate variants for the same module reachable through different paths"() {
-        createDirs("producer", "transitive")
         settingsFile << """
-            include "producer", "transitive"
+            include "producer"
+            include "transitive"
         """
         file("producer/build.gradle") << """
             configurations {
@@ -802,7 +810,6 @@ testRuntimeClasspath
 
     }
     def "resolution result does not realize artifact tasks"() {
-        createDirs("producer")
         settingsFile << "include 'producer'"
         file("producer/build.gradle") << """
             plugins {
