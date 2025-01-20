@@ -26,7 +26,6 @@ import org.gradle.internal.session.BuildSessionLifecycleListener;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.SoftReference;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -58,7 +57,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(new HashMap<>());
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(new ConcurrentHashMap<>());
         listenerManager.addListener(cache);
         return cache;
     }
@@ -93,7 +92,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
         // Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
         // for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
-        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(new WeakHashMap<>());
+        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(synchronizedMap(new WeakHashMap<>()));
         listenerManager.addListener(cache);
         return cache;
     }
@@ -199,8 +198,11 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private final Set<V> valuesForPreviousSession = new HashSet<>();
         private final Map<K, SoftReference<V>> allValues;
 
+        /**
+         * @param allValues thread-safe map used for retaining values in the current session.
+         */
         public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
-            this.allValues = synchronizedMap(allValues);
+            this.allValues = allValues;
         }
 
         @Override
