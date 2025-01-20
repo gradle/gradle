@@ -24,7 +24,6 @@ import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.GeneralData;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
@@ -33,6 +32,7 @@ import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PluginIdLocation;
 import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.api.problems.internal.ProblemSummaryData;
@@ -57,11 +57,8 @@ import org.gradle.internal.build.event.types.DefaultProblemsSummariesDetails;
 import org.gradle.internal.build.event.types.DefaultSeverity;
 import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.build.event.types.DefaultSuccessResult;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
@@ -82,10 +79,10 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -110,7 +107,7 @@ public class ProblemsProgressEventUtils {
     }
 
     InternalProblemEventVersion2 createProblemEvent(OperationIdentifier buildOperationId, DefaultProblemProgressDetails details, Supplier<OperationIdentifier> operationIdentifierSupplier) {
-        Problem problem = details.getProblem();
+        InternalProblem problem = details.getProblem();
         return new DefaultProblemEvent(
             createDefaultProblemDescriptor(buildOperationId, operationIdentifierSupplier),
             createDefaultProblemDetails(problem)
@@ -145,7 +142,7 @@ public class ProblemsProgressEventUtils {
             parentBuildOperationId);
     }
 
-    DefaultProblemDetails createDefaultProblemDetails(Problem problem) {
+    DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
         return new DefaultProblemDetails(
             toInternalDefinition(problem.getDefinition()),
             toInternalDetails(problem.getDetails()),
@@ -230,26 +227,6 @@ public class ProblemsProgressEventUtils {
     }
 
 
-    private byte[] serialize(Isolatable<?> isolatable) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
-            isolatableSerializerRegistry.writeIsolatable(encoder, isolatable);
-            encoder.flush();
-        } catch (Exception e) {
-            throw new RuntimeException("Could not serialize unit of work.", e);
-        }
-        return outputStream.toByteArray();
-    }
-
-    private Isolatable<?> deserialize(byte[] bytes) {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
-        try {
-            return isolatableSerializerRegistry.readIsolatable(decoder);
-        } catch (Exception e) {
-            throw new RuntimeException("Could not deserialize unit of work.", e);
-        }
-    }
     @SuppressWarnings("unchecked")
     private InternalAdditionalData toInternalAdditionalData(@Nullable Object additionalData) {
 
@@ -262,9 +239,16 @@ public class ProblemsProgressEventUtils {
 //            if (isDecorated(additionalData.getClass())) {
                 try {
 
-                    String name = (String) additionalData.getClass().getMethod("getName").invoke(additionalData);
+                    Map<String, Object> methodValues = new HashMap<>();
+                    for (Method method : targetType.getMethods()) {
+                        Class<?> returnType = method.getReturnType();
+                        if (!void.class.equals(returnType) && method.getParameterCount() == 0) {
+                            methodValues.put(method.getName(), additionalData.getClass().getMethod(method.getName(), method.getParameterTypes()).invoke(additionalData));
+                        }
+                    }
+//                    String name = (String) aClass.getMethod("getName").invoke(additionalData);
 
-                    additionalData = new DefaultAdditionalDataState(targetType, name);
+                    additionalData = new DefaultAdditionalDataState(targetType, methodValues);
 
 
 //                    Constructor<?> constructor = getDefaultConstructor(originalType);

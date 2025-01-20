@@ -58,7 +58,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .setStandardOutput(System.out)
                 .setStandardError(System.err)
-                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5005")
+                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5006")
                 .run()
         }
         return listener.problems

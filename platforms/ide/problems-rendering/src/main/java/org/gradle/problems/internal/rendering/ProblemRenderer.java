@@ -18,9 +18,9 @@ package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.PrintWriter;
@@ -40,10 +40,10 @@ public class ProblemRenderer {
         output = new PrintWriter(writer);
     }
 
-    public void render(List<Problem> problems) {
-        Map<ProblemId, List<Problem>> renderingGroups = new HashMap<>();
-        for (Problem problem : problems) {
-            List<Problem> groupedProblems = renderingGroups.computeIfAbsent(
+    public void render(List<InternalProblem> problems) {
+        Map<ProblemId, List<InternalProblem>> renderingGroups = new HashMap<>();
+        for (InternalProblem problem : problems) {
+            List<InternalProblem> groupedProblems = renderingGroups.computeIfAbsent(
                 problem.getDefinition().getId(),
                 id -> new ArrayList<>()
             );
@@ -53,20 +53,20 @@ public class ProblemRenderer {
         renderingGroups.forEach((id, groupedProblems) -> renderProblemGroup(output, id, groupedProblems));
     }
 
-    public void render(Problem problem) {
+    public void render(InternalProblem problem) {
         this.render(Collections.singletonList(problem));
     }
 
-    static void renderProblemGroup(PrintWriter output, ProblemId id, List<Problem> groupedProblems) {
+    static void renderProblemGroup(PrintWriter output, ProblemId id, List<InternalProblem> groupedProblems) {
         String sep = "";
-        for (Problem problem : groupedProblems) {
+        for (InternalProblem problem : groupedProblems) {
             output.printf(sep);
             renderProblem(output, problem);
             sep = "%n";
         }
     }
 
-    static void renderProblem(PrintWriter output, Problem problem) {
+    static void renderProblem(PrintWriter output, InternalProblem problem) {
         boolean isJavaCompilationProblem = problem.getDefinition().getId().getGroup().equals(GradleCoreProblemGroup.compilation().java());
         if (isJavaCompilationProblem) {
             formatMultiline(output, problem.getDetails(), 0);

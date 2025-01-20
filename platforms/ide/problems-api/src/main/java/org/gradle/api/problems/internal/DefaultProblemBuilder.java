@@ -17,11 +17,11 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
@@ -32,8 +32,13 @@ import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Nullable
@@ -63,7 +68,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.problemStream = problemStream;
     }
 
-    public DefaultProblemBuilder(Problem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    public DefaultProblemBuilder(InternalProblem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
         this(additionalDataBuilderFactory);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
@@ -282,11 +287,56 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-
     @Override
-    public InternalProblemBuilder additionalData(Object additionalData) {
-        this.additionalData = additionalData;
+    public <T> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config) {
+        validateMethods(type);
+
+//        Map<String, Object> methodValues = new HashMap<String, Object>();
+//        for (Method method : targetType.getMethods()) {
+//            Class<?> returnType = method.getReturnType();
+//            if (!void.class.equals(returnType) && method.getParameterCount() == 0) {
+//                methodValues.put(method.getName(), additionalData.getClass().getMethod(method.getName(), method.getParameterTypes()).invoke(additionalData));
+//            }
+//        }
+////                    String name = (String) aClass.getMethod("getName").invoke(additionalData);
+//
+//        additionalData = new DefaultAdditionalDataState(targetType, methodValues);
+
+//        this.additionalData = additionalData;
         return this;
+    }
+
+    private static <T> void validateMethods(Class<T> type) {
+        Method[] methods = type.getMethods();
+        for (Method method : methods) {
+            String name = method.getName();
+            if (!isValidGetter(method, name) && !isValidSetter(method, name)) {
+                throw new IllegalArgumentException(type.getName() + " must have only getters or setters using the following types: " + TYPES);
+            }
+        }
+    }
+
+    private static boolean isValidSetter(Method method, String name) {
+        return name.startsWith("set") && method.getParameterCount() == 1 && TYPES.contains(method.getParameterTypes()[0]);
+    }
+
+    public final static Set<Class<?>> TYPES = ImmutableSet.<Class<?>>of(
+        String.class,
+        Boolean.class,
+        Character.class,
+        Byte.class,
+        Short.class,
+        Integer.class,
+        Float.class,
+        Long.class,
+        Double.class,
+        BigInteger.class,
+        BigDecimal.class,
+        File.class
+    );
+
+    private static boolean isValidGetter(Method method, String name) {
+        return name.startsWith("get") && method.getParameterCount() == 0 && TYPES.contains(method.getReturnType());
     }
 
 

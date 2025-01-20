@@ -33,7 +33,6 @@ import org.gradle.workers.internal.IsolatableSerializerRegistry;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("all")
@@ -89,7 +88,7 @@ public class StreamedValueConsumer implements BuildEventConsumer {
 
                                     @Override
                                     public Map<String, Object> getAsMap() {
-                                        return new HashMap<>();
+                                        return state.getState();
                                     }
                                 });
                             }
@@ -137,11 +136,8 @@ public class StreamedValueConsumer implements BuildEventConsumer {
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (method.getName().equals("getName")) {
-                return state.getState();
-            } else {
-                return null;
-            }
+            Map<String, Object> methodMap = state.getState();
+            return methodMap.get(method.getName());
         }
     }
 }

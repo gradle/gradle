@@ -20,14 +20,15 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalDataState;
 
 import java.io.Serializable;
+import java.util.Map;
 
 @NonNullApi
 public class DefaultAdditionalDataState implements InternalAdditionalDataState, Serializable {
 
     private final Class<?> type;
-    private final String state;
+    private final Map<String, Object> state;
 
-    public DefaultAdditionalDataState(Class<?> type, String state) {
+    public DefaultAdditionalDataState(Class<?> type, Map<String, Object> state) {
         this.state = state;
         this.type = type;
     }
@@ -38,7 +39,7 @@ public class DefaultAdditionalDataState implements InternalAdditionalDataState, 
     }
 
     @Override
-    public String getState() {
+    public Map<String, Object> getState() {
         return state;
     }
 }

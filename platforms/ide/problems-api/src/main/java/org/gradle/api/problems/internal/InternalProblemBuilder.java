@@ -74,8 +74,9 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     @Override
     <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config);
 
+    // interface should be public <T> void additionalData(Class<T> type, Action<? super T> config)
     @Override
-    InternalProblemBuilder additionalData(Object additionalData);
+    <T> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config);
 
     @Override
     InternalProblemBuilder withException(Throwable t);

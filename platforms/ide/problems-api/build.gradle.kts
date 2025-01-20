@@ -32,6 +32,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
+//    api(projects.coreApi)
     api(projects.buildOperations)
 
     api(libs.guava)

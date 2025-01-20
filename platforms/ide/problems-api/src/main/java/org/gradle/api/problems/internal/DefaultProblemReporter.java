@@ -108,7 +108,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Override
-    public Problem internalCreate(Action<? super InternalProblemSpec> action) {
+    public InternalProblem internalCreate(Action<? super InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
@@ -149,12 +149,12 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem, OperationIdentifier id) {
         String taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
-        problem = taskPath == null ? problem : ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).taskPathLocation(taskPath).build();
-        Throwable exception = problem.getException();
+        InternalProblem internalProblem = taskPath == null ? (InternalProblem) problem : ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory).taskPathLocation(taskPath).build();
+        Throwable exception = internalProblem.getException();
         if (exception != null) {
-            exceptionProblemRegistry.onProblem(transform(exception), problem);
+            exceptionProblemRegistry.onProblem(transform(exception), internalProblem);
         }
-        problemSummarizer.emit(problem, id);
+        problemSummarizer.emit(internalProblem, id);
     }
 
     private Throwable transform(Throwable failure) {

@@ -46,6 +46,7 @@ import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
+import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.ProblemSummarizer
@@ -431,7 +432,7 @@ class TestProblemSummarizer implements ProblemSummarizer {
     List emitted = []
 
     @Override
-    void emit(Problem problem, @Nullable OperationIdentifier id) {
+    void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         emitted.add(problem)
     }
 

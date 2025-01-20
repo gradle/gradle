@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
@@ -125,11 +126,10 @@ public interface ProblemSpec {
     /**
      * A description of how to solve this problem.
      *
-     * @param additionalData the solution.
      * @return this
      * @since 8.13
      */
-    ProblemSpec additionalData(Object additionalData);
+    <T> ProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
 
     /**
      * The exception causing this problem.

@@ -43,7 +43,7 @@ public interface InternalProblemSpec extends ProblemSpec {
     <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalData(Class<? extends U> specType, Action<? super U> config);
 
     @Override
-    InternalProblemSpec additionalData(Object additionalData);
+    <T> InternalProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
 
     /**
      * Declares that this problem was emitted by a task with the given path.

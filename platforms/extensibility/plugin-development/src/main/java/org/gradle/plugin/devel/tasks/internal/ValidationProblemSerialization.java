@@ -37,7 +37,6 @@ import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.GeneralData;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
@@ -54,6 +53,7 @@ import org.gradle.api.problems.internal.DefaultTaskPathLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.InternalDocLink;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemCategory;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
@@ -75,7 +75,7 @@ import java.util.stream.Stream;
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
-    public static List<? extends Problem> parseMessageList(String lines) {
+    public static List<? extends InternalProblem> parseMessageList(String lines) {
         Gson gson = GSON_BUILDER.create();
         Type type = new TypeToken<List<DefaultProblem>>() {}.getType();
         return gson.<List<DefaultProblem>>fromJson(lines, type);
@@ -95,7 +95,7 @@ public class ValidationProblemSerialization {
     }
 
 
-    public static Stream<String> toPlainMessage(List<? extends Problem> problems) {
+    public static Stream<String> toPlainMessage(List<? extends InternalProblem> problems) {
         return problems.stream()
             .map(problem -> problem.getDefinition().getSeverity() + ": " + TypeValidationProblemRenderer.renderMinimalInformationAbout(problem));
     }

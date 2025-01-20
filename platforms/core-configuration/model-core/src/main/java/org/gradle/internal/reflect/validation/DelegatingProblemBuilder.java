@@ -107,10 +107,10 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
         return validateDelegate(delegate.solution(solution));
     }
 
-    @Override
-    public InternalProblemBuilder additionalData(Object additionalData) {
-        return validateDelegate(delegate.additionalData(additionalData));
-    }
+//    @Override
+//    public InternalProblemBuilder additionalData(Object additionalData) {
+//        return validateDelegate(delegate.additionalData(additionalData));
+//    }
 
     @Override
     public InternalProblemBuilder taskPathLocation(String buildTreePath) {
@@ -120,6 +120,11 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     @Override
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config) {
         return validateDelegate(delegate.additionalData(specType, config));
+    }
+
+    @Override
+    public <T> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config) {
+        return validateDelegate(delegate.additionalDataExternal(type, config));
     }
 
     @Override

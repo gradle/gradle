@@ -16,8 +16,11 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
+import java.util.Map;
+
 public interface InternalAdditionalDataState {
 
     Class<?> getType();
-    String getState();
+
+    Map<String, Object> getState();
 }
