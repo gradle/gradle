@@ -22,7 +22,9 @@ package org.gradle.internal.lazy;
 public class ConstantLazy<V> implements Lazy<V> {
     private final V value;
 
-    public ConstantLazy(V value) {this.value = value;}
+    public ConstantLazy(V value) {
+        this.value = value;
+    }
 
     @Override
     public V get() {
