@@ -317,7 +317,7 @@ Check out the link:{javadocPath}/org/gradle/api/tasks/wrapper/Wrapper.html[API d
 [[sec:authenticated_download]]
 === Authenticated Gradle distribution download
 
-The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication.
+The Gradle `Wrapper` can download Gradle distributions from servers using HTTP Basic Authentication or with a static HTTP Bearer Token.
 This enables you to host the Gradle distribution on a private protected server.
 
 You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the `distributionUrl`.
@@ -353,6 +353,27 @@ distributionUrl=https://username:password@somehost/path/to/gradle-distribution.z
 
 This can be used in conjunction with a proxy, authenticated or not.
 See <<networking.adoc#sec:accessing_the_web_via_a_proxy,Accessing the web via a proxy>> for more information on how to configure the `Wrapper` to use a proxy.
+
+WARNING: If you use systemProp.gradle.wrapperUser and systemProp.gradle.wrapperPassword to download the wrapper from a private server, your credentials can be leaked if you use build that will download the wrapper from another server.
+To prevent this, you can take the hostname of the private server, replace all dots with underscores, and use it as a prefix for the system properties.
+
+Example: If the private server hostname is `your.private-server.com`, you can use the following system properties:
+
+[source,properties]
+----
+systemProp.gradle.your_private-server_com.wrapperUser=username
+systemProp.gradle.your_private-server_com.wrapperPassword=password
+----
+
+To use a static HTTP Bearer Token, add the following line to the system properties file:
+
+[source,properties]
+----
+systemProp.gradle.your_private-server_com.wrapperToken=some-api-token
+----
+
+If a wrapperToken is specified, it will be used instead of the username and password.
+It is recommended to specify the hostname in the property to prevent the token from being accidentally sent to a foreign server
 
 [[sec:verification]]
 === Verification of downloaded Gradle distributions
