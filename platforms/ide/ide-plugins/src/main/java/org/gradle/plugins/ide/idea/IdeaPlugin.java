@@ -510,17 +510,25 @@ public abstract class IdeaPlugin extends IdePlugin {
             }
         });
         if (isRoot()) {
-            new IdeaScalaConfigurer(project, isolatedProjects).configure();
+            new IdeaScalaConfigurer(project, scalaProjects -> {
+                if (!scalaProjects.isEmpty() && isolatedProjects) {
+                    failOnIncompatibleWithIsolatedProjects();
+                }
+            }).configure();
         }
     }
 
     private void ideaModuleDependsOnRoot(boolean isolatedProjects) {
         if (isolatedProjects) {
-            throw new GradleException(IdeaScalaConfigurer.INCOMPATIBLE_WITH_ISOLATED_PROJECTS_MESSAGE);
+            failOnIncompatibleWithIsolatedProjects();
         }
 
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
+    }
+
+    private static void failOnIncompatibleWithIsolatedProjects() {
+        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
