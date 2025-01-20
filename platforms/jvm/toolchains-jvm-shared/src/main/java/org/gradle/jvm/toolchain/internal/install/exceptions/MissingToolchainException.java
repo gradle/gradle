@@ -27,6 +27,6 @@ import java.net.URI;
 public class MissingToolchainException extends GradleException {
 
     public MissingToolchainException(JavaToolchainSpec spec, URI uri, @Nullable Throwable cause) {
-        super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + uri + "'.", cause);
+        super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + uri + "'" + (cause != null ? ", due to: " + cause.getMessage() : "."), cause);
     }
 }

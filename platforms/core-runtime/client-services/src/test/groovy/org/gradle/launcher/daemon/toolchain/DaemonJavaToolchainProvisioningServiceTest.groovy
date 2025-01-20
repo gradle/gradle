@@ -23,7 +23,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
-import org.gradle.platform.BuildPlatform
+import org.gradle.platform.internal.CurrentBuildPlatform
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -38,7 +38,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
     def downloader = Mock(SecureFileDownloader)
     def cache = Mock(DefaultJdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)
-    def buildPlatform = Mock(BuildPlatform)
+    def buildPlatform = Mock(CurrentBuildPlatform)
     def spec = Mock(JavaToolchainSpec)
 
     def setup() {
@@ -57,7 +57,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     def "cache is properly locked around provisioning a jdk"() {
         given:
-        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform) : DOWNLOAD_URL.toString()])
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
         def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
 
         when:
@@ -71,7 +71,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     def "skips downloading if already downloaded"() {
         given:
-        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform) : DOWNLOAD_URL.toString()])
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
         def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
 
@@ -84,7 +84,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     def "auto download can be disabled"() {
         given:
-        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform) : DOWNLOAD_URL.toString()])
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
         def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, false)
 
         when:
@@ -108,7 +108,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     def "fails downloading from invalid provided platform toolchain url"() {
         given:
-        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform) : "invalid url"])
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : "invalid url"])
         def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
 
         when:
@@ -120,7 +120,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     def "downloads from url"() {
         given:
-        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform) : DOWNLOAD_URL.toString()])
+        def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
         def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
 
         when:

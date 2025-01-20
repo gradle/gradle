@@ -34,6 +34,7 @@ dependencies {
     api(projects.files)
     api(projects.hashing)
     api(projects.languageJvm)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformJvm)
@@ -62,7 +63,6 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.problemsRendering)
     implementation(projects.toolingApi)
 

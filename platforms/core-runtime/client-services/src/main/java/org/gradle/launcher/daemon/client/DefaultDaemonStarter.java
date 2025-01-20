@@ -39,6 +39,10 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.stream.EncodedStream;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.jvm.toolchain.JvmImplementation;
+import org.gradle.jvm.toolchain.internal.DefaultToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchain;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.launcher.daemon.DaemonExecHandleBuilder;
@@ -49,7 +53,6 @@ import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
-import org.gradle.launcher.daemon.toolchain.DaemonJvmToolchainSpec;
 import org.gradle.process.internal.DefaultClientExecHandleBuilderFactory;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.JvmOptions;
@@ -58,6 +61,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -101,11 +105,12 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         if (criteria instanceof DaemonJvmCriteria.Spec) {
             // Gradle daemon properties have been defined
+            DaemonJvmCriteria.Spec daemonJvmCriteria = (DaemonJvmCriteria.Spec) criteria;
             IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
-            DaemonJvmToolchainSpec daemonJvmToolchainSpec = new DaemonJvmToolchainSpec(propertyFactory, (DaemonJvmCriteria.Spec) criteria);
+            JavaToolchainSpec daemonJvmToolchainSpec = getDaemonJvmToolchainSpec(daemonJvmCriteria);
             ProviderInternal<JavaToolchain> jvmInstallationMetadata = javaToolchainQueryService.findMatchingToolchain(daemonJvmToolchainSpec);
             JavaInfo resolvedJvm = Jvm.forHome(jvmInstallationMetadata.get().getInstallationPath().getAsFile());
-            majorJavaVersion = ((DaemonJvmCriteria.Spec) criteria).getJavaVersion().asInt();
+            majorJavaVersion = daemonJvmCriteria.getJavaVersion().asInt();
             resolvedJava = resolvedJvm.getJavaExecutable();
         } else if (criteria instanceof DaemonJvmCriteria.JavaHome) {
             JavaInfo resolvedJvm = Jvm.forHome(((DaemonJvmCriteria.JavaHome) criteria).getJavaHome());
@@ -203,6 +208,15 @@ public class DefaultDaemonStarter implements DaemonStarter {
             daemonParameters.getGradleUserHomeDir().getAbsoluteFile(),
             stdInput
         );
+    }
+
+    @Nonnull
+    private DefaultToolchainSpec getDaemonJvmToolchainSpec(DaemonJvmCriteria.Spec daemonJvmCriteria) {
+        DefaultToolchainSpec toolchainSpec = new DefaultToolchainSpec(propertyFactory);
+        toolchainSpec.getLanguageVersion().value(JavaLanguageVersion.of(daemonJvmCriteria.getJavaVersion().asInt()));
+        toolchainSpec.getVendor().value(daemonJvmCriteria.getVendorSpec());
+        toolchainSpec.getImplementation().convention(JvmImplementation.VENDOR_SPECIFIC);
+        return toolchainSpec;
     }
 
     private List<String> getPriorityArgs(DaemonPriority priority) {
