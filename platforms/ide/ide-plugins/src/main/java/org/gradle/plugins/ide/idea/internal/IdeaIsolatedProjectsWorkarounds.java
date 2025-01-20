@@ -29,7 +29,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 class IdeaIsolatedProjectsWorkarounds {
 
     /**
-     * Checks whether the project has the plugin applied, configuring the project if necessary.
+     * Checks whether the project has the plugin applied.
      * <p>
      * The check is done bypassing the Isolated Projects validations.
      */
