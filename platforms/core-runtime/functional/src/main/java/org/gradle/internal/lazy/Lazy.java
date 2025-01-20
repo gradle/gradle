@@ -63,6 +63,14 @@ public interface Lazy<T> extends Supplier<T> {
         return unsafe().of(() -> mapper.apply(get()));
     }
 
+    /**
+     * Constructs a lazy value that always returns the given value.
+     * @param <V> the type of the lazy value
+     */
+    static <V> Lazy<V> constant(V value) {
+        return new ConstantLazy<>(value);
+    }
+
     static Factory unsafe() {
         return UnsafeLazy::new;
     }

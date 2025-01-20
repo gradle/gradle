@@ -152,7 +152,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
             return valuesForThisSession.computeIfAbsent(key, k -> {
                 V retained = maybeGetRetainedValue(k);
                 return retained != null
-                    ? Lazy.unsafe().of(() -> retained)
+                    ? Lazy.constant(retained)
                     : Lazy.locking().of(() -> produceAndRetain(factory, k));
             }).get();
         }
