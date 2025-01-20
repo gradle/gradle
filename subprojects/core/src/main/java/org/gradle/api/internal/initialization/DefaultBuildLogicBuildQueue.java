@@ -29,7 +29,6 @@ import org.gradle.internal.work.WorkerLeaseService;
 
 import java.io.File;
 import java.util.List;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -41,7 +40,6 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private final FileLockManager fileLockManager;
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ProjectCacheDir projectCacheDir;
-    private final ReentrantLock lock = new ReentrantLock();
     private final Synchronizer resource;
     private FileLock fileLock = null;
 
@@ -63,7 +61,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
             // no resources to be protected
             return continuationUnderLock.get();
         }
-        List<TaskIdentifier.TaskBasedTaskIdentifier> remaining = withoutExecuted(tasks);
+        List<TaskIdentifier.TaskBasedTaskIdentifier> remaining = removeExecuted(tasks);
         if (remaining.isEmpty()) {
             // all tasks already executed
             return continuationUnderLock.get();
@@ -111,7 +109,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         );
     }
 
-    private static List<TaskIdentifier.TaskBasedTaskIdentifier> withoutExecuted(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
+    private static List<TaskIdentifier.TaskBasedTaskIdentifier> removeExecuted(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
         return tasks.stream()
             .filter(identifier -> !identifier.getTask().getState().getExecuted())
             .collect(Collectors.toList());
