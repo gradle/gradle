@@ -20,6 +20,7 @@ dependencies {
     api(projects.fileOperations)
     api(projects.logging)
     api(projects.messaging)
+    api(projects.modelCore)
     api(projects.reporting)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)
@@ -39,7 +40,6 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.jvmServices)
     implementation(projects.loggingApi)
-    implementation(projects.modelCore)
     implementation(projects.platformBase)
     implementation(projects.testingJvmInfrastructure)
 
