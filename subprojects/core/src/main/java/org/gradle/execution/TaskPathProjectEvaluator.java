@@ -167,7 +167,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Traverse project " + project.getName());
+                return BuildOperationDescriptor.displayName("Parallelize configuration");
             }
         };
     }
