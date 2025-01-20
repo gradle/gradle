@@ -90,8 +90,8 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-        // Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
-        // for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
+        // TODO: Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
+        //       for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
         DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(synchronizedMap(new WeakHashMap<>()));
         listenerManager.addListener(cache);
         return cache;
@@ -199,10 +199,10 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private final Map<K, SoftReference<V>> allValues;
 
         /**
-         * @param allValues thread-safe map used for retaining values in the current session.
+         * @param retainedValues thread-safe map used for retaining values in the current session.
          */
-        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
-            this.allValues = allValues;
+        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> retainedValues) {
+            this.allValues = retainedValues;
         }
 
         @Override
