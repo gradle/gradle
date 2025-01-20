@@ -170,7 +170,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     @Nullable
     private PluginImplementation<?> lookup(PluginId pluginId, ClassLoader classLoader) {
         // Don't go up the parent chain.
-        // Don't want to risk classes crossing “scope” boundaries and being non collectible.
+        // Don't want to risk classes crossing "scope" boundaries and being non collectible.
 
         if (pluginId.getNamespace() == null) {
             PluginId qualified = pluginId.withNamespace(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);

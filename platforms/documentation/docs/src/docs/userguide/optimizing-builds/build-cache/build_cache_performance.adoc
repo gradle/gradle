@@ -115,4 +115,4 @@ How to do this depends on the remote cache in use and your network environment.
 
 The multi-node remote build cache provided by Develocity is a fast and efficient, purpose built, remote build cache.
 In particular, if your development team is geographically distributed, its replication features can significantly improve performance by allowing developers to use a cache that they have a good network link to.
-See the https://docs.gradle.com/develocity/helm-admin/current/#replication[“Build Cache Replication” section of the Develocity Admin Manual] for more information.
+See the https://docs.gradle.com/develocity/helm-admin/current/#replication["Build Cache Replication" section of the Develocity Admin Manual] for more information.

@@ -26,7 +26,7 @@ import java.util.List;
  * The overall execution of a task, including:
  *
  * - User lifecycle callbacks (TaskExecutionListener.beforeExecute and TaskExecutionListener.afterExecute)
- * - Gradle execution mechanics (e.g. up-to-date and build cache “checks”, property validation, build cache output store, etc.)
+ * - Gradle execution mechanics (e.g. up-to-date and build cache "checks", property validation, build cache output store, etc.)
  *
  * That is, this operation does not represent just the execution of task actions.
  *
@@ -132,7 +132,7 @@ public final class ExecuteTaskBuildOperationType implements BuildOperationType<E
         /**
          * Opaque messages describing why the task was not up to date.
          * In the order emitted by Gradle.
-         * Null if execution did not get so far as to test “up-to-date-ness”.
+         * Null if execution did not get so far as to test "up-to-date-ness".
          * Empty if tested, but task was considered up to date.
          */
         @Nullable

@@ -148,7 +148,7 @@ Unless a task's `groovyClasspath` is configured explicitly, the Groovy (base) pl
 * If a `groovy(-indy)` jar is found on `classpath`, and the project has at least one repository declared, a corresponding `groovy(-indy)` repository dependency will be added to `groovyClasspath`.
 * Otherwise, execution of the task will fail with a message saying that `groovyClasspath` could not be inferred.
 
-Note that the “`-indy`” variation of each jar refers to the version with `invokedynamic` support.
+Note that the "`-indy`" variation of each jar refers to the version with `invokedynamic` support.
 
 [[sec:groovy_convention_properties]]
 == Convention properties

@@ -23,9 +23,9 @@ public interface CachedItem {
     /**
      * True if this cache entry represents that the resource does not exist.
      *
-     * For a missing resource, all of the values will be null or similar “non” values.
+     * For a missing resource, all of the values will be null or similar "non" values.
      *
-     * @return Whether this is a “missing” entry or not.
+     * @return Whether this is a "missing" entry or not.
      */
     boolean isMissing();
 
