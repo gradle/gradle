@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
@@ -63,22 +62,6 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         this.resource = workerLeaseService.newResource();
     }
 
-    private static class OperationDetails {
-        private final List<String> requestedTasks;
-
-        public List<String> getRequestedTasks() {
-            return requestedTasks;
-        }
-
-        OperationDetails(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks) {
-            ImmutableList.Builder<String> builder = ImmutableList.builderWithExpectedSize(tasks.size());
-            tasks.forEach(ti -> {
-                builder.add(ti.getBuildIdentifier().getBuildPath() + ":" + ti.getTaskPath());
-            });
-            requestedTasks = builder.build();
-        }
-    }
-
     @Override
     public <T> T build(BuildState requester, List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
         if (tasks.isEmpty()) {
@@ -98,8 +81,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Build build logic for " + requester.getDisplayName().getDisplayName())
-                    .details(new OperationDetails(tasks));
+                return BuildOperationDescriptor.displayName("Build build logic for " + requester.getDisplayName().getDisplayName());
             }
         });
     }
