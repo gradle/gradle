@@ -23,6 +23,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -30,6 +31,7 @@ import org.gradle.api.XmlProvider;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.internal.Cast;
@@ -58,10 +60,14 @@ public class IdeaScalaConfigurer {
     // More information: http://blog.jetbrains.com/scala/2014/10/30/scala-plugin-update-for-intellij-idea-14-rc-is-out/
     private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
     public static final String DEFAULT_SCALA_PLATFORM_VERSION = "2.10.7";
-    private final Project rootProject;
+    public static final String INCOMPATIBLE_WITH_ISOLATED_PROJECTS_MESSAGE = "Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.";
 
-    public IdeaScalaConfigurer(Project rootProject) {
+    private final Project rootProject;
+    private final boolean isolatedProjects;
+
+    public IdeaScalaConfigurer(Project rootProject, boolean isolatedProjects) {
         this.rootProject = rootProject;
+        this.isolatedProjects = isolatedProjects;
     }
 
     public void configure() {
@@ -71,6 +77,11 @@ public class IdeaScalaConfigurer {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
+
+                if (!scalaProjects.isEmpty() && isolatedProjects) {
+                    throw new GradleException(INCOMPATIBLE_WITH_ISOLATED_PROJECTS_MESSAGE);
+                }
+
                 final Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
                 rootProject.getTasks().named("ideaProject", new Action<Task>() {
                     @Override
@@ -210,8 +221,11 @@ public class IdeaScalaConfigurer {
         return Collections2.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
-                final boolean hasIdeaPlugin = project.getPlugins().hasPlugin(IdeaPlugin.class);
-                final boolean hasScalaPlugin = project.getPlugins().hasPlugin(ScalaBasePlugin.class);
+                // TODO:isolated Remove unsafe access to other projects' plugin container
+                // This is relatively safe, because we run after projects evaluated, but this might not work for the incremental IP hits
+                PluginContainer pluginContainer = ((ProjectInternal) project).getOwner().getMutableModel().getPluginManager().getPluginContainer();
+                final boolean hasIdeaPlugin = pluginContainer.hasPlugin(IdeaPlugin.class);
+                final boolean hasScalaPlugin = pluginContainer.hasPlugin(ScalaBasePlugin.class);
                 return hasIdeaPlugin && hasScalaPlugin;
             }
         });

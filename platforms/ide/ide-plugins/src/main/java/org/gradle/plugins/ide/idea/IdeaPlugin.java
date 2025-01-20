@@ -21,12 +21,14 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.configuration.BuildFeatures;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
@@ -500,18 +502,23 @@ public abstract class IdeaPlugin extends IdePlugin {
     }
 
     private void configureForScalaPlugin() {
+        boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
-                ideaModuleDependsOnRoot();
+                ideaModuleDependsOnRoot(isolatedProjects);
             }
         });
         if (isRoot()) {
-            new IdeaScalaConfigurer(project).configure();
+            new IdeaScalaConfigurer(project, isolatedProjects).configure();
         }
     }
 
-    private void ideaModuleDependsOnRoot() {
+    private void ideaModuleDependsOnRoot(boolean isolatedProjects) {
+        if (isolatedProjects) {
+            throw new GradleException(IdeaScalaConfigurer.INCOMPATIBLE_WITH_ISOLATED_PROJECTS_MESSAGE);
+        }
+
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
@@ -546,4 +553,7 @@ public abstract class IdeaPlugin extends IdePlugin {
             reference.visitDependencies(context);
         }
     }
+
+    @Inject
+    protected abstract BuildFeatures getBuildFeatures();
 }
