@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.idea.internal;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
 
 /**
  * Utilities that are introduced to aid with Isolated Projects adoption in the implementation.
@@ -35,10 +34,7 @@ class IdeaIsolatedProjectsWorkarounds {
      * The check is done bypassing the Isolated Projects validations.
      */
     public static boolean hasPlugin(Project project, Class<? extends Plugin<?>> pluginClass) {
-        ProjectState projectState = ((ProjectInternal) project).getOwner();
-        // This is a precaution that will be a no-op most of the time
-        projectState.ensureConfigured();
-        return projectState.getMutableModel().getPluginManager().getPluginContainer()
+        return ((ProjectInternal) project).getOwner().getMutableModel().getPluginManager().getPluginContainer()
             .hasPlugin(pluginClass);
     }
 
