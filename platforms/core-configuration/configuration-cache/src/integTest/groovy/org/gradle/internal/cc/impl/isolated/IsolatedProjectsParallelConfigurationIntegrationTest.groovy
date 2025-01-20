@@ -52,7 +52,7 @@ class IsolatedProjectsParallelConfigurationIntegrationTest extends AbstractIsola
         given:
         withTwoWaitingProjects()
 
-        and: 'two workers should be enough for two waiting projects'
+        and: 'two workers ought to be enough for two waiting projects'
         executer.withArguments("--max-workers=2")
 
         server.expect("configure-root")
