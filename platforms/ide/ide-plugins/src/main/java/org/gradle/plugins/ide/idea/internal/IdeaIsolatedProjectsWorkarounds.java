@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea.internal;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -26,6 +27,7 @@ import org.gradle.api.internal.project.ProjectInternal;
  * This class is intended to be temporary and should be removed as soon as proper building blocks
  * are available to solve the use cases without the workarounds.
  */
+@NonNullApi
 class IdeaIsolatedProjectsWorkarounds {
 
     /**
