@@ -41,7 +41,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             import org.gradle.api.problems.AdditionalData
             import org.gradle.internal.isolation.IsolatableFactory
 
-            public interface SomeData {
+            public interface SomeData extends AdditionalData {
                 String getName();
                 void setName(String name);
             }

@@ -110,10 +110,10 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         given:
         withReportProblemTask """
             getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
-                def someData = getObjectFactory().newInstance(SomeData)
-                someData.name = "someData"
-                def isolatedData = getIsolatableFactory().isolate(someData) //.isolate()
-                System.err.println(isolatedData)
+//                def someData = getObjectFactory().newInstance(SomeData)
+//                someData.name = "someData"
+//                def isolatedData = getIsolatableFactory().isolate(someData) //.isolate()
+//                System.err.println(isolatedData)
 
                 it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
                 $documentationConfig
@@ -122,7 +122,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 //additionalData(SomeData.class, data -> data.setFoo("bar"))
                 //.additionalData(SomeData.class, SomeDataImpl.class, data -> data.setFoo("bar"))
                 //.additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
-                .additionalData(isolatedData)
+                .additionalDataExternal(SomeData, data -> data.setName("someData"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }

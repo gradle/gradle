@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
@@ -76,7 +77,7 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
 
     // interface should be public <T> void additionalData(Class<T> type, Action<? super T> config)
     @Override
-    <T> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config);
+    <T extends AdditionalData> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config);
 
     @Override
     InternalProblemBuilder withException(Throwable t);

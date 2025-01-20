@@ -16,7 +16,9 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
 
@@ -35,6 +37,10 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final String details;
     private final Throwable exception;
     private final Object additionalData;
+    @Nullable
+    private final Class<? extends AdditionalData> additionalDataType;
+    @Nullable
+    private final List<Action<? extends AdditionalData>> additionalDataConfigs;
 
     protected DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -44,7 +50,9 @@ public class DefaultProblem implements Serializable, InternalProblem {
         List<ProblemLocation> contextualLocations,
         @Nullable String details,
         Throwable exception,
-        @Nullable Object additionalData
+        @Nullable Object additionalData,
+        @Nullable Class<? extends AdditionalData> additionalDataType,
+        @Nullable List<Action<? extends AdditionalData>> additionalDataConfigs
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -54,6 +62,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
         this.details = details;
         this.exception = exception;
         this.additionalData = additionalData;
+        this.additionalDataType = additionalDataType;
+        this.additionalDataConfigs = additionalDataConfigs;
     }
 
     @Override
@@ -131,4 +141,15 @@ public class DefaultProblem implements Serializable, InternalProblem {
         return Arrays.hashCode(new Object[]{problemDefinition, contextualLabel});
     }
 
+    @Override
+    @Nullable
+    public Class<? extends AdditionalData> getAdditionalDataType() {
+        return additionalDataType;
+    }
+
+    @Override
+    @Nullable
+    public List<Action<? extends AdditionalData>> getAdditionalDataConfigs() {
+        return additionalDataConfigs;
+    }
 }

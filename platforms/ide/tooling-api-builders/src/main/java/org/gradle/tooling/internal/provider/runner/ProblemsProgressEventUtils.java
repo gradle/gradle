@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.GeneralData;
@@ -59,7 +60,6 @@ import org.gradle.internal.build.event.types.DefaultSolution;
 import org.gradle.internal.build.event.types.DefaultSuccessResult;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.snapshot.impl.IsolatedManagedValue;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.InternalProblemDefinition;
 import org.gradle.tooling.internal.protocol.InternalProblemEventVersion2;
@@ -80,6 +80,7 @@ import org.gradle.workers.internal.IsolatableSerializerRegistry;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -150,7 +151,7 @@ public class ProblemsProgressEventUtils {
             toInternalLocations(problem.getOriginLocations()),
             toInternalLocations(problem.getContextualLocations()),
             toInternalSolutions(problem.getSolutions()),
-            toInternalAdditionalData(problem.getAdditionalData()),
+            toInternalAdditionalData(problem),
             toInternalFailure(problem.getException())
         );
     }
@@ -228,41 +229,28 @@ public class ProblemsProgressEventUtils {
 
 
     @SuppressWarnings("unchecked")
-    private InternalAdditionalData toInternalAdditionalData(@Nullable Object additionalData) {
+    private InternalAdditionalData toInternalAdditionalData(@Nullable InternalProblem problem) {
+        Object additionalData = problem.getAdditionalData();
 
-        if (additionalData instanceof IsolatedManagedValue) {
-            IsolatedManagedValue valuedata = (IsolatedManagedValue) additionalData;
-            Class<?> targetType = ((IsolatedManagedValue) additionalData).getTargetType();
-
-
-            additionalData = valuedata.isolate();
-//            if (isDecorated(additionalData.getClass())) {
-                try {
-
-                    Map<String, Object> methodValues = new HashMap<>();
-                    for (Method method : targetType.getMethods()) {
-                        Class<?> returnType = method.getReturnType();
-                        if (!void.class.equals(returnType) && method.getParameterCount() == 0) {
-                            methodValues.put(method.getName(), additionalData.getClass().getMethod(method.getName(), method.getParameterTypes()).invoke(additionalData));
-                        }
+        if (problem.getAdditionalDataType() != null) {
+            Class<? extends AdditionalData> targetType = problem.getAdditionalDataType();
+            Map<String, Object> methodValues = new HashMap<>();
+            for (Method method : targetType.getMethods()) {
+                Class<?> returnType = method.getReturnType();
+                if (!void.class.equals(returnType) && method.getParameterCount() == 0) {
+                    try {
+                        methodValues.put(method.getName(), additionalData.getClass().getMethod(method.getName(), method.getParameterTypes()).invoke(additionalData));
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    } catch (InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
                     }
-//                    String name = (String) aClass.getMethod("getName").invoke(additionalData);
-
-                    additionalData = new DefaultAdditionalDataState(targetType, methodValues);
-
-
-//                    Constructor<?> constructor = getDefaultConstructor(originalType);
-//                    if (constructor != null) {
-//                        Object clone = constructor.newInstance();
-//                        String name = (String) additionalData.getClass().getMethod("getName").invoke(additionalData);
-//                        clone.getClass().getMethod("setName", String.class).invoke(clone, name);
-//                        additionalData = clone;
-//                    }
-                } catch (Throwable e) {
-                    e.printStackTrace();
                 }
             }
-//        }
+            additionalData = new DefaultAdditionalDataState(targetType, methodValues);
+        }
 
         SerializedPayload serializedPayload = payloadSerizalizer.serialize(additionalData);
 

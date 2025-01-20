@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
@@ -43,7 +44,7 @@ public interface InternalProblemSpec extends ProblemSpec {
     <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalData(Class<? extends U> specType, Action<? super U> config);
 
     @Override
-    <T> InternalProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
+    <T extends AdditionalData> InternalProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
 
     /**
      * Declares that this problem was emitted by a task with the given path.

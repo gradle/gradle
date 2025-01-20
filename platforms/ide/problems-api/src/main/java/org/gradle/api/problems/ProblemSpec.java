@@ -129,7 +129,7 @@ public interface ProblemSpec {
      * @return this
      * @since 8.13
      */
-    <T> ProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
+    <T extends AdditionalData> ProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
 
     /**
      * The exception causing this problem.

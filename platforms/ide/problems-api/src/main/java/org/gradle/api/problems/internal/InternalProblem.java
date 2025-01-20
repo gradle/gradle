@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
@@ -103,4 +104,10 @@ public interface InternalProblem extends Problem {
      */
     @Nullable
     Object getAdditionalData();
+
+    @Nullable
+    Class<? extends AdditionalData> getAdditionalDataType();
+
+    @Nullable
+    List<Action<? extends AdditionalData>> getAdditionalDataConfigs();
 }

@@ -16,14 +16,20 @@
 
 package org.gradle.problems.internal.emitters;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.internal.DefaultProblemBuilder;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
 
 import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * Emits problems as build operation progress events.
@@ -34,13 +40,34 @@ import javax.annotation.Nullable;
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
+    private final ObjectFactory objectFactory;
+    private final IsolatableFactory isolatableFactory;
 
-    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter) {
+    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter, ObjectFactory objectFactory, IsolatableFactory isolatableFactory) {
         this.eventEmitter = eventEmitter;
+        this.objectFactory = objectFactory;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+        Class<? extends AdditionalData> additionalDataType = problem.getAdditionalDataType();
+        if (additionalDataType != null) {
+            AdditionalData additionalDataInstance = objectFactory.newInstance(additionalDataType);
+            List<Action<? extends AdditionalData>> additionalDataConfigs = problem.getAdditionalDataConfigs();
+            for (Action<? extends AdditionalData> action : additionalDataConfigs) {
+                Action<AdditionalData> a2 = (Action<AdditionalData>) action;
+                a2.execute(additionalDataInstance);
+            }
+
+//            problem.getAdditionalDataConfigs().forEach(action -> action.execute(additionalDataInstance));
+
+            AdditionalData additionalData = isolatableFactory.isolate(additionalDataInstance).isolate();
+            DefaultProblemBuilder builder = (DefaultProblemBuilder) problem.toBuilder(null);
+            builder.additionalData = additionalData;
+            problem = builder.build();
+        }
         eventEmitter.emitNow(id, new DefaultProblemProgressDetails(problem));
     }
 }

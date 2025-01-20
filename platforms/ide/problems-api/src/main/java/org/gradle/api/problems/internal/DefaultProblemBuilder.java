@@ -53,7 +53,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private DocLink docLink;
     private List<String> solutions;
     private Throwable exception;
-    private Object additionalData;
+    //TODO Reinhold make private again
+    public Object additionalData;
+    private Class<? extends AdditionalData> additionalDataType;
+    private List<Action<? extends AdditionalData>> additionalDataConfig = new ArrayList<Action<? extends AdditionalData>>();
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
@@ -80,6 +83,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
+        this.additionalDataType = problem.getAdditionalDataType();
+        this.additionalDataConfig = problem.getAdditionalDataConfigs();
         this.problemStream = null;
     }
 
@@ -112,7 +117,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             contextLocations.build(),
             details,
             exceptionForProblemInstantiation,
-            additionalData
+            additionalData,
+            additionalDataType,
+            additionalDataConfig
         );
     }
 
@@ -154,7 +161,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             ImmutableList.<ProblemLocation>of(),
             null,
             exceptionForProblemInstantiation,
-            null);
+            null,
+            additionalDataType,
+            additionalDataConfig);
     }
 
     public Throwable getExceptionForProblemInstantiation() {
@@ -288,21 +297,17 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public <T> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config) {
+    @SuppressWarnings("unchecked")
+    public <T extends AdditionalData> InternalProblemBuilder additionalDataExternal(Class<T> type, Action<? super T> config) {
         validateMethods(type);
 
-//        Map<String, Object> methodValues = new HashMap<String, Object>();
-//        for (Method method : targetType.getMethods()) {
-//            Class<?> returnType = method.getReturnType();
-//            if (!void.class.equals(returnType) && method.getParameterCount() == 0) {
-//                methodValues.put(method.getName(), additionalData.getClass().getMethod(method.getName(), method.getParameterTypes()).invoke(additionalData));
-//            }
-//        }
-////                    String name = (String) aClass.getMethod("getName").invoke(additionalData);
-//
-//        additionalData = new DefaultAdditionalDataState(targetType, methodValues);
+        if (this.additionalDataType != null && !this.additionalDataType.equals(type)) {
+            throw new IllegalArgumentException("Only one additional data type is allowed per problem");
+        }
 
-//        this.additionalData = additionalData;
+        this.additionalDataType = type;
+        this.additionalDataConfig.add((Action<? extends AdditionalData>) config);
+
         return this;
     }
 
