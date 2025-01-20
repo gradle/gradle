@@ -138,9 +138,16 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         @Nullable
         @Override
         public V getIfPresent(K key) {
-            return valuesForThisSession
-                .computeIfAbsent(key, k -> Lazy.unsafe().of(() -> maybeGetRetainedValue(k)))
-                .get();
+            Lazy<V> present = valuesForThisSession
+                .computeIfAbsent(key, k -> {
+                    V retained = maybeGetRetainedValue(k);
+                    return retained != null
+                        ? Lazy.constant(retained)
+                        : null;
+                });
+            return present != null
+                ? present.get()
+                : null;
         }
 
         /**
