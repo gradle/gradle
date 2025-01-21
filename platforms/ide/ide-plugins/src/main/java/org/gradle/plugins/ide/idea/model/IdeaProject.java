@@ -284,7 +284,7 @@ public abstract class IdeaProject implements IdeWorkspace {
     /**
      * The vcs for the project.
      * <p>
-     * Values are the same as used in IDEA's “Version Control” preference window (e.g. 'Git', 'Subversion').
+     * Values are the same as used in IDEA's "Version Control" preference window (e.g. 'Git', 'Subversion').
      * <p>
      * See the examples in the docs for {@link IdeaProject}.
      */

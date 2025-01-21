@@ -131,7 +131,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
             final LinkedBlockingQueue<ProjectState> readyQueue = new LinkedBlockingQueue<>();
             queue.add(traverseProject(root, readyQueue));
 
-            int pending = 1;
+            int pending = root.hasChildren() ? 1 : 0;
             while (pending > 0) {
                 ProjectState next;
                 try {
@@ -142,7 +142,10 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
                 }
                 for (final ProjectState child : next.getUnorderedChildProjects()) {
                     queue.add(traverseProject(child, readyQueue));
-                    ++pending;
+                    if (child.hasChildren()) {
+                        // Only wait for projects that have children to be configured
+                        ++pending;
+                    }
                 }
             }
         });
@@ -155,13 +158,16 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
                 try {
                     project.ensureSelfConfigured();
                 } finally {
-                    readyQueue.add(project);
+                    if (project.hasChildren()) {
+                        // Only enqueue projects that have children to be configured
+                        readyQueue.add(project);
+                    }
                 }
             }
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Traverse project " + project.getName());
+                return BuildOperationDescriptor.displayName("Parallelize configuration");
             }
         };
     }

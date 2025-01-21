@@ -37,7 +37,7 @@ include::sample[dir="snippets/java/javaLibraryDistribution/kotlin",files="build.
 include::sample[dir="snippets/java/javaLibraryDistribution/groovy",files="build.gradle[tags=name-conf]"]
 ====
 
-The plugin builds a distribution for your library. The distribution will package up the runtime dependencies of the library. All files stored in `src/main/dist` will be added to the root of the archive distribution. You can run “`gradle distZip`” to create a ZIP file containing the distribution.
+The plugin builds a distribution for your library. The distribution will package up the runtime dependencies of the library. All files stored in `src/main/dist` will be added to the root of the archive distribution. You can run "`gradle distZip`" to create a ZIP file containing the distribution.
 
 [[sec:java_library_distribution_tasks]]
 == Tasks

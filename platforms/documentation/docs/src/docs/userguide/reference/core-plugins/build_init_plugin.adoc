@@ -68,7 +68,7 @@ The plugin adds the following tasks to the project:
 
 Generates a Gradle build.
 
-Gradle plugins usually need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a “stub” `build.gradle` file in order to apply the plugin.
+Gradle plugins usually need to be _applied_ to a project before they can be used (see <<plugins.adoc#sec:using_plugins,Using plugins>>). However, the Build Init plugin is automatically applied to the root project of every build, which means you do not need to apply it explicitly in order to use it. You can simply execute the task named `init` in the directory where you would like to create the Gradle build. There is no need to create a "stub" `build.gradle` file in order to apply the plugin.
 
 [[sec:what_to_set_up]]
 == What to create
@@ -89,7 +89,7 @@ For example, to create a Java library project run:
 gradle init --type java-library
 ```
 
-If a `--type` option is not provided, Gradle will attempt to infer the type from the environment. For example, it will infer a type of “`pom`” if it finds a `pom.xml` file to convert to a Gradle build. If the type could not be inferred, the type “`basic`” will be used.
+If a `--type` option is not provided, Gradle will attempt to infer the type from the environment. For example, it will infer a type of "`pom`" if it finds a `pom.xml` file to convert to a Gradle build. If the type could not be inferred, the type "`basic`" will be used.
 
 The `init` task also supports generating build scripts using either the Gradle Kotlin DSL or the Gradle Groovy DSL. The build script DSL defaults to the Kotlin DSL for most build types and to the Groovy DSL for Groovy build types. The DSL can be selected by using the `--dsl` command-line option.
 
@@ -116,7 +116,7 @@ All build types also set up <<gradle_wrapper.adoc#gradle_wrapper_reference, Grad
 [[sec:pom_maven_conversion]]
 === `pom` build type (Maven conversion)
 
-The “`pom`” type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid “`pom.xml`” file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface.adoc#command_line_interface,command line option>>, in the specified project directory. This “`pom`” type will be automatically inferred if such a file exists.
+The "`pom`" type can be used to convert an Apache Maven build to a Gradle build. This works by converting the POM to one or more Gradle files. It is only able to be used if there is a valid "`pom.xml`" file in the directory that the `init` task is invoked in or, if invoked via the "`-p`" <<command_line_interface.adoc#command_line_interface,command line option>>, in the specified project directory. This "`pom`" type will be automatically inferred if such a file exists.
 
 The Maven conversion implementation was inspired by the https://github.com/jbaruch/maven2gradle[maven2gradle tool] that was originally developed by Gradle community members.
 
@@ -166,12 +166,12 @@ See the <<java_library_plugin.adoc#sec:java_library_separation,API and implement
 [[sec:java_application]]
 === `java-application` build type
 
-The “`java-application`” build type is not inferable. It must be explicitly specified.
+The "`java-application`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`application`” plugin to produce a command-line application implemented in Java
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`application`" plugin to produce a command-line application implemented in Java
+* Uses the "`mavenCentral`" dependency repository
 * Uses https://junit.org/junit4/[JUnit 4] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -195,12 +195,12 @@ gradle init --type java-application  --java-version 11 --dsl kotlin # and other 
 [[sec:java_library]]
 === `java-library` build type
 
-The “`java-library`” build type is not inferable. It must be explicitly specified.
+The "`java-library`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`java`” plugin to produce a library implemented in Java
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`java`" plugin to produce a library implemented in Java
+* Uses the "`mavenCentral`" dependency repository
 * Uses https://junit.org/junit4/[JUnit 4] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -215,12 +215,12 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 [[sec:java_gradle_plugin]]
 === `java-gradle-plugin` build type
 
-The “`java-gradle-plugin`” build type is not inferable. It must be explicitly specified.
+The "`java-gradle-plugin`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`java-gradle-plugin`” plugin to produce a Gradle plugin implemented in Java
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`java-gradle-plugin`" plugin to produce a Gradle plugin implemented in Java
+* Uses the "`mavenCentral`" dependency repository
 * Uses https://junit.org/junit4/[JUnit 4] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
@@ -229,12 +229,12 @@ It has the following features:
 [[sec:kotlin_application]]
 === `kotlin-application` build type
 
-The “`kotlin-application`” build type is not inferable. It must be explicitly specified.
+The "`kotlin-application`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`org.jetbrains.kotlin.jvm`” and “`application`“ plugins to produce a command-line application implemented in Kotlin
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`org.jetbrains.kotlin.jvm`" and "`application`" plugins to produce a command-line application implemented in Kotlin
+* Uses the "`mavenCentral`" dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
@@ -244,12 +244,12 @@ It has the following features:
 [[sec:kotlin_library]]
 === `kotlin-library` build type
 
-The “`kotlin-library`” build type is not inferable. It must be explicitly specified.
+The "`kotlin-library`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`org.jetbrains.kotlin.jvm`” plugin to produce a library implemented in Kotlin
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`org.jetbrains.kotlin.jvm`" plugin to produce a library implemented in Kotlin
+* Uses the "`mavenCentral`" dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
@@ -259,12 +259,12 @@ It has the following features:
 [[sec:kotlin_gradle_plugin]]
 === `kotlin-gradle-plugin` build type
 
-The “`kotlin-gradle-plugin`” build type is not inferable. It must be explicitly specified.
+The "`kotlin-gradle-plugin`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`java-gradle-plugin`” and “`org.jetbrains.kotlin.jvm`” plugins to produce a Gradle plugin implemented in Kotlin
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`java-gradle-plugin`" and "`org.jetbrains.kotlin.jvm`" plugins to produce a Gradle plugin implemented in Kotlin
+* Uses the "`mavenCentral`" dependency repository
 * Uses Kotlin 1.x
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] and TestKit for testing
 * Has directories in the conventional locations for source code
@@ -273,12 +273,12 @@ It has the following features:
 [[sec:scala_application]]
 === `scala-application` build type
 
-The “`scala-application`” build type is not inferable. It must be explicitly specified.
+The "`scala-application`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`scala`” plugin to produce an application implemented in Scala
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`scala`" plugin to produce an application implemented in Scala
+* Uses the "`mavenCentral`" dependency repository
 * Uses Scala 2.13
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
@@ -287,12 +287,12 @@ It has the following features:
 [[sec:scala_library]]
 === `scala-library` build type
 
-The “`scala-library`” build type is not inferable. It must be explicitly specified.
+The "`scala-library`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`scala`” plugin to produce a library implemented in Scala
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`scala`" plugin to produce a library implemented in Scala
+* Uses the "`mavenCentral`" dependency repository
 * Uses Scala 2.13
 * Uses http://www.scalatest.org[ScalaTest] for testing
 * Has directories in the conventional locations for source code
@@ -301,12 +301,12 @@ It has the following features:
 [[sec:groovy_library]]
 === `groovy-library` build type
 
-The “`groovy-library`” build type is not inferable. It must be explicitly specified.
+The "`groovy-library`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`groovy`” plugin to produce a library implemented in Groovy
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`groovy`" plugin to produce a library implemented in Groovy
+* Uses the "`mavenCentral`" dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
@@ -316,12 +316,12 @@ It has the following features:
 [[sec:groovy_application]]
 === `groovy-application` build type
 
-The “`groovy-application`” build type is not inferable. It must be explicitly specified.
+The "`groovy-application`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`application`” and “`groovy`” plugins to produce a command-line application implemented in Groovy
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`application`" and "`groovy`" plugins to produce a command-line application implemented in Groovy
+* Uses the "`mavenCentral`" dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
@@ -331,12 +331,12 @@ It has the following features:
 [[sec:groovy_gradle_plugin]]
 === `groovy-gradle-plugin` build type
 
-The “`groovy-gradle-plugin`” build type is not inferable. It must be explicitly specified.
+The "`groovy-gradle-plugin`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`java-gradle-plugin`” and “`groovy`” plugins to produce a Gradle plugin implemented in Groovy
-* Uses the “`mavenCentral`” dependency repository
+* Uses the "`java-gradle-plugin`" and "`groovy`" plugins to produce a Gradle plugin implemented in Groovy
+* Uses the "`mavenCentral`" dependency repository
 * Uses Groovy 2.x
 * Uses http://spockframework.org[Spock testing framework] and TestKit for testing
 * Has directories in the conventional locations for source code
@@ -346,12 +346,12 @@ It has the following features:
 [[sec:cpp_application]]
 === `cpp-application` build type
 
-The “`cpp-application`” build type is not inferable. It must be explicitly specified.
+The "`cpp-application`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`cpp-application`” plugin to produce a command-line application implemented in C++
-* Uses the “`cpp-unit-test`” plugin to build and run simple unit tests
+* Uses the "`cpp-application`" plugin to produce a command-line application implemented in C++
+* Uses the "`cpp-unit-test`" plugin to build and run simple unit tests
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a private header file and an associated test class, if there are no existing source or test files
 
@@ -359,12 +359,12 @@ It has the following features:
 [[sec:cpp_library]]
 === `cpp-library` build type
 
-The “`cpp-library`” build type is not inferable. It must be explicitly specified.
+The "`cpp-library`" build type is not inferable. It must be explicitly specified.
 
 It has the following features:
 
-* Uses the “`cpp-library`” plugin to produce a C++ library
-* Uses the “`cpp-unit-test`” plugin to build and run simple unit tests
+* Uses the "`cpp-library`" plugin to produce a C++ library
+* Uses the "`cpp-unit-test`" plugin to build and run simple unit tests
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a public header file and an associated test class, if there are no existing source or test files
 
@@ -372,6 +372,6 @@ It has the following features:
 [[sec:basic]]
 === `basic` build type
 
-The “`basic`” build type is useful for creating a new Gradle build. It creates sample settings and build files, with comments and links to help get started.
+The "`basic`" build type is useful for creating a new Gradle build. It creates sample settings and build files, with comments and links to help get started.
 
 This type is used when no type was explicitly specified, and no type could be inferred.

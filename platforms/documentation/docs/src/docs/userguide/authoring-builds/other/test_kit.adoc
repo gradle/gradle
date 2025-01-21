@@ -41,7 +41,7 @@ include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradl
 
 The link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] facilitates programmatically executing Gradle builds, and inspecting the result.
 
-A contrived build can be created (e.g. programmatically, or from a template) that exercises the “logic under test”. The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
+A contrived build can be created (e.g. programmatically, or from a template) that exercises the "logic under test". The build can then be executed, potentially in a variety of ways (e.g. different combinations of tasks and arguments). The correctness of the logic can then be verified by asserting the following, potentially in combination:
 
 * The build's output;
 * The build's logging (i.e. console output);
@@ -214,7 +214,7 @@ The runner uses the <<tooling_api.adoc#embedding,Tooling API>> to execute builds
 
 The TestKit provides two different ways to enable the debug mode:
 
-* Setting “`org.gradle.testkit.debug`” system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
+* Setting "`org.gradle.testkit.debug`" system property to `true` for the JVM _using_ the `GradleRunner` (i.e. not the build being executed with the runner);
 * Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug-boolean-[GradleRunner.withDebug(boolean)] method.
 
 The system property approach can be used when it is desirable to enable debugging support without making an adhoc change to the runner configuration. Most IDEs offer the capability to set JVM system properties for test execution, and such a feature can be used to set this system property.

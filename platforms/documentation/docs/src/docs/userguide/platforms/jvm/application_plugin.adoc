@@ -17,7 +17,7 @@
 
 The Application plugin facilitates creating an executable JVM application. It makes it easy to start the application locally during development, and to package the application as a TAR and/or ZIP including operating system specific start scripts.
 
-Applying the Application plugin also implicitly applies the <<java_plugin.adoc#java_plugin,Java plugin>>. The `main` source set is effectively the “application”.
+Applying the Application plugin also implicitly applies the <<java_plugin.adoc#java_plugin,Java plugin>>. The `main` source set is effectively the "application".
 
 Applying the Application plugin also implicitly applies the <<distribution_plugin.adoc#distribution_plugin,Distribution plugin>>. A `main` distribution is created that packages up the application, including code dependencies and generated start scripts.
 
