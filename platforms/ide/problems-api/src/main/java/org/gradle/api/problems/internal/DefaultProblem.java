@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -109,8 +110,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
     }
 
     @Override
-    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        return new DefaultProblemBuilder(this, additionalDataBuilderFactory);
+    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator) {
+        return new DefaultProblemBuilder(this, additionalDataBuilderFactory, instantiator);
     }
 
     private static boolean equals(@Nullable Object a, @Nullable Object b) {

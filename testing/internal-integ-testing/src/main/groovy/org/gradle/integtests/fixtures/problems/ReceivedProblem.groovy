@@ -33,6 +33,7 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.internal.reflect.Instantiator
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -167,7 +168,7 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator) {
         throw new UnsupportedOperationException("Not implemented")
     }
 

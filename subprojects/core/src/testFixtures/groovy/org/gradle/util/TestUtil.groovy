@@ -64,6 +64,7 @@ import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -388,7 +389,8 @@ class TestProblems implements InternalProblems {
             null,
             new TestCurrentBuildOperationRef(),
             new ExceptionProblemRegistry(),
-            null
+            null,
+            instantiator
         )
     }
 
@@ -405,6 +407,11 @@ class TestProblems implements InternalProblems {
     @Override
     AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
         delegate.additionalDataBuilderFactory
+    }
+
+    @Override
+    Instantiator getInstantiator() {
+        return delegate.instantiator
     }
 
     void assertProblemEmittedOnce(Object expectedProblem) {

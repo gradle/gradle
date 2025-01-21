@@ -42,12 +42,12 @@ class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
     InternalProblemReporter problemReporter = new DefaultProblemReporter(
-            Stub(ProblemSummarizer),
-            null,
-            CurrentBuildOperationRef.instance(),
-            new AdditionalDataBuilderFactory(),
-            new ExceptionProblemRegistry(),
-            Mock(ExceptionAnalyser)
+        Stub(ProblemSummarizer),
+        null,
+        CurrentBuildOperationRef.instance(),
+        new AdditionalDataBuilderFactory(),
+        new ExceptionProblemRegistry(),
+        Mock(ExceptionAnalyser), instantiator
     )
 
     def "can serialize and deserialize a validation problem"() {

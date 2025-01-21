@@ -69,7 +69,7 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
 
     private @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
         AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, additionalDataBuilderFactory), additionalDataBuilderFactory);
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, additionalDataBuilderFactory, problems.getInstantiator()), additionalDataBuilderFactory, problems.getInstantiator());
         problemSpec.execute(problemBuilder);
         return problemBuilder;
     }

@@ -24,6 +24,7 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
+import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -33,10 +34,12 @@ import java.util.Optional;
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
     private AdditionalDataBuilderFactory additionalDataBuilderFactory;
+    private final Instantiator instantiator;
 
-    public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator) {
         super(problemBuilder);
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -76,7 +79,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(additionalDataBuilderFactory).contextualLabel(prefix + text).build();
+        return problem.toBuilder(additionalDataBuilderFactory, instantiator).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {

@@ -117,7 +117,7 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
 //                            System.err.println(method.toString());
 //                        }
 
-                         //spec.additionalDataFun(getObjectFactory().<AdditionalData>newInstance(SomeData.class));
+                         spec.additionalDataExternal(SomeData.class, data -> data.setName("someData"));
 
 }
                     );

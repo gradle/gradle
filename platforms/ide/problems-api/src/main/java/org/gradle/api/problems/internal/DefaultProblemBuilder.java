@@ -27,17 +27,21 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
@@ -54,25 +58,27 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private List<String> solutions;
     private Throwable exception;
     //TODO Reinhold make private again
-    public Object additionalData;
+    private Object additionalData;
     private Class<? extends AdditionalData> additionalDataType;
     private List<Action<? super AdditionalData>> additionalDataConfig = new ArrayList<Action<? super AdditionalData>>();
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
+    private Instantiator instantiator;
 
-    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator) {
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
+        this.instantiator = instantiator;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
     }
 
-    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        this(additionalDataBuilderFactory);
+    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator) {
+        this(additionalDataBuilderFactory, instantiator);
         this.problemStream = problemStream;
     }
 
-    public DefaultProblemBuilder(InternalProblem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
-        this(additionalDataBuilderFactory);
+    public DefaultProblemBuilder(InternalProblem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator) {
+        this(additionalDataBuilderFactory, instantiator);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
@@ -306,9 +312,31 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             throw new IllegalArgumentException("Only one additional data type is allowed per problem");
         }
 
-        this.additionalDataType = type;
-        this.additionalDataConfig.add((Action<? super AdditionalData>) config);
 
+        AdditionalData additionalDataInstance = instantiator.newInstance(type);
+        config.execute((T) additionalDataInstance);
+//        try {
+        Class<? extends AdditionalData> targetType = type;
+        Map<String, Object> methodValues = new HashMap<String, Object>();
+        for (Method method : targetType.getMethods()) {
+            Class<?> returnType = method.getReturnType();
+            if (!void.class.equals(returnType) && method.getParameterCount() == 0) {
+                try {
+                    methodValues.put(method.getName(), additionalDataInstance.getClass().getMethod(method.getName(), method.getParameterTypes()).invoke(additionalDataInstance));
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                } catch (InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                } catch (NoSuchMethodException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+//            byte[] bytes = new ObjectMapper().writerWithView(type).writeValueAsBytes(additionalDataInstance);
+        this.additionalData = new DefaultTypedAdditionalData(methodValues, type);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
         return this;
     }
 

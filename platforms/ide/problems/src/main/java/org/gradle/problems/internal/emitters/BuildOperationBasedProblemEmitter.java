@@ -18,7 +18,6 @@ package org.gradle.problems.internal.emitters;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.InternalProblem;
@@ -27,6 +26,7 @@ import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,13 +41,13 @@ import java.util.List;
 public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
-    private final ObjectFactory objectFactory;
+    private final Instantiator instantiator;
     @SuppressWarnings("unused")
     private final IsolatableFactory isolatableFactory;
 
-    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter, ObjectFactory objectFactory, IsolatableFactory isolatableFactory) {
+    public BuildOperationBasedProblemEmitter(BuildOperationProgressEventEmitter eventEmitter, Instantiator instantiator, IsolatableFactory isolatableFactory) {
         this.eventEmitter = eventEmitter;
-        this.objectFactory = objectFactory;
+        this.instantiator = instantiator;
         this.isolatableFactory = isolatableFactory;
     }
 
@@ -62,14 +62,14 @@ public class BuildOperationBasedProblemEmitter implements ProblemEmitter {
 
     @Nonnull
     private InternalProblem buildProblemWithIsolatedAdditionalData(InternalProblem problem, Class<? extends AdditionalData> additionalDataType) {
-        AdditionalData additionalDataInstance = objectFactory.newInstance(additionalDataType);
+        AdditionalData additionalDataInstance = instantiator.newInstance(additionalDataType);
         List<Action<? super AdditionalData>> additionalDataConfigs = problem.getAdditionalDataConfigs();
         for (Action<? super AdditionalData> action : additionalDataConfigs) {
             action.execute(additionalDataInstance);
         }
 
 //        AdditionalData additionalData = isolatableFactory.isolate(additionalDataInstance).isolate();
-        InternalProblemBuilder builder = problem.toBuilder(null);
+        InternalProblemBuilder builder = problem.toBuilder(null, instantiator);
         builder.additionalDataFun(additionalDataInstance);
         return builder.build();
     }

@@ -39,6 +39,8 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(libs.jacksonDatabind)
+
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))

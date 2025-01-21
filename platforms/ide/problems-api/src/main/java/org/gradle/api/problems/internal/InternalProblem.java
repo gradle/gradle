@@ -21,6 +21,7 @@ import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
+import org.gradle.internal.reflect.Instantiator;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -30,7 +31,7 @@ public interface InternalProblem extends Problem {
     /**
      * Returns a problem builder with fields initialized with values from this instance.
      */
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory);
+    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator);
 
 
     /**

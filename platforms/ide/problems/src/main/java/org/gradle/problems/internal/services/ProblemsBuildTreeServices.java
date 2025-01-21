@@ -19,7 +19,6 @@ package org.gradle.problems.internal.services;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -35,6 +34,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.Scope;
@@ -53,14 +53,16 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
         ExceptionProblemRegistry exceptionProblemRegistry,
-        ExceptionAnalyser exceptionAnalyser
+        ExceptionAnalyser exceptionAnalyser,
+        Instantiator instantiator
     ) {
         return new DefaultProblems(
             problemSummarizer,
             problemStream,
             CurrentBuildOperationRef.instance(),
             exceptionProblemRegistry,
-            exceptionAnalyser
+            exceptionAnalyser,
+            instantiator
         );
     }
 
@@ -71,7 +73,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
-        ObjectFactory objectFactory,
+        Instantiator objectFactory,
         IsolatableFactory isolatableFactory
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
