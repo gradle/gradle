@@ -16,9 +16,9 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.GeneralData
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.GeneralData
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import spock.lang.Specification
 
@@ -36,7 +36,7 @@ class DefaultProblemBuilderTest extends Specification {
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(GeneralDataSpec, spec -> {
+                .additionalData(GeneralDataSpec, spec -> {
                 spec.put("key", "value")
             })
             .build().additionalData
@@ -52,7 +52,7 @@ class DefaultProblemBuilderTest extends Specification {
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(DeprecationDataSpec, spec -> {
+                .additionalData(DeprecationDataSpec, spec -> {
                 spec.type(DeprecationData.Type.USER_CODE_INDIRECT)
             })
             .build().additionalData
@@ -68,7 +68,7 @@ class DefaultProblemBuilderTest extends Specification {
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(TypeValidationDataSpec, spec -> {
+                .additionalData(TypeValidationDataSpec, spec -> {
                 spec.propertyName("propertyName")
                 spec.parentPropertyName("parentPropertyName")
                 spec.pluginId("pluginId")
@@ -87,7 +87,7 @@ class DefaultProblemBuilderTest extends Specification {
         when:
         def data = problemBuilder
             .id(problemId)
-            .additionalData(PropertyTraceDataSpec, spec -> {
+                .additionalData(PropertyTraceDataSpec, spec -> {
                 spec.trace("trace")
             })
             .build().additionalData
@@ -106,7 +106,7 @@ class DefaultProblemBuilderTest extends Specification {
         //noinspection GroovyAssignabilityCheck
         def problem = problemBuilder
             .id(problemId)
-            .additionalData(NoOpProblemDiagnosticsFactory, spec -> {
+                .additionalData(NoOpProblemDiagnosticsFactory, spec -> {
                 // won't reach here
 
             })

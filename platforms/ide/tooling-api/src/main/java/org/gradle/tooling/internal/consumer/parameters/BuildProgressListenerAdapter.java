@@ -1021,6 +1021,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 //                return new GeneralData(additionalData.getAsMap(), object);
 //            }
         }
+        if (additionalData == null) {
+            return new GeneralData(Collections.<String, Object>emptyMap(), null);
+        }
         return new GeneralData(additionalData.getAsMap(), null);
     }
 

@@ -232,8 +232,9 @@ public class ProblemsProgressEventUtils {
     private InternalAdditionalData toInternalAdditionalData(@Nullable InternalProblem problem) {
         Object additionalData = problem.getAdditionalData();
 
-        if (problem.getAdditionalDataType() != null) {
-            Class<? extends AdditionalData> targetType = problem.getAdditionalDataType();
+        Class<? extends AdditionalData> additionalDataType = problem.getAdditionalDataType();
+        if (additionalDataType != null) {
+            Class<? extends AdditionalData> targetType = additionalDataType;
             Map<String, Object> methodValues = new HashMap<>();
             for (Method method : targetType.getMethods()) {
                 Class<?> returnType = method.getReturnType();
@@ -249,12 +250,12 @@ public class ProblemsProgressEventUtils {
                     }
                 }
             }
+//            ObjectMapper mapper = new ObjectMapper();
             additionalData = new DefaultAdditionalDataState(targetType, methodValues);
+            SerializedPayload serializedPayload = payloadSerizalizer.serialize(additionalData);
+            return new DefaultAdditionalData(methodValues, serializedPayload);
         }
 
-        SerializedPayload serializedPayload = payloadSerizalizer.serialize(additionalData);
-
-//        byte[] payload = additionalData instanceof Isolatable ? serialize((Isolatable<?>) additionalData) : null;
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data
             DeprecationData data = (DeprecationData) additionalData;
@@ -276,11 +277,14 @@ public class ProblemsProgressEventUtils {
                 null
             );
         } else {
-            return new DefaultAdditionalData(Collections.emptyMap(), serializedPayload);
+            if (additionalData == null) {
+                return null;
+            }
+            throw new IllegalArgumentException("Unsupported additional data type: " + additionalData.getClass());
         }
     }
 
-    private Constructor<?> getDefaultConstructor(Class<?> additionalDataClass)  {
+    private Constructor<?> getDefaultConstructor(Class<?> additionalDataClass) {
         try {
             return additionalDataClass.getConstructor();
         } catch (NoSuchMethodException e) {

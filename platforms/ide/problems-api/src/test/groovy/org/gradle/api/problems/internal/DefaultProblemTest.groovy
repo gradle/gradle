@@ -16,9 +16,9 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.AdditionalData
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.AdditionalData
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.CurrentBuildOperationRef
@@ -110,7 +110,9 @@ class DefaultProblemTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            additionalData
+            additionalData,
+            null,
+            []
         )
     }
 
@@ -128,7 +130,9 @@ class DefaultProblemTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            null
+            null,
+            null,
+            []
         )
 
         when:

@@ -46,6 +46,8 @@ public interface InternalProblemSpec extends ProblemSpec {
     @Override
     <T extends AdditionalData> InternalProblemSpec additionalDataExternal(Class<T> type, Action<? super T> config);
 
+    <T extends AdditionalData> InternalProblemSpec additionalDataFun(T additionalDataInstance);
+
     /**
      * Declares that this problem was emitted by a task with the given path.
      *

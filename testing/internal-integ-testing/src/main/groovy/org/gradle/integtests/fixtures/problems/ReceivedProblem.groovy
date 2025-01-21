@@ -157,7 +157,7 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    List<Action<? extends AdditionalData>> getAdditionalDataConfigs() {
+    List<Action<? super AdditionalData>> getAdditionalDataConfigs() {
         return null
     }
 

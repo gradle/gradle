@@ -42,20 +42,20 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     @Override
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
         if (classWithAnnotationAttached != null) {
-            additionalData(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
+            this.additionalData(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
         }
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        additionalData(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
+        this.additionalData(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder forFunction(String methodName) {
-        additionalData(TypeValidationDataSpec.class, data -> data.functionName(methodName));
+        this.additionalData(TypeValidationDataSpec.class, data -> data.functionName(methodName));
         return this;
     }
 
@@ -65,7 +65,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             return this;
         }
         String pp = getParentProperty(parentProperty);
-        additionalData(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
+        this.additionalData(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
         parentPropertyAdditionalData = pp;
         return this;
     }

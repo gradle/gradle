@@ -58,7 +58,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .addProgressListener(listener)
                 .setStandardOutput(System.out)
                 .setStandardError(System.err)
-                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5006")
+//                .setJvmArguments("-agentlib:jdwp=transport=dt_socket,server=n,suspend=y,address=localhost:5006")
                 .run()
         }
         return listener.problems
@@ -108,26 +108,34 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
-        withReportProblemTask """
-            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
-//                def someData = getObjectFactory().newInstance(SomeData)
-//                someData.name = "someData"
-//                def isolatedData = getIsolatableFactory().isolate(someData) //.isolate()
-//                System.err.println(isolatedData)
+        buildFile """
+            import org.gradle.api.problems.Severity
 
-                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
-                $documentationConfig
-                .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                $detailsConfig
-                //additionalData(SomeData.class, data -> data.setFoo("bar"))
-                //.additionalData(SomeData.class, SomeDataImpl.class, data -> data.setFoo("bar"))
-                //.additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
-                .additionalDataExternal(SomeData, data -> data.setName("someData"))
-                .severity(Severity.WARNING)
-                .solution("try this instead")
+            public interface SomeData extends AdditionalData {
+                String getName();
+                void setName(String name);
             }
-        """
 
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                        it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
+                        $documentationConfig
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        $detailsConfig
+                        .additionalDataExternal(SomeData, data -> data.setName("someData"))
+                        .severity(Severity.WARNING)
+                        .solution("try this instead")
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
+        """
 
         when:
         def problems = runTask()

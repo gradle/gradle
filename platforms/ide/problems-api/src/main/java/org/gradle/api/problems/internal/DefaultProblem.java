@@ -39,8 +39,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
     private final Object additionalData;
     @Nullable
     private final Class<? extends AdditionalData> additionalDataType;
-    @Nullable
-    private final List<Action<? extends AdditionalData>> additionalDataConfigs;
+    private final List<Action<? super AdditionalData>> additionalDataConfigs;
 
     protected DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -52,7 +51,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
         Throwable exception,
         @Nullable Object additionalData,
         @Nullable Class<? extends AdditionalData> additionalDataType,
-        @Nullable List<Action<? extends AdditionalData>> additionalDataConfigs
+        List<Action<? super AdditionalData>> additionalDataConfigs
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -149,7 +148,7 @@ public class DefaultProblem implements Serializable, InternalProblem {
 
     @Override
     @Nullable
-    public List<Action<? extends AdditionalData>> getAdditionalDataConfigs() {
+    public List<Action<? super AdditionalData>> getAdditionalDataConfigs() {
         return additionalDataConfigs;
     }
 }

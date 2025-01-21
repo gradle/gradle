@@ -68,8 +68,6 @@ public class StreamedValueConsumer implements BuildEventConsumer {
                     Object o = ((InternalPayloadSerializedAdditionalData) additionalData).get();
                     if (o != null) {
                         if (o instanceof SerializedPayload) {
-                            System.err.println(o);
-
                             Object deserialize1 = payloadSerializer.deserialize((SerializedPayload) o);
                             if (deserialize1 instanceof InternalAdditionalDataState) {
                                 InternalAdditionalDataState state = (InternalAdditionalDataState) deserialize1;
@@ -92,21 +90,10 @@ public class StreamedValueConsumer implements BuildEventConsumer {
                                     }
                                 });
                             }
-
-
-
-
-
-
-//                            ProblemsProgressEventUtils2 utils = new ProblemsProgressEventUtils2(payloadSerializer, isolatableSerializerRegistry);
-//                            Object deserialize = utils.deserialize((byte[]) o);
-//                            Object deserialize = payloadSerializer.deserialize((SerializedPayload) o);
-//                            System.out.println(deserialize);
                         }
 
                     }
                 }
-//                providerParameters.onProblemDetails(((DefaultProblemDetails) details).get());
             }
             delegate.dispatch(message);
         } else {

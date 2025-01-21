@@ -108,6 +108,5 @@ public interface InternalProblem extends Problem {
     @Nullable
     Class<? extends AdditionalData> getAdditionalDataType();
 
-    @Nullable
-    List<Action<? extends AdditionalData>> getAdditionalDataConfigs();
+    List<Action<? super AdditionalData>> getAdditionalDataConfigs();
 }
