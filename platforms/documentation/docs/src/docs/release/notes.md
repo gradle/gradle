@@ -14,7 +14,10 @@ Gradle @version@ is the first patch release for Gradle 8.12.
 
 It fixes the following issues:
 
-* TODO
+* [#31245](https://github.com/gradle/gradle/issues/31245) FileLockCommunicator is not compatible with macOS 15.1 firewall and Crowdstrike/SentinelOne
+* [#31942](https://github.com/gradle/gradle/issues/31942) Default working directory for ExecSpec changed between 8.11 and 8.12
+* [#31946](https://github.com/gradle/gradle/issues/31946) Build failed on Linux after upgrading 8.11.1 -> 8.12
+* [#32016](https://github.com/gradle/gradle/issues/32016) Incorrect output format for Java compiler problems
 
 We recommend users upgrade to @version@ instead of 8.12.
 
