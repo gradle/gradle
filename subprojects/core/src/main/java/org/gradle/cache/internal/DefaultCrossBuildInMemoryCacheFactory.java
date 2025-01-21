@@ -141,7 +141,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
                 .computeIfAbsent(key, k -> {
                     V retained = maybeGetRetainedValue(k);
                     return retained != null
-                        ? Lazy.constant(retained)
+                        ? Lazy.fixed(retained)
                         : null;
                 });
             return present != null
@@ -158,7 +158,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
             return valuesForThisSession.computeIfAbsent(key, k -> {
                 V retained = maybeGetRetainedValue(k);
                 return retained != null
-                    ? Lazy.constant(retained)
+                    ? Lazy.fixed(retained)
                     : Lazy.locking().of(() -> produceAndRetain(factory, k));
             }).get();
         }
@@ -167,7 +167,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         public void put(K key, V value) {
             // Update doesn't need to be atomic since all retained values are equivalent
             retainValue(key, value);
-            valuesForThisSession.put(key, Lazy.constant(value));
+            valuesForThisSession.put(key, Lazy.fixed(value));
         }
 
         private V produceAndRetain(Function<? super K, ? extends V> factory, K k) {

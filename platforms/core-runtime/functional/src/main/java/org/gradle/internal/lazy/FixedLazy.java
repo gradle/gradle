@@ -19,10 +19,10 @@ package org.gradle.internal.lazy;
 /**
  * A {@link Lazy} value that always returns the given {@link #value}.
  */
-public class ConstantLazy<V> implements Lazy<V> {
+public class FixedLazy<V> implements Lazy<V> {
     private final V value;
 
-    public ConstantLazy(V value) {
+    public FixedLazy(V value) {
         this.value = value;
     }
 
