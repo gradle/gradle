@@ -207,13 +207,17 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         @Override
         protected void retainValuesFromCurrentSession(Stream<V> values) {
             // Retain strong references to the values created for this session
-            valuesForPreviousSession.clear();
-            values.forEach(valuesForPreviousSession::add);
+            synchronized (valuesForPreviousSession) {
+                valuesForPreviousSession.clear();
+                values.forEach(valuesForPreviousSession::add);
+            }
         }
 
         @Override
         protected void discardRetainedValues() {
-            valuesForPreviousSession.clear();
+            synchronized (valuesForPreviousSession) {
+                valuesForPreviousSession.clear();
+            }
             allValues.clear();
         }
 
