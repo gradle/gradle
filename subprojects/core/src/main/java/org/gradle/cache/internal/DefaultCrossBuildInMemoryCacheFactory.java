@@ -57,14 +57,14 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(new ConcurrentHashMap<>());
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.STRONG);
         listenerManager.addListener(cache);
         return cache;
     }
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(new HashMap<>()) {
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(KeyRetentionPolicy.STRONG) {
             @Nullable
             @Override
             protected V maybeGetRetainedValue(K key) {
@@ -92,7 +92,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
         // TODO: Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
         //       for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
-        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(synchronizedMap(new WeakHashMap<>()));
+        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.WEAK);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -192,16 +192,29 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         }
     }
 
+    private enum KeyRetentionPolicy {
+        WEAK,
+        STRONG
+    }
+
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
+
         // This is used only to retain strong references to the values
         private final Set<V> valuesForPreviousSession = new HashSet<>();
         private final Map<K, SoftReference<V>> allValues;
 
-        /**
-         * @param retainedValues thread-safe map used for retaining values in the current session.
-         */
-        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> retainedValues) {
-            this.allValues = retainedValues;
+        public DefaultCrossBuildInMemoryCache(KeyRetentionPolicy retentionPolicy) {
+            this.allValues = mapFor(retentionPolicy);
+        }
+
+        private Map<K, SoftReference<V>> mapFor(KeyRetentionPolicy retentionPolicy) {
+            switch (retentionPolicy) {
+                case WEAK:
+                    return synchronizedMap(new WeakHashMap<>());
+                case STRONG:
+                    return new ConcurrentHashMap<>();
+            }
+            throw new IllegalArgumentException("Unknown retention policy: " + retentionPolicy);
         }
 
         @Override
