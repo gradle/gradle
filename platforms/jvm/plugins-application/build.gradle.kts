@@ -16,7 +16,6 @@
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Contains the Application plugin, and its supporting classes.  This plugin is used for creating runnable Java application projects."
