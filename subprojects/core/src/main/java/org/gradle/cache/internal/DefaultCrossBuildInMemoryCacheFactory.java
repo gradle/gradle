@@ -165,10 +165,9 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
         @Override
         public void put(K key, V value) {
-            valuesForThisSession.put(key, Lazy.unsafe().of(() -> {
-                retainValue(key, value);
-                return value;
-            }));
+            // Update doesn't need to be atomic since all retained values are equivalent
+            retainValue(key, value);
+            valuesForThisSession.put(key, Lazy.constant(value));
         }
 
         private V produceAndRetain(Function<? super K, ? extends V> factory, K k) {
