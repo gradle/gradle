@@ -18,6 +18,8 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.FunctionSemantics
+import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.ExpectedByProperty
+import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.NoExpectedType
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
@@ -42,12 +44,14 @@ class StatementResolverImpl(
     override fun doResolveLocalValue(context: AnalysisContext, localValue: LocalValue) = context.doAnalyzeLocal(localValue)
 
     override fun doResolveExpressionStatement(context: AnalysisContext, expr: Expr) {
-        val resolvedExpr = expressionResolver.doResolveExpression(context, expr, null)
+        val resolvedExpr = expressionResolver.doResolveExpression(context, expr, NoExpectedType)
 
         when (expr) {
-            is FunctionCall ->
-                if (resolvedExpr is ObjectOrigin.FunctionOrigin && isDanglingPureCall(resolvedExpr))
+            is FunctionCall -> {
+                val objectOrigin = resolvedExpr?.objectOrigin
+                if (objectOrigin is ObjectOrigin.FunctionOrigin && isDanglingPureCall(objectOrigin))
                     errorCollector.collect(ResolutionError(expr, ErrorReason.DanglingPureExpression))
+            }
 
             else -> errorCollector.collect(ResolutionError(expr, ErrorReason.DanglingPureExpression))
         }
@@ -67,18 +71,19 @@ class StatementResolverImpl(
                 errorCollector.collect(ResolutionError(assignment, ErrorReason.ReadOnlyPropertyAssignment(lhsResolution.property)))
                 hasErrors = true
             }
-            val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs, lhsResolution.property.valueType)
+            val rhsResolution = expressionResolver.doResolveExpression(this, assignment.rhs, ExpectedByProperty(lhsResolution.property.valueType))
             if (rhsResolution == null) {
                 errorCollector.collect(ResolutionError(assignment, ErrorReason.UnresolvedAssignmentRhs))
                 null
             } else {
-                val rhsType = getDataType(rhsResolution)
+                val rhsType = rhsResolution.inferredType
                 val lhsExpectedType = resolveRef(lhsResolution.property.valueType)
                 if (rhsType is DataType.UnitType) {
                     errorCollector.collect(ResolutionError(assignment, ErrorReason.UnitAssignment))
                     hasErrors = true
                 }
-                if (!checkIsAssignable(rhsType, lhsExpectedType)) {
+                val typeSubstitution = computeGenericTypeSubstitution(lhsExpectedType.ref, rhsType.ref) ?: emptyMap()
+                if (!checkIsAssignable(rhsType, lhsExpectedType, typeSubstitution)) {
                     errorCollector.collect(
                         ResolutionError(assignment, ErrorReason.AssignmentTypeMismatch(lhsExpectedType, rhsType))
                     )
@@ -94,14 +99,14 @@ class StatementResolverImpl(
 
     private
     fun AnalysisContext.doAnalyzeLocal(localValue: LocalValue) {
-        val rhs = expressionResolver.doResolveExpression(this, localValue.rhs, null)
+        val rhs = expressionResolver.doResolveExpression(this, localValue.rhs, NoExpectedType)
         if (rhs == null) {
             errorCollector.collect(ResolutionError(localValue, ErrorReason.UnresolvedAssignmentRhs))
         } else {
-            if (getDataType(rhs) is DataType.UnitType) {
+            if (rhs.inferredType is DataType.UnitType) {
                 errorCollector.collect(ResolutionError(localValue, ErrorReason.UnitAssignment))
             }
-            currentScopes.last().declareLocal(localValue, rhs, errorCollector)
+            currentScopes.last().declareLocal(localValue, rhs.objectOrigin, errorCollector)
         }
     }
 

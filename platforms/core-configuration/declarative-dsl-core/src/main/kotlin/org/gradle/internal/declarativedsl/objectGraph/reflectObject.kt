@@ -129,7 +129,7 @@ fun reflect(
                 is FunctionSemantics.Pure -> ObjectReflection.PureFunctionInvocation(
                     type,
                     objectOrigin,
-                    objectOrigin.parameterBindings.bindingMap.mapValues { reflect(it.value, context) }
+                    objectOrigin.parameterBindings.bindingMap.mapValues { reflect(it.value.objectOrigin, context) }
                 )
 
                 is FunctionSemantics.AccessAndConfigure -> {

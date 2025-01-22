@@ -250,7 +250,7 @@ sealed interface ObjectOrigin {
 
 
 data class ParameterValueBinding(
-    val bindingMap: Map<DataParameter, ObjectOrigin>,
+    val bindingMap: Map<DataParameter, TypedOrigin>,
     val providesConfigureBlock: Boolean
 )
 
@@ -266,7 +266,7 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
         append("#")
         append(invocationId)
         append("(")
-        append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" })
+        append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = ${v.objectOrigin}" })
         append(")")
         if (parameterBindings.providesConfigureBlock) {
             append(" { ... }")

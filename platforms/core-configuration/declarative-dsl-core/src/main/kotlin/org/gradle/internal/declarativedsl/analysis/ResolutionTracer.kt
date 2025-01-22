@@ -16,7 +16,6 @@
 
 package org.gradle.internal.declarativedsl.analysis
 
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.Errors
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.NoResolution
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace.ResolutionOrErrors.Resolution
@@ -52,7 +51,7 @@ class ResolutionTracer(
     private
     val assignmentResolutions = IdentityHashMap<Assignment, AssignmentRecord>()
     private
-    val expressionResolution = IdentityHashMap<Expr, ObjectOrigin>()
+    val expressionResolution = IdentityHashMap<Expr, TypedOrigin>()
     private
     val elementErrors = IdentityHashMap<LanguageTreeElement, MutableList<ResolutionError>>()
 
@@ -69,13 +68,13 @@ class ResolutionTracer(
             check(expr !in elementErrors) {
                 "Unknown expression: $expr at: ${expr.sourceData.sourceIdentifier.fileIdentifier}:${expr.sourceData.lineRange.start}"
             }
-            Resolution(resolution)
+            Resolution(resolution.objectOrigin)
         } ?: elementErrors[expr]?.let { errors ->
             Errors(errors)
         } ?:
         NoResolution
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? {
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: ExpectedTypeData): TypedOrigin? {
         val result = expressionResolver.doResolveExpression(context, expr, expectedType)
         if (result != null) {
             expressionResolution[expr] = result

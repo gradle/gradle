@@ -114,11 +114,15 @@ object DataTypeInternal {
         init {
             check(typeArguments.size == typeSignature.typeParameters.size) { "Mismatching type arguments and type parameter counts" }
         }
+
+        override fun toString() = "${typeSignature.name.simpleName}<${typeArguments.joinToString()}>"
     }
 
     @Serializable
     @SerialName("typeVariableUsage")
-    data class DefaultTypeVariableUsage(override val variableId: Long) : DataType.TypeVariableUsage
+    data class DefaultTypeVariableUsage(
+        override val variableId: Long,
+    ) : DataType.TypeVariableUsage
 
 // TODO: `Any` type?
 // TODO: Support subtyping of some sort in the schema rather than via reflection?

@@ -44,7 +44,7 @@ data class DefaultAnalysisSchema(
     override val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>, override val defaultImports: Set<FqName>,
 ) : AnalysisSchema {
     companion object Empty : AnalysisSchema {
-        override val topLevelReceiverType: DataClass = DefaultDataClass.Empty
+        override val topLevelReceiverType: DataClass = DefaultDataClass
         override val dataClassTypesByFqName: Map<FqName, DataClass> = mapOf()
         override val genericSignaturesByFqName: Map<FqName, DataType.ParameterizedTypeSignature> = emptyMap()
         override val genericInstantiationsByFqName: Map<FqName, Map<List<TypeArgument>, DataType.ClassDataType>> = emptyMap()
@@ -74,7 +74,7 @@ data class DefaultDataClass(
     override fun toString(): String = name.simpleName
 
     companion object Empty : DataClass {
-        override val name: FqName = FqName.Empty
+        override val name: FqName = FqName
         override val javaTypeName: String = ""
         override val javaTypeArgumentTypeNames: List<String> = emptyList()
         override val supertypes: Set<FqName> = Collections.emptySet()
@@ -100,7 +100,7 @@ data class DefaultEnumClass(
     override fun toString(): String = name.simpleName
 
     companion object Empty : EnumClass {
-        override val name: FqName = FqName.Empty
+        override val name: FqName = FqName
         override val javaTypeName: String = ""
         override val entryNames: List<String> = emptyList()
 
@@ -381,7 +381,7 @@ object DataTypeRefInternal {
     @Serializable
     @SerialName("dataTypeRefNameWithArgs")
     data class DefaultNameWithArgs(override val fqName: FqName, override val typeArguments: List<TypeArgument>) : DataTypeRef.NameWithArgs {
-        override fun toString(): String = fqName.simpleName + "<${typeArguments.map { it.toString() }}>"
+        override fun toString(): String = fqName.simpleName + "<${typeArguments.joinToString { (it as? TypeArgument.ConcreteTypeArgument)?.type?.toString() ?: "*" }}>"
     }
 }
 

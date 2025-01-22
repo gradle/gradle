@@ -5,11 +5,12 @@ import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataTypeRef
+import org.gradle.declarative.dsl.schema.DataType.TypeVariableUsage
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.NoExpectedType
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionArgument
@@ -22,8 +23,8 @@ interface FunctionCallResolver {
     fun doResolveFunctionCall(
         context: AnalysisContext,
         functionCall: FunctionCall,
-        expectedType: DataTypeRef?
-    ): ObjectOrigin.FunctionOrigin?
+        expectedType: ExpectedTypeData
+    ): TypedOrigin?
 
     data class FunctionResolutionAndBinding(
         val receiver: ObjectOrigin?,
@@ -45,20 +46,45 @@ class FunctionCallResolverImpl(
     val codeAnalyzer: CodeAnalyzer
 ) : FunctionCallResolver {
 
+    private
+    sealed interface ArgumentData {
+        data class BoundArguments(
+            val argumentResolution: Lazy<Map<FunctionArgument.ValueArgument, TypedOrigin>>
+        ) : ArgumentData
+
+        data object NoResolvedArguments : ArgumentData
+    }
+
     override fun doResolveFunctionCall(
         context: AnalysisContext,
         functionCall: FunctionCall,
-        expectedType: DataTypeRef?
-    ): ObjectOrigin.FunctionOrigin? = with(context) {
+        expectedType: ExpectedTypeData
+    ): TypedOrigin? = with(context) {
+        val singleMatchingFunction = lookupSingleFunctionByName(functionCall)
+
+        val expectedArgTypes = singleMatchingFunction
+            ?.binding?.binding?.entries?.associate { (param, arg) ->
+                arg to param.type
+            } ?: emptyMap()
+
+        val typeSubstitution = singleMatchingFunction?.let {
+            computeGenericTypeSubstitution((expectedType as? ExpectedTypeData.HasExpectedType)?.type, it.schemaFunction.returnValueType)
+        } ?: emptyMap()
+
         val argResolutions = lazy {
             var hasErrors = false
-            val result = buildMap<FunctionArgument.ValueArgument, ObjectOrigin> {
-                functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>().forEach {
-                    val resolution = expressionResolver.doResolveExpression(context, it.expr, null)
+            val result = buildMap<FunctionArgument.ValueArgument, TypedOrigin> {
+                functionCall.args.filterIsInstance<FunctionArgument.ValueArgument>().forEach { arg ->
+                    val resolution = expressionResolver.doResolveExpression(
+                        context,
+                        arg.expr,
+                        expectedArgTypes[arg]?.let { ExpectedTypeData.ExpectedByParameter(applyTypeSubstitution(resolveRef(it), typeSubstitution).ref) }
+                            ?: NoExpectedType
+                    )
                     if (resolution == null) {
                         hasErrors = true
                     } else {
-                        put(it, resolution)
+                        put(arg, resolution)
                     }
                 }
             }
@@ -73,14 +99,18 @@ class FunctionCallResolverImpl(
             return null
         }
 
-        val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(functionCall, argResolutions, context)
+        val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(functionCall, ArgumentData.BoundArguments(argResolutions), typeSubstitution)
 
-        return invokeIfSingleOverload(overloads, functionCall, argResolutions)?.also {
+        val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, argResolutions)?.also {
             val function = it.function
             val receiver = it.receiver
             if (function is DataMemberFunction && function.isDirectAccessOnly && receiver != null) {
                 checkAccessOnCurrentReceiver(receiver, functionCall)
             }
+        }
+
+        resultOriginOrNull?.let {
+            TypedOrigin(it, applyTypeSubstitution(resolveRef(resultOriginOrNull.function.returnValueType), typeSubstitution))
         }
     }
 
@@ -88,7 +118,7 @@ class FunctionCallResolverImpl(
     fun AnalysisContext.invokeIfSingleOverload(
         overloads: List<FunctionResolutionAndBinding>,
         functionCall: FunctionCall,
-        argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>
+        argResolutions: Lazy<Map<FunctionArgument.ValueArgument, TypedOrigin>>
     ) = when (overloads.size) {
         0 -> {
             errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallSignature(functionCall)))
@@ -106,20 +136,28 @@ class FunctionCallResolverImpl(
         }
     }
 
+    /**
+     * Before we even have the argument types, we try to look the functions up by the name.
+     * If there is a single matching overload, then its parameter types contribute to the expected argument types.
+     * If there is more than one overload, the process stops, as the overload resolution needs argument types anyway.
+     */
+    private fun AnalysisContext.lookupSingleFunctionByName(functionCall: FunctionCall): FunctionResolutionAndBinding? =
+        lookupFunctions(functionCall, ArgumentData.NoResolvedArguments, emptyMap()).singleOrNull()
+
     // TODO: check the resolution order with the Kotlin spec
     private
     fun AnalysisContext.lookupFunctions(
         functionCall: FunctionCall,
-        argResolutions: Lazy<Map<FunctionArgument.ValueArgument, ObjectOrigin>>,
-        context: AnalysisContext
+        argResolutions: ArgumentData,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
     ): List<FunctionResolutionAndBinding> {
         var hasErrorInReceiverResolution = false
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             when (functionCall.receiver) {
                 is Expr -> {
-                    val receiver = expressionResolver.doResolveExpression(context, functionCall.receiver, null)
+                    val receiver = expressionResolver.doResolveExpression(this@lookupFunctions, functionCall.receiver, NoExpectedType)
                     if (receiver != null) {
-                        addAll(findMemberFunction(receiver, functionCall, argResolutions.value))
+                        addAll(findMemberFunction(receiver.objectOrigin, functionCall, argResolutions, typeSubstitution))
                     } else {
                         hasErrorInReceiverResolution = true
                     }
@@ -128,7 +166,7 @@ class FunctionCallResolverImpl(
                 null -> {
                     for (scope in currentScopes.asReversed()) {
                         val implicitThisReceiver = ObjectOrigin.ImplicitThisReceiver(scope.receiver, isCurrentScopeReceiver = scope === currentScopes.last())
-                        addAll(findMemberFunction(implicitThisReceiver, functionCall, argResolutions.value))
+                        addAll(findMemberFunction(implicitThisReceiver, functionCall, argResolutions, typeSubstitution))
                         if (isNotEmpty()) {
                             break
                         }
@@ -136,10 +174,10 @@ class FunctionCallResolverImpl(
                 }
             }
             if (isEmpty()) {
-                addAll(findDataConstructor(functionCall, argResolutions.value))
+                addAll(findDataConstructor(functionCall, argResolutions, typeSubstitution))
             }
             if (isEmpty()) {
-                addAll(findTopLevelFunction(functionCall, argResolutions.value))
+                addAll(findTopLevelFunction(functionCall, argResolutions, typeSubstitution))
             }
             if (isEmpty() && hasErrorInReceiverResolution) {
                 errorCollector.collect(ResolutionError(functionCall, ErrorReason.UnresolvedFunctionCallReceiver(functionCall)))
@@ -151,7 +189,7 @@ class FunctionCallResolverImpl(
     private
     fun AnalysisContext.doProduceAndHandleFunctionResultOrNull(
         function: FunctionResolutionAndBinding,
-        argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
+        argResolutions: Map<FunctionArgument.ValueArgument, TypedOrigin>,
         functionCall: FunctionCall,
         receiver: ObjectOrigin?
     ): ObjectOrigin.FunctionOrigin? {
@@ -178,7 +216,7 @@ class FunctionCallResolverImpl(
     private fun AnalysisContext.doCheckParameterSemantics(functionOrigin: ObjectOrigin.FunctionInvocationOrigin, functionCall: FunctionCall): Boolean =
         if (functionOrigin.function.semantics is FunctionSemantics.AccessAndConfigure) {
             functionOrigin.parameterBindings.bindingMap.all { (param, arg) ->
-                checkIdentityKeyParameterSemantics(functionCall, param, arg)
+                checkIdentityKeyParameterSemantics(functionCall, param, arg.objectOrigin)
             }
         } else true
 
@@ -231,7 +269,7 @@ class FunctionCallResolverImpl(
         receiver: ObjectOrigin?,
         result: ObjectOrigin.FunctionOrigin,
         function: FunctionResolutionAndBinding,
-        argResolutions: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolutions: Map<FunctionArgument.ValueArgument, TypedOrigin>
     ) {
         if (semantics is FunctionSemantics.AddAndConfigure) {
             require(receiver != null)
@@ -333,7 +371,8 @@ class FunctionCallResolverImpl(
     fun TypeRefContext.findMemberFunction(
         receiver: ObjectOrigin,
         functionCall: FunctionCall,
-        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>,
+        argResolution: ArgumentData,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
     ): List<FunctionResolutionAndBinding> {
         val receiverType = getDataType(receiver) as? DataClass
             ?: return emptyList()
@@ -346,20 +385,21 @@ class FunctionCallResolverImpl(
         // TODO: lambdas are handled in a special way and don't participate in signature matching now
         val signatureSizeMatches = preFilterSignatures(matchingMembers, args)
 
-        return chooseMatchingOverloads(receiver, signatureSizeMatches, args, argResolution)
+        return chooseMatchingOverloads(receiver, signatureSizeMatches, args, argResolution, typeSubstitution)
     }
 
     private
     fun AnalysisContextView.findTopLevelFunction(
         functionCall: FunctionCall,
-        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolution: ArgumentData,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
     ): List<FunctionResolutionAndBinding> {
         val args = functionCall.args
         val receiver = functionCall.receiver
 
         // TODO: extension functions are not supported now; so it's either an FQN function reference or imported one
         if (receiver is NamedReference && receiver.asChainOrNull() != null || receiver == null) {
-            val packageNameParts = (receiver as? NamedReference)?.asChainOrNull()?.nameParts.orEmpty()
+            val packageNameParts = receiver?.asChainOrNull()?.nameParts.orEmpty()
             val candidates = buildList {
                 val fqn = DefaultFqName(packageNameParts.joinToString("."), functionCall.name)
                 schema.externalFunctionsByFqName[fqn]?.let { add(it) }
@@ -373,7 +413,7 @@ class FunctionCallResolverImpl(
             }
 
             val matchingOverloads =
-                chooseMatchingOverloads(null, preFilterSignatures(candidates, args), args, argResolution)
+                chooseMatchingOverloads(null, preFilterSignatures(candidates, args), args, argResolution, typeSubstitution)
 
             // TODO: report overload ambiguity?
             return matchingOverloads
@@ -401,7 +441,8 @@ class FunctionCallResolverImpl(
     private
     fun AnalysisContextView.findDataConstructor(
         functionCall: FunctionCall,
-        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolution: ArgumentData,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
     ): List<FunctionResolutionAndBinding> {
         // TODO: no nested types for now
         val candidateTypes = buildList<DataType> {
@@ -426,7 +467,7 @@ class FunctionCallResolverImpl(
             .flatMap { (it as? DataClass)?.constructors.orEmpty() }
             .filter { it.parameters.size == functionCall.args.size }
 
-        return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution)
+        return chooseMatchingOverloads(null, constructors, functionCall.args, argResolution, typeSubstitution)
     }
 
     private
@@ -434,7 +475,8 @@ class FunctionCallResolverImpl(
         receiver: ObjectOrigin?,
         signatureSizeMatches: List<SchemaFunction>,
         args: List<FunctionArgument>,
-        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolution: ArgumentData,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
     ): List<FunctionResolutionAndBinding> = signatureSizeMatches.mapNotNull { candidate ->
         val binding = bindFunctionParametersToArguments(
             candidate.parameters,
@@ -447,7 +489,7 @@ class FunctionCallResolverImpl(
             }
         }
 
-        if (!typeCheckFunctionCall(binding, argResolution)) {
+        if (argResolution is ArgumentData.BoundArguments && !typeCheckFunctionCall(binding, argResolution.argumentResolution.value, typeSubstitution)) {
             // TODO: return type mismatch in args
             return@mapNotNull null
         }
@@ -458,15 +500,17 @@ class FunctionCallResolverImpl(
     private
     fun TypeRefContext.typeCheckFunctionCall(
         binding: ParameterArgumentBinding,
-        argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>
+        argResolution: Map<FunctionArgument.ValueArgument, TypedOrigin>,
+        typeSubstitution: Map<TypeVariableUsage, DataType>
     ): Boolean = binding.binding.all { (param, arg) ->
         if (arg !in argResolution) {
             // The expression for this argument has not even resolved
             return@all false
         }
         checkIsAssignable(
-            getDataType(argResolution.getValue(arg)),
-            resolveRef(param.type)
+            argResolution.getValue(arg).inferredType,
+            resolveRef(param.type),
+            typeSubstitution
         )
     }
 
@@ -516,7 +560,7 @@ class FunctionCallResolverImpl(
     }
 
     private
-    fun ParameterArgumentBinding.toValueBinding(argResolution: Map<FunctionArgument.ValueArgument, ObjectOrigin>, providesConfigureBlock: Boolean) =
+    fun ParameterArgumentBinding.toValueBinding(argResolution: Map<FunctionArgument.ValueArgument, TypedOrigin>, providesConfigureBlock: Boolean) =
         ParameterValueBinding(
             binding.mapValues { (_, arg) -> argResolution.getValue(arg) },
             providesConfigureBlock

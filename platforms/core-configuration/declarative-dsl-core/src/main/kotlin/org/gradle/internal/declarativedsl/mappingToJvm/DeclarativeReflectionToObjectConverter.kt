@@ -9,7 +9,6 @@ import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.OperationId
-import org.gradle.internal.declarativedsl.analysis.ParameterValueBinding
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
 import org.gradle.internal.declarativedsl.objectGraph.PropertyValueReflection
 import kotlin.reflect.KClass
@@ -130,7 +129,7 @@ class DeclarativeReflectionToObjectConverter(
         val receiverKClass = receiverInstanceAndPublicType.second
         return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun)) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
-                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).instance }
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
             }
 
@@ -147,7 +146,7 @@ class DeclarativeReflectionToObjectConverter(
             origin.function,
             identityValues = origin.parameterBindings.bindingMap.map { (parameter, value) ->
                 if (parameter.semantics is ParameterSemantics.IdentityKey) {
-                    (value as? ObjectOrigin.ConstantOrigin)?.literal?.value
+                    (value.objectOrigin as? ObjectOrigin.ConstantOrigin)?.literal?.value
                 } else null
             })
     ) {
@@ -169,13 +168,11 @@ class DeclarativeReflectionToObjectConverter(
         val receiverInstanceAndPublicType = getObjectByResolvedOrigin(receiverOrigin).validate { "tried to invoke a function $function on a null receiver $receiverOrigin" }
         val receiverInstance = receiverInstanceAndPublicType.first
         val receiverKClass = receiverInstanceAndPublicType.second
-        val parameterBinding = ParameterValueBinding(mapOf(function.dataParameter to valueOrigin), false)
 
         when (val runtimeFunction = functionResolver.resolve(receiverKClass, function)) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
-                val binding = parameterBinding.bindingMap.mapValues { getObjectByResolvedOrigin(it.value).instance }
-                val hasLambda = parameterBinding.providesConfigureBlock
-                runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, hasLambda).result
+                val binding = mapOf(function.dataParameter to getObjectByResolvedOrigin(valueOrigin).instance)
+                runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, false).result
             }
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
