@@ -140,12 +140,15 @@ public class BuildOperationTrace implements Stoppable {
 
     private static final InternalFlag TRACE_TREE_OPTION = new InternalFlag(TREE_SYSPROP, true);
 
+    public static final InternalFlag AUTOINCREMENT_OPTION = new InternalFlag(SYSPROP + ".autoincrement", false);
+
     /**
      * Delimiter for entries in {@link #FILTER_SYSPROP}.
      */
     public static final String FILTER_SEPARATOR = ";";
 
     private static final byte[] NEWLINE = {(byte) '\n'};
+    private static final int MAX_AUTOINCREMENT_FILES = 100;
 
     private final boolean outputTree;
     private final BuildOperationListener listener;
@@ -159,14 +162,18 @@ public class BuildOperationTrace implements Stoppable {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
         InternalOptions internalOptions = new DefaultInternalOptions(startParameter.getSystemPropertiesArgs());
-        this.basePath = internalOptions.getOption(TRACE_OPTION).get();
-        if (this.basePath == null || basePath.equals(Boolean.FALSE.toString())) {
+        String basePath = internalOptions.getOption(TRACE_OPTION).get();
+        if (basePath == null || basePath.equals(Boolean.FALSE.toString())) {
+            this.basePath = null;
             this.logOutputStream = null;
             this.outputTree = false;
             this.listener = null;
             this.objectMapper = null;
             return;
         }
+
+        boolean autoIncrement = internalOptions.getOption(AUTOINCREMENT_OPTION).get();
+        this.basePath = assignBasePath(basePath, autoIncrement);
 
         this.objectMapper = createObjectMapper();
 
@@ -179,8 +186,10 @@ public class BuildOperationTrace implements Stoppable {
             this.listener = new SerializingBuildOperationListener(this::write);
         }
 
+
+
         try {
-            File logFile = logFile(basePath);
+            File logFile = logFile(this.basePath);
             GFileUtils.mkdirs(logFile.getParentFile());
             if (logFile.isFile()) {
                 GFileUtils.forceDelete(logFile);
@@ -194,6 +203,23 @@ public class BuildOperationTrace implements Stoppable {
         }
 
         buildOperationListenerManager.addListener(listener);
+    }
+
+    private static String assignBasePath(String basePath, boolean autoIncrement) {
+        if (!autoIncrement) {
+            return basePath;
+        }
+
+        for (int i = 1; i <= MAX_AUTOINCREMENT_FILES; i++) {
+            String autoBasePath = basePath + "-" + i;
+            File prevLogFile = logFile(autoBasePath);
+            if (!prevLogFile.isFile()) {
+                return autoBasePath;
+            }
+        }
+
+        // TODO: not ideal for the overflow scenario
+        return basePath;
     }
 
     @Nullable
