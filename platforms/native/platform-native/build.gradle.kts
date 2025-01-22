@@ -27,6 +27,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.dependencyManagementBase)
     api(projects.diagnostics)
     api(projects.fileCollections)
     api(projects.files)

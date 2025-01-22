@@ -12,16 +12,17 @@ base.archivesName = "plugins"
 
 dependencies {
     compileOnly(projects.baseServices)
-    compileOnly(projects.logging)
-    compileOnly(projects.coreApi)
-    compileOnly(projects.modelCore)
     compileOnly(projects.core)
-    compileOnly(projects.languageJvm)
+    compileOnly(projects.coreApi)
+    compileOnly(projects.dependencyManagementBase)
+    compileOnly(projects.kotlinDsl)
     compileOnly(projects.languageJava)
+    compileOnly(projects.languageJvm)
+    compileOnly(projects.logging)
     compileOnly(projects.loggingApi)
+    compileOnly(projects.modelCore)
     compileOnly(projects.platformJvm)
     compileOnly(projects.pluginDevelopment)
-    compileOnly(projects.kotlinDsl)
     compileOnly(projects.serviceLookup)
     compileOnly(projects.stdlibJavaExtensions)
 

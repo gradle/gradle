@@ -34,7 +34,8 @@ abstract class ValueSourceBasedSpec extends Specification {
     def listenerManager = new DefaultListenerManager(Scope.Build)
     def isolatableFactory = new DefaultIsolatableFactory(
         null,
-        TestUtil.managedFactoryRegistry()
+        TestUtil.managedFactoryRegistry(),
+        []
     )
     def configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
     def execOperations = Mock(ExecOperations)

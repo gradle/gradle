@@ -357,6 +357,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "dependency-management-base",
+    "path": "platforms/software/dependency-management-base",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management-serialization-codecs",
     "path": "platforms/core-configuration/dependency-management-serialization-codecs",
     "unitTests": false,

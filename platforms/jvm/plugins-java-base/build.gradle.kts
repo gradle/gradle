@@ -34,6 +34,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementBase)
     api(projects.languageJava)
     api(projects.languageJvm)
     api(projects.modelCore)

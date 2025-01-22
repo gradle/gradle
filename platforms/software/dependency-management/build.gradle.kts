@@ -50,6 +50,7 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.dependencyManagementBase)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
     api(projects.execution)

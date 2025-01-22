@@ -16,6 +16,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementBase)
     api(projects.fileCollections)
     api(projects.hashing)
     api(projects.logging)
@@ -28,11 +29,11 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.serviceLookup)
     implementation(projects.baseServicesGroovy) {
         because("Required for Specs")
     }
     implementation(projects.functional)
+    implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
     implementation(libs.gson)

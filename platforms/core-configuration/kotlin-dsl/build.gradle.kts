@@ -13,6 +13,7 @@ dependencies {
     api(projects.core)
     api(projects.coreApi)
     api(projects.concurrent)
+    api(projects.dependencyManagementBase)
     api(projects.fileOperations)
     api(projects.hashing)
     api(projects.kotlinDslToolingModels)
@@ -28,7 +29,6 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.baseAsm)
-    implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildOption)
     implementation(projects.coreKotlinExtensions)
@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.files)
     implementation(projects.functional)
+    implementation(projects.instrumentationReporting)
     implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.messaging)

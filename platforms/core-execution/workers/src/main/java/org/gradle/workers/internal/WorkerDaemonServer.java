@@ -95,8 +95,8 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
             .displayName("worker daemon services")
             .parent(parent)
             .provider(new WorkerSharedGlobalScopeServices(ClassPath.EMPTY))
-            .provider(new WorkerDaemonServices())
-            .provider(new WorkerSharedBuildSessionScopeServices())
+            .provider(new WorkerDaemonUserHomeScopeServices())
+            .provider(new WorkerDaemonBuildSessionScopeServices())
             .build();
     }
 
@@ -132,7 +132,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         return "WorkerDaemonServer{}";
     }
 
-    private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
+    private static class WorkerDaemonUserHomeScopeServices extends WorkerSharedUserHomeScopeServices {
 
         // TODO:configuration-cache - deprecate workers access to ProviderFactory?
         @Provides
@@ -141,13 +141,8 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
-        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
-        }
-
-        @Provides
-        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
-            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(managedFactoryRegistry);
         }
 
         @Provides
@@ -177,6 +172,15 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         IsolatedAntBuilder createIsolatedAntBuilder(ModuleRegistry moduleRegistry, ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
             return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
         }
+    }
+
+    private static class WorkerDaemonBuildSessionScopeServices extends WorkerSharedBuildSessionScopeServices {
+
+        @Provides
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
+        }
+
     }
 
     /**

@@ -7,8 +7,6 @@ description = "Implementation for interacting with repositories over HTTP"
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.serviceProvider)
-    api(projects.coreApi)
-    api(projects.core)
     api(projects.logging)
     api(projects.resources)
 
@@ -17,6 +15,8 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.baseServices)
+    implementation(projects.core)
+    implementation(projects.coreApi)
     implementation(projects.hashing)
     implementation(projects.loggingApi)
 

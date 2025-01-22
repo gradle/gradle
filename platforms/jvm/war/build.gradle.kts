@@ -33,6 +33,7 @@ dependencies {
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
     implementation(projects.languageJava)

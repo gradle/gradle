@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
@@ -24,5 +25,15 @@ public class CompositeBuildsValueSnapshotterSerializerRegistry extends DefaultSe
     public CompositeBuildsValueSnapshotterSerializerRegistry() {
         super();
         register(CompositeProjectComponentArtifactMetadata.class, new CompositeProjectComponentArtifactMetadataSerializer());
+    }
+
+    @Override
+    public boolean canIsolate(Class<?> valueClass) {
+        return false;
+    }
+
+    @Override
+    public <T> Isolatable<T> buildIsolated(T baseType) {
+        throw new IllegalArgumentException(String.format("Don't know how to serialize object %s.", baseType));
     }
 }

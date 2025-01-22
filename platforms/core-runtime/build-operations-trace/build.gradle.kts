@@ -32,6 +32,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.buildOption)
+    implementation(projects.dependencyManagementBase)
 
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)

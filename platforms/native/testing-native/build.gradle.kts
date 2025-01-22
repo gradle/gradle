@@ -11,19 +11,20 @@ errorprone {
 }
 
 dependencies {
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.dependencyManagementBase)
     api(projects.diagnostics)
-    api(projects.stdlibJavaExtensions)
     api(projects.languageNative)
     api(projects.modelCore)
     api(projects.native)
     api(projects.platformBase)
     api(projects.platformNative)
     api(projects.processServices)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)

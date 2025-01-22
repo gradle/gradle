@@ -41,12 +41,12 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
 
-    private final AttributesFactory attributesFactory;
+    private final BaseAttributesFactory attributesFactory;
     private final AttributeValueIsolator attributeValueIsolator;
 
     private ImmutableAttributes immutableValue;
 
-    public DefaultMutableAttributeContainer(AttributesFactory attributesFactory, AttributeValueIsolator attributeValueIsolator) {
+    public DefaultMutableAttributeContainer(BaseAttributesFactory attributesFactory, AttributeValueIsolator attributeValueIsolator) {
         this.attributesFactory = attributesFactory;
         this.attributeValueIsolator = attributeValueIsolator;
     }
@@ -76,12 +76,14 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         return this;
     }
 
-    private <T> void doInsertion(Attribute<T> key, T value) {
+    private <T> Isolatable<T> doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
         immutableValue = null;
-        attributes.put(key, attributeValueIsolator.isolate(value));
+        Isolatable<T> isolatedValue = attributeValueIsolator.isolate(value);
+        attributes.put(key, isolatedValue);
         removeLazyAttributeIfPresent(key);
+        return isolatedValue;
     }
 
     private <T> void removeLazyAttributeIfPresent(Attribute<T> key) {
@@ -137,8 +139,9 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         }
     }
 
+    @Nullable
     @Override
-    public <T> T getAttribute(Attribute<T> key) {
+    public <T> Isolatable<T> getAttributeValue(Attribute<T> key) {
         maybeEmitRecursiveQueryDeprecation();
         Isolatable<?> value = attributes.get(key);
         if (value == null) {
@@ -148,7 +151,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
                 return null;
             }
         } else {
-            return Cast.uncheckedCast(value.isolate());
+            return Cast.uncheckedCast(value);
         }
     }
 
@@ -203,10 +206,9 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         attributes.remove(key);
     }
 
-    private <T> T realizeLazyAttribute(Attribute<T> key) {
+    private <T> Isolatable<T> realizeLazyAttribute(Attribute<T> key) {
         @SuppressWarnings("unchecked") final T value = (T) lazyAttributes.get(key).get();
-        doInsertion(key, value);
-        return value;
+        return doInsertion(key, value);
     }
 
     private void realizeAllLazyAttributes() {

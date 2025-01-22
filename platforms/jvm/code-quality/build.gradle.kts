@@ -43,6 +43,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.dependencyManagementBase)
     implementation(projects.logging)
     implementation(projects.native)
     implementation(projects.pluginsGroovy)

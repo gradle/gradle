@@ -27,6 +27,7 @@ dependencies {
     implementation(projects.core)
     implementation(projects.fileOperations)
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.execution)
     implementation(projects.fileCollections)
     implementation(projects.languageJava)

@@ -16,9 +16,8 @@ dependencies {
     api(projects.modelCore)
     api(projects.buildProcessServices)
 
-    implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.core)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.fileCollections)
     implementation(projects.jvmServices)
     implementation(projects.languageGroovy)
@@ -28,6 +27,8 @@ dependencies {
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
+    implementation(projects.serviceLookup)
+    implementation(projects.stdlibJavaExtensions)
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
 

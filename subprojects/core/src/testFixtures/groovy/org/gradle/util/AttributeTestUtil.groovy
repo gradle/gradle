@@ -25,6 +25,7 @@ import org.gradle.api.internal.attributes.AttributeValueIsolator
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
+import org.gradle.api.internal.attributes.DefaultBaseAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory
@@ -37,7 +38,7 @@ class AttributeTestUtil {
     }
 
     static DefaultAttributesFactory attributesFactory() {
-        return new DefaultAttributesFactory(attributeValueIsolator(), SnapshotTestUtil.isolatableFactory(), TestUtil.objectInstantiator())
+        return new DefaultAttributesFactory(attributeValueIsolator(), new DefaultBaseAttributesFactory(TestUtil.objectInstantiator()))
     }
 
     /**

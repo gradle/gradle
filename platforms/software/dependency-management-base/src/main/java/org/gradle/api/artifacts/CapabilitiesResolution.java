@@ -17,7 +17,6 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.provider.Provider;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -61,7 +60,7 @@ public interface CapabilitiesResolution {
     /**
      * Configures the resolution strategy of a specific capability.
      *
-     * @param notation the {@linkplain ConfigurationPublications#capability(Object) notation} of the capability to configure, {@linkplain Provider Providers} of any notation are also accepted
+     * @param notation the {@linkplain ConfigurationPublications#capability(Object) notation} of the capability to configure, {@linkplain org.gradle.api.provider.Provider Providers} of any notation are also accepted
      *
      * @param action the configuration action
      */

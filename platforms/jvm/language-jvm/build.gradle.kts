@@ -28,6 +28,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.logging)
     implementation(projects.modelCore)
     implementation(projects.testSuitesBase)

@@ -43,6 +43,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.ear)
     implementation(projects.fileCollections)
     implementation(projects.languageJava)

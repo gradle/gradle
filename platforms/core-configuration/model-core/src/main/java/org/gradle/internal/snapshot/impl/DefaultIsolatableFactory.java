@@ -18,17 +18,17 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
+import java.util.List;
 
 public class DefaultIsolatableFactory extends AbstractValueProcessor implements IsolatableFactory {
 
@@ -36,9 +36,10 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
 
     public DefaultIsolatableFactory(
         ClassLoaderHierarchyHasher classLoaderHasher,
-        ManagedFactoryRegistry managedFactoryRegistry
+        ManagedFactoryRegistry managedFactoryRegistry,
+        List<ValueSnapshotterSerializerRegistry> valueSnapshotterSerializerRegistries
     ) {
-        super(Collections.emptyList());
+        super(valueSnapshotterSerializerRegistries);
         this.isolatableValueVisitor = new IsolatableVisitor(classLoaderHasher, managedFactoryRegistry);
     }
 
@@ -117,11 +118,6 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
-        public Isolatable<?> attributeValue(Attribute<?> value) {
-            return new AttributeDefinitionSnapshot(value, classLoaderHasher);
-        }
-
-        @Override
         public Isolatable<?> managedImmutableValue(Managed managed) {
             return new IsolatedImmutableManagedValue(managed, managedFactoryRegistry);
         }
@@ -137,8 +133,8 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
         }
 
         @Override
-        public Isolatable<?> gradleSerialized(Object value, byte[] serializedValue) {
-            throw new UnsupportedOperationException("Isolating values of type '" + value.getClass().getSimpleName() + "' is not supported");
+        public Isolatable<?> gradleSerialized(Object value, byte[] serializedValue, Serializer<?> serializer) {
+            return new IsolatedGradleSerializedValueSnapshot(classLoaderHashOf(value), serializedValue, value.getClass(), serializer);
         }
 
         @Override
@@ -146,6 +142,7 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
             return new IsolatedJavaSerializedValueSnapshot(classLoaderHashOf(value), serializedValue, value.getClass());
         }
 
+        @Nullable
         private HashCode classLoaderHashOf(Object value) {
             return classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader());
         }
@@ -190,4 +187,5 @@ public class DefaultIsolatableFactory extends AbstractValueProcessor implements 
             return new IsolatedProperties(elements);
         }
     }
+
 }

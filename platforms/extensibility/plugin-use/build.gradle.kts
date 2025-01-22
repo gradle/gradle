@@ -8,6 +8,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.core)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementBase)
     api(projects.fileCollections)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)

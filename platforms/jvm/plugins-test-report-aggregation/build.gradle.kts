@@ -29,6 +29,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.baseServices)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
     implementation(projects.testingBase)

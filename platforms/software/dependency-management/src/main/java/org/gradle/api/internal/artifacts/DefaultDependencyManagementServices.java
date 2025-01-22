@@ -101,7 +101,6 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -408,7 +407,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             IsolatableFactory isolatableFactory,
             ObjectFactory objectFactory,
             CollectionCallbackActionDecorator callbackDecorator,
-            NamedObjectInstantiator instantiator,
             DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory,
             ChecksumService checksumService,
             ProviderFactory providerFactory,
@@ -423,7 +421,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileStoreAndIndexProvider.getArtifactIdentifierFileStore(),
                 fileStoreAndIndexProvider.getExternalResourceFileStore(),
                 new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository, metadataFactory),
-                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, instantiator),
+                new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory),
                 authenticationSchemeRegistry,
                 ivyContextManager,
                 moduleIdentifierFactory,

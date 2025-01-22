@@ -27,6 +27,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.execution)
     implementation(projects.fileOperations)
     implementation(projects.functional)

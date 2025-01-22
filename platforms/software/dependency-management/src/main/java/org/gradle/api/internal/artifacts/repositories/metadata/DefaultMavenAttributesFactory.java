@@ -27,8 +27,6 @@ import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.internal.isolation.Isolatable;
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.util.List;
 import java.util.Map;
@@ -70,11 +68,6 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
     }
 
     @Override
-    public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, Isolatable<T> value) {
-        return delegate.concat(node, key, value);
-    }
-
-    @Override
     public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
         return delegate.concat(fallback, primary);
     }
@@ -85,18 +78,13 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
-        return delegate.fromMap(attributes);
-    }
-
-    @Override
     public ImmutableAttributes compileScope(ImmutableAttributes original) {
         List<Object> key = ImmutableList.of(original, Usage.JAVA_API);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_API, objectInstantiator));
-            result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
+            result = concat(result, USAGE_ATTRIBUTE, Usage.JAVA_API);
+            result = concat(result, FORMAT_ATTRIBUTE, LibraryElements.JAR);
+            result = concat(result, CATEGORY_ATTRIBUTE, Category.LIBRARY);
             return result;
         });
     }
@@ -106,9 +94,9 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
         List<Object> key = ImmutableList.of(original, Usage.JAVA_RUNTIME);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
-            result = concat(result, FORMAT_ATTRIBUTE, new CoercingStringValueSnapshot(LibraryElements.JAR, objectInstantiator));
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.LIBRARY, objectInstantiator));
+            result = concat(result, USAGE_ATTRIBUTE, Usage.JAVA_RUNTIME);
+            result = concat(result, FORMAT_ATTRIBUTE, LibraryElements.JAR);
+            result = concat(result, CATEGORY_ATTRIBUTE, Category.LIBRARY);
             return result;
         });
     }
@@ -119,8 +107,8 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
         List<Object> key = ImmutableList.of(original, componentType, usage);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(usage, objectInstantiator));
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(componentType, objectInstantiator));
+            result = concat(result, USAGE_ATTRIBUTE, usage);
+            result = concat(result, CATEGORY_ATTRIBUTE, componentType);
             return result;
         });
     }
@@ -130,10 +118,10 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
         List<Object> key = ImmutableList.of(original, Category.DOCUMENTATION, Usage.JAVA_RUNTIME, DocsType.SOURCES);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
+            result = concat(result, CATEGORY_ATTRIBUTE, Category.DOCUMENTATION);
             result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
             result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.SOURCES));
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            result = concat(result, USAGE_ATTRIBUTE, Usage.JAVA_RUNTIME);
             return result;
         });
     }
@@ -143,10 +131,10 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
         List<Object> key = ImmutableList.of(original, Category.DOCUMENTATION, Usage.JAVA_RUNTIME, DocsType.JAVADOC);
         return concatCache.computeIfAbsent(key, k -> {
             ImmutableAttributes result = original;
-            result = concat(result, CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.DOCUMENTATION, objectInstantiator));
+            result = concat(result, CATEGORY_ATTRIBUTE, Category.DOCUMENTATION);
             result = concat(result, Bundling.BUNDLING_ATTRIBUTE, objectInstantiator.named(Bundling.class, Bundling.EXTERNAL));
             result = concat(result, DocsType.DOCS_TYPE_ATTRIBUTE, objectInstantiator.named(DocsType.class, DocsType.JAVADOC));
-            result = concat(result, USAGE_ATTRIBUTE, new CoercingStringValueSnapshot(Usage.JAVA_RUNTIME, objectInstantiator));
+            result = concat(result, USAGE_ATTRIBUTE, Usage.JAVA_RUNTIME);
             return result;
         });
     }

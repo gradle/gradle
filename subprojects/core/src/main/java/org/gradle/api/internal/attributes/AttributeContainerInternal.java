@@ -18,7 +18,9 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.isolation.Isolatable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public interface AttributeContainerInternal extends AttributeContainer {
@@ -37,4 +39,18 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return a copy of this container, as a map.
      */
     Map<Attribute<?>, ?> asMap();
+
+    /**
+     * Returns the value of an attribute, as an {@link org.gradle.internal.isolation.Isolatable} found in this container,
+     * or <code>null</code> if this container doesn't have it.
+     *
+     * @param <T> the type of the attribute
+     *
+     * @param key the attribute key
+     *
+     * @return the isolatable attribute value, or null if not found
+     */
+    @Nullable
+    <T> Isolatable<T> getAttributeValue(Attribute<T> key);
+
 }

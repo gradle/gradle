@@ -210,6 +210,7 @@ val software = platform("software") {
     subproject("build-init-specs")
     subproject("build-init-specs-api")
     subproject("dependency-management")
+    subproject("dependency-management-base")
     subproject("plugins-distribution")
     subproject("distributions-publishing")
     subproject("ivy")

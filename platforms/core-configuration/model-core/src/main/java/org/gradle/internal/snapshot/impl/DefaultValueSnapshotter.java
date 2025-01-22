@@ -18,10 +18,10 @@ package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
@@ -118,11 +118,6 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
-        public ValueSnapshot attributeValue(Attribute<?> value) {
-            return new AttributeDefinitionSnapshot(value, classLoaderHasher);
-        }
-
-        @Override
         public ValueSnapshot managedImmutableValue(Managed managed) {
             return new ImmutableManagedValueSnapshot(managed.publicType().getName(), (String) managed.unpackState());
         }
@@ -138,7 +133,7 @@ public class DefaultValueSnapshotter extends AbstractValueProcessor implements V
         }
 
         @Override
-        public ValueSnapshot gradleSerialized(Object value, byte[] serializedValue) {
+        public ValueSnapshot gradleSerialized(Object value, byte[] serializedValue, Serializer<?> serializer) {
             return new GradleSerializedValueSnapshot(classLoaderHasher.getClassLoaderHash(value.getClass().getClassLoader()), serializedValue);
         }
 

@@ -42,6 +42,8 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.configurationCacheBase)
+    implementation(projects.configurationProblemsBase)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.serviceLookup)
     implementation(projects.serialization)
     implementation(projects.stdlibJavaExtensions)

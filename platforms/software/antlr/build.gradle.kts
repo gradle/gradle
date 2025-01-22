@@ -13,17 +13,18 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.modelCore)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
 
     implementation(projects.baseServices)
     implementation(projects.platformJvm)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
 

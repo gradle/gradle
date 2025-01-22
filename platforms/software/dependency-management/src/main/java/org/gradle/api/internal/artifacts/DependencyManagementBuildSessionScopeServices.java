@@ -23,12 +23,15 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributeValueIsolator;
 import org.gradle.api.internal.attributes.AttributesFactory;
+import org.gradle.api.internal.attributes.BaseAttributesFactory;
 import org.gradle.api.internal.attributes.DefaultAttributesFactory;
+import org.gradle.api.internal.attributes.DefaultBaseAttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistryFactory;
 import org.gradle.api.internal.catalog.DependenciesAccessorsWorkspaceProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -39,6 +42,7 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
     void configure(ServiceRegistration registration) {
         registration.add(DependenciesAccessorsWorkspaceProvider.class);
         registration.add(AttributeValueIsolator.class);
+        registration.add(BaseAttributesFactory.class, DefaultBaseAttributesFactory.class);
         registration.add(AttributesFactory.class, DefaultAttributesFactory.class);
         registration.add(DesugaredAttributeContainerSerializer.class);
         registration.add(MavenMutableModuleMetadataFactory.class);
@@ -57,15 +61,17 @@ public class DependencyManagementBuildSessionScopeServices implements ServiceReg
     @Provides
     ValueSnapshotterSerializerRegistry createDependencyManagementValueSnapshotterSerializerRegistry(
         ImmutableModuleIdentifierFactory moduleIdentifierFactory,
-        AttributesFactory attributesFactory,
+        BaseAttributesFactory attributesFactory,
         NamedObjectInstantiator namedObjectInstantiator,
-        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory
+        ComponentSelectionDescriptorFactory componentSelectionDescriptorFactory,
+        ClassLoaderHierarchyHasher classLoaderHasher
     ) {
         return new DependencyManagementValueSnapshotterSerializerRegistry(
             moduleIdentifierFactory,
             attributesFactory,
             namedObjectInstantiator,
-            componentSelectionDescriptorFactory
+            componentSelectionDescriptorFactory,
+            classLoaderHasher
         );
     }
 }

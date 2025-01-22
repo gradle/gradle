@@ -34,6 +34,7 @@ dependencies {
 
     implementation(projects.concurrent)
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.files)
     implementation(projects.hashing)
     implementation(projects.logging)

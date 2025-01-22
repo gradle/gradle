@@ -27,16 +27,17 @@ errorprone {
 }
 
 dependencies {
-    api(projects.loggingApi)
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.coreApi)
+    api(projects.dependencyManagementBase)
     api(projects.enterpriseLogging)
-    api(projects.fileTemp)
     api(projects.fileCollections)
-    api(projects.processServices)
+    api(projects.fileTemp)
+    api(projects.loggingApi)
     api(projects.persistentCache)
+    api(projects.processServices)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.inject)
     api(libs.jsr305)
