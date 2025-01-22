@@ -19,7 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.Incubating;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,7 +84,7 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      *
      * @param provider Provider of the entries.
      */
-    void set(Provider<? extends Map<? extends K, ? extends V>> provider);
+    void set(@Nullable Provider<? extends Map<? extends K, ? extends V>> provider);
 
     /**
      * Sets the value of this property to the entries of the given Map, and replaces any existing value.

@@ -39,7 +39,6 @@ import org.objectweb.asm.tree.MethodNode
 import java.io.Closeable
 import java.io.File
 import java.util.ArrayDeque
-import javax.annotation.Nullable
 
 
 fun apiTypeProviderFor(
@@ -401,7 +400,7 @@ fun ApiTypeProvider.Context.apiTypeParametersFor(visitedSignature: BaseSignature
 
 private
 fun ApiTypeProvider.Context.apiFunctionParametersFor(delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
-    delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
+    delegate.visibleParameterAnnotations?.map { it.hasNullableAnnotation() }.let { parametersNullability ->
         val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
             ?: Type.getArgumentTypes(delegate.desc).map { it.className }
         parameterTypesBinaryNames.mapIndexed { idx, parameterTypeBinaryName ->
@@ -426,12 +425,16 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(delegate: MethodNode, visit
 private
 fun ApiTypeProvider.Context.apiTypeUsageForReturnType(delegate: MethodNode, returnType: TypeSignatureVisitor?) =
     apiTypeUsageFor(
-        returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
-        delegate.visibleAnnotations.has<Nullable>(),
-        returnType?.variance ?: Variance.INVARIANT,
-        returnType?.typeArguments ?: emptyList()
+        binaryName = returnType?.binaryName ?: Type.getReturnType(delegate.desc).className,
+        isNullable = delegate.visibleAnnotations.hasNullableAnnotation() || delegate.visibleTypeAnnotations.hasNullableAnnotation(),
+        variance = returnType?.variance ?: Variance.INVARIANT,
+        typeArguments = returnType?.typeArguments ?: emptyList()
     )
 
+
+private
+fun List<AnnotationNode>?.hasNullableAnnotation() =
+    has<javax.annotation.Nullable>() || has<org.jspecify.annotations.Nullable>()
 
 private
 inline fun <reified AnnotationType : Any> List<AnnotationNode>?.has() =

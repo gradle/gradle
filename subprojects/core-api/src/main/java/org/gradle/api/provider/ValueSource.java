@@ -19,7 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.Action;
 import org.gradle.api.file.RegularFile;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import javax.inject.Inject;
 
 /**

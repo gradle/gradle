@@ -19,7 +19,7 @@ package org.gradle.plugin.use;
 import org.gradle.api.provider.Provider;
 import org.gradle.declarative.dsl.model.annotations.Builder;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A mutable specification of a dependency on a plugin.

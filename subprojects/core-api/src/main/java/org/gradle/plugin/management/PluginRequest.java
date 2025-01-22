@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.plugin.use.PluginId;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Contains information about a plugin that has been requested for resolution.

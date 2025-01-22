@@ -86,7 +86,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
                 task.compilerOptions.jvmTarget.set(target.jvmTarget.map { JvmTarget.fromTarget(it.toString()) })
             }
             task.compilerOptions.moduleName.set("gradle-kotlin-dsl-plugins-blocks")
-            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName))
+            task.compilerOptions.freeCompilerArgs.addAll(listOf("-script-templates", PrecompiledPluginsBlock::class.qualifiedName!!))
             task.libraries.from(sourceSets["main"].compileClasspath)
             task.pluginClasspath.from(pluginClasspath.get())
         }

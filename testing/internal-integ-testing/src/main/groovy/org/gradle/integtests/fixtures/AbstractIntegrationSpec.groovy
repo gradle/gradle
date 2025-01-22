@@ -662,6 +662,43 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         return new IvyFileRepository(file(repo))
     }
 
+    void withLocalRepositoryInitScript() {
+        def setupScript = file(".integTest/inject-local-plugins-repos.init.gradle")
+        setupScript.parentFile.mkdirs()
+        setupScript.text = """
+        beforeSettings { settings ->
+            settings.pluginManagement {
+                repositories {
+                    maven { url = file("${buildContext.localRepository}") }
+                    gradlePluginPortal()
+                }
+            }
+        }
+        """
+        executer.beforeExecute {
+            usingInitScript(setupScript)
+        }
+    }
+
+    void withLocallyBuiltKotlinDslPlugins() {
+
+        def futurePluginsRules = ""
+        def setupScript = file(".integTest/force-local-plugins.init.gradle")
+        setupScript.parentFile.mkdirs()
+        setupScript.text = """
+        beforeSettings { settings ->
+            settings.pluginManagement {
+                resolutionStrategy {
+                    $futurePluginsRules
+                }
+            }
+        }
+        """
+        executer.beforeExecute {
+            usingInitScript(setupScript)
+        }
+    }
+
     public GradleExecuter using(Action<GradleExecuter> action) {
         action.execute(executer)
         executer

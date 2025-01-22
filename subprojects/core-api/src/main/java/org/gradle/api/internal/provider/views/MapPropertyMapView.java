@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider.views;
 
 import org.gradle.api.provider.MapProperty;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.AbstractMap;
 import java.util.AbstractSet;

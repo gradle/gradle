@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.Provider;
@@ -26,7 +26,7 @@ import org.gradle.api.provider.Provider;
  *
  * Should be removed once ConventionMapping is removed.
  */
-@NonNullApi
+@NullMarked
 public interface FileSystemLocationPropertyInternal<T extends FileSystemLocation> extends FileSystemLocationProperty<T> {
 
     /**

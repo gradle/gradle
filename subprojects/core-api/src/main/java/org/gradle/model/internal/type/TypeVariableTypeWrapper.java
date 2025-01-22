@@ -19,7 +19,7 @@ package org.gradle.model.internal.type;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Arrays;
 
 /**

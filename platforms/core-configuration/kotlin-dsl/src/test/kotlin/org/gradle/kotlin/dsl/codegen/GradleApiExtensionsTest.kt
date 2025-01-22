@@ -16,7 +16,9 @@
 
 package org.gradle.kotlin.dsl.codegen
 
+import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.atMost
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
@@ -36,6 +38,7 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApi
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.gradle.kotlin.dsl.support.compileToDirectory
+import org.gradle.kotlin.dsl.support.warn
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
@@ -43,6 +46,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import org.objectweb.asm.Type
 import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.util.Properties
 import java.util.function.Consumer
@@ -81,6 +85,14 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                 """
                 inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`contravariantClass`(`type`: kotlin.reflect.KClass<in Int>): Unit =
                     `contravariantClass`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`classWithJavaxNullableReturn`(`type`: kotlin.reflect.KClass<kotlin.Number>): String? =
+                    `classWithJavaxNullableReturn`(`type`.java)
+                """,
+                """
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`classWithJSpecifyNullableReturn`(`type`: kotlin.reflect.KClass<kotlin.Number>): String? =
+                    `classWithJSpecifyNullableReturn`(`type`.java)
                 """,
                 """
                 inline fun org.gradle.kotlin.dsl.fixtures.codegen.ClassToKClass.`varargOfClasses`(vararg `types`: kotlin.reflect.KClass<*>): Unit =
@@ -132,6 +144,9 @@ class GradleApiExtensionsTest : TestWithClassPath() {
                     subject.covariantClass(type = Int::class)
                     subject.contravariantClass(type = Number::class)
 
+                    @Suppress("UNUSED_VARIABLE") val javax: String? = subject.classWithJavaxNullableReturn(type = Number::class)
+                    @Suppress("UNUSED_VARIABLE") val jspecify: String? = subject.classWithJSpecifyNullableReturn(type = Number::class)
+
                     subject.varargOfClasses(Number::class, Int::class)
                     subject.arrayOfClasses(types = arrayOf(Number::class, Int::class))
                     subject.collectionOfClasses(listOf(Number::class, Int::class))
@@ -157,23 +172,23 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any>): Unit =
                     `rawMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any>): Unit =
                     `stringUnknownMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any>): Unit =
                     `stringObjectMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any>): Unit =
                     `mapWithOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any?>, `bar`: java.util.function.Consumer<String>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any>, `bar`: java.util.function.Consumer<String>): Unit =
                     `mapWithLastSamAndOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """
             )
@@ -211,15 +226,15 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any>): Unit =
                     `mapAndClass`(mapOf(*`args`), `type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any>): Unit =
                     `mapAndClassAndVarargs`(mapOf(*`args`), `type`.java, *`options`)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>, `action`: java.util.function.Consumer<in T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any>, `action`: java.util.function.Consumer<in T>): Unit =
                     `mapAndClassAndSAM`(mapOf(*`args`), `type`.java, `action`)
                 """
             )

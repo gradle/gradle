@@ -18,7 +18,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.Task;
 import org.gradle.internal.accesscontrol.ForExternalUse;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Set;
 
 /**

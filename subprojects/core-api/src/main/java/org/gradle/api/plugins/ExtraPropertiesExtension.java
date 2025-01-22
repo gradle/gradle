@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.InvalidUserDataException;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 /**

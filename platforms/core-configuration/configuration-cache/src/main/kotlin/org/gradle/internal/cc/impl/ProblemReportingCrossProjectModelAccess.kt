@@ -173,7 +173,7 @@ class ProblemReportingCrossProjectModelAccess(
 
         override fun methodMissing(name: String, args: Any): Any? {
             onProjectsCoupled()
-            val varargs: Array<Any?> = args.uncheckedCast()
+            val varargs: Array<Any> = args.uncheckedCast()
             @Suppress("SpreadOperator")
             return withDelegateDynamicCallReportingConfigurationOrder(
                 name,
@@ -202,7 +202,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.relativePath(path)
         }
 
-        override fun files(vararg paths: Any?): ConfigurableFileCollection {
+        override fun files(vararg paths: Any): ConfigurableFileCollection {
             onIsolationViolation("files")
             return super.files(*paths)
         }
@@ -267,7 +267,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.mkdir(path)
         }
 
-        override fun delete(vararg paths: Any?): Boolean {
+        override fun delete(vararg paths: Any): Boolean {
             onIsolationViolation("delete")
             return super.delete(*paths)
         }
@@ -355,7 +355,7 @@ class ProblemReportingCrossProjectModelAccess(
             return super.configure(objects, configureClosure)
         }
 
-        override fun <T : Any?> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
+        override fun <T : Any> configure(objects: MutableIterable<T>, configureAction: Action<in T>): MutableIterable<T> {
             onIsolationViolation("configure")
             return super.configure(objects, configureAction)
         }

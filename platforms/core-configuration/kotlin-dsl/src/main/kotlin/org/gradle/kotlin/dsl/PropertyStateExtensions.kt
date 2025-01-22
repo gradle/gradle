@@ -26,7 +26,7 @@ import kotlin.reflect.KProperty
  *
  * Example: `val someProperty by somePropertyState`
  */
-operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T = get()
+operator fun <T : Any> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T = get()
 
 
 /**
@@ -34,4 +34,4 @@ operator fun <T> Property<T>.getValue(receiver: Any?, property: KProperty<*>): T
  *
  * Example: `var someProperty by somePropertyState`
  */
-operator fun <T> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)
+operator fun <T : Any> Property<T>.setValue(receiver: Any?, property: KProperty<*>, value: T) = set(value)

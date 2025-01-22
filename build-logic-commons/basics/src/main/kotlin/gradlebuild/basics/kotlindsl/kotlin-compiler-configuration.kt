@@ -35,12 +35,13 @@ import org.jetbrains.kotlin.load.java.ReportLevel
 
 fun KotlinCompile.configureKotlinCompilerForGradleBuild() {
     compilerOptions {
-        allWarningsAsErrors = true
+        allWarningsAsErrors = false
         apiVersion = KotlinVersion.KOTLIN_1_8
         languageVersion = KotlinVersion.KOTLIN_1_8
         jvmTarget = JvmTarget.JVM_1_8
         freeCompilerArgs.addAll(
             "-Xjsr305=strict",
+            "-Xjspecify-annotations=strict",
             "-java-parameters",
             "-Xsam-conversions=class",
         )

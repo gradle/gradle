@@ -18,7 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}.

@@ -415,7 +415,7 @@ operator fun <T : Any> NamedDomainObjectCollection<T>.provideDelegate(thisRef: A
  *
  * @see [NamedDomainObjectProvider.get]
  */
-@Suppress("nothing_to_inline", "unchecked_cast")
+@Suppress("nothing_to_inline", "unchecked_cast", "NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 inline operator fun <T : Any, reified U : T> NamedDomainObjectProvider<out T>.getValue(thisRef: Any?, property: KProperty<*>): U =
     get().let {
         it as? U

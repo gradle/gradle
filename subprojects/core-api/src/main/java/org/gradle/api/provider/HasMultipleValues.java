@@ -18,7 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a property whose value can be set using multiple elements of type {@link T}, such as a collection property.
@@ -45,7 +45,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue, SupportsConv
      *
      * @param provider Provider of the elements.
      */
-    void set(Provider<? extends Iterable<? extends T>> provider);
+    void set(@Nullable Provider<? extends Iterable<? extends T>> provider);
 
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.

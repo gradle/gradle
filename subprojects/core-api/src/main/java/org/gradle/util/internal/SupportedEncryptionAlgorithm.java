@@ -18,7 +18,7 @@ package org.gradle.util.internal;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteStreams;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -37,7 +37,7 @@ import java.util.Set;
 /**
  * Encryption algorithms required/used in Gradle.
  */
-@NonNullApi
+@NullMarked
 public class SupportedEncryptionAlgorithm {
 
     private static final SecureRandom RANDOM = new SecureRandom();
@@ -186,7 +186,7 @@ public class SupportedEncryptionAlgorithm {
     /**
      * Generate an initialization vector of the given size for an encryption algorithm.
      */
-    private static byte[] generateIv(int size, SecureRandom random){
+    private static byte[] generateIv(int size, SecureRandom random) {
         byte[] iv = new byte[size];
         random.nextBytes(iv);
         return iv;

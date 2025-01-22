@@ -18,7 +18,7 @@ package org.gradle.internal;
 
 import org.gradle.TaskExecutionRequest;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collections;

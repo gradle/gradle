@@ -71,7 +71,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractKotlinIntegrationTes
             "buildSrc/src/main/kotlin/my.gradle.kts",
             """
             extensions.add("lambdaExtension", { name: String ->
-                name.toUpperCase()
+                name.uppercase()
             })
             """
         )
@@ -205,7 +205,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractKotlinIntegrationTes
             "buildSrc/src/main/kotlin/my.gradle.kts",
             """
             val typeToken = typeOf<(String) -> String>()
-            val lambda = { name: String -> name.toUpperCase() }
+            val lambda = { name: String -> name.uppercase() }
             extensions.add(typeToken, "lambdaExtension", lambda)
             """
         )

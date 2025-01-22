@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Named;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 import org.gradle.api.provider.Provider;
 import org.gradle.plugin.use.PluginDependency;
 
@@ -31,7 +31,7 @@ import java.util.Optional;
  *
  * @since 7.0
  */
-@NonNullApi
+@NullMarked
 public interface VersionCatalog extends Named {
 
     /**

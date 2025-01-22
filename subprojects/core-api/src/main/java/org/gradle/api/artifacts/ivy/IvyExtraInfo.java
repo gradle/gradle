@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.ivy;
 
 import org.gradle.api.InvalidUserDataException;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import javax.xml.namespace.QName;
 import java.util.Map;
 

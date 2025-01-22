@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import org.gradle.TaskExecutionRequest;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;

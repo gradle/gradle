@@ -19,7 +19,7 @@ package org.gradle.api.file;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 /**

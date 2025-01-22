@@ -187,6 +187,7 @@ dependencies {
     kotlinDslSharedRuntime(kotlin("stdlib", embeddedKotlinVersion))
     kotlinDslSharedRuntime("org.ow2.asm:asm-tree")
     kotlinDslSharedRuntime("com.google.code.findbugs:jsr305")
+    kotlinDslSharedRuntime("org.jspecify:jspecify")
 }
 val gradleApiKotlinExtensions by tasks.registering(GenerateKotlinExtensionsForGradleApi::class) {
     sharedRuntimeClasspath.from(kotlinDslSharedRuntimeClasspath)

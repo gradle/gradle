@@ -138,7 +138,7 @@ abstract class SettingsDelegate : Settings {
     override fun include(projectPaths: Iterable<String>) =
         delegate.include(projectPaths)
 
-    override fun includeFlat(vararg projectNames: String?) =
+    override fun includeFlat(vararg projectNames: String) =
         delegate.includeFlat(*projectNames)
 
     override fun includeFlat(projectNames: Iterable<String>) {

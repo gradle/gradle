@@ -54,7 +54,7 @@ public interface ProviderFactory {
      * @param value The {@code java.util.concurrent.Callable} use to calculate the value.
      * @return The provider. Never returns null.
      */
-    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jspecify.annotations.Nullable T> value);
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.

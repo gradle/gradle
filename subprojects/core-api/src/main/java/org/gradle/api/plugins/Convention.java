@@ -17,7 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.internal.metaobject.DynamicObject;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.util.Map;
 
 /**

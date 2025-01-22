@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.type.ModelType;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

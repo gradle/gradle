@@ -38,7 +38,7 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.time.Duration;
 import java.util.List;

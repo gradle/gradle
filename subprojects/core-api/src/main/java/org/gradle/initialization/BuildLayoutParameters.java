@@ -20,7 +20,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 
 import static org.gradle.internal.FileUtils.canonicalize;

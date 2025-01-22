@@ -57,7 +57,7 @@ import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -1018,7 +1018,7 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    <T> Provider<T> provider(Callable<? extends @org.jetbrains.annotations.Nullable T> value);
+    <T> Provider<T> provider(Callable<? extends @org.jspecify.annotations.Nullable T> value);
 
     /**
      * Provides access to methods to create various kinds of {@link Provider} instances.

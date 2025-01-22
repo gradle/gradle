@@ -103,7 +103,9 @@ class FunctionSinceRepository(classPath: Set<File>, sourcePath: Set<File>) : Aut
                         //
                         // https://github.com/paul-hammant/qdox/issues/182
                         val filteredSourceCode =
-                            sourceFile.bufferedReader().readText().replace("@org.jetbrains.annotations.Nullable", "")
+                            sourceFile.bufferedReader().readText()
+                                .replace("@org.jetbrains.annotations.Nullable", "")
+                                .replace("@org.jspecify.annotations.Nullable", "")
                         addSource(StringReader(filteredSourceCode))
                     } else {
                         addSource(sourceFile)

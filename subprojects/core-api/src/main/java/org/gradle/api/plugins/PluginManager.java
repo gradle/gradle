@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Facilitates applying plugins and determining which plugins have been applied to a {@link PluginAware} object.

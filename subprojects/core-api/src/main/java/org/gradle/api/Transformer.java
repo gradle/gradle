@@ -23,7 +23,7 @@ package org.gradle.api;
  * @param <OUT> The type the value is transformed to.
  * @param <IN> The type of the value to be transformed.
  */
-public interface Transformer<OUT extends @org.jetbrains.annotations.Nullable Object, IN> {
+public interface Transformer<OUT extends @org.jspecify.annotations.Nullable Object, IN> {
     /**
      * Transforms the given object, and returns the transformed value.
      *

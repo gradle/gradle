@@ -19,7 +19,7 @@ package org.gradle.api.provider;
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A container object that represents a configurable value of a specific type. A {@link Property} is also a

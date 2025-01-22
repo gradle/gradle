@@ -32,6 +32,12 @@ public interface ClassToKClass {
 
     void contravariantClass(Class<? super Integer> type);
 
+    @javax.annotation.Nullable
+    String classWithJavaxNullableReturn(Class<Number> type);
+
+    @org.jspecify.annotations.Nullable
+    String classWithJSpecifyNullableReturn(Class<Number> type);
+
     void varargOfClasses(Class<?>... types);
 
     void arrayOfClasses(Class<?>[] types);
