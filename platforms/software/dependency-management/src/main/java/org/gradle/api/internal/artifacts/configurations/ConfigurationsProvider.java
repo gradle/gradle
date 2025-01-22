@@ -35,8 +35,9 @@ public interface ConfigurationsProvider {
     Set<? extends ConfigurationInternal> getAll();
 
     /**
-     * Visit all consumable configurations provided by this configurations provider.
-     * Lazy configurations which are known to be non-consumable are not realized.
+     * Visit all consumable configurations provided by this configurations provider,
+     * realizing them if necessary. Lazily registered configurations which are known
+     * to be non-consumable are not realized.
      */
     void visitConsumable(Consumer<ConfigurationInternal> visitor);
 

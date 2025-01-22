@@ -39,6 +39,29 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
+<a name="build-authoring"></a>
+### Build authoring improvements
+
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin authors and build engineers to develop custom build logic.
+
+#### Configurations are initialized lazily
+
+Similar to [Tasks](userguide/lazy_configuration.html), Configurations are now initialized lazily when necessary.
+
+Starting with this release, applying the `Base` plugin or any of its derived plugins (e.g., JVM plugins) will not cause configurations declared using `register` or using the incubating role-based factory methods to be eagerly realized unless required.
+
+Configurations should be declared using the `register` method instead of the `create` method to take advantage of the lazy initialization.
+
+```kotlin
+configurations {
+    // Instead of using `create`
+    create("myEagerConfiguration")
+    
+    // Use `register` to lazily initialize the configuration
+    register("myLazyConfiguration")
+}
+```
+
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. -->
 
 <!--
@@ -80,19 +103,6 @@ ADD RELEASE FEATURES ABOVE
 ==========================================================
 
 -->
-
-<a name="build-authoring"></a>
-### Build authoring improvements
-
-Gradle provides rich APIs for plugin authors and build engineers to develop custom build logic.
-
-#### Configurations are initialized lazily
-
-Similar to Tasks, Configurations are now initialized lazily, only when necessary.
-
-Now, when applying the `Base` plugin or any plugins derived from it such as the JVM plugins, configurations that are lazily declared using `register` or through the incubating role-based factory methods will no longer be eagerly realized unless required.
-
-Configurations should be declared using the `register` method instead of the `create` method to take advantage of the lazy initialization.
 
 ## Promoted features
 

@@ -109,7 +109,10 @@ Realizing configuration mainDependencies
 
             configurations {
                 register("unrelated")
-
+                register("unrelatedConsumable") {
+                    // Lazy legacy configurations are still realized, since we don't know their roles based on their public type
+                    canBeConsumed = false
+                }
                 consumable("main") {
                     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, "main"))
                     outgoing.artifact(file("main.txt"))
@@ -151,6 +154,7 @@ Realizing configuration mainDependencies
         outputContains("""
 Realizing configuration main
 Realizing configuration unrelated
+Realizing configuration unrelatedConsumable
         """)
     }
 
@@ -158,6 +162,10 @@ Realizing configuration unrelated
         settingsFile << "include('producer')"
 
         file("producer/build.gradle") << """
+            configurations.configureEach {
+                println("Realizing configuration \$name")
+            }
+
             configurations {
                 register("main") {
                     canBeResolved = false
@@ -196,8 +204,13 @@ Realizing configuration unrelated
         then:
         outputDoesNotContain("Realizing configuration")
 
-        expect:
+        when:
         succeeds(":resolve")
+
+        then:
+        outputContains("""
+Realizing configuration main
+        """)
     }
 
     def "unrelated lazy configurations in current project are not realized when resolving configuration"() {
