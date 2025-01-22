@@ -274,7 +274,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
-        registration.add(ProjectModelController.class);
+        //registration.add(ProjectModelController.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 
