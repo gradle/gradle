@@ -1,7 +1,6 @@
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.update-init-template-versions")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = """This project contains the Build Init plugin, which is automatically applied to the root project of every build, and provides the init and wrapper tasks.
