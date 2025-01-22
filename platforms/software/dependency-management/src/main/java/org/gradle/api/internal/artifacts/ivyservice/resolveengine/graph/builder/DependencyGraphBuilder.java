@@ -384,7 +384,7 @@ public class DependencyGraphBuilder {
         // edges could be added in different order. To avoid this, the addition of new edges is done serially.
         for (EdgeState edge : edges) {
             if (edgeFilter.isSatisfiedBy(edge)) {
-                edge.attachToTargetConfigurations();
+                edge.attachToTargetNodes();
             }
         }
     }

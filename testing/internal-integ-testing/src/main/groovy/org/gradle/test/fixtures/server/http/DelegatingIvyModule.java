@@ -284,6 +284,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
+    public IvyModule eachVariant(Closure<?> action) {
+        backingModule.eachVariant(action);
+        return this;
+    }
+
+    @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
     }
