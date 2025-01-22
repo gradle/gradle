@@ -153,7 +153,7 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
                     return runtimeClasspath(mainFeature);
                 }
             });
-            run.setClasspath(runtimeClasspath);
+            run.getClasspath().setFrom(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
             run.getJvmArguments().convention(pluginExtension.getApplicationDefaultJvmArgs());

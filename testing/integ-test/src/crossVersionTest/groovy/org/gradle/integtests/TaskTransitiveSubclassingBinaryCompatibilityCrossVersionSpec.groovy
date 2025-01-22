@@ -81,7 +81,9 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
                 @Override
                 JavaExec setArgs(List<String> args) {
                     println "args set: \$args"
-                    super.setArgs(args)
+                    // TODO: Fix for Gradle 9.0, we don't intercept super calls
+                    // was super.setArgs(args)
+                    (this as CustomBaseJavaExec).setArgs(args)
                 }
             }
         """
