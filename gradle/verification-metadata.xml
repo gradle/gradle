@@ -89,6 +89,7 @@
          <trusted-key id="160A7A9CF46221A56B06AD64461A804F2609FD89" group="^com[.]github[.]shyiko($|([.].*))" regex="true"/>
          <trusted-key id="1616273079FE63E31C938F10F0DF21D1D0A3C384" group="com.google.inject" name="guice" version="4.2.3"/>
          <trusted-key id="19BEAB2D799C020F17C69126B16698A4ADF4D638" group="org.checkerframework" name="checker-qual"/>
+         <trusted-key id="1A55F091AD28C07F831FA44D7905DE25C78AD456" group="com.google.protobuf"/>
          <trusted-key id="1BD97A6A154E7810EE0BC832E2F38302C8075E3D">
             <trusting group="net.rubygrapefruit"/>
             <trusting group="org.gradle"/>
@@ -615,11 +616,6 @@
             <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
-      <component group="com.google.errorprone" name="error_prone_annotations" version="2.3.4">
-         <artifact name="error_prone_annotations-2.3.4.jar">
-            <pgp value="7615AD56144DF2376F49D98B1669C4BB543E0445"/>
-         </artifact>
-      </component>
       <component group="com.google.guava" name="guava-jdk5" version="14.0.1">
          <artifact name="guava-jdk5-14.0.1.jar">
             <pgp value="AC6A8BC1BA5426F13D93060E806E7D417A281864"/>
@@ -635,11 +631,6 @@
             <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
          </artifact>
       </component>
-      <component group="com.google.protobuf" name="protobuf-java" version="3.0.0">
-         <artifact name="protobuf-java-3.0.0.jar">
-            <pgp value="D75E25B78EBB19E47C0A99BCA7764F502A938C99"/>
-         </artifact>
-      </component>
       <component group="com.google.protobuf" name="protobuf-java" version="3.19.6">
          <artifact name="protobuf-java-3.19.6.jar">
             <pgp value="187366A3FFE6BF8F94B9136A9987B20C8F6A3064"/>
@@ -648,11 +639,6 @@
       <component group="com.google.protobuf" name="protobuf-java" version="3.6.1">
          <artifact name="protobuf-java-3.6.1.jar">
             <pgp value="22B79F456B06F4E75B8B579DB57BD58EF6D0A713"/>
-         </artifact>
-      </component>
-      <component group="com.google.protobuf" name="protobuf-java" version="3.7.0">
-         <artifact name="protobuf-java-3.7.0.jar">
-            <pgp value="3A82F1B557594A6194BE271D0E621275CDADB760"/>
          </artifact>
       </component>
       <component group="com.google.testing.compile" name="compile-testing" version="0.21.0">
@@ -856,9 +842,9 @@
             <sha256 value="7de9b7ade957c6a1996e9c3d0e1e4d1e1840c081ebf16bbd3c2a6a5b05b88891" reason="Artifact is not signed"/>
          </artifact>
       </component>
-      <component group="io.airlift" name="aircompressor" version="0.8">
-         <artifact name="aircompressor-0.8.jar">
-            <pgp value="0EB0ECDE7EF95741ADDB05690D9CB5EE96B7BC22"/>
+      <component group="io.airlift" name="aircompressor" version="0.27">
+         <artifact name="aircompressor-0.27.jar">
+            <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
          </artifact>
       </component>
       <component group="io.airlift" name="slice" version="0.29">
@@ -1433,8 +1419,8 @@
             <pgp value="E3A9F95079E84CE201F7CF60BEDE11EAF1164480"/>
          </artifact>
       </component>
-      <component group="org.iq80.snappy" name="snappy" version="0.4">
-         <artifact name="snappy-0.4.jar">
+      <component group="org.iq80.snappy" name="snappy" version="0.5">
+         <artifact name="snappy-0.5.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
          </artifact>
       </component>
