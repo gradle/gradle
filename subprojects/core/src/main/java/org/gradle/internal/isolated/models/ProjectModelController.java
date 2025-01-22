@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@ServiceScope(Scope.Build.class)
+@ServiceScope(Scope.BuildTree.class)
 public class ProjectModelController {
 
     // TODO: what states are there for the controller?
@@ -41,6 +41,7 @@ public class ProjectModelController {
 
     public ProjectModelController(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
+        System.out.println("*** Instantiating ProjectModelController");
     }
 
     public <T> void register(ProjectModelScopeIdentifier producerScope, IsolatedModelKey<T> key, IsolatedModelProducer<T> work) {
@@ -69,7 +70,7 @@ public class ProjectModelController {
             } else {
 
                 if (!producer.getModelType().equals(modelKey.getType())) {
-                    throw new IllegalStateException("Producer " + producerKey + " does not match model type " + modelKey.getType());
+                    throw new IllegalStateException("Producer " + producerKey + " with type " + producer.getModelType() + " does not match model type " + modelKey.getType());
                 }
 
                 @SuppressWarnings("unchecked")
