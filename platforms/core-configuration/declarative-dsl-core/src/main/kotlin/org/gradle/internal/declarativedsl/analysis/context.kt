@@ -133,8 +133,8 @@ class AnalysisContext(
         mutableScopes.add(newScope)
     }
 
-    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: ObjectOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
-        val result = AssignmentRecord(resolvedTarget, resolvedRhs, nextCallId(), assignmentMethod, originElement)
+    fun recordAssignment(resolvedTarget: PropertyReferenceResolution, resolvedRhs: TypedOrigin, assignmentMethod: AssignmentMethod, originElement: LanguageTreeElement): AssignmentRecord {
+        val result = AssignmentRecord(resolvedTarget, resolvedRhs.objectOrigin, nextCallId(), assignmentMethod, originElement)
         mutableAssignments.add(result)
         return result
     }

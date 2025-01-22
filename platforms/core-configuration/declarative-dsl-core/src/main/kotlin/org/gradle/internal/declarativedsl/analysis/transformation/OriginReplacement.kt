@@ -86,6 +86,10 @@ object OriginReplacement {
         fun replaceInArgs(
             parameterValueBinding: ParameterValueBinding,
         ): ParameterValueBinding =
-            parameterValueBinding.copy(parameterValueBinding.bindingMap.mapValues { replace(it.value) })
+            parameterValueBinding.copy(
+                bindingMap = parameterValueBinding.bindingMap.mapValues {
+                    it.value.copy(objectOrigin = replace(it.value.objectOrigin))
+                }
+            )
     }
 }
