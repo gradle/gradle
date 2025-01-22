@@ -23,6 +23,7 @@ import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -88,8 +89,8 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
     }
 
     @Override
-    public List<String> getCommandLine() {
-        return argumentsSpec.getCommandLine();
+    public Provider<List<String>> getCommandLine() {
+        return getExecutable().map(executable -> argumentsSpec.getCommandLine());
     }
 
     @Override
