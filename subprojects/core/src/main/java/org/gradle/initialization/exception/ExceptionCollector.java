@@ -16,12 +16,8 @@
 
 package org.gradle.initialization.exception;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.util.Collection;
 
-@ServiceScope(Scope.BuildTree.class)
 public interface ExceptionCollector {
     /**
      * Transforms the given failure into zero or more (most likely 1) failures to be reported.
