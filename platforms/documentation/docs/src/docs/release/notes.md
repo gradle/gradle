@@ -164,6 +164,31 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
 
+#### Distribution base plugin introduced
+
+This release introduces a new `distribution-base` plugin.
+This plugin is identical to the existing [Distribution Plugin](userguide/distribution_plugin.html), except it does not add any distributions by default.
+The existing `distribution` plugin is now a simple wrapper over the `distribution-base` plugin, except it additionally adds a `main` distribution by default.
+
+The `distribution-base` plugin is useful when you want to create plugins that do not have a `main` distribution, while retaining the other features of the Distribution Plugin.
+
+```kotlin
+plugins {
+    id("distribution-base")
+}
+
+distributions {
+    create("custom") {
+        distributionBaseName = "customName"
+        contents {
+            from("src/customLocation")
+        }
+    }
+}
+
+assert(distributions.findByName("main") == null)
+```
+
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
 
