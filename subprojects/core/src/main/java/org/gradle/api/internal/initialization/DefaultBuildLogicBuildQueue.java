@@ -73,22 +73,12 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
             // all tasks already executed
             return continuationUnderLock.get();
         }
-        return runner.call(new CallableBuildOperation<T>() {
-            @Override
-            public T call(BuildOperationContext context) {
-                return withBuildLogicQueueLock(() -> doBuild(tasks, continuationUnderLock));
-            }
-
-            @Override
-            public BuildOperationDescriptor.Builder description() {
-                return BuildOperationDescriptor.displayName("Build build logic for " + requester.getDisplayName().getDisplayName());
-            }
-        });
+        return withBuildLogicQueueLock("Run included build logic build for " + nameOf(requester), () -> doBuild(tasks, continuationUnderLock));
     }
 
     @Override
     public <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock) {
-        return withBuildLogicQueueLock(() -> buildSrcBuild.run(continuationUnderLock));
+        return withBuildLogicQueueLock(String.format("Run build logic build %s build for %s", nameOf(buildSrcBuild), nameOf(buildSrcBuild.getOwner())), () -> buildSrcBuild.run(continuationUnderLock));
     }
 
     private <T> T doBuild(List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
@@ -102,19 +92,29 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         return continuationUnderLock.get();
     }
 
-    private <T> T withBuildLogicQueueLock(Supplier<T> buildAction) {
-        return resource.withLock(() -> {
-            if (fileLock == null) { // lock file at the top of the callstack only
-                try (FileLock fileLock = lockBuildLogicQueueFile()) {
-                    this.fileLock = fileLock;
-                    try {
-                        return buildAction.get();
-                    } finally {
-                        this.fileLock = null;
+    private <T> T withBuildLogicQueueLock(String buildOperationDescription, Supplier<T> buildAction) {
+        return runner.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                return resource.withLock(() -> {
+                    if (fileLock == null) { // lock file at the top of the callstack only
+                        try (FileLock fileLock = lockBuildLogicQueueFile()) {
+                            DefaultBuildLogicBuildQueue.this.fileLock = fileLock;
+                            try {
+                                return buildAction.get();
+                            } finally {
+                                DefaultBuildLogicBuildQueue.this.fileLock = null;
+                            }
+                        }
                     }
-                }
+                    return buildAction.get();
+                });
             }
-            return buildAction.get();
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(buildOperationDescription);
+            }
         });
     }
 
@@ -130,5 +130,9 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         return tasks.stream()
             .filter(identifier -> !identifier.getTask().getState().getExecuted())
             .collect(Collectors.toList());
+    }
+
+    private static String nameOf(BuildState build) {
+        return build.getDisplayName().getDisplayName();
     }
 }
