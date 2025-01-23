@@ -39,6 +39,8 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.model.CalculatedValueFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.work.WorkerThreadRegistry;
 
@@ -48,6 +50,7 @@ import javax.inject.Inject;
 /**
  * Factory for creating {@link org.gradle.api.artifacts.Configuration} instances.
  */
+@ServiceScope(Scope.Project.class)
 @ThreadSafe
 public class DefaultConfigurationFactory {
 

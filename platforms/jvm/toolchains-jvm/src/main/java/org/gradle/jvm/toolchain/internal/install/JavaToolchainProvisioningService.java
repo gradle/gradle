@@ -16,11 +16,14 @@
 
 package org.gradle.jvm.toolchain.internal.install;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 
 import java.io.File;
 
+@ServiceScope(Scope.Project.class)
 public interface JavaToolchainProvisioningService {
 
     File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;

@@ -46,6 +46,8 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 import java.util.List;
@@ -55,6 +57,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.dependencysubstitutio
 /**
  * Resolves a dependency graph and visits it. Essentially, this class is a {@link DependencyGraphBuilder} executor.
  */
+@ServiceScope(Scope.Project.class)
 public class DependencyGraphResolver {
     private final DependencyMetadataFactory dependencyMetadataFactory;
     private final VersionComparator versionComparator;

@@ -20,6 +20,8 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.Locale;
@@ -30,6 +32,7 @@ import java.util.Locale;
  * This is primarily used to support
  * {@code ApplyScriptPluginBuildOperationType.Details} and {@code ApplyPluginBuildOperationType.Details}.
  */
+@ServiceScope({Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
 public abstract class ConfigurationTargetIdentifier {
 
     private ConfigurationTargetIdentifier() {

@@ -26,6 +26,8 @@ import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.slf4j.Logger;
@@ -42,6 +44,7 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Collection;
 
+@ServiceScope(Scope.Project.class)
 public class SecureFileDownloader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SecureFileDownloader.class);

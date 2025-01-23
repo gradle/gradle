@@ -20,7 +20,10 @@ import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Project.class)
 public interface TaskFileVarFactory {
     /**
      * Creates a {@link ConfigurableFileCollection} that can be used as a task input.

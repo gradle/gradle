@@ -37,6 +37,8 @@ import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -248,6 +250,7 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
         }
     }
 
+    @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
         private final LocalComponentGraphResolveStateFactory localResolveStateFactory;

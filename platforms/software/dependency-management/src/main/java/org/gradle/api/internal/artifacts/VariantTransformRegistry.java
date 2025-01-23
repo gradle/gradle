@@ -20,9 +20,12 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 
+@ServiceScope(Scope.Project.class)
 public interface VariantTransformRegistry {
 
     /**
