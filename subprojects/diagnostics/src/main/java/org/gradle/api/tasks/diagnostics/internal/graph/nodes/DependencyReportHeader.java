@@ -21,14 +21,13 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
+public class DependencyReportHeader extends AbstractRenderableDependency {
     private final DependencyEdge dependency;
     private final String description;
     private final List<ResolvedVariantResult> selectedVariants;
@@ -74,7 +73,6 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
         return allVariants;
     }
 
-    @Override
     public AttributeContainer getAttributes() {
         ComponentSelector requested = dependency.getRequested();
         return requested instanceof ModuleComponentSelector
