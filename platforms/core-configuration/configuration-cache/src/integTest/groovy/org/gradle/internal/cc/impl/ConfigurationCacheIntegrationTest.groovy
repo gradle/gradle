@@ -414,7 +414,9 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
         def configurationCache = newConfigurationCacheFixture()
 
         when:
-        executer.expectDeprecationWarning("The org.gradle.configuration-cache.internal.load-after-store system property has been deprecated. Starting with Gradle 9.0, it will not be possible to disable load-after-store behavior of Configuration Cache. The behavior is enabled by default. Avoid using the internal flag.")
+        executer.expectDeprecationWarning("The org.gradle.configuration-cache.internal.load-after-store system property has been deprecated." +
+            " Starting with Gradle 9.0, it will not be possible to disable load-after-store behavior of Configuration Cache." +
+            " The behavior is enabled by default. Avoid using the internal flag.")
 
         configurationCacheRun "help", "-Dorg.gradle.configuration-cache.internal.load-after-store=$load"
 
