@@ -79,8 +79,9 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             def version = VersionNumber.parse(it)
             // versions prior to 1.7.0 use the removed 'void org.gradle.api.reporting.DirectoryReport.setEnabled(boolean)' method
             // 1.7.22 does not define implementation of the 'abstract void failure(java.lang.Object, org.gradle.api.tasks.testing.TestFailure)' of interface org.gradle.api.internal.tasks.testing.TestResultProcessor.
+            // 1.8.0 now has a nodeJs compatibility error
             // versions prior to 2.0.0 don't support java 21
-            version > VersionNumber.parse('1.7.22') &&
+            version > VersionNumber.parse('1.8.0') &&
                 (JavaVersion.current() < JavaVersion.VERSION_21 || version >= VersionNumber.parse('2.0.0-Beta1'))
         }
     }
