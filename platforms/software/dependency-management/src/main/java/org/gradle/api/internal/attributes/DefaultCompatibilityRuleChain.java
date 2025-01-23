@@ -69,11 +69,11 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
         return rules;
     }
 
-    private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {
+    public static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {
 
-        private final Class<? extends AttributeCompatibilityRule<T>> rule;
+        private final Class<?> rule;
 
-        private ExceptionHandler(Class<? extends AttributeCompatibilityRule<T>> rule) {
+        public ExceptionHandler(Class<?> rule) {
             this.rule = rule;
         }
 
