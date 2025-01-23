@@ -86,6 +86,11 @@ Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, th
 Please ensure that you are not relying on this behavior when upgrading to Gradle 8.13.
 If system properties needs to be overridden, `BuildLauncher#setJvmArguments` should be used instead.
 
+==== Removed incubating method `ObjectFactory#dependencyCollector()`
+
+The incubating `ObjectFactory#dependencyCollector()` method has been removed.
+DependencyCollectors can still be instantiated within Gradle managed objects.
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider

@@ -20,6 +20,7 @@ import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.SupportsConvention;
+import org.gradle.internal.instantiation.generator.annotations.ManagedType;
 
 import java.util.Set;
 
@@ -30,6 +31,7 @@ import java.util.Set;
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.</p>
  */
+@ManagedType
 @SupportsKotlinAssignmentOverloading
 public interface ConfigurableFileCollection extends FileCollection, HasConfigurableValue, SupportsConvention {
     /**

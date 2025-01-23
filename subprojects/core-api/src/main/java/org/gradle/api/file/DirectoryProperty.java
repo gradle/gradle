@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.instantiation.generator.annotations.ManagedType;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -33,6 +34,7 @@ import java.io.File;
  *
  * @since 4.3
  */
+@ManagedType
 public interface DirectoryProperty extends FileSystemLocationProperty<Directory> {
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.

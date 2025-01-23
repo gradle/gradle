@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.MinimalExternalModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.instantiation.generator.annotations.ManagedType;
 
 import java.util.Set;
 
@@ -50,6 +51,7 @@ import java.util.Set;
  * @since 8.6
  */
 @Incubating
+@ManagedType
 @NonExtensible
 @SuppressWarnings("JavadocReference")
 public interface DependencyCollector {

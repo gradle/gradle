@@ -31,26 +31,17 @@ import groovy.lang.GroovyObject;
 import groovy.lang.MetaClass;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.IsolatedAction;
-import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.artifacts.dsl.DependencyCollector;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.HasMultipleValues;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.provider.SupportsConvention;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.Nested;
@@ -61,6 +52,7 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instantiation.generator.annotations.ManagedType;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -109,26 +101,6 @@ import static org.gradle.api.internal.GeneratedSubclasses.unpack;
  * </ul>
  */
 abstract class AbstractClassGenerator implements ClassGenerator {
-    /**
-     * Types that are allowed to be instantiated directly by Gradle when exposed as a getter on a type.
-     *
-     * @implNote Keep in sync with platforms/documentation/docs/src/docs/userguide/authoring-builds/gradle-properties/properties_providers.adoc
-     * @see ManagedObjectFactory#newInstance
-     */
-    private static final ImmutableSet<Class<?>> MANAGED_PROPERTY_TYPES = ImmutableSet.of(
-        ConfigurableFileCollection.class,
-        ConfigurableFileTree.class,
-        ListProperty.class,
-        SetProperty.class,
-        MapProperty.class,
-        RegularFileProperty.class,
-        DirectoryProperty.class,
-        Property.class,
-        NamedDomainObjectContainer.class,
-        ExtensiblePolymorphicDomainObjectContainer.class,
-        DomainObjectSet.class,
-        DependencyCollector.class
-    );
 
     private static final ImmutableSet<Class<? extends Annotation>> NESTED_ANNOTATION_TYPES = ImmutableSet.of(
         Nested.class,
@@ -403,7 +375,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     private static boolean isManagedProperty(PropertyMetadata property) {
         // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || hasNestedAnnotation(property));
+        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property));
     }
 
     private static boolean hasNestedAnnotation(PropertyMetadata property) {

@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.internal.instantiation.generator.annotations.ManagedType;
+
 import javax.annotation.Nullable;
 import java.util.Set;
 
@@ -31,6 +33,7 @@ import java.util.Set;
  * @param <T> the type of elements.
  * @since 4.5
  */
+@ManagedType
 public interface SetProperty<T> extends Provider<Set<T>>, HasMultipleValues<T> {
     /**
      * {@inheritDoc}
