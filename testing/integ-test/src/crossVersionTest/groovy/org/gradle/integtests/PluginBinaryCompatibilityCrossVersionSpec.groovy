@@ -44,6 +44,7 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
             import org.gradle.api.Project
             import org.gradle.api.plugins.JavaPluginExtension
             import org.gradle.plugins.ide.idea.model.IdeaModule
+            import org.gradle.api.JavaVersion
 
             class SomePlugin implements Plugin<Project> {
                 void apply(Project p) {
@@ -53,17 +54,17 @@ class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationS
                     // Verify can use the types with and without various type declarations
 
                     JavaPluginExtension c = p.extensions.java
-                    c.sourceCompatibility = 1.8
+                    c.sourceCompatibility = JavaVersion.VERSION_1_8
                     println c.sourceCompatibility
                     c.manifest { }
 
                     GroovyObject o = p.extensions.java
-                    o.sourceCompatibility = 1.7
+                    o.sourceCompatibility = JavaVersion.VERSION_1_7
                     println o.sourceCompatibility
                     o.manifest { }
 
                     def d = p.extensions.java
-                    d.sourceCompatibility = 1.8
+                    d.sourceCompatibility = JavaVersion.VERSION_1_8
                     println d.sourceCompatibility
                     d.manifest { }
 

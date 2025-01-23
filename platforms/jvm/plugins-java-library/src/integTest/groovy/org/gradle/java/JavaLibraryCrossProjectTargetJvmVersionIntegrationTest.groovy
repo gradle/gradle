@@ -149,7 +149,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         when:
         buildFile << """
             java {
-                disableAutoTargetJvm()
+                autoTargetJvm = false
             }
         """
         run ':checkDeps'

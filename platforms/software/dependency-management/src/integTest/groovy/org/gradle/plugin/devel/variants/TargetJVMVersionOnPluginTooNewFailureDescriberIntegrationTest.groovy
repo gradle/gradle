@@ -52,7 +52,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             version = "1.0"
 
              java {
-                targetCompatibility = ${higherVersion.javaVersion.majorVersion}
+                targetCompatibility = JavaVersion.toVersion(${higherVersion.javaVersion.majorVersion})
             }
             ${javaPluginToolchainVersion(higherVersion)}
 
@@ -212,7 +212,7 @@ class TargetJVMVersionOnPluginTooNewFailureDescriberIntegrationTest extends Abst
             version = "1.0"
 
             java {
-                targetCompatibility = ${higherVersion.javaVersion.majorVersion}
+                targetCompatibility = JavaVersion.toVersion(${higherVersion.javaVersion.majorVersion})
             }
             ${javaPluginToolchainVersion(higherVersion)}
 

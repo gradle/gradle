@@ -91,8 +91,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        project.java.sourceCompatibility = '19'
-        child1.java.sourceCompatibility = sourceCompatibility
+        project.java.sourceCompatibility = JavaVersion.VERSION_19
+        child1.java.sourceCompatibility = JavaVersion.toVersion(sourceCompatibility)
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -108,8 +108,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         given:
         project.plugins.apply(JavaPlugin)
         child1.plugins.apply(JavaPlugin)
-        project.java.sourceCompatibility = '1.2'
-        child1.java.sourceCompatibility = '1.3'
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_2
+        child1.java.sourceCompatibility = JavaVersion.VERSION_1_3
         when:
         def ideaProject = buildIdeaProjectModel()
 
@@ -124,9 +124,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         child1.plugins.apply(JavaPlugin)
         child2.plugins.apply(JavaPlugin)
         project.idea.project.languageLevel = '1.2'
-        project.java.sourceCompatibility = '1.3'
-        child1.java.sourceCompatibility = '1.4'
-        child2.java.sourceCompatibility = '1.5'
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_3
+        child1.java.sourceCompatibility = JavaVersion.VERSION_1_4
+        child2.java.sourceCompatibility = JavaVersion.VERSION_1_5
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -172,9 +172,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     def "can handle multi project builds with different source language levels"() {
         given:
         [project, child1, child2].each { it.plugins.apply(JavaPlugin) }
-        project.java.sourceCompatibility = '1.3'
-        child1.java.sourceCompatibility = '1.2'
-        child2.java.sourceCompatibility = '1.3'
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_3
+        child1.java.sourceCompatibility = JavaVersion.VERSION_1_2
+        child2.java.sourceCompatibility = JavaVersion.VERSION_1_3
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -189,9 +189,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     def "can handle multi project builds where only some projects are java projects"() {
         given:
         project.plugins.apply(JavaPlugin)
-        project.java.sourceCompatibility = '1.4'
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_4
         child1.plugins.apply(JavaPlugin)
-        child1.java.sourceCompatibility = '1.3'
+        child1.java.sourceCompatibility = JavaVersion.VERSION_1_3
 
         when:
         def ideaProject = buildIdeaProjectModel()
@@ -222,7 +222,7 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         when:
         [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
-            it.targetCompatibility = "1.5"
+            it.targetCompatibility = JavaVersion.VERSION_1_5
         }
         def ideaProject = buildIdeaProjectModel()
 
@@ -238,9 +238,9 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         [project, child1, child2].each {
             it.plugins.apply(JavaPlugin)
         }
-        project.targetCompatibility = "1.5"
-        child1.targetCompatibility = "1.6"
-        child2.targetCompatibility = "1.7"
+        project.targetCompatibility = JavaVersion.VERSION_1_5
+        child1.targetCompatibility = JavaVersion.VERSION_1_6
+        child2.targetCompatibility = JavaVersion.VERSION_1_7
 
         def ideaProject = buildIdeaProjectModel()
 
@@ -256,8 +256,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
         [project, child1].each {
             it.plugins.apply(JavaPlugin)
         }
-        project.targetCompatibility = "1.6"
-        child1.targetCompatibility = "1.7"
+        project.targetCompatibility = JavaVersion.VERSION_1_6
+        child1.targetCompatibility = JavaVersion.VERSION_1_7
 
         def ideaProject = buildIdeaProjectModel()
 
@@ -271,8 +271,8 @@ class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
 
     def "non convention source and target compatibility properties are ignored"() {
         when:
-        project.ext.sourceCompatibility = '1.2'
-        project.ext.targetCompatibility = '1.2'
+        project.ext.sourceCompatibility = JavaVersion.VERSION_1_2
+        project.ext.targetCompatibility = JavaVersion.VERSION_1_2
         project.plugins.apply(JavaPlugin)
 
         def ideaProject = buildIdeaProjectModel()

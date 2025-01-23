@@ -145,7 +145,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
     static String annotationProcessorDependency(File repoDir, String processorDependency) {
         """
             java.toolchain.languageVersion = JavaLanguageVersion.of(11)
-            java.sourceCompatibility = '1.7'
+            java.sourceCompatibility = JavaVersion.VERSION_1_7
 
             repositories {
                 maven {
@@ -207,7 +207,7 @@ class JansiEndUserIntegrationTest extends AbstractIntegrationSpec implements Jav
                 group = '$group'
                 version = '$version'
                 java.toolchain.languageVersion = JavaLanguageVersion.of(11)
-                java.sourceCompatibility = '1.7'
+                java.sourceCompatibility = JavaVersion.VERSION_1_7
 
                 dependencies {
                     implementation 'org.fusesource.jansi:jansi:$JANSI_VERSION'

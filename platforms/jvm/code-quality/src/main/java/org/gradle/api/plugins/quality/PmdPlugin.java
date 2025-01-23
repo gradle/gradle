@@ -25,6 +25,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
@@ -92,8 +93,12 @@ public abstract class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         extension.getThreads().convention(1);
         extension.getRuleSetFiles().setFrom(project.getLayout().files());
         extension.ruleSetsConvention(project.getProviders().provider(() -> ruleSetsConvention(extension)));
-        conventionMappingOf(extension).map("targetJdk", () ->
-            getDefaultTargetJdk(getJavaPluginExtension().getSourceCompatibility()));
+        extension.getTargetJdk().convention(
+            project.getProviders()
+                .provider(this::getJavaPluginExtension)
+                .flatMap(JavaPluginExtension::getEffectiveSourceCompatibility)
+                .map(this::getDefaultTargetJdk)
+        );
         return extension;
     }
 

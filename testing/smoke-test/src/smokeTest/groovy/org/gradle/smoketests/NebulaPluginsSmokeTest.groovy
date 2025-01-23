@@ -22,10 +22,15 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.GradleVersion
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.api.internal.DocumentationRegistry.BASE_URL
 
+// TODO to be fixed in 9.0
+// see https://github.com/nebula-plugins/gradle-info-plugin/blob/b171adb4c32e16fe9a9723ffbeb763586ad74bd4/src/main/groovy/nebula/plugin/info/java/InfoJavaPlugin.groovy#L105
+// It should support JavaCompatibility(Provider<String>, Provider<String>) constructor
+@Ignore("Disabled until provider api support is added")
 class NebulaPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
     @Issue('https://plugins.gradle.org/plugin/com.netflix.nebula.dependency-recommender')

@@ -322,8 +322,8 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
     private String java9Build() {
         """
             java {
-                sourceCompatibility = 1.9
-                targetCompatibility = 1.9
+                sourceCompatibility = JavaVersion.VERSION_1_9
+                targetCompatibility = JavaVersion.VERSION_1_9
             }
         """
     }

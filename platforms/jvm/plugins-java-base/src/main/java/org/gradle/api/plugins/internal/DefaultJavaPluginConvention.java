@@ -74,32 +74,32 @@ public abstract class DefaultJavaPluginConvention extends org.gradle.api.plugins
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        return extension.getSourceCompatibility();
+        return extension.getEffectiveSourceCompatibility().get();
     }
 
     @Override
     public void setSourceCompatibility(Object value) {
-        extension.setSourceCompatibility(value);
+        extension.getSourceCompatibility().set(JavaVersion.toVersion(value));
     }
 
     @Override
     public void setSourceCompatibility(JavaVersion value) {
-        extension.setSourceCompatibility(value);
+        extension.getSourceCompatibility().set(value);
     }
 
     @Override
     public JavaVersion getTargetCompatibility() {
-        return extension.getTargetCompatibility();
+        return extension.getEffectiveTargetCompatibility().get();
     }
 
     @Override
     public void setTargetCompatibility(Object value) {
-        extension.setTargetCompatibility(value);
+        extension.getTargetCompatibility().set(JavaVersion.toVersion(value));
     }
 
     @Override
     public void setTargetCompatibility(JavaVersion value) {
-        extension.setTargetCompatibility(value);
+        extension.getTargetCompatibility().set(value);
     }
 
     @Override
@@ -159,12 +159,12 @@ public abstract class DefaultJavaPluginConvention extends org.gradle.api.plugins
 
     @Override
     public void disableAutoTargetJvm() {
-        extension.disableAutoTargetJvm();
+        extension.getAutoTargetJvm().set(false);
     }
 
     @Override
     public boolean getAutoTargetJvmDisabled() {
-        return extension.getAutoTargetJvmDisabled();
+        return !extension.getAutoTargetJvm().get();
     }
 
     File getReportsDir() {

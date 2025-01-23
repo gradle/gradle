@@ -39,8 +39,8 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
             }
 
             java {
-                sourceCompatibility = $tooHighJava
-                targetCompatibility = $tooHighJava
+                sourceCompatibility = JavaVersion.toVersion($tooHighJava)
+                targetCompatibility = JavaVersion.toVersion($tooHighJava)
             }
         """
 
@@ -90,8 +90,8 @@ class TargetJVMVersionOnLibraryTooNewFailureDescriberIntegrationTest extends Abs
             }
 
             java {
-                sourceCompatibility = $tooHighJava
-                targetCompatibility = $tooHighJava
+                sourceCompatibility = JavaVersion.toVersion($tooHighJava)
+                targetCompatibility = JavaVersion.toVersion($tooHighJava)
             }
         """
 

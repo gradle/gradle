@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.plugins.JavaPluginExtension",
+            "member": "Method org.gradle.api.plugins.JavaPluginExtension.getAutoTargetJvm()",
+            "acceptation": "Replaces eager property",
+            "changes": [
+                "Method added to interface"
+            ]
+        }
+    ]
+}

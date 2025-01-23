@@ -25,7 +25,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
-            java.targetCompatibility = $version
+            java.targetCompatibility = JavaVersion.toVersion($version)
         """
 
         when:
@@ -55,7 +55,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
-            java.sourceCompatibility = $version
+            java.sourceCompatibility = JavaVersion.toVersion($version)
         """
 
         when:
@@ -86,7 +86,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
-            java.targetCompatibility = $version
+            java.targetCompatibility = JavaVersion.toVersion($version)
         """
 
         when:
