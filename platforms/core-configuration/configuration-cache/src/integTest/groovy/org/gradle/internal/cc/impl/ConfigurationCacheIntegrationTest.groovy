@@ -336,7 +336,7 @@ class ConfigurationCacheIntegrationTest extends AbstractConfigurationCacheIntegr
 
         then:
         result.assertTasksExecutedAndNotSkipped(":init")
-        configurationCache.assertStateStored { }
+        configurationCache.assertStateStored {}
         succeeds 'properties'
         def projectName1 = testDirectory.name
         outputContains("name: ${projectName1}")
