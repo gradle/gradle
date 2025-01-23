@@ -24,7 +24,7 @@ import org.gradle.internal.resource.ExternalResourceFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceConnector
 import org.gradle.internal.resource.local.FileResourceListener
-import org.gradle.internal.resource.transport.DefaultExternalResourceRepository
+import org.gradle.internal.resource.transfer.DefaultExternalResourceRepository
 import org.gradle.internal.resource.transport.http.HttpClientHelper
 import org.gradle.internal.time.Clock
 import org.gradle.internal.verifier.HttpRedirectVerifier

@@ -16,6 +16,8 @@
 
 package org.gradle.internal.resource.transfer
 
+import org.gradle.internal.logging.progress.ProgressLoggingInputStreamListener
+import org.gradle.internal.logging.progress.ProgressLoggingInputStream
 import spock.lang.Specification
 
 class ProgressLoggingInputStreamTest extends Specification {
@@ -24,7 +26,7 @@ class ProgressLoggingInputStreamTest extends Specification {
         given:
         def inputBytes = "Test data".getBytes()
         def processedBytes = 0
-        def loggingInputStream = new ProgressLoggingInputStream(new ByteArrayInputStream(inputBytes), new ProgressLoggingInputSteamListener() {
+        def loggingInputStream = new ProgressLoggingInputStream(new ByteArrayInputStream(inputBytes), new ProgressLoggingInputStreamListener() {
             @Override
             void onProcessedBytes(int numberOfBytes) {
                 processedBytes += numberOfBytes
@@ -42,7 +44,7 @@ class ProgressLoggingInputStreamTest extends Specification {
     def "Given empty input When read data Then listener didn't processed any byte"() {
         given:
         def processedBytes = 0
-        def loggingInputStream = new ProgressLoggingInputStream(new ByteArrayInputStream(new byte[0]), new ProgressLoggingInputSteamListener() {
+        def loggingInputStream = new ProgressLoggingInputStream(new ByteArrayInputStream(new byte[0]), new ProgressLoggingInputStreamListener() {
             @Override
             void onProcessedBytes(int numberOfBytes) {
                 processedBytes += numberOfBytes

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transfer;
 
+import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 
 import java.net.URI;

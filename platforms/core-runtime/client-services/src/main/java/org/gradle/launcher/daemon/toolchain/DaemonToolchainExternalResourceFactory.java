@@ -23,7 +23,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileResourceConnector;
-import org.gradle.internal.resource.transport.DefaultExternalResourceRepository;
+import org.gradle.internal.resource.transfer.DefaultExternalResourceRepository;
 import org.gradle.internal.resource.transport.http.DefaultHttpSettings;
 import org.gradle.internal.resource.transport.http.DefaultSslContextFactory;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;

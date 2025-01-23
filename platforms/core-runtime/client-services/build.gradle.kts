@@ -61,7 +61,6 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.io)
     implementation(projects.buildConfiguration)
-    implementation(projects.dependencyManagement)
 
     implementation(libs.guava)
     implementation(libs.asm)

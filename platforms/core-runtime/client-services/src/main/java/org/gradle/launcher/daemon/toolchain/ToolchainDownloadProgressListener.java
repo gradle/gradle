@@ -18,7 +18,7 @@ package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.resource.transfer.ResourceOperation;
+import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.StatusEvent;
 import org.gradle.tooling.events.download.FileDownloadOperationDescriptor;
