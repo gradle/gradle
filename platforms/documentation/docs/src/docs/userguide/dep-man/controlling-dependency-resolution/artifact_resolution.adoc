@@ -95,36 +95,27 @@ Running this task, we can see that file metadata is included in the output:
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-artifacts.out[]
 ----
 
-This example demonstrates how to use an `ArtifactView` to filter and process specific types of artifacts (like Javadocs) from a dependency configuration:
-
-====
-include::sample[dir="snippets/dependencyManagement/artifactViews-simple/kotlin",files="build.gradle.kts[tags=process-javadocs-views]"]
-include::sample[dir="snippets/dependencyManagement/artifactViews-simple/groovy",files="build.gradle[tags=process-javadocs-views]"]
-====
-
-In this example:
-
-- *1. Custom Configuration*: A new configuration is created and populated with a specific dependency.
-- *2. Artifact Filtering*: The task filters artifacts based on the `DocsType.JAVADOC` attribute, ensuring that only Javadoc files are selected.
-- *3. Artifact Processing*: Further processing can happen here.
-
 [[sec:customizing-artifact-selection]]
 == Customizing artifact selection
 
-An `ArtifactView` operates on top of the resolved dependency graph (i.e., `ResolutionResult`).
-It queries the graph for specific artifacts, enabling artifact resolution with different attributes.
+An `ArtifactView` operates on top of the resolved dependency graph (i.e., `ResolutionResult`) but allows you to apply _different attributes_.
 
-Think of a configuration's `getFiles()` output as an `ArtifactView` that uses the same attributes as the graph resolution.
-However, an explicit `ArtifactView` allows you to resolve artifacts from the graph with different attributes.
+When you call a configuration's `getFiles()`, Gradle selects artifacts based on the attributes used during graph resolution.
+However, an `ArtifactView` is more flexible.
+It allows you to resolve artifacts from the graph with _custom attributes_.
 
-There are several ways to leverage <<artifact_views.adoc#artifact-views,Artifact Views>> in Gradle:
+An `ArtifactView` allows you to:
 
-1. **Lenient Resolution**: Using `artifactView` with `lenient=true` allows you to ignore missing dependencies.
-2. **Component Filtering**: Using `artifactView` with `componentFilter` lets you exclude specific dependencies from the results.
-3. **Variant Reselection**:
-- Normally, an artifact must match both the graph's attributes and the `ArtifactView` attributes.
-- With `withVariantReselection`, you can select artifacts from any available variants within a component.
-4. **Trigger Transforms**: Trigger an `artifactTransform`.
+1. *Query artifacts with different attributes*:
+* Suppose the graph resolved a dependency's `runtime` variant. You can use an `ArtifactView` to extract artifacts from its `api` variant instead, even if they weren't originally part of the resolved graph.
+2. *Extract specific types of artifacts*:
+* You can request only the `.jar` files or a specific artifact type (e.g., sources, Javadoc) by specifying an attribute like `artifactType`.
+3. *Avoid side effects*:
+* Using an `ArtifactView` allows you to extract artifacts without changing the underlying dependency resolution logic or configuration state.
+
+In the following example, a producer project creates a library with the following variants and their attributes:
+
+
 
 [.text-right]
 **Next Step:** <<artifact_views.adoc#artifact-views,Learn about Artifact Views>> >>

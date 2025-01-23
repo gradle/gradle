@@ -284,6 +284,8 @@ You can learn more at <<tooling_api.adoc#tooling_api,Tooling API>>.
 [[testeventreporterfactory]]
 == 10. `TestEventReporterFactory`
 
+WARNING: This API is incubating.
+
 link:{javadocPath}/org/gradle/api/tasks/testing/TestEventReporterFactory.html[`TestEventReporterFactory`] is a service that provides access to the test event reporting API.
 
 You can learn more at <<test_reporting_api.adoc#test_reporting_api,Test Reporting API>>.

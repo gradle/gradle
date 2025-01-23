@@ -1,0 +1,114 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// Declare the dependency on the producer project
+dependencies {
+    implementation project(':producer')
+}
+
+tasks.register('checkResolvedVariant') {
+    doLast {
+        project.configurations.each { configuration ->
+            // Skip `test*` configurations and `annotationProcessor`
+            if (configuration.name.startsWith('test') || configuration.name == 'annotationProcessor') {
+                return
+            }
+            // Otherwise print info
+            if (configuration.canBeResolved) {
+                println "Configuration: ${configuration.name}"
+                def resolvedArtifacts = configuration.incoming.artifacts.resolvedArtifacts
+                resolvedArtifacts.get().each { artifact ->
+                    println "- Artifact: ${artifact.file}"
+                }
+                def resolvedComponents = configuration.incoming.resolutionResult.allComponents
+                resolvedComponents.each { component ->
+                    if (component.id.displayName == 'project :producer') {
+                        println "- Component: ${component.id}"
+                        component.variants.each { variant ->
+                            println "    - Variant: ${variant}"
+                            variant.attributes.keySet().each { key ->
+                                println "       - ${key.name} -> ${variant.attributes.getAttribute(key)}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.register('artifactWithAttributeAndView') {
+    doLast {
+        def configuration = configurations.runtimeClasspath
+        println "Attributes used to resolve '${configuration.name}':"
+        configuration.attributes.keySet().each { attribute ->
+            def value = configuration.attributes.getAttribute(attribute)
+            println "  - ${attribute.name} = ${value}"
+        }
+
+        println "\nAttributes in ArtifactView for 'LibraryElements = classes:'"
+        def artifactView = configuration.incoming.artifactView {
+            attributes {
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'classes'))
+            }
+        }
+
+        artifactView.artifacts.artifactFiles.files.each { file ->
+            println "- Artifact: ${file.name}"
+        }
+
+        artifactView.attributes.keySet().each { attribute ->
+            def value = artifactView.attributes.getAttribute(attribute)
+            println "  - ${attribute.name} = ${value}"
+        }
+    }
+}
+
+tasks.register('artifactWithAttributeAndVariantReselectionView') {
+    doLast {
+        def configuration = configurations.runtimeClasspath
+        println "Attributes used to resolve '${configuration.name}':"
+        configuration.attributes.keySet().each { attribute ->
+            def value = configuration.attributes.getAttribute(attribute)
+            println "  - ${attribute.name} = ${value}"
+        }
+
+        println "\nAttributes in ArtifactView for 'Category = production:'"
+        def artifactView = configuration.incoming.artifactView {
+            withVariantReselection()
+            attributes {
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category,'production'))
+            }
+        }
+
+        artifactView.artifacts.artifactFiles.files.each { file ->
+            println "- Artifact: ${file.name}"
+        }
+
+        artifactView.attributes.keySet().each { attribute ->
+            def value = artifactView.attributes.getAttribute(attribute)
+            println "  - ${attribute.name} = ${value}"
+        }
+    }
+}

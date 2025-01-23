@@ -1,3 +1,21 @@
+/*
+ * Copyright 2025 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.api.attributes.AttributeCompatibilityRule
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.java.TargetJvmVersion
 
 // tag::attributes[]
@@ -45,28 +63,25 @@ dependencies {
 // end::custom-attributes[]
 
 // tag::attribute-compatibility[]
-// Define the attribute you want to apply compatibility rules to (JavaLanguageVersion in this case)
-val javaLanguageVersionAttribute = Attribute.of("JavaLanguageVersion", Integer::class.java)
-
-// Register the compatibility rule for the JavaLanguageVersion attribute
-dependencies {
-    configurations {
-        named("myConfig") {
-            attributes {
-                // Define which attribute to apply compatibility rules to
-                attribute(javaLanguageVersionAttribute, 11) // Java version 11 for example
-            }
+// Define the compatibility rule class
+class TargetJvmVersionCompatibilityRule : AttributeCompatibilityRule<Int> {
+    // Implement the execute method which will check compatibility
+    override fun execute(details: CompatibilityCheckDetails<Int>) {
+        // Switch case to check the consumer value for supported Java versions
+        when (details.consumerValue) {
+            8, 11 -> details.compatible()  // Compatible with Java 8 and 11
+            else -> details.incompatible()
         }
     }
 }
 
-// Register a compatibility rule using `attributeMatchingStrategy`
-configurations.all {
-    resolutionStrategy.attributeMatchingStrategy(javaLanguageVersionAttribute) { version ->
-        when (version) {
-            8 -> CompatibilityResult.compatible() // Compatible with Java 8
-            11 -> CompatibilityResult.compatible() // Compatible with Java 11
-            else -> CompatibilityResult.incompatible("Unsupported Java version")
+// Register the compatibility rule within the dependencies block
+dependencies {
+    attributesSchema {
+        // Add the compatibility rule for the TargetJvmVersion attribute
+        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) {
+            // Add the defined compatibility rule to this attribute
+            compatibilityRules.add(TargetJvmVersionCompatibilityRule::class.java)
         }
     }
 }

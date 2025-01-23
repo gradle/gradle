@@ -7,7 +7,7 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 
 plugins {
-    id 'java'
+    id('java-library')
 }
 
 repositories {
@@ -36,24 +36,14 @@ dependencies {
     }
 }
 
-
-// A consumer configuration is defined to resolve artifacts of type "stub"
-def consumer = configurations.create("consumer") {
-    canBeConsumed = false
-    canBeResolved = true
-    transitive = false
-
-    dependencies.add(project.dependencies.create("org.gradle.profiler:gradle-profiler:0.21.0"))
-
-    attributes {
-        attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
-    }
+dependencies {
+    runtimeOnly("com.github.javafaker:javafaker:1.0.2")
 }
 
 // The testArtifact task queries and prints the attributes of resolved artifacts,
 // showing the type conversion in action.
 tasks.register("testArtifact") {
-    def resolvedArtifacts = consumer.incoming.artifactView {
+    def resolvedArtifacts = configurations.runtimeClasspath.incoming.artifactView {
         attributes {
             attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, "stub")
         }

@@ -15,7 +15,7 @@
 [[variant-attributes]]
 = Variants and Attributes
 
-**Variants** represent different versions or aspects of a component, like `api` vs `implementation` or `debug` vs `release`.
+**Variants** represent different versions or aspects of a component, like `api` vs `implementation`.
 **Attributes** define which variant is selected based on the consumer's requirements.
 
 For example, a library may have an `api` and an `implementation` variant.
@@ -318,18 +318,17 @@ In Gradle, **attribute matching** and **attribute disambiguation** are key mecha
 Attributes let the engine select _compatible variants_.
 There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
 
+This example defines and registers a custom compatibility rule to ensure that dependencies are selected based on their compatibility with specific Java versions:
+
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-compatibility]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-compatibility]"]
 ====
-1. **Attribute Definition**: Define the attribute you want to apply compatibility rules to. In this case, `JavaLanguageVersion`.
-2. **Register Compatibility Rule**: Use the `attributeMatchingStrategy` to specify how to handle compatibility for the defined attribute. For instance, you can define which versions of the attribute are compatible.
-3. **Compatibility Logic**: Specify the compatibility logic inside the rule. You can define specific versions or attributes that are considered compatible or incompatible.
 
 Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules] that can be defined for each attribute.
 The role of a compatibility rule is to explain which attribute values are _compatible_ based on what the consumer asked for.
 
-Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
+Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 
 [[sec:abm-disambiguation-rules]]
 === Attribute disambiguation rules

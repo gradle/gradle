@@ -65,12 +65,12 @@ See <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>> to lear
 
 An link:{javadocPath}/org/gradle/api/artifacts/transform/package-summary.html[`ArtifactTransform`] modifies the content of an artifact during dependency resolution, such as converting JAR files into custom formats.
 
-An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] provides a filtered view of resolved artifacts, enabling you to query and retrieve the transformed outputs.
+An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] permits customizing the artifact selection process, for example filtering components or requesting attributes that trigger artifact transforms.
 
 When used together:
 
 1. Register a `ArtifactTransform` to process artifacts.
-2. Configure an `ArtifactView` to filter artifacts based on attributes.
+2. Configure an `ArtifactView` to select artifacts based on attributes that differ from the original graph.
 3. Query the transformed artifacts via the `ArtifactView` to access or process the transformed files.
 
 See <<artifact_views.adoc#artifact-views,Artifact Views>> and <<artifact_transforms.adoc#artifact-transforms,Artifact Transforms>> to learn more.

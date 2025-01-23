@@ -19,27 +19,27 @@
 
 Gradle's dependency management engine is _variant aware_.
 
-In the <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,previous section>>, Gradle built a tree of dependencies called the dependency graph.
-Now, it must select the proper variants of those dependencies from the graph based on the requirements of your build.
+In the <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,previous section>>, Gradle built a graph of resolved dependencies.
+During graph resolution, Gradle must select the proper variants of each dependency based on the requirements of your build.
 
 image::dependency-resolution-variant-selection-model.png[]
 
 _Variants_ represent different ways a _component_ can be used, such as for Java compilation, native linking, or documentation.
 Each variant may have its own artifacts and dependencies.
 
-When multiple variants are available, Gradle uses _attributes_ to determine which variant to choose.
-These attributes provide meaning to the variants and ensure that the dependency resolution process produces a consistent result.
+Gradle uses _attributes_ to determine which variant to choose.
+These attributes add context to each variant, describing when they should be used.
 
 == Components
 
-A _component_ is, essentially, a *module* and a *version*:
+A _component_, in most cases, represents a *version* of a *module*.
 
-1. Components contain Artifacts
-- A component encapsulates one or more artifacts, such as JAR files, WAR files, or native binaries.
-- It can have multiple variants, such as runtime and compile variants, or platform-specific variants like JVM, Android, or JavaScript.
+A component:
 
-2. Components have Metadata
-- Metadata includes information like dependencies, version constraints, and attributes.
+* contains variants
+** which contain one or more artifacts
+** which contain zero or more dependencies
+** which is described by metadata
 
 image::component-model-gradle.png[]
 
@@ -51,7 +51,7 @@ image::component-model-gradle-example.png[]
 [[sec:abm-configuration-attributes]]
 == Variant attributes
 
-<<variant_attributes.adoc#variant-attributes,_Variants_>> represent different versions or aspects of a _component_, like `api` vs `implementation` or `debug` vs `release`.
+<<variant_attributes.adoc#variant-attributes,_Variants_>> represent different versions or aspects of a _component_, like `api` vs `implementation` or `jar` vs `classes`.
 
 In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` has four _variants_: `jvm`, `android`, `js`, and `native`.
 
@@ -134,7 +134,7 @@ IMPORTANT: The variant name is primarily used for debugging and error messages. 
 
 Gradle's dependency resolution engine performs the following _variant_ matching algorithm to find the best result (or fail):
 
-1. Each candidate's attribute value is compared to the consumer's requested attribute value. A candidate is considered compatible if its value matches the consumer's value exactly, passes the attribute's compatibility rule or is not provided.
+1. Each candidate's attribute value is compared to the consumer's requested attribute value. A candidate is considered compatible if its value matches the consumer's value exactly, passes the attribute's compatibility rule, or is not provided.
 2. If only one candidate is considered compatible, that candidate wins.
 3. If several candidates are compatible, but one of the candidates matches all of the same attributes as the other candidates, Gradle chooses that candidate. This is the candidate with the "longest" match.
 4. If several candidates are compatible and are compatible with an equal number of attributes, Gradle needs to disambiguate the candidates.
@@ -149,9 +149,11 @@ b. After all extra attributes with precedence are considered, the remaining cand
 If at any step no compatible candidates remain, resolution fails.
 Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging variant matching failures.
 
-Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules and telling Gradle the precedence of attributes. Attributes with a higher precedence are used to eliminate compatible matches in order.
+Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules, and defining the precedence of attributes.
+Attributes with a higher precedence are used to eliminate candidates in order.
 
-For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`. This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`.
+For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`.
+This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`.
 
 [NOTE]
 ====
