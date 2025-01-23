@@ -243,7 +243,6 @@
             <trusting group="org.jacoco"/>
             <trusting group="org.openjdk.jol"/>
          </trusted-key>
-         <trusted-key id="A4A9406876FCBD3C456770C88C718D3B5072E1F5" group="mysql"/>
          <trusted-key id="A55830120AED177E1AA4F66A431B8F80403A7DC1" group="com.github.javaparser"/>
          <trusted-key id="A5BD02B93E7A40482EB1D66A5F69AD087600B22C" group="org.ow2.asm"/>
          <trusted-key id="A602970FE1BF5C9C8A9491B97A3C9FE21DFDBF44" group="org.apache.pdfbox"/>
@@ -706,6 +705,11 @@
             <pgp value="A7343911CDC4AC8BF64427BD32BAF781C2D456C2"/>
          </artifact>
       </component>
+      <component group="com.mysql" name="mysql-connector-j" version="9.2.0">
+         <artifact name="mysql-connector-j-9.2.0.jar">
+            <pgp value="C8D37E9675158FF5B29B6D6452FC3551DA8DC57E"/>
+         </artifact>
+      </component>
       <component group="com.nhaarman" name="mockito-kotlin" version="1.6.0">
          <artifact name="mockito-kotlin-1.6.0.jar">
             <pgp value="5289A6F1836624CBD708B9ACAD21629F6AE723D2"/>
@@ -995,12 +999,6 @@
       <component group="me.qmx.jitescript" name="jitescript" version="0.4.1">
          <artifact name="jitescript-0.4.1.jar">
             <pgp value="8446B9E902A3F3DDEE711FDB8E26FF248BC7AEAD"/>
-         </artifact>
-      </component>
-      <component group="mysql" name="mysql-connector-java" version="8.0.17">
-         <artifact name="mysql-connector-java-8.0.17.jar">
-            <pgp value="A4A9406876FCBD3C456770C88C718D3B5072E1F5"/>
-            <sha256 value="073c395ec325ac68dcda6f5534167ba40de5b0fe4b459f7636ac6c44e4ace5a7" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.bytebuddy" name="byte-buddy" version="1.8.21">

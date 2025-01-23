@@ -199,7 +199,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val mockitoKotlin = "com.nhaarman:mockito-kotlin"
     val mockitoKotlin2 = "com.nhaarman.mockitokotlin2:mockito-kotlin"
     val mockwebserver = "com.squareup.okhttp3:mockwebserver"
-    val mySqlConnector = "mysql:mysql-connector-java"
+    val mySqlConnector = "com.mysql:mysql-connector-j"
     val netty = "io.netty:netty-all"
     val opentest4j = "org.opentest4j:opentest4j"
     val samplesCheck = "org.gradle.exemplar:samples-check"
