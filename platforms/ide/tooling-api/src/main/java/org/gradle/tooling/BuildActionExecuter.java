@@ -111,8 +111,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
      * Runs the action, blocking until its result is available.
      *
      * @throws UnsupportedVersionException When the target Gradle version does not support build action execution.
-     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
-     *          When the target Gradle version does not support some requested configuration option.
+     * @throws org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException When the target Gradle version does not support some requested configuration option.
      * @throws org.gradle.tooling.exceptions.UnsupportedBuildArgumentException When there is a problem with build arguments provided by {@link #withArguments(String...)}.
      * @throws BuildActionFailureException When the build action fails with an exception.
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
