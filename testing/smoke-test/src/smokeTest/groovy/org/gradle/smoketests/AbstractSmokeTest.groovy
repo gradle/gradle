@@ -129,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.5.10"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "8.10.2"
+        static aspectj = "8.12"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("5.6.0")
