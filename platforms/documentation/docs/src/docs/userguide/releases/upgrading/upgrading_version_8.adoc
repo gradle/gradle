@@ -107,6 +107,12 @@ container.attributeProvider(firstAttribute, project.getProviders().provider(() -
 }));
 ----
 
+[[deprecated_transform_configuration_exception]]
+==== Deprecated org.gradle.api.artifacts.transform.VariantTransformConfigurationException
+
+There is no good public use case for this exception, and it is not intended to be thrown by users.
+It will be replaced by `org.gradle.api.internal.artifacts.transform.VariantTransformConfigurationException` for internal use only in Gradle 9.0.
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
