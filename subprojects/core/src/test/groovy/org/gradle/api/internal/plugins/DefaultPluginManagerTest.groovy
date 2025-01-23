@@ -81,6 +81,8 @@ class DefaultPluginManagerTest extends Specification {
         """)
 
         classLoader.addURL(testDirectoryProvider.testDirectory.toURI().toURL())
+
+        _ * classLoaderScope.isLocked() >> true
     }
 
     def "empty manager ops"() {
