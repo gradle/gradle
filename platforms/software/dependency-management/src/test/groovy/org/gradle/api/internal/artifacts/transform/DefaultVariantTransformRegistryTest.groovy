@@ -95,7 +95,9 @@ class DefaultVariantTransformRegistryTest extends Specification {
             get(InternalProblems) >> Mock(InternalProblems)
         }
     )
-    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, Stub(ServiceRegistry), registryFactory, instantiatorFactory.injectScheme())
+
+    def parametersScheme = new TransformParameterScheme(instantiatorFactory.injectScheme(), inspectionScheme)
+    def registry = new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, AttributeTestUtil.services(), Stub(ServiceRegistry), registryFactory, parametersScheme)
 
     def "setup"() {
         _ * classLoaderHierarchyHasher.getClassLoaderHash(_) >> TestHashCodes.hashCodeFrom(123)
@@ -109,8 +111,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        registry.registrations.size() == 1
-        def registration = registry.registrations[0]
+        registry.registrations.transforms.size() == 1
+        def registration = registry.registrations.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == TestTransform
@@ -125,8 +127,8 @@ class DefaultVariantTransformRegistryTest extends Specification {
         }
 
         then:
-        registry.registrations.size() == 1
-        def registration = registry.registrations[0]
+        registry.registrations.transforms.size() == 1
+        def registration = registry.registrations.transforms[0]
         registration.from.getAttribute(TEST_ATTRIBUTE) == "FROM"
         registration.to.getAttribute(TEST_ATTRIBUTE) == "TO"
         registration.transformStep.transform.implementationClass == ParameterlessTestTransform

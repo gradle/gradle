@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.transform.TransformAction;
@@ -26,6 +27,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.TransformRegistration;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiationScheme;
@@ -35,12 +37,15 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultVariantTransformRegistry implements VariantTransformRegistry {
     private final List<TransformRegistration> registrations = new ArrayList<>();
     private final AttributesFactory attributesFactory;
+    private final AttributeSchemaServices attributeSchemaServices;
     private final ServiceRegistry services;
     private final InstantiatorFactory instantiatorFactory;
     private final InstantiationScheme parametersInstantiationScheme;
@@ -48,12 +53,24 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     @SuppressWarnings("unchecked")
     private final IsolationScheme<TransformAction<?>, TransformParameters> isolationScheme = new IsolationScheme<TransformAction<?>, TransformParameters>((Class)TransformAction.class, TransformParameters.class, TransformParameters.None.class);
 
-    public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, AttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
+    private final ReentrantLock registrationSnapshotLock = new ReentrantLock();
+    private RegisteredTransforms registrationSnapshot;
+
+    @Inject
+    public DefaultVariantTransformRegistry(
+        InstantiatorFactory instantiatorFactory,
+        AttributesFactory attributesFactory,
+        AttributeSchemaServices attributeSchemaServices,
+        ServiceRegistry services,
+        TransformRegistrationFactory registrationFactory,
+        TransformParameterScheme transformParameterScheme
+    ) {
         this.instantiatorFactory = instantiatorFactory;
         this.attributesFactory = attributesFactory;
+        this.attributeSchemaServices = attributeSchemaServices;
         this.services = services;
         this.registrationFactory = registrationFactory;
-        this.parametersInstantiationScheme = parametersInstantiationScheme;
+        this.parametersInstantiationScheme = transformParameterScheme.getInstantiationScheme();
     }
 
     @Override
@@ -97,6 +114,14 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
             validateAttributes(registration);
             TransformRegistration finalizedRegistration = registrationFactory.create(registration.from.asImmutable(), registration.to.asImmutable(), actionType, parameterObject);
             registrations.add(finalizedRegistration);
+
+            registrationSnapshotLock.lock();
+            try {
+                // TODO: Warn/throw if registrationSnapshot is non-null and registrations have already been read.
+                registrationSnapshot = null;
+            } finally {
+                registrationSnapshotLock.unlock();
+            }
         } catch (Exception e) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not register artifact transform ");
@@ -129,8 +154,16 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     }
 
     @Override
-    public List<TransformRegistration> getRegistrations() {
-        return registrations;
+    public RegisteredTransforms getRegistrations() {
+        registrationSnapshotLock.lock();
+        try {
+            if (registrationSnapshot == null) {
+                registrationSnapshot = attributeSchemaServices.getRegisteredTransforms(ImmutableList.copyOf(registrations));
+            }
+            return registrationSnapshot;
+        } finally {
+            registrationSnapshotLock.unlock();
+        }
     }
 
     public static abstract class RecordingRegistration {
