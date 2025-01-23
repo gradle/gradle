@@ -17,22 +17,34 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
+/**
+ * Represents an artifact that has its owning component ID overridden.
+ * <p>
+ * This is used when an artifact is referenced from another build, and its owning component id is overridden to its foreign counterpart.
+ * This will go away in Gradle 9.0, when we no longer need to override the owning component id with a foreign identifier.
+ * <p>
+ * This should be better named as {@code OverriddenComponentIdArtifactMetadata} or similar, but Kotlin currently references this internal class.
+ *
+ * @see <a href="https://github.com/JetBrains/kotlin/blame/83a7ecda3eccd378a3882b81d8e83ecc12b3b786/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/npm/resolver/KotlinCompilationNpmResolver.kt#L245">Link</a>
+ */
 public class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
-    private final ProjectComponentIdentifier componentIdentifier;
-    private final LocalComponentArtifactMetadata delegate;
-    private final File file;
 
-    public CompositeProjectComponentArtifactMetadata(ProjectComponentIdentifier componentIdentifier, LocalComponentArtifactMetadata delegate, File file) {
-        this.componentIdentifier = componentIdentifier;
+    private final ComponentIdentifier overrideComponentId;
+    private final LocalComponentArtifactMetadata delegate;
+
+    public CompositeProjectComponentArtifactMetadata(
+        ComponentIdentifier overrideComponentId,
+        LocalComponentArtifactMetadata delegate
+    ) {
+        this.overrideComponentId = overrideComponentId;
         this.delegate = delegate;
-        this.file = file;
     }
 
     @Override
@@ -45,8 +57,8 @@ public class CompositeProjectComponentArtifactMetadata implements LocalComponent
     }
 
     @Override
-    public ProjectComponentIdentifier getComponentId() {
-        return componentIdentifier;
+    public ComponentIdentifier getComponentId() {
+        return overrideComponentId;
     }
 
     @Override
@@ -60,8 +72,8 @@ public class CompositeProjectComponentArtifactMetadata implements LocalComponent
     }
 
     @Override
-    public ProjectComponentIdentifier getComponentIdentifier() {
-        return componentIdentifier;
+    public ComponentIdentifier getComponentIdentifier() {
+        return overrideComponentId;
     }
 
     @Override
@@ -76,7 +88,7 @@ public class CompositeProjectComponentArtifactMetadata implements LocalComponent
 
     @Override
     public File getFile() {
-        return file;
+        return delegate.getFile();
     }
 
     @Override
