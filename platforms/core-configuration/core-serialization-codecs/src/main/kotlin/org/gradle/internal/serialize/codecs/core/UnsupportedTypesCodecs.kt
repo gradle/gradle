@@ -51,7 +51,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.project.IsolatedProject
 import org.gradle.api.publish.Publication
 import org.gradle.api.services.BuildService
-import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceProviderInternal
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
@@ -149,8 +149,8 @@ fun BindingsBuilder.unsupportedTypes() {
 }
 
 
-object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvider<*, *>> {
-    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
+object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProviderInternal<*, *>> {
+    override suspend fun WriteContext.encode(value: BuildServiceProviderInternal<*, *>) {
         logUnsupported(
             "serialize",
             documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint
@@ -163,8 +163,8 @@ object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvi
         }
     }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
-        logUnsupported("deserialize", BuildServiceProvider::class, documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint)
+    override suspend fun ReadContext.decode(): BuildServiceProviderInternal<*, *>? {
+        logUnsupported("deserialize", BuildServiceProviderInternal::class, documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint)
         return null
     }
 }

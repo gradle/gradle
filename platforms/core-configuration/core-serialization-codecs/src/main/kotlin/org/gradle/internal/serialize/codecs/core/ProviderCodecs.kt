@@ -39,7 +39,7 @@ import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceDetails
-import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceProviderInternal
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.IsolateOwners
@@ -71,7 +71,7 @@ import org.gradle.internal.serialize.graph.withPropertyTrace
 
 fun defaultCodecForProviderWithChangingValue(
     valueSourceProviderCodec: Codec<ValueSourceProvider<*, *>>,
-    buildServiceProviderCodec: Codec<BuildServiceProvider<*, *>>,
+    buildServiceProviderCodec: Codec<BuildServiceProviderInternal<*, *>>,
     flowProvidersCodec: Codec<BuildWorkResultProvider>
 ) = Bindings.of {
     bind(valueSourceProviderCodec)
@@ -228,9 +228,9 @@ class ProviderCodec(
 
 class BuildServiceProviderCodec(
     private val buildStateRegistry: BuildStateRegistry
-) : Codec<BuildServiceProvider<*, *>> {
+) : Codec<BuildServiceProviderInternal<*, *>> {
 
-    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) =
+    override suspend fun WriteContext.encode(value: BuildServiceProviderInternal<*, *>) =
         encodePreservingSharedIdentityOf(value) {
             val serviceDetails: BuildServiceDetails<*, *> = value.serviceDetails
             write(serviceDetails.buildIdentifier)
@@ -243,8 +243,8 @@ class BuildServiceProviderCodec(
             }
         }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *> =
-        decodePreservingSharedIdentity<BuildServiceProvider<*, *>> {
+    override suspend fun ReadContext.decode(): BuildServiceProviderInternal<*, *> =
+        decodePreservingSharedIdentity<BuildServiceProviderInternal<*, *>> {
             val buildIdentifier = readNonNull<BuildIdentifier>()
             val name = readString()
             val implementationType = readClassOf<BuildService<*>>()

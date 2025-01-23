@@ -60,7 +60,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
                     listenerManager,
                     isolatableFactory,
                     leaseRegistry,
-                    BuildServiceProvider.Listener.EMPTY
+                    BuildServiceProviderInternal.Listener.EMPTY
                 )
             }
         })

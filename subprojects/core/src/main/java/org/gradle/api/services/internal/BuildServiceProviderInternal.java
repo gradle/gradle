@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceProvider;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceLookup;
@@ -36,14 +37,14 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * A provider for build services that are registered or consumed.
  */
 @SuppressWarnings("rawtypes")
-public abstract class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
+public abstract class BuildServiceProviderInternal<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements BuildServiceProvider<T>, Managed {
 
     static <T> Class<T> getProvidedType(Provider<T> provider) {
         return ((ProviderInternal<T>) provider).getType();
     }
 
-    static BuildServiceProvider<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
-        if (service instanceof BuildServiceProvider) {
+    static BuildServiceProviderInternal<?, ?> asBuildServiceProvider(Provider<? extends BuildService<?>> service) {
+        if (service instanceof BuildServiceProviderInternal) {
             return uncheckedCast(service);
         }
         throw new UnsupportedOperationException("Unexpected provider for a build service: " + service);
@@ -53,7 +54,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         Listener EMPTY = provider -> {
         };
 
-        void beforeGet(BuildServiceProvider<?, ?> provider);
+        void beforeGet(BuildServiceProviderInternal<?, ?> provider);
     }
 
     @Override
@@ -78,7 +79,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
     @SuppressWarnings("unused") // Used via instrumentation
     public static <P extends BuildServiceParameters, T extends BuildService<P>> void setBuildServiceAsConvention(@Nonnull DefaultProperty<T> property, ServiceLookup serviceLookup, String buildServiceName) {
         BuildServiceRegistryInternal buildServiceRegistry = (BuildServiceRegistryInternal) serviceLookup.get(BuildServiceRegistry.class);
-        BuildServiceProvider<T, P> consumer = Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
+        BuildServiceProviderInternal<T, P> consumer = Cast.uncheckedCast(buildServiceRegistry.consume(buildServiceName, property.getType()));
         property.convention(consumer);
     }
 
@@ -104,11 +105,11 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         if (thisProvider == anotherProvider) {
             return true;
         }
-        if (!(thisProvider instanceof BuildServiceProvider && anotherProvider instanceof BuildServiceProvider)) {
+        if (!(thisProvider instanceof BuildServiceProviderInternal && anotherProvider instanceof BuildServiceProviderInternal)) {
             return false;
         }
-        BuildServiceProvider thisBuildServiceProvider = (BuildServiceProvider) thisProvider;
-        BuildServiceProvider otherBuildServiceProvider = (BuildServiceProvider) anotherProvider;
+        BuildServiceProviderInternal thisBuildServiceProvider = (BuildServiceProviderInternal) thisProvider;
+        BuildServiceProviderInternal otherBuildServiceProvider = (BuildServiceProviderInternal) anotherProvider;
         String thisName = thisBuildServiceProvider.getName();
         String otherName = otherBuildServiceProvider.getName();
         if (!thisName.isEmpty() && !otherName.isEmpty() && !thisName.equals(otherName)) {
@@ -120,7 +121,7 @@ public abstract class BuildServiceProvider<T extends BuildService<P>, P extends 
         return thisBuildServiceProvider.getBuildIdentifier().equals(otherBuildServiceProvider.getBuildIdentifier());
     }
 
-    private static boolean isCompatibleServiceType(BuildServiceProvider thisBuildServiceProvider, BuildServiceProvider otherBuildServiceProvider) {
+    private static boolean isCompatibleServiceType(BuildServiceProviderInternal thisBuildServiceProvider, BuildServiceProviderInternal otherBuildServiceProvider) {
         Class<?> otherType = otherBuildServiceProvider.getType();
         Class<?> thisType = thisBuildServiceProvider.getType();
         return otherType.isAssignableFrom(Cast.uncheckedCast(thisType));

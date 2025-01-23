@@ -5,6 +5,8 @@ Class <org.gradle.api.artifacts.ResolveException> extends/implements org.gradle.
 Class <org.gradle.api.plugins.quality.CheckstylePlugin> extends/implements org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin that is Gradle Internal API in (CheckstylePlugin.java:0)
 Class <org.gradle.api.plugins.quality.CodeNarcPlugin> extends/implements org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin that is Gradle Internal API in (CodeNarcPlugin.java:0)
 Class <org.gradle.api.plugins.quality.PmdPlugin> extends/implements org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin that is Gradle Internal API in (PmdPlugin.java:0)
+Class <org.gradle.api.services.BuildServiceRegistration> extends/implements org.gradle.api.services.internal.BuildServiceRegistrationCompat that is Gradle Internal API in (BuildServiceRegistration.java:0)
+Class <org.gradle.api.services.BuildServiceRegistry> extends/implements org.gradle.api.services.internal.BuildServiceRegistryCompat that is Gradle Internal API in (BuildServiceRegistry.java:0)
 Class <org.gradle.api.tasks.AbstractCopyTask> extends/implements org.gradle.api.internal.ConventionTask, org.gradle.api.internal.file.copy.CopySpecSource that are Gradle Internal API in (AbstractCopyTask.java:0)
 Class <org.gradle.api.tasks.AbstractExecTask> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (AbstractExecTask.java:0)
 Class <org.gradle.api.tasks.Delete> extends/implements org.gradle.api.internal.ConventionTask that is Gradle Internal API in (Delete.java:0)

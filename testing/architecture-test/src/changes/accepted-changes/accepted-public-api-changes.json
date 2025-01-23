@@ -1,6 +1,30 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.services.BuildServiceProvider",
+            "member": "Class org.gradle.api.services.BuildServiceProvider",
+            "acceptation": "Refined return type for build services",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.services.BuildServiceRegistration",
+            "member": "Class org.gradle.api.services.BuildServiceRegistration",
+            "acceptation": "Forces bridge-method to be generated for backward compatibility",
+            "changes": [
+                "org.gradle.api.services.internal.BuildServiceRegistrationCompat"
+            ]
+        },
+        {
+            "type": "org.gradle.api.services.BuildServiceRegistry",
+            "member": "Class org.gradle.api.services.BuildServiceRegistry",
+            "acceptation": "Forces bridge-method to be generated for backward compatibility",
+            "changes": [
+                "org.gradle.api.services.internal.BuildServiceRegistryCompat"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
             "acceptation": "Protected methods intende to be overriden by Gradle, not API",
@@ -22,6 +46,22 @@
             "acceptation": "Protected methods intende to be overriden by Gradle, not API",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass)",
+            "acceptation": "I swear I'll fix it",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt",
+            "member": "Method org.gradle.kotlin.dsl.GradleApiKotlinDslExtensions_4xzlmchnjfhf5wwk67zexqao1Kt.registerIfAbsent(org.gradle.api.services.BuildServiceRegistry,java.lang.String,kotlin.reflect.KClass,org.gradle.api.Action)",
+            "acceptation": "I swear I'll fix it",
+            "changes": [
+                "Method return type has changed"
             ]
         }
     ]

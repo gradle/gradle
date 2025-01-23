@@ -19,6 +19,7 @@ package org.gradle.api.services;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.internal.BuildServiceRegistrationCompat;
 
 /**
  * Details of a build service.
@@ -27,7 +28,7 @@ import org.gradle.api.provider.Provider;
  * @param <P> the service parameters type.
  * @since 6.1
  */
-public interface BuildServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> extends Named {
+public interface BuildServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> extends Named, BuildServiceRegistrationCompat<T> {
     /**
      * Returns the parameters that will be used to instantiate the service with.
      */
@@ -49,5 +50,6 @@ public interface BuildServiceRegistration<T extends BuildService<P>, P extends B
     /**
      * Returns a {@link Provider} that will create the service instance when its value is queried.
      */
-    Provider<T> getService();
+    @Override
+    BuildServiceProvider<T> getService();
 }

@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 /**
  * A build service that is consumed.
  */
-public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>> extends BuildServiceProvider<T, BuildServiceParameters> {
+public class ConsumedBuildServiceProvider<T extends BuildService<BuildServiceParameters>> extends BuildServiceProviderInternal<T, BuildServiceParameters> {
     protected final ServiceRegistry internalServices;
     private final String serviceName;
     private final Class<T> serviceType;
@@ -108,7 +108,7 @@ public class ConsumedBuildServiceProvider<T extends BuildService<BuildServicePar
 
     @Override
     public BuildServiceDetails<T, BuildServiceParameters> getServiceDetails() {
-        BuildServiceProvider<T, BuildServiceParameters> resolvedProvider = resolve(true);
+        BuildServiceProviderInternal<T, BuildServiceParameters> resolvedProvider = resolve(true);
         return resolvedProvider != null ? resolvedProvider.getServiceDetails() : new BuildServiceDetails<>(buildIdentifier, serviceName, serviceType);
     }
 

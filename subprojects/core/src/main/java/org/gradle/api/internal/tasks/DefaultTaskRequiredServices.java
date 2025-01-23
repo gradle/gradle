@@ -21,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.GetServiceReferencesVisitor;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.api.services.internal.BuildServiceProviderInternal;
 import org.gradle.api.services.internal.ConsumedBuildServiceProvider;
 import org.gradle.api.services.internal.RegisteredBuildServiceProvider;
 import org.gradle.internal.Cast;
@@ -47,7 +47,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     private Set<RegisteredBuildServiceProvider<?, ?>> registeredServices;
 
     @Nullable
-    private Collection<? extends BuildServiceProvider<?, ?>> consumedServices;
+    private Collection<? extends BuildServiceProviderInternal<?, ?>> consumedServices;
 
     public DefaultTaskRequiredServices(TaskInternal task, TaskMutator taskMutator, PropertyWalker propertyWalker) {
         this.task = task;
@@ -66,7 +66,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     }
 
     private Set<Provider<? extends BuildService<?>>> getElements(boolean search) {
-        ImmutableSet.Builder<BuildServiceProvider<?, ?>> allServicesUsed = ImmutableSet.builder();
+        ImmutableSet.Builder<BuildServiceProviderInternal<?, ?>> allServicesUsed = ImmutableSet.builder();
         if (registeredServices != null) {
             allServicesUsed.addAll(registeredServices);
         }
@@ -79,7 +79,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
                 .filter(Objects::nonNull)
                 .forEach(allServicesUsed::add);
         }
-        ImmutableSet<BuildServiceProvider<?, ?>> build = allServicesUsed.build();
+        ImmutableSet<BuildServiceProviderInternal<?, ?>> build = allServicesUsed.build();
         return Cast.uncheckedCast(build);
     }
 
@@ -92,7 +92,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
 
     @Override
     public boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck) {
-        return getElements(false).stream().anyMatch(it -> BuildServiceProvider.isSameService(toCheck, it));
+        return getElements(false).stream().anyMatch(it -> BuildServiceProviderInternal.isSameService(toCheck, it));
     }
 
     @Override
@@ -111,7 +111,7 @@ public class DefaultTaskRequiredServices implements TaskRequiredServices {
     }
 
     @Override
-    public void acceptServiceReferences(List<? extends BuildServiceProvider<?, ?>> serviceReferences) {
+    public void acceptServiceReferences(List<? extends BuildServiceProviderInternal<?, ?>> serviceReferences) {
         // someone already collected service references for us, just remember them
         consumedServices = serviceReferences;
     }

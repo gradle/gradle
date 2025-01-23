@@ -28,7 +28,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
-import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceProviderInternal
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -293,7 +293,7 @@ service: closed with value 11
                 nestedCounter.convention(providers.provider { objects.newInstance(NestedBean) } )
                 doLast {
                     assert requiredServices.elements.any { service ->
-                        service instanceof ${BuildServiceProvider.name}
+                        service instanceof ${BuildServiceProviderInternal.name}
                     }
                 }
             }

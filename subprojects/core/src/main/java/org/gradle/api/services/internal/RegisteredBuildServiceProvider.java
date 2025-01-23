@@ -36,7 +36,7 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 // TODO:configuration-cache - complain when used at configuration time, except when opted in to this
-public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProvider<T, P> {
+public class RegisteredBuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends BuildServiceProviderInternal<T, P> {
 
     protected final ServiceRegistry internalServices;
     protected final BuildServiceDetails<T, P> serviceDetails;

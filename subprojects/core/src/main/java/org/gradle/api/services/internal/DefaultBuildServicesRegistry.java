@@ -30,6 +30,7 @@ import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
+import org.gradle.api.services.BuildServiceProvider;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
@@ -54,7 +55,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.gradle.api.services.internal.BuildServiceProvider.asBuildServiceProvider;
+import static org.gradle.api.services.internal.BuildServiceProviderInternal.asBuildServiceProvider;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
@@ -72,7 +73,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         Cast.uncheckedCast(BuildService.class), BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
-    private final BuildServiceProvider.Listener listener;
+    private final BuildServiceProviderInternal.Listener listener;
 
     public DefaultBuildServicesRegistry(
         BuildIdentifier buildIdentifier,
@@ -82,7 +83,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         ListenerManager listenerManager,
         IsolatableFactory isolatableFactory,
         SharedResourceLeaseRegistry leaseRegistry,
-        BuildServiceProvider.Listener listener
+        BuildServiceProviderInternal.Listener listener
     ) {
         this.buildIdentifier = buildIdentifier;
         this.registrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -112,7 +113,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public SharedResource forService(BuildServiceProvider<?, ?> service) {
+    public SharedResource forService(BuildServiceProviderInternal<?, ?> service) {
         DefaultServiceRegistration<?, ?> registration = findRegistration(service.getType(), service.getName());
         if (registration == null) {
             // no corresponding service registered
@@ -143,9 +144,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     public Set<BuildServiceRegistration<?, ?>> findRegistrations(Class<?> type, @Nullable String name) {
         return withRegistrations(registrations ->
             ImmutableSet.<BuildServiceRegistration<?, ?>>builder().addAll(registrations.matching(it ->
-                type.isAssignableFrom(BuildServiceProvider.getProvidedType(it.getService()))
+                type.isAssignableFrom(BuildServiceProviderInternal.getProvidedType(it.getService()))
                     &&
-                (StringUtils.isEmpty(name) || it.getName().equals(name))
+                    (StringUtils.isEmpty(name) || it.getName().equals(name))
             )).build()
         );
     }
@@ -163,7 +164,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
+    public <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
         return doRegisterIfAbsent(name, implementationType, () -> {
             // TODO - extract some shared infrastructure to take care of parameter instantiation (eg strict vs lenient, which services are visible)
             P parameters = instantiateParametersOf(implementationType);
@@ -176,7 +177,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProviderInternal<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
         Supplier<BuildServiceSpec<?>> buildServiceSpecSupplier = () -> {
             DefaultServiceSpec<?> spec = uncheckedNonnullCast(specInstantiator.newInstance(DefaultServiceSpec.class, parameters));
             spec.getMaxParallelUsages().set(maxUsages);
@@ -185,7 +186,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return doRegisterIfAbsent(name, uncheckedNonnullCast(implementationType), uncheckedNonnullCast(buildServiceSpecSupplier));
     }
 
-    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegisterIfAbsent(String name, Class<T> implementationType, Supplier<BuildServiceSpec<P>> specSupplier) {
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProviderInternal<T, P> doRegisterIfAbsent(String name, Class<T> implementationType, Supplier<BuildServiceSpec<P>> specSupplier) {
         return withRegistrations(registrations -> {
             BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
             if (existing != null) {
@@ -227,7 +228,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
+    public BuildServiceProviderInternal<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages) {
         return withRegistrations(registrations -> {
             DefaultServiceRegistration<?, ?> registration = Cast.uncheckedCast(registrations.findByName(name));
             if (registration != null) {
@@ -242,15 +243,15 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
+    public BuildServiceProviderInternal<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
         return doConsume(name, uncheckedCast(implementationType));
     }
 
-    private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
+    private <T extends BuildService<BuildServiceParameters>> BuildServiceProviderInternal<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
         return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, services);
     }
 
-    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProviderInternal<T, P> doRegister(
         String name,
         Class<T> implementationType,
         @Nullable P parameters,
@@ -352,7 +353,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
 
         @Override
-        public Provider<T> getService() {
+        public BuildServiceProvider<T> getService() {
             return provider;
         }
 
