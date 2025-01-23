@@ -2,7 +2,7 @@ import gradle.kotlin.dsl.accessors._23cdd86de02729e5f5eded3732f08da5.kotlin
 import gradle.kotlin.dsl.accessors._23cdd86de02729e5f5eded3732f08da5.libs
 import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.main
 import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.sourceSets
-import gradlebuild.basics.ImplementationCompletenessAttribute
+import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.packaging.tasks.ExtractJavaAbi
 import org.jetbrains.kotlin.gradle.plugin.CompilerPluginConfig
@@ -36,7 +36,7 @@ val apiStubElements = configurations.consumable("apiStubElements") {
     extendsFrom(configurations.named("compileOnly").get())
 //    configureAsApiElements(objects)
     attributes {
-        attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
+        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
     }
 }
 

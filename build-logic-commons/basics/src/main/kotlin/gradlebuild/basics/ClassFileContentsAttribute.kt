@@ -18,11 +18,18 @@ package gradlebuild.basics
 
 import org.gradle.api.attributes.Attribute
 
-// TODO: Find a better name
-enum class ImplementationCompletenessAttribute {
-    STUBS, FULL;
+enum class ClassFileContentsAttribute {
+    /**
+     * Only include method declarations with stub code; eliminate private members.
+     */
+    STUBS,
+
+    /**
+     * Include the complete bytecode complete with method bodies and private members.
+     */
+    COMPLETE;
 
     companion object {
-        val attribute = Attribute.of(ImplementationCompletenessAttribute::class.java)
+        val attribute = Attribute.of(ClassFileContentsAttribute::class.java)
     }
 }

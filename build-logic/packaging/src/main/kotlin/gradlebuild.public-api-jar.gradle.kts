@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import gradlebuild.basics.ImplementationCompletenessAttribute
+import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsRuntimeElements
 import gradlebuild.configureAsRuntimeJarClasspath
 
@@ -52,7 +52,7 @@ val distribution = configurations.dependencyScope("distribution") {
 val distributionClasspath = configurations.resolvable("distributionClasspath") {
     extendsFrom(distribution.get())
     attributes {
-        attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
+        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
     }
 }
 
