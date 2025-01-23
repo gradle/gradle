@@ -616,6 +616,11 @@
             <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
          </artifact>
       </component>
+      <component group="com.google.googlejavaformat" name="google-java-format" version="1.19.1">
+         <artifact name="google-java-format-1.19.1.jar">
+            <pgp value="EE0CA873074092F806F59B65D364ABAA39A47320"/>
+         </artifact>
+      </component>
       <component group="com.google.guava" name="guava-jdk5" version="14.0.1">
          <artifact name="guava-jdk5-14.0.1.jar">
             <pgp value="AC6A8BC1BA5426F13D93060E806E7D417A281864"/>
@@ -1031,6 +1036,11 @@
       <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.0.1">
          <artifact name="gradle-errorprone-plugin-4.0.1.jar">
             <sha256 value="4caa671392fd3675171e93c663f2642452819c68d3ef90206d7949bd8fee7d9e" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="net.ltgt.gradle" name="gradle-errorprone-plugin" version="4.1.0">
+         <artifact name="gradle-errorprone-plugin-4.1.0.jar">
+            <sha256 value="f1eab035c996e20b081bf3c18bd0e328bb553d465e4be2354d0af4dde070465d" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
       <component group="net.openhft" name="zero-allocation-hashing" version="0.10.1">
@@ -1492,6 +1502,11 @@
       <component group="org.json" name="json" version="20080701">
          <artifact name="json-20080701.jar">
             <sha256 value="03acd6adab2da447f49814751b0e953fb62a6a1023f9d2a705c30a6e3e4638eb" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="org.jspecify" name="jspecify" version="1.0.0">
+         <artifact name="jspecify-1.0.0.jar">
+            <pgp value="41CD49B4EF5876F9E9F691DABAC30622339994C4"/>
          </artifact>
       </component>
       <component group="org.jvnet.staxex" name="stax-ex" version="1.8.1">
