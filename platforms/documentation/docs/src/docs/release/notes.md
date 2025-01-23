@@ -161,6 +161,12 @@ See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecy
 
 The following are the features that have been promoted in this Gradle release.
 
+### Promoted features in Tooling API
+
+The API to asynchronously send data to the client, which includes
+`BuildActionExecuter.setStreamedValueListener(StreamedValueListener)` method, the `StreamedValueListener` type,
+and the `BuildController.send(Object)` method.
+
 <!--
 ### Example promoted
 -->
