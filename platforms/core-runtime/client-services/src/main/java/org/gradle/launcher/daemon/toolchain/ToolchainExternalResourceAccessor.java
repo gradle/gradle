@@ -21,7 +21,7 @@ import org.gradle.internal.resource.ExternalResource;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ResourceExceptions;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
-import org.gradle.internal.resource.transfer.ProgressLoggingInputStream;
+import org.gradle.internal.logging.progress.ProgressLoggingInputStream;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
 import org.gradle.internal.resource.transport.http.HttpResourceAccessor;
 import org.gradle.internal.time.Clock;

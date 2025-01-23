@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transfer;
+package org.gradle.internal.logging.progress;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class ProgressLoggingInputStream extends InputStream {
     private final InputStream inputStream;
-    private final ProgressLoggingInputSteamListener progressLoggingInputSteamListener;
+    private final ProgressLoggingInputStreamListener progressLoggingInputStreamListener;
 
-    public ProgressLoggingInputStream(InputStream inputStream, ProgressLoggingInputSteamListener progressLoggingInputSteamListener) {
+    public ProgressLoggingInputStream(InputStream inputStream, ProgressLoggingInputStreamListener progressLoggingInputStreamListener) {
         this.inputStream = inputStream;
-        this.progressLoggingInputSteamListener = progressLoggingInputSteamListener;
+        this.progressLoggingInputStreamListener = progressLoggingInputStreamListener;
     }
 
     @Override
@@ -42,7 +42,7 @@ public class ProgressLoggingInputStream extends InputStream {
     public int read(byte[] b, int off, int len) throws IOException {
         int read = inputStream.read(b, off, len);
         if (read > 0) {
-            progressLoggingInputSteamListener.onProcessedBytes(read);
+            progressLoggingInputStreamListener.onProcessedBytes(read);
         }
         return read;
     }

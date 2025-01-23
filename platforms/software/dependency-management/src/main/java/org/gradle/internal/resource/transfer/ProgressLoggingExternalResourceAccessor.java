@@ -17,6 +17,8 @@
 package org.gradle.internal.resource.transfer;
 
 import org.gradle.api.resources.ResourceException;
+import org.gradle.internal.logging.progress.ProgressLoggingInputStream;
+import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
