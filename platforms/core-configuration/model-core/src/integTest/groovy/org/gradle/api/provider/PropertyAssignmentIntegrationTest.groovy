@@ -399,7 +399,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void run() {
-                    if (input instanceof DirectoryProperty) {
+                    if (input instanceof FileSystemLocationProperty) {
                         println("$RESULT_PREFIX" + input.map { it.asFile.name }.getOrElse("undefined"))
                     } else if (input instanceof File) {
                        println("$RESULT_PREFIX" + input.name)
@@ -436,7 +436,7 @@ class PropertyAssignmentIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction
                 fun run() {
                     when (val anyInput = input as Any?) {
-                       is DirectoryProperty -> println("$RESULT_PREFIX" + anyInput.map { it.asFile.name }.getOrElse("undefined"))
+                       is FileSystemLocationProperty<*> -> println("$RESULT_PREFIX" + anyInput.map { it.asFile.name }.getOrElse("undefined"))
                        is File -> println("$RESULT_PREFIX" + anyInput.name)
                        is Provider<*> -> println("$RESULT_PREFIX" + anyInput.map { it.toString() }.getOrElse("undefined"))
                        is FileCollection -> println("$RESULT_PREFIX" + anyInput.files.map { it.name })
