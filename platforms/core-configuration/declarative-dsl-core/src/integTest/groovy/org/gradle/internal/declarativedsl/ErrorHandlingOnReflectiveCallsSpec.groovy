@@ -23,6 +23,60 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 
 class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
+    def 'can disambiguate between methods based on parameters'() {
+        given:
+
+        file("build-logic/build.gradle") << defineBuildLogic([
+            "id(\"java-gradle-plugin\")",
+            "id(\"org.jetbrains.kotlin.jvm\").version(\"${new KotlinGradlePluginVersions().latest}\")"
+        ])
+
+        file("build-logic/src/main/kotlin/com/example/restricted/Extension.kt") << """
+            package com.example.restricted;
+
+            import org.gradle.api.provider.Property
+            import org.gradle.declarative.dsl.model.annotations.Restricted
+
+            @Restricted
+            abstract class Extension {
+
+                @get:Restricted
+                abstract val prop: Property<String>
+
+                @Restricted
+                fun print(data: Int): String {
+                    throw RuntimeException("Boom Int")
+                }
+
+                @Restricted
+                fun print(data: String): String {
+                    throw RuntimeException("Boom String")
+                }
+            }
+        """
+
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") <<
+            defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineProjectPlugin()
+
+        file("settings.gradle.dcl") << defineSettingsLogic()
+
+        file("build.gradle.dcl") << """
+            restricted {
+                prop = print(1)
+            }
+        """
+
+        when:
+        fails(":help")
+
+        then:
+        failureCauseContains("Boom Int")
+    }
+
+
+
     def 'can disambiguate between annotated and non-annotated methods'() {
         given:
 
@@ -69,32 +123,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") <<
             defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
 
-        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
-            package com.example.restricted;
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineProjectPlugin()
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getExtension();
-
-                @Override
-                public void apply(Project target) {
-                }
-            }
-        """
-
-        file("settings.gradle.dcl") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-
-            plugins {
-                id("com.example.restricted.ecosystem")
-            }
-        """
+        file("settings.gradle.dcl") << defineSettingsLogic()
 
         file("build.gradle.dcl") << """
             restricted {
@@ -110,8 +141,6 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         then:
         failureCauseContains("Boom Action")
     }
-
-
 
     def 'fails disambiguating between two annotated, semantically equivalent methods'() {
         given:
@@ -160,32 +189,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") <<
             defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
 
-        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
-            package com.example.restricted;
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineProjectPlugin()
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getExtension();
-
-                @Override
-                public void apply(Project target) {
-                }
-            }
-        """
-
-        file("settings.gradle.dcl") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-
-            plugins {
-                id("com.example.restricted.ecosystem")
-            }
-        """
+        file("settings.gradle.dcl") << defineSettingsLogic()
 
         file("build.gradle.dcl") << """
             restricted {
@@ -200,7 +206,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
 
         then:
-        failureCauseContains("Failed disambiguating between following functions:")
+        failureCauseContains("Failed disambiguating between following functions (matches 0):")
         failureCauseContains("fun com.example.restricted.Extension.access(org.gradle.api.Action<com.example.restricted.Extension.Access>): kotlin.Unit")
         failureCauseContains("fun com.example.restricted.Extension.access((com.example.restricted.Extension.Access) -> kotlin.Unit): kotlin.Unit")
     }
@@ -251,32 +257,9 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") <<
             defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
 
-        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
-            package com.example.restricted;
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineProjectPlugin()
 
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import ${SoftwareType.class.name};
-
-            public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getExtension();
-
-                @Override
-                public void apply(Project target) {
-                }
-            }
-        """
-
-        file("settings.gradle.dcl") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-
-            plugins {
-                id("com.example.restricted.ecosystem")
-            }
-        """
+        file("settings.gradle.dcl") << defineSettingsLogic()
 
         file("build.gradle.dcl") << """
             restricted {
@@ -316,7 +299,19 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
         """
     }
 
-    private String defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin() {
+    private static String defineSettingsLogic() {
+        """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+
+            plugins {
+                id("com.example.restricted.ecosystem")
+            }
+        """
+    }
+
+    private static String defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin() {
         return """
         package com.example.restricted;
 
@@ -333,6 +328,25 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
             public void apply(Settings target) {
             }
         }
+        """
+    }
+
+    private static String defineProjectPlugin() {
+        """
+            package com.example.restricted;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${SoftwareType.class.name};
+
+            public abstract class RestrictedPlugin implements Plugin<Project> {
+                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
+                public abstract Extension getExtension();
+
+                @Override
+                public void apply(Project target) {
+                }
+            }
         """
     }
 
