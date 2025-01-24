@@ -126,7 +126,7 @@ data class ModelStoreResult(val storeFailure: Throwable?)
 
 
 internal
-fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> Pair<String?, CheckedFingerprint>): CheckedFingerprint {
+fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> EntrySearchResult): CheckedFingerprint {
     return call(object : CallableBuildOperation<CheckedFingerprint> {
         override fun description() = BuildOperationDescriptor
             .displayName("Check configuration cache fingerprint")
@@ -134,11 +134,14 @@ fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> Pair<String
 
         override fun call(context: BuildOperationContext): CheckedFingerprint {
             return block().also {
-                context.setResult(FingerprintCheckResult(it.second, it.first))
-            }.second
+                context.setResult(FingerprintCheckResult(it))
+            }.checkedFingerprint
         }
     })
 }
+
+internal
+data class EntrySearchResult(val originInvocationId: String?, val checkedFingerprint: CheckedFingerprint)
 
 
 private
@@ -147,32 +150,37 @@ object FingerprintCheckDetails : ConfigurationCacheCheckFingerprintBuildOperatio
 
 private
 class FingerprintCheckResult(
-    private val checkResult: CheckedFingerprint,
-    private val buildInvocationScopeId: String?
+    entrySearchResult: EntrySearchResult
 ) : ConfigurationCacheCheckFingerprintBuildOperationType.Result {
 
-    override fun getStatus(): CheckStatus = when (checkResult) {
+    private
+    val checkedFingerprint = entrySearchResult.checkedFingerprint
+
+    private
+    val originInvocationId = entrySearchResult.originInvocationId
+
+    override fun getStatus(): CheckStatus = when (checkedFingerprint) {
         is CheckedFingerprint.NotFound -> CheckStatus.NOT_FOUND
         is CheckedFingerprint.Invalid -> CheckStatus.INVALID
         is CheckedFingerprint.Valid -> {
-            when (checkResult.invalidProjects) {
+            when (checkedFingerprint.invalidProjects) {
                 null -> CheckStatus.VALID
                 else -> CheckStatus.PARTIAL
             }
         }
     }
 
-    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> = when (checkResult) {
+    override fun getBuildInvalidationReasons(): List<BuildInvalidationReasons> = when (checkedFingerprint) {
         is CheckedFingerprint.Invalid -> listOf(
-            BuildInvalidationReasonsImpl(checkResult.buildPath, checkResult.reason)
+            BuildInvalidationReasonsImpl(checkedFingerprint.buildPath, checkedFingerprint.reason)
         )
 
         else -> emptyList()
     }
 
     override fun getProjectInvalidationReasons(): List<ProjectInvalidationReasons> = when {
-        checkResult is CheckedFingerprint.Valid && checkResult.invalidProjects != null -> {
-            val invalidProjects = checkResult.invalidProjects
+        checkedFingerprint is CheckedFingerprint.Valid && checkedFingerprint.invalidProjects != null -> {
+            val invalidProjects = checkedFingerprint.invalidProjects
             buildList(invalidProjects.size) {
                 // First reason is shown to the user.
                 add(ProjectInvalidationReasonsImpl(invalidProjects.first))
@@ -189,7 +197,7 @@ class FingerprintCheckResult(
     }
 
     override fun getOriginBuildInvocationId(): String? =
-        buildInvocationScopeId
+        originInvocationId
 
     private
     data class BuildInvalidationReasonsImpl(
