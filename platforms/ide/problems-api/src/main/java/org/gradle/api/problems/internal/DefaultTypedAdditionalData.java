@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import org.gradle.api.problems.TypedAdditionalData;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import java.util.Map;

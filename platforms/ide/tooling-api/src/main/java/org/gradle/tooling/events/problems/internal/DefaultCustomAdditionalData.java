@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,17 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.tooling.events.problems.CustomAdditionalData;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
-import java.io.Serializable;
 import java.util.Map;
 
-public class GeneralData implements AdditionalData, Serializable {
-
-    private final Map<String, Object> additionalData;
+public class DefaultCustomAdditionalData extends DefaultAdditionalData implements CustomAdditionalData {
     private final Object data;
 
-    public GeneralData(Map<String, Object> additionalData, Object data) {
-        this.additionalData = ImmutableMap.copyOf(additionalData);
+    public DefaultCustomAdditionalData(Map<String, Object> additionalData, Object data) {
+        super(additionalData);
         this.data = data;
-    }
-
-    @Override
-    public Map<String, Object> getAsMap() {
-        return additionalData;
-    }
-
-    public Object getData() {
-        return data;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,29 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems;
+package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
+import org.gradle.api.problems.AdditionalData;
 
 import java.util.Map;
 
 /**
- * Additional data attached to the problem.
- * <p>
- * There are no subtypes defined for this interface yet. Clients should expect some defined in future versions of Gradle.
- * <p>
- * The information returned by {@code #getAsMap} is considered dynamic information and subject to change between Gradle versions.
+ * General additional data type that can be used to attach arbitrary data to a problem with a string map.
  *
- * @since 8.6
+ * @since 8.13
  */
 @Incubating
-@NonNullApi
-public interface AdditionalData {
+public interface TypedAdditionalData extends AdditionalData {
+
     /**
-     * Returns additional data as a map.
+     * provides data to reconstruct the object
      *
-     * @since 8.6
+     * @return data
+     * @since 8.13
      */
-    Map<String, Object> getAsMap();
+    Map<String, Object> getData();
+
+    /**
+     * the serialized type/class of the object
+     *
+     * @return the data
+     * @since 8.13
+     */
+    Object getSerializedType();
 }

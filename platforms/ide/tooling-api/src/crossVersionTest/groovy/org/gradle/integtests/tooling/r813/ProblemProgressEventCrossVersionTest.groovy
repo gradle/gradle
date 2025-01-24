@@ -35,7 +35,7 @@ import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -58,8 +58,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection { connection ->
             connection.newBuild().forTasks('reportProblem')
                 .addProgressListener(listener)
-                .setStandardOutput(System.out)
-                .setStandardError(System.err)
                 .run()
         }
         return listener.problems
@@ -140,7 +138,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
         then:
         problems.size() == 1
-        (problems.get(0).getAdditionalData() as GeneralData).get(MyType).getName() == "someData"
+        (problems.get(0).getAdditionalData() as DefaultAdditionalData).get(MyType).getName() == "someData"
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -241,7 +239,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

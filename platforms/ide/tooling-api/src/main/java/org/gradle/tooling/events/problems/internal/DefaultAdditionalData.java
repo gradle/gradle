@@ -14,29 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems;
+package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
+import com.google.common.collect.ImmutableMap;
+import org.gradle.tooling.events.problems.AdditionalData;
 
+import java.io.Serializable;
 import java.util.Map;
 
-/**
- * Additional data attached to the problem.
- * <p>
- * There are no subtypes defined for this interface yet. Clients should expect some defined in future versions of Gradle.
- * <p>
- * The information returned by {@code #getAsMap} is considered dynamic information and subject to change between Gradle versions.
- *
- * @since 8.6
- */
-@Incubating
-@NonNullApi
-public interface AdditionalData {
-    /**
-     * Returns additional data as a map.
-     *
-     * @since 8.6
-     */
-    Map<String, Object> getAsMap();
+public class DefaultAdditionalData implements AdditionalData, Serializable {
+
+    private final Map<String, Object> additionalData;
+
+    public DefaultAdditionalData(Map<String, Object> additionalData) {
+        this.additionalData = ImmutableMap.copyOf(additionalData);
+    }
+
+    @Override
+    public Map<String, Object> getAsMap() {
+        return additionalData;
+    }
 }

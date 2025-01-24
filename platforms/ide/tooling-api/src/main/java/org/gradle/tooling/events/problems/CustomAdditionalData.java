@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
+package org.gradle.tooling.events.problems;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
-import java.util.Map;
-
 /**
- * General additional data type that can be used to attach arbitrary data to a problem with a string map.
+ * Custom Additional data for a problem.
+ * <p>
+ * This class allows to access additional data via a custom type that was attached to a problem by using {@link org.gradle.api.problems.ProblemSpec#additionalData(Class, Action)}.
  *
  * @since 8.13
  */
 @Incubating
-public interface TypedAdditionalData extends AdditionalData {
-
+public interface CustomAdditionalData extends AdditionalData {
     /**
-     * provides data to reconstruct the object
+     * Returns an instance of the given type that accesses the additional data.
      *
-     * @return data
      * @since 8.13
      */
-    Map<String, Object> getData();
-
-    /**
-     * the serialized type/class of the object
-     *
-     * @return the data
-     * @since 8.13
-     */
-    Object getSerializedType();
+    <T> T get(Class<T> type);
 }

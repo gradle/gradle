@@ -79,7 +79,9 @@ import org.gradle.tooling.events.problems.ProblemId;
 import org.gradle.tooling.events.problems.ProblemSummary;
 import org.gradle.tooling.events.problems.Severity;
 import org.gradle.tooling.events.problems.Solution;
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData;
 import org.gradle.tooling.events.problems.internal.DefaultContextualLabel;
+import org.gradle.tooling.events.problems.internal.DefaultCustomAdditionalData;
 import org.gradle.tooling.events.problems.internal.DefaultDetails;
 import org.gradle.tooling.events.problems.internal.DefaultDocumentationLink;
 import org.gradle.tooling.events.problems.internal.DefaultFileLocation;
@@ -99,7 +101,6 @@ import org.gradle.tooling.events.problems.internal.DefaultSeverity;
 import org.gradle.tooling.events.problems.internal.DefaultSingleProblemEvent;
 import org.gradle.tooling.events.problems.internal.DefaultSolution;
 import org.gradle.tooling.events.problems.internal.DefaultTaskPathLocation;
-import org.gradle.tooling.events.problems.internal.GeneralData;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationDescriptor;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -1005,13 +1006,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
         if (additionalData instanceof InternalProxiedAdditionalData) {
-            // TODO (donat) last piece for getting the additional data
-            return new GeneralData(additionalData.getAsMap(), ((InternalProxiedAdditionalData) additionalData).getProxy());
+            return new DefaultCustomAdditionalData(additionalData.getAsMap(), ((InternalProxiedAdditionalData) additionalData).getProxy());
         }
         if (additionalData == null) {
-            return new GeneralData(Collections.<String, Object>emptyMap(), null);
+            return new DefaultAdditionalData(Collections.<String, Object>emptyMap());
         }
-        return new GeneralData(additionalData.getAsMap(), null);
+        return new DefaultAdditionalData(additionalData.getAsMap());
     }
 
     @Nullable

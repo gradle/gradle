@@ -69,24 +69,21 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
             return;
         }
 
-        Object proxy = new ProxyFactory().createProxy(type, state);
+        Object proxy = createProxy(type, state);
 
         ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, proxy, serializedType));
     }
 
-    public static class ProxyFactory {
-
-        @SuppressWarnings("unchecked")
-        public <T> T createProxy(Class<T> interfaceType, Map<String, Object> state) {
-            return (T) Proxy.newProxyInstance(
-                interfaceType.getClassLoader(),
-                new Class<?>[]{interfaceType},
-                new DeepCopyInvocationHandler(state)
-            );
-        }
+    @SuppressWarnings("unchecked")
+    public static <T> T createProxy(Class<T> interfaceType, Map<String, Object> state) {
+        return (T) Proxy.newProxyInstance(
+            interfaceType.getClassLoader(),
+            new Class<?>[]{interfaceType},
+            new DeepCopyInvocationHandler(state)
+        );
     }
 
-    static class DeepCopyInvocationHandler implements InvocationHandler {
+    private static class DeepCopyInvocationHandler implements InvocationHandler {
 
         private final Map<String, Object> state;
 
