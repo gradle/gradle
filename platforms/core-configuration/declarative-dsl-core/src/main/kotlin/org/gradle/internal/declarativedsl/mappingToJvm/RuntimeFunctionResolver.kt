@@ -16,13 +16,9 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
-import org.gradle.declarative.dsl.model.annotations.Adding
-import org.gradle.declarative.dsl.model.annotations.Builder
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.HasDefaultValue
-import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -64,7 +60,7 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
 
         val resolutions = receiverClass.memberFunctions
             .filter { function -> function.name == schemaFunction.simpleName && FunctionBinding.convertBinding(function, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null }
-            .filter { f -> matchesAnnotationsRecursively(f, receiverClass) { it is Builder || it is Configuring || it is Adding || it is Restricted || it is HasDefaultValue } }
+            .filter { f -> matchesAnnotationsRecursively(f, receiverClass, hasDeclarativeAnnotation) }
             .toList()
 
         return when {
