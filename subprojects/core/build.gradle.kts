@@ -74,7 +74,6 @@ dependencies {
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.baseServices)

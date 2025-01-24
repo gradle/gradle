@@ -44,6 +44,9 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.function.Supplier;
 
+import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemEvent;
+import static org.gradle.tooling.internal.provider.runner.ProblemsProgressEventUtils.createProblemSummaryEvent;
+
 /**
  * Build listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
@@ -66,25 +69,6 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         this.operationIdentifierSupplier = operationIdentifierSupplier;
     }
 
-    public static AbstractOperationResult toOperationResult(OperationFinishEvent result) {
-        return toOperationResult(result, t -> ImmutableList.of());
-    }
-
-    public static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLocator problemLocator) {
-        Throwable failure = result.getFailure();
-        long startTime = result.getStartTime();
-        long endTime = result.getEndTime();
-        if (failure != null) {
-            if (problemLocator != null) {
-                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLocator, ProblemsProgressEventUtils::createDefaultProblemDetails);
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
-            } else {
-                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
-            }
-        }
-        return new DefaultSuccessResult(startTime, endTime);
-    }
-
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
         // RunBuildBuildOperationType.Details is the type of the details object associated with the root build operation
@@ -99,7 +83,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
             Object details = progressEvent.getDetails();
             if (details instanceof DefaultProblemProgressDetails) {
                 eventConsumer.progress(
-                    ProblemsProgressEventUtils.createProblemEvent(
+                    createProblemEvent(
                         eventConsumer.findStartedParentId(buildOperationId),
                         (DefaultProblemProgressDetails) details,
                         operationIdentifierSupplier
@@ -107,7 +91,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
                 );
             } else if (details instanceof DefaultProblemsSummaryProgressDetails) {
                 eventConsumer.progress(
-                    ProblemsProgressEventUtils.createProblemSummaryEvent(
+                    createProblemSummaryEvent(
                         eventConsumer.findStartedParentId(buildOperationId),
                         (DefaultProblemsSummaryProgressDetails) details,
                         operationIdentifierSupplier
@@ -141,5 +125,24 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         String displayName = buildOperation.getDisplayName();
         OperationIdentifier parentId = eventConsumer.findStartedParentId(buildOperation);
         return new DefaultOperationDescriptor(id, name, displayName, parentId);
+    }
+
+    static AbstractOperationResult toOperationResult(OperationFinishEvent result) {
+        return toOperationResult(result, t -> ImmutableList.of());
+    }
+
+    static AbstractOperationResult toOperationResult(OperationFinishEvent result, @Nullable ProblemLocator problemLocator) {
+        Throwable failure = result.getFailure();
+        long startTime = result.getStartTime();
+        long endTime = result.getEndTime();
+        if (failure != null) {
+            if (problemLocator != null) {
+                InternalFailure rootFailure = DefaultFailure.fromThrowable(failure, problemLocator, ProblemsProgressEventUtils::createDefaultProblemDetails);
+                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(rootFailure));
+            } else {
+                return new DefaultFailureResult(startTime, endTime, Collections.singletonList(DefaultFailure.fromThrowable(failure)));
+            }
+        }
+        return new DefaultSuccessResult(startTime, endTime);
     }
 }

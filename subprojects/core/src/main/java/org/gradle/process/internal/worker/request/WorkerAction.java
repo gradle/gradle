@@ -92,7 +92,6 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
             if (instantiatorFactory == null) {
                 instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Global.class)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
             }
-//            instantiatorFactory.
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
                 .parent(parentServices)

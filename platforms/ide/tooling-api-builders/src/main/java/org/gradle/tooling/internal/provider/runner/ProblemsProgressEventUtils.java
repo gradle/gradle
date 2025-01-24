@@ -126,7 +126,7 @@ public class ProblemsProgressEventUtils {
             parentBuildOperationId);
     }
 
-    public static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
+    static DefaultProblemDetails createDefaultProblemDetails(InternalProblem problem) {
         return new DefaultProblemDetails(
             toInternalDefinition(problem.getDefinition()),
             toInternalDetails(problem.getDetails()),
@@ -211,7 +211,7 @@ public class ProblemsProgressEventUtils {
     }
 
 
-    static private InternalAdditionalData toInternalAdditionalData(InternalProblem problem) {
+    private static InternalAdditionalData toInternalAdditionalData(InternalProblem problem) {
         Object additionalData = problem.getAdditionalData();
         if (additionalData instanceof DeprecationData) {
             // For now, we only expose deprecation data to the tooling API with generic additional data

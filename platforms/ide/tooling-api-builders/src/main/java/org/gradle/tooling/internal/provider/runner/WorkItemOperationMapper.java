@@ -31,13 +31,14 @@ import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
+
 /**
  * Work item listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
  * @since 5.1
  */
 class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBuildOperationType.Details, DefaultWorkItemDescriptor> {
-
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
         return subscriptions.isRequested(OperationType.TASK) && subscriptions.isRequested(OperationType.WORK_ITEM);
@@ -63,6 +64,6 @@ class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBui
 
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultWorkItemDescriptor descriptor, ExecuteWorkItemBuildOperationType.Details details, OperationFinishEvent finishEvent) {
-        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, ClientForwardingBuildOperationListener.toOperationResult(finishEvent));
+        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, toOperationResult(finishEvent));
     }
 }

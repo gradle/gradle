@@ -17,12 +17,12 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
-import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalData;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
@@ -65,30 +65,16 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         SerializedPayload serializedType = (SerializedPayload) serializedAdditionalData.getSerializedType();
         Map<String, Object> state = serializedAdditionalData.getAsMap();
         Class<?> type = (Class<?>) payloadSerializer.deserialize(serializedType);
+        if (type == null) {
+            return;
+        }
 
         Object proxy = new ProxyFactory().createProxy(type, state);
 
-        ((DefaultProblemDetails) details).setAdditionalData(new InternalProxiedAdditionalData() {
-
-            @Override
-            public Map<String, Object> getAsMap() {
-                return state;
-            }
-
-            @Override
-            public Object getSerializedType() {
-                return serializedType;
-            }
-
-            @Override
-            public Object getProxy() {
-                return proxy;
-            }
-        });
+        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, proxy, serializedType));
     }
 
     public static class ProxyFactory {
-
 
         @SuppressWarnings("unchecked")
         public <T> T createProxy(Class<T> interfaceType, Map<String, Object> state) {

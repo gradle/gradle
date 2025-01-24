@@ -51,5 +51,4 @@ public interface InternalBasicProblemDetailsVersion3 extends InternalProblemDeta
     InternalFailure getFailure();
 
     InternalAdditionalData getAdditionalData();
-
 }

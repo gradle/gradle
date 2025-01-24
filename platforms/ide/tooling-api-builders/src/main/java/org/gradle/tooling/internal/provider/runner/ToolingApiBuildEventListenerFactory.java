@@ -71,7 +71,6 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return listeners.build();
     }
 
-
     private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer) {
         BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer);
 

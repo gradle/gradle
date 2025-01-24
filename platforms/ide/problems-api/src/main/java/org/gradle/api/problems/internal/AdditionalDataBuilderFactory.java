@@ -91,21 +91,21 @@ public final class AdditionalDataBuilderFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private <S, U extends AdditionalDataSpec> AdditionalDataBuilder<S> builderFor(Class<? extends U> specType, @Nullable S instance, String illegalArgumentMessage) {
+    private <S extends AdditionalData, U extends AdditionalDataSpec> AdditionalDataBuilder<S> builderFor(Class<? extends U> specType, @Nullable S instance, String illegalArgumentMessage) {
         Preconditions.checkNotNull(specType);
         DataTypeAndProvider dataTypeAndProvider = additionalDataProviders.get(specType);
         if (dataTypeAndProvider != null) {
-            return (AdditionalDataBuilder<S>) dataTypeAndProvider.builderProvider.apply((AdditionalData) instance);
+            return (AdditionalDataBuilder<S>) dataTypeAndProvider.builderProvider.apply(instance);
         }
         throw new IllegalArgumentException(illegalArgumentMessage);
     }
 
-    public <U extends AdditionalDataSpec> AdditionalDataBuilder<? extends AdditionalData> createAdditionalDataBuilder(Class<? extends U> specType, @Nullable Object additionalData) {
+    public <U extends AdditionalDataSpec> AdditionalDataBuilder<? extends AdditionalData> createAdditionalDataBuilder(Class<? extends U> specType, @Nullable AdditionalData additionalData) {
         if (additionalData == null) {
             return builderFor(specType, null, "Unsupported type: " + specType);
         }
         if (isCompatible(specType, additionalData)) {
-            return builderFor(specType, (AdditionalData) additionalData, "Unsupported instance: " + additionalData);
+            return builderFor(specType, additionalData, "Unsupported instance: " + additionalData);
         }
         throw new IllegalArgumentException("Additional data of type " + additionalData.getClass() + " is already set");
     }
@@ -114,7 +114,7 @@ public final class AdditionalDataBuilderFactory {
         return additionalDataProviders.containsKey(specType);
     }
 
-    private <U extends AdditionalDataSpec> boolean isCompatible(Class<? extends U> specType, @Nonnull Object additionalData) {
+    private <U extends AdditionalDataSpec> boolean isCompatible(Class<? extends U> specType, @Nonnull AdditionalData additionalData) {
         DataTypeAndProvider dataTypeAndProvider = additionalDataProviders.get(specType);
         return dataTypeAndProvider != null && dataTypeAndProvider.dataType.isInstance(additionalData);
     }

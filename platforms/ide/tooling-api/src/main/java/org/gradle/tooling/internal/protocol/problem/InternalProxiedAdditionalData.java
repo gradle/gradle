@@ -18,5 +18,8 @@ package org.gradle.tooling.internal.protocol.problem;
 
 public interface InternalProxiedAdditionalData extends InternalPayloadSerializedAdditionalData {
 
+    //TODO (Reinhold) in future versions we won't send proxies.
+    // We want to send a managed object and we'll make the proxy creation lazy to support old clients connecting to new daemons.
+
     Object getProxy();
 }

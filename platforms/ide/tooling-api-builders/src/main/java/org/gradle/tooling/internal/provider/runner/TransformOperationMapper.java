@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
+
 /**
  * Transform listener that forwards all receiving events to the client via the provided {@code ProgressEventConsumer} instance.
  *
@@ -89,6 +91,6 @@ class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTra
 
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTransformDescriptor descriptor, ExecutePlannedTransformStepBuildOperationDetails details, OperationFinishEvent finishEvent) {
-        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, ClientForwardingBuildOperationListener.toOperationResult(finishEvent));
+        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, toOperationResult(finishEvent));
     }
 }
