@@ -33,6 +33,7 @@ import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -73,6 +74,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     public DaemonClientToolchainServices(ToolchainConfiguration toolchainConfiguration, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Optional<InternalBuildProgressListener> buildProgressListener) {
         this.toolchainConfiguration = toolchainConfiguration;
         this.toolchainDownloadUrlProvider = toolchainDownloadUrlProvider;
+        // TODO passing an optional down is fishy
         this.buildProgressListener = buildProgressListener;
     }
 
@@ -118,8 +120,8 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
     }
 
     @Provides
-    protected SecureFileDownloader createSecureFileDownloader(FileSystem fileSystem, ListenerManager listenerManager, JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory, HttpClientHelper.Factory httpClientHelperFactory, ProgressLoggerFactory progressLoggerFactory, Clock clock) {
-        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, httpRedirectVerifierFactory, httpClientHelperFactory, progressLoggerFactory, clock, buildProgressListener);
+    protected SecureFileDownloader createSecureFileDownloader(FileSystem fileSystem, ListenerManager listenerManager, JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory, HttpClientHelper.Factory httpClientHelperFactory, ProgressLoggerFactory progressLoggerFactory, Clock clock, BuildOperationIdFactory operationIdFactory) {
+        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, httpRedirectVerifierFactory, httpClientHelperFactory, progressLoggerFactory, clock, operationIdFactory, buildProgressListener);
         return new SecureFileDownloader(externalResourceFactory);
     }
 

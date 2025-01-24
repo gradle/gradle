@@ -20,6 +20,7 @@ import org.gradle.authentication.Authentication
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.internal.resource.ExternalResourceFactory
 import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.local.FileResourceConnector
@@ -41,11 +42,12 @@ class DaemonToolchainExternalResourceFactoryTest extends Specification {
     def httpClientFactory = Mock(HttpClientHelper.Factory)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def clock = Mock(Clock)
+    def operationIdFactory = new DefaultBuildOperationIdFactory()
 
     def setup() {
         verifierFactory.createVerifier(_ as URI) >> Mock(HttpRedirectVerifier)
         listenerManager.getBroadcaster(_ as Class<FileResourceListener>) >> fileListener
-        repositoryTransportFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, verifierFactory, httpClientFactory, progressLoggerFactory, clock, Optional.empty())
+        repositoryTransportFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, verifierFactory, httpClientFactory, progressLoggerFactory, clock, operationIdFactory, Optional.empty())
     }
 
     def "create external resource from https uri"() {

@@ -16,14 +16,14 @@
 
 package org.gradle.launcher.daemon.toolchain
 
-
+import org.gradle.internal.build.event.types.DefaultFileDownloadFailureResult
+import org.gradle.internal.build.event.types.DefaultFileDownloadSuccessResult
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent
+import org.gradle.internal.build.event.types.DefaultStatusEvent
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.tooling.events.download.internal.DefaultFileDownloadFailureResult
-import org.gradle.tooling.events.download.internal.DefaultFileDownloadFinishEvent
-import org.gradle.tooling.events.download.internal.DefaultFileDownloadStartEvent
-import org.gradle.tooling.events.download.internal.DefaultFileDownloadSuccessResult
-import org.gradle.tooling.events.internal.DefaultStatusEvent
+import org.gradle.internal.operations.DefaultBuildOperationIdFactory
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import spock.lang.Specification
 
@@ -33,12 +33,13 @@ class ToolchainDownloadProgressListenerTest extends Specification {
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
     def buildProgressListener = Mock(InternalBuildProgressListener)
+    def operationIdFactory = new DefaultBuildOperationIdFactory()
     def uri = new URI("https://server.com/toolchain.zip")
 
     def setup() {
         progressLogger.start(_ as String, null) >> progressLogger
         progressLoggerFactory.newOperation(_ as Class<ToolchainDownloadProgressListener>) >> progressLogger
-        progressListener = new ToolchainDownloadProgressListener(progressLoggerFactory, Optional.of(buildProgressListener))
+        progressListener = new ToolchainDownloadProgressListener(progressLoggerFactory, Optional.of(buildProgressListener), operationIdFactory)
     }
 
     def "download started event"() {
@@ -47,15 +48,19 @@ class ToolchainDownloadProgressListenerTest extends Specification {
 
         then:
         1 * progressLogger.start("Downloading toolchain from URI $uri", null)
-        1 * buildProgressListener.onEvent({ DefaultFileDownloadStartEvent event ->
+        1 * buildProgressListener.onEvent({ DefaultOperationStartedProgressEvent event ->
             event.eventTime == 100
-            event.displayName == "Download $uri started"
+            event.displayName == "Download $uri as a JVM for starting the Gradle daemon started"
             event.descriptor.name == "Download $uri"
             event.descriptor.uri == uri
         })
     }
 
     def "download status changed event"() {
+        given:
+        // We always need the started event and don't care about interactions that we checked already
+        progressListener.downloadStarted(uri, 4096, 50)
+
         when:
         progressListener.downloadStatusChanged(uri, 1024, 4096, 100)
 
@@ -64,42 +69,50 @@ class ToolchainDownloadProgressListenerTest extends Specification {
         1 * buildProgressListener.onEvent({ DefaultStatusEvent event ->
             event.progress == 1024
             event.total == 4096
-            event.unit == "bytes"
-            event.displayName == "Download $uri 1024/4096 bytes completed"
+            event.units == "bytes"
+            event.displayName == "Download $uri as a JVM for starting the Gradle daemon"
             event.descriptor.name == "Download $uri"
             event.descriptor.uri == uri
         })
     }
 
     def "download finished event"() {
+        given:
+        // We always need the started event and don't care about interactions that we checked already
+        progressListener.downloadStarted(uri, 4096, 50)
+
         when:
         progressListener.downloadFinished(uri, 4096, 100, 101)
 
         then:
         1 * progressLogger.completed("Downloaded toolchain $uri", false)
-        1 * buildProgressListener.onEvent({ DefaultFileDownloadFinishEvent event ->
+        1 * buildProgressListener.onEvent({ DefaultOperationFinishedProgressEvent event ->
             event.result instanceof DefaultFileDownloadSuccessResult
             event.result.bytesDownloaded == 4096
             event.result.startTime == 100
             event.result.endTime == 101
-            event.displayName == "Download $uri finished"
+            event.displayName == "Download $uri as a JVM for starting the Gradle daemon succeeded"
             event.descriptor.name == "Download $uri"
             event.descriptor.uri == uri
         })
     }
 
     def "download failed event"() {
+        given:
+        // We always need the started event and don't care about interactions that we checked already
+        progressListener.downloadStarted(uri, 4096, 50)
+
         when:
         progressListener.downloadFailed(uri, new Exception("download failed"),4096, 100, 101)
 
         then:
         1 * progressLogger.completed("Failed to download toolchain $uri", true)
-        1 * buildProgressListener.onEvent({ DefaultFileDownloadFinishEvent event ->
+        1 * buildProgressListener.onEvent({ DefaultOperationFinishedProgressEvent event ->
             event.result instanceof DefaultFileDownloadFailureResult
             event.result.bytesDownloaded == 4096
             event.result.startTime == 100
             event.result.endTime == 101
-            event.displayName == "Download $uri failed"
+            event.displayName == "Download $uri as a JVM for starting the Gradle daemon failed"
             event.descriptor.name == "Download $uri"
             event.descriptor.uri == uri
         })

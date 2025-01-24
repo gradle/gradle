@@ -20,6 +20,7 @@ import org.gradle.authentication.Authentication;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.local.FileResourceConnector;
@@ -42,16 +43,18 @@ public class DaemonToolchainExternalResourceFactory implements ExternalResourceF
     private final JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final HttpClientHelper.Factory httpClientHelperFactory;
+    private final BuildOperationIdFactory operationIdFactory;
     private final Optional<InternalBuildProgressListener> buildProgressListener;
     private final Clock clock;
 
-    public DaemonToolchainExternalResourceFactory(FileSystem fileSystem, ListenerManager listenerManager, JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory, HttpClientHelper.Factory httpClientHelperFactory, ProgressLoggerFactory progressLoggerFactory, Clock clock, Optional<InternalBuildProgressListener> buildProgressListener) {
+    public DaemonToolchainExternalResourceFactory(FileSystem fileSystem, ListenerManager listenerManager, JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory, HttpClientHelper.Factory httpClientHelperFactory, ProgressLoggerFactory progressLoggerFactory, Clock clock, BuildOperationIdFactory operationIdFactory, Optional<InternalBuildProgressListener> buildProgressListener) {
         this.fileSystem = fileSystem;
         this.listenerManager = listenerManager;
         this.httpRedirectVerifierFactory = httpRedirectVerifierFactory;
         this.progressLoggerFactory = progressLoggerFactory;
         this.httpClientHelperFactory = httpClientHelperFactory;
         this.clock = clock;
+        this.operationIdFactory = operationIdFactory;
         this.buildProgressListener = buildProgressListener;
     }
 
@@ -66,7 +69,7 @@ public class DaemonToolchainExternalResourceFactory implements ExternalResourceF
                 .withRedirectVerifier(httpRedirectVerifierFactory.createVerifier(source))
                 .build()
             );
-            ToolchainDownloadProgressListener toolchainDownloadProgressListener = new ToolchainDownloadProgressListener(progressLoggerFactory, buildProgressListener);
+            ToolchainDownloadProgressListener toolchainDownloadProgressListener = new ToolchainDownloadProgressListener(progressLoggerFactory, buildProgressListener, operationIdFactory);
             ToolchainExternalResourceAccessor toolchainExternalResourceAccessor = new ToolchainExternalResourceAccessor(httpClientHelper, clock, toolchainDownloadProgressListener);
             return new DefaultExternalResourceRepository("jdk toolchains", toolchainExternalResourceAccessor, null, null);
         }

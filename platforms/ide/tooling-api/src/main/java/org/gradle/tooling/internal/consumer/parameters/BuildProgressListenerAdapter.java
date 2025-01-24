@@ -407,10 +407,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastTestOutputEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
         } else if (descriptor instanceof InternalTestMetadataDescriptor) {
             broadcastTestMetadataEvent(progressEvent, (InternalTestMetadataDescriptor) descriptor);
-        }else if (progressEvent instanceof InternalStatusEvent) {
-            broadcastStatusEvent((InternalStatusEvent) progressEvent);
         } else if (descriptor instanceof InternalFileDownloadDescriptor) {
-            broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
+            if (progressEvent instanceof InternalStatusEvent) {
+                broadcastStatusEvent((InternalStatusEvent) progressEvent);
+            } else {
+                broadcastFileDownloadEvent(progressEvent, (InternalFileDownloadDescriptor) descriptor);
+            }
         } else if (descriptor instanceof InternalBuildPhaseDescriptor) {
             broadcastBuildPhaseEvent(progressEvent, (InternalBuildPhaseDescriptor) descriptor);
         } else if (descriptor instanceof InternalProblemDescriptor) {
@@ -422,6 +424,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
+    /*
+     * This represents a file download update event
+     */
     private void broadcastStatusEvent(InternalStatusEvent progressEvent) {
         OperationDescriptor descriptor = descriptorCache.get(progressEvent.getDescriptor().getId());
         if (descriptor == null) {
@@ -491,6 +496,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
+    /*
+     * Does not handle file download update events, see #broadcastStatusEvent for those
+     */
     private void broadcastFileDownloadEvent(InternalProgressEvent event, InternalFileDownloadDescriptor descriptor) {
         ProgressEvent progressEvent = toFileDownloadProgressEvent(event, descriptor);
         if (progressEvent != null) {
