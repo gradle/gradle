@@ -49,7 +49,7 @@ dependencies {
         because("Required for SystemInfo")
     }
 
-    implementation(projects.diagnostics)
+    implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
     implementation(projects.logging)
 
