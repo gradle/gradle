@@ -37,11 +37,6 @@ import javax.annotation.Nullable;
  * @since 5.1
  */
 class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBuildOperationType.Details, DefaultWorkItemDescriptor> {
-    private final ProblemsProgressEventUtils problemProgressEventUtils;
-
-    public WorkItemOperationMapper(ProblemsProgressEventUtils problemProgressEventUtils) {
-        this.problemProgressEventUtils = problemProgressEventUtils;
-    }
 
     @Override
     public boolean isEnabled(BuildEventSubscriptions subscriptions) {
@@ -68,6 +63,6 @@ class WorkItemOperationMapper implements BuildOperationMapper<ExecuteWorkItemBui
 
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultWorkItemDescriptor descriptor, ExecuteWorkItemBuildOperationType.Details details, OperationFinishEvent finishEvent) {
-        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, problemProgressEventUtils.toOperationResult(finishEvent));
+        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, ClientForwardingBuildOperationListener.toOperationResult(finishEvent));
     }
 }

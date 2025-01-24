@@ -46,11 +46,9 @@ import java.util.concurrent.ConcurrentHashMap;
 class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTransformStepBuildOperationDetails, DefaultTransformDescriptor>, OperationDependencyLookup {
     private final Map<TransformStepNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationDependenciesResolver operationDependenciesResolver;
-    private final ProblemsProgressEventUtils problemProgressEventUtils;
 
-    TransformOperationMapper(OperationDependenciesResolver operationDependenciesResolver, ProblemsProgressEventUtils problemProgressEventUtils) {
+    TransformOperationMapper(OperationDependenciesResolver operationDependenciesResolver) {
         this.operationDependenciesResolver = operationDependenciesResolver;
-        this.problemProgressEventUtils = problemProgressEventUtils;
     }
 
     @Override
@@ -91,6 +89,6 @@ class TransformOperationMapper implements BuildOperationMapper<ExecutePlannedTra
 
     @Override
     public InternalOperationFinishedProgressEvent createFinishedEvent(DefaultTransformDescriptor descriptor, ExecutePlannedTransformStepBuildOperationDetails details, OperationFinishEvent finishEvent) {
-        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, problemProgressEventUtils.toOperationResult(finishEvent));
+        return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, ClientForwardingBuildOperationListener.toOperationResult(finishEvent));
     }
 }
