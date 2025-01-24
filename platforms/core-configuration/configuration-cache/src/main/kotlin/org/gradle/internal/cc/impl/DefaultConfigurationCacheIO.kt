@@ -122,6 +122,7 @@ class DefaultConfigurationCacheIO internal constructor(
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
         withWriteContextFor(stateFile, { "entry details" }) {
+            write(buildInvocationScopeId.id.asString())
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
@@ -135,7 +136,6 @@ class DefaultConfigurationCacheIO internal constructor(
             writeCollection(sideEffects) {
                 addressSerializer.write(this, it)
             }
-            write(buildInvocationScopeId.id.asString())
         }
     }
 
@@ -144,6 +144,7 @@ class DefaultConfigurationCacheIO internal constructor(
             return null
         }
         return withReadContextFor(stateFile) {
+            val buildInvocationScopeId = readNonNull<String>()
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
@@ -161,8 +162,7 @@ class DefaultConfigurationCacheIO internal constructor(
             val sideEffects = readList {
                 addressSerializer.read(this)
             }
-            val buildInvocationScopeId = readNonNull<String>()
-            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects, buildInvocationScopeId)
+            EntryDetails(buildInvocationScopeId, rootDirs, intermediateModels, metadata, sideEffects)
         }
     }
 
