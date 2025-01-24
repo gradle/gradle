@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures.problems
 
 import groovy.transform.CompileStatic
-import org.gradle.api.Action
 import org.gradle.api.problems.AdditionalData
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
@@ -153,15 +152,6 @@ class ReceivedProblem implements InternalProblem {
        additionalData
     }
 
-    @Override
-    Class<? extends AdditionalData> getAdditionalDataType() {
-        return null
-    }
-
-    @Override
-    List<Action<? super AdditionalData>> getAdditionalDataConfigs() {
-        return null
-    }
 
     @Override
     ReceivedException getException() {

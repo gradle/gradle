@@ -63,7 +63,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     //TODO Reinhold make private again
     private AdditionalData additionalData;
     private Class<? extends AdditionalData> additionalDataType;
-    private List<Action<? super AdditionalData>> additionalDataConfig = new ArrayList<Action<? super AdditionalData>>();
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final Instantiator instantiator;
@@ -94,8 +93,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
-        this.additionalDataType = problem.getAdditionalDataType();
-        this.additionalDataConfig = problem.getAdditionalDataConfigs();
         this.problemStream = null;
     }
 
@@ -128,9 +125,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             contextLocations.build(),
             details,
             exceptionForProblemInstantiation,
-            additionalData,
-            additionalDataType,
-            additionalDataConfig
+            additionalData
         );
     }
 
@@ -173,9 +168,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             ImmutableList.<ProblemLocation>of(),
             null,
             exceptionForProblemInstantiation,
-            null,
-            additionalDataType,
-            additionalDataConfig);
+            null
+        );
     }
 
     public Throwable getExceptionForProblemInstantiation() {

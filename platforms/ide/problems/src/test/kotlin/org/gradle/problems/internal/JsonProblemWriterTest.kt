@@ -36,7 +36,7 @@ class JsonProblemWriterTest {
             on { id } doReturn DefaultProblemId("id", "displayName", DefaultProblemGroup("groupId", "groupDisplayName"))
             on { severity } doReturn Severity.WARNING
         }
-        val problem = DefaultProblem(def, "context", listOf(), listOf(originLocation), listOf(contextualLocation), "details", null, null, null, listOf())
+        val problem = DefaultProblem(def, "context", listOf(), listOf(originLocation), listOf(contextualLocation), "details", null, null)
 
         // Mock dependencies
         val failureDecorator = FailureDecorator()

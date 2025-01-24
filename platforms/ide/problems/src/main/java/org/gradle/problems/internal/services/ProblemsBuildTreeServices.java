@@ -74,13 +74,11 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         CurrentBuildOperationRef currentBuildOperationRef,
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator,
-        Instantiator objectFactory,
-        PayloadSerializer payloadSerializer
+        ProblemReportCreator problemReportCreator
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter, objectFactory, payloadSerializer)),
+            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
             internalOptions,
             problemReportCreator);
     }

@@ -61,7 +61,7 @@ import java.util.List;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.classFromContextLoader;
 
-@ServiceScope({Scope.UserHome.class, Scope.Global.class})
+@ServiceScope({Scope.UserHome.class})
 public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte STRING_VALUE = (byte) 0;
     private static final byte BOOLEAN_VALUE = (byte) 1;
