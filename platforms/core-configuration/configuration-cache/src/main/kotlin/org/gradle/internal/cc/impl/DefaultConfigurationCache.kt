@@ -750,7 +750,7 @@ class DefaultConfigurationCache internal constructor(
         candidateEntry: CandidateEntry
     ): CheckedFingerprint {
         val (buildInvocationScopeId, invalidationReason) = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))
-        return when(invalidationReason) {
+        return when (invalidationReason) {
             null -> {
                 // Build inputs are up-to-date, check project specific inputs
                 CheckedFingerprint.Valid(

@@ -183,7 +183,7 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
-        buildScopedContext.runWriteOperation {  write(host.buildInvocationScopeId) }
+        buildScopedContext.runWriteOperation { write(host.buildInvocationScopeId) }
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
