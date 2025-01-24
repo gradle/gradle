@@ -34,7 +34,6 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.util.NumberUtil.ordinal
 import org.gradle.util.Path
 import java.io.File
@@ -71,9 +70,8 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
         fun hasValidBuildSrc(candidateBuildSrc: File): Boolean
     }
 
-    suspend fun ReadContext.checkBuildScopedFingerprint(): Pair<String, InvalidationReason?> {
+    suspend fun ReadContext.checkBuildScopedFingerprint(): InvalidationReason? {
         // TODO: log some debug info
-        val buildInvocationScopeId = readNonNull<String>()
         while (true) {
             when (val input = read()) {
                 null -> break
@@ -81,14 +79,14 @@ class ConfigurationCacheFingerprintChecker(private val host: Host) {
                     // An input that is not specific to a project. If it is out-of-date, then invalidate the whole cache entry and skip any further checks
                     val reason = check(input)
                     if (reason != null) {
-                        return buildInvocationScopeId to reason
+                        return reason
                     }
                 }
 
                 else -> error("Unexpected configuration cache fingerprint: $input")
             }
         }
-        return buildInvocationScopeId to null
+        return null
     }
 
     @Suppress("NestedBlockDepth")

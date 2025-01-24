@@ -42,6 +42,7 @@ import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.PositionAwareEncoder
@@ -109,6 +110,9 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     val encryptionService by lazy { service<EncryptionService>() }
 
+    private
+    val buildInvocationScopeId by lazy { service<BuildInvocationScopeId>() }
+
     override fun writeCacheEntryDetailsTo(
         buildStateRegistry: BuildStateRegistry,
         intermediateModels: Map<ModelKey, BlockAddress>,
@@ -131,6 +135,7 @@ class DefaultConfigurationCacheIO internal constructor(
             writeCollection(sideEffects) {
                 addressSerializer.write(this, it)
             }
+            write(buildInvocationScopeId.id.asString())
         }
     }
 
@@ -156,7 +161,8 @@ class DefaultConfigurationCacheIO internal constructor(
             val sideEffects = readList {
                 addressSerializer.read(this)
             }
-            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects)
+            val buildInvocationScopeId = readNonNull<String>()
+            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects, buildInvocationScopeId)
         }
     }
 

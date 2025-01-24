@@ -30,4 +30,5 @@ class EntryDetails(
     val intermediateModels: Map<ModelKey, BlockAddress>,
     val projectMetadata: Map<Path, BlockAddress>,
     val sideEffects: List<BlockAddress>,
+    val buildInvocationScopeId: String,
 )

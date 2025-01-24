@@ -126,7 +126,7 @@ data class ModelStoreResult(val storeFailure: Throwable?)
 
 
 internal
-fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> CheckedFingerprint): CheckedFingerprint {
+fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> Pair<String?, CheckedFingerprint>): CheckedFingerprint {
     return call(object : CallableBuildOperation<CheckedFingerprint> {
         override fun description() = BuildOperationDescriptor
             .displayName("Check configuration cache fingerprint")
@@ -134,8 +134,8 @@ fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> CheckedFing
 
         override fun call(context: BuildOperationContext): CheckedFingerprint {
             return block().also {
-                context.setResult(FingerprintCheckResult(it))
-            }
+                context.setResult(FingerprintCheckResult(it.second, it.first))
+            }.second
         }
     })
 }
@@ -147,7 +147,8 @@ object FingerprintCheckDetails : ConfigurationCacheCheckFingerprintBuildOperatio
 
 private
 class FingerprintCheckResult(
-    private val checkResult: CheckedFingerprint
+    private val checkResult: CheckedFingerprint,
+    private val buildInvocationScopeId: String?
 ) : ConfigurationCacheCheckFingerprintBuildOperationType.Result {
 
     override fun getStatus(): CheckStatus = when (checkResult) {
@@ -188,11 +189,7 @@ class FingerprintCheckResult(
     }
 
     override fun getOriginBuildInvocationId(): String? =
-        when (checkResult) {
-            is CheckedFingerprint.Valid -> checkResult.buildInvocationScopeId
-            is CheckedFingerprint.Invalid -> checkResult.buildInvocationScopeId
-            is CheckedFingerprint.NotFound -> null
-        }
+        buildInvocationScopeId
 
     private
     data class BuildInvalidationReasonsImpl(

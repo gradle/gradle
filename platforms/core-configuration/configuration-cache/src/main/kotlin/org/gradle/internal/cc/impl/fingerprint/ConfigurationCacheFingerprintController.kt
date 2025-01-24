@@ -56,7 +56,6 @@ import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instrumentation.agent.AgentStatus
-import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.scripts.ProjectScopedScriptResolution
 import org.gradle.internal.scripts.ScriptFileResolverListeners
 import org.gradle.internal.serialize.graph.CloseableWriteContext
@@ -102,7 +101,6 @@ class ConfigurationCacheFingerprintController internal constructor(
     private val encryptionService: EncryptionService,
     private val configurationTimeBarrier: ConfigurationTimeBarrier,
     private val buildStateRegistry: BuildStateRegistry,
-    private val buildInvocationScopeId: BuildInvocationScopeId
 ) : Stoppable, ProjectScopedScriptResolution {
 
     interface Host {
@@ -422,9 +420,6 @@ class ConfigurationCacheFingerprintController internal constructor(
 
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
-
-        override val buildInvocationScopeId: String
-            get() = this@ConfigurationCacheFingerprintController.buildInvocationScopeId.id.asString()
 
         override fun hashCodeOf(file: File): HashCode =
             fileSystemAccess.read(file.absolutePath).hash

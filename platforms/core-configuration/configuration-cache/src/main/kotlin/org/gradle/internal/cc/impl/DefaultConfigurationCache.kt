@@ -452,17 +452,19 @@ class DefaultConfigurationCache internal constructor(
     fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val candidates = loadCandidateEntries()
         val result = searchForValidEntry(candidates)
-        if (result is CheckedFingerprint.Valid) {
-            updateMostRecentEntry(result.entryId)
+        val checkedFingerprint = result.second
+        if (checkedFingerprint is CheckedFingerprint.Valid) {
+            updateMostRecentEntry(checkedFingerprint.entryId)
         }
         result
     }
 
     private
-    fun searchForValidEntry(candidates: List<CandidateEntry>): CheckedFingerprint {
-        var firstInvalidResult: CheckedFingerprint? = null
+    fun searchForValidEntry(candidates: List<CandidateEntry>): Pair<String?, CheckedFingerprint> {
+        var firstInvalidResult: Pair<String?, CheckedFingerprint>? = null
         for (candidate in candidates) {
-            when (val result = checkCandidate(candidate)) {
+            val result = checkCandidate(candidate)
+            when (result.second) {
                 is CheckedFingerprint.Valid -> {
                     return result
                 }
@@ -477,7 +479,7 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         return firstInvalidResult
-            ?: CheckedFingerprint.NotFound
+            ?: (null to CheckedFingerprint.NotFound)
     }
 
     private
@@ -525,7 +527,7 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.readCandidateEntries(fileForRead(StateType.Candidates))
 
     private
-    fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint {
+    fun checkCandidate(candidateEntry: CandidateEntry): Pair<String?, CheckedFingerprint> {
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
@@ -535,12 +537,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint =
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): Pair<String?, CheckedFingerprint> =
         cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
             ?.let { entryDetails ->
                 // TODO:configuration-cache read only rootDirs at this point
-                checkFingerprint(candidateEntry, entryDetails.rootDirs)
-            } ?: CheckedFingerprint.NotFound
+                entryDetails.buildInvocationScopeId to checkFingerprint(candidateEntry, entryDetails.rootDirs)
+            } ?: (null to CheckedFingerprint.NotFound)
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {
@@ -748,23 +750,18 @@ class DefaultConfigurationCache internal constructor(
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
         candidateEntry: CandidateEntry
-    ): CheckedFingerprint {
-        val (buildInvocationScopeId, invalidationReason) = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))
-        return when (invalidationReason) {
+    ): CheckedFingerprint =
+        when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
             null -> {
                 // Build inputs are up-to-date, check project specific inputs
                 CheckedFingerprint.Valid(
                     candidateEntry.id,
-                    checkProjectScopedFingerprint(
-                        fileFor(StateType.ProjectFingerprint)
-                    ),
-                    buildInvocationScopeId
+                    checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
                 )
             }
 
-            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason, buildInvocationScopeId)
+            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
         }
-    }
 
     private
     fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile) =
