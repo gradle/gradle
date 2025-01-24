@@ -27,7 +27,7 @@ gradle init \
   --dsl kotlin \
   --test-framework junit-jupiter \
   --package my.project \
-  --project-directory ./my-project \
+  --into ./my-project \
   --project-name my-project  \
   --no-split-project  \
   --java-version 17
