@@ -26,6 +26,7 @@ import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
+import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
@@ -55,10 +56,9 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
                 true
             } else {
                 val functionSignature = signature(function)
-                val parentClasses = receiverClass.supertypes.mapNotNull { it.classifier }.filterIsInstance<KClass<*>>()
-                parentClasses.any { parentClass ->
+                receiverClass.allSuperclasses.any { parentClass ->
                     val parentFunction = parentClass.memberFunctions.firstOrNull { signature(it) == functionSignature }
-                    parentFunction?.let { matchesAnnotationsRecursively(it, parentClass, predicate) } ?: false
+                    parentFunction?.annotations?.any(predicate) ?: false
                 }
             }
 
