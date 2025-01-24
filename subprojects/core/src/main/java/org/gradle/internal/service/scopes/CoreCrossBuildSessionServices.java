@@ -27,6 +27,8 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -41,6 +43,7 @@ import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceCreationListener;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
@@ -113,5 +116,14 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     @Provides
     BuildOperationNotificationValve createBuildOperationNotificationValve(BuildOperationNotificationBridge buildOperationNotificationBridge) {
         return buildOperationNotificationBridge.getValve();
+    }
+
+    @Provides
+    ServiceCreationListener createServiceCreationListener(BuildOperationRunner buildOperationRunner, BuildOperationTrace ignored /* required for correct order of instantiation */) {
+        return displayName -> {
+            BuildOperationContext buildOperationContext =
+                buildOperationRunner.start(BuildOperationDescriptor.displayName("Create " + displayName));
+            return () -> buildOperationContext.setResult(null);
+        };
     }
 }
