@@ -288,11 +288,12 @@ class ConfigurationCacheFingerprintCheckerTest {
     ): String? {
 
         val readContext = recordWritingOf {
+            write("12345") // buildInvocationScopeId
             write(fingerprint)
             write(null)
         }
 
-        val checkedFingerprint = readContext.runReadOperation {
+        val (_, checkedFingerprint) = readContext.runReadOperation {
             ConfigurationCacheFingerprintChecker(host).run {
                 checkBuildScopedFingerprint()
             }
