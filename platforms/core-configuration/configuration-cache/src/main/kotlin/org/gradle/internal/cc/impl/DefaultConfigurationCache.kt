@@ -748,18 +748,23 @@ class DefaultConfigurationCache internal constructor(
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprintAgainstLoadedProperties(
         candidateEntry: CandidateEntry
-    ): CheckedFingerprint =
-        when (val invalidationReason = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))) {
+    ): CheckedFingerprint {
+        val (buildInvocationScopeId, invalidationReason) = checkBuildScopedFingerprint(fileFor(StateType.BuildFingerprint))
+        return when(invalidationReason) {
             null -> {
                 // Build inputs are up-to-date, check project specific inputs
                 CheckedFingerprint.Valid(
                     candidateEntry.id,
-                    checkProjectScopedFingerprint(fileFor(StateType.ProjectFingerprint))
+                    checkProjectScopedFingerprint(
+                        fileFor(StateType.ProjectFingerprint)
+                    ),
+                    buildInvocationScopeId
                 )
             }
 
-            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+            else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason, buildInvocationScopeId)
         }
+    }
 
     private
     fun checkBuildScopedFingerprint(fingerprintFile: ConfigurationCacheStateFile) =

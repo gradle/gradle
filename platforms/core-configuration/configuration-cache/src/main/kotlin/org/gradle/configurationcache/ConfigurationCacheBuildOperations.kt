@@ -187,6 +187,13 @@ class FingerprintCheckResult(
         else -> emptyList()
     }
 
+    override fun getOriginBuildInvocationId(): String? =
+        when (checkResult) {
+            is CheckedFingerprint.Valid -> checkResult.buildInvocationScopeId
+            is CheckedFingerprint.Invalid -> checkResult.buildInvocationScopeId
+            is CheckedFingerprint.NotFound -> null
+        }
+
     private
     data class BuildInvalidationReasonsImpl(
         private val buildPath: String,

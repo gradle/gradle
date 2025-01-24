@@ -34,7 +34,8 @@ sealed class CheckedFingerprint {
      */
     data class Invalid(
         val buildPath: Path,
-        val reason: StructuredMessage
+        val reason: StructuredMessage,
+        val buildInvocationScopeId: String
     ) : CheckedFingerprint()
 
     /**
@@ -43,7 +44,8 @@ sealed class CheckedFingerprint {
     // TODO:isolated when keeping multiple entries per key, Gradle should look for the entry with the least number of invalid projects
     data class Valid(
         val entryId: String,
-        val invalidProjects: InvalidProjects? = null
+        val invalidProjects: InvalidProjects? = null,
+        val buildInvocationScopeId: String
     ) : CheckedFingerprint()
 
     /**

@@ -78,6 +78,7 @@ import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.internal.scripts.ScriptFileResolvedListener
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.service.scopes.ParallelListener
 import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyListener
 import org.gradle.util.Path
@@ -126,6 +127,7 @@ class ConfigurationCacheFingerprintWriter(
         val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
         val ignoredFileSystemCheckInputs: String?
+        val buildInvocationScopeId: String
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
         fun hashCodeOfDirectoryChildrenNames(file: File): HashCode
@@ -181,6 +183,7 @@ class ConfigurationCacheFingerprintWriter(
     var closestChangingValue: ConfigurationCacheFingerprint.ChangingDependencyResolutionValue? = null
 
     init {
+        buildScopedContext.runWriteOperation {  write(host.buildInvocationScopeId) }
         buildScopedSink.initScripts(host.allInitScripts)
         buildScopedSink.write(
             ConfigurationCacheFingerprint.GradleEnvironment(
