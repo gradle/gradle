@@ -43,7 +43,6 @@ import javax.inject.Inject;
  *
  * @since 7.6
  */
-@Incubating
 @SuppressWarnings("JavadocReference")
 public interface Dependencies {
     /**
@@ -145,6 +144,7 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
+    @Incubating
     default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return dependencyConstraint.map(getDependencyConstraintFactory()::create);
     }
@@ -156,6 +156,7 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
+    @Incubating
     default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return constraint(dependencyConstraint.asProvider());
     }
