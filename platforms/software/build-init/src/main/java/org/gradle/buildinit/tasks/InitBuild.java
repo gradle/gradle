@@ -215,11 +215,11 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * The directory of the generated project, defaults to the directory the project is generated in.
      *
-     * @since 8.12
+     * @since 8.13
      */
     @OutputDirectory
     @Incubating
-    @Option(option = "project-directory", description = "Set the project directory.")
+    @Option(option = "into", description = "Set the directory where the project is generated.")
     public DirectoryProperty getProjectDirectory() {
         return projectDir;
     }

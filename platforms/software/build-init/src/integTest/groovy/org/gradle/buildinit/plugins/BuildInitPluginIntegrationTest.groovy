@@ -350,6 +350,8 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
                                   UPGRADE
                                   WARN
 
+     --into     Set the directory where the project is generated.
+
      --java-version     Provides java version to use in the project.
 
      --overwrite     Allow existing files in the build directory to be overwritten?
@@ -357,8 +359,6 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
      --no-overwrite     Disables option --overwrite.
 
      --package     Set the package for source files.
-
-     --project-directory     Set the project directory.
 
      --project-name     Set the project name.
 
@@ -506,7 +506,7 @@ Description""") // include the next header to make sure all options are listed
 
     def "can specify a different project directory"() {
         when:
-        succeeds "init", "--project-directory=./other-dir"
+        succeeds "init", "--into=./other-dir"
 
         then:
         targetDir.file("other-dir/settings.gradle.kts").isFile()
