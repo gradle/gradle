@@ -48,8 +48,12 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
         val parameterBindingStub = schemaFunction.parameters.associateWith { Any() }
         val hasConfigureLambda = (schemaFunction.semantics as? FunctionSemantics.ConfigureSemantics)?.configureBlockRequirement?.allows ?: false
 
-        fun signature(function: KFunction<*>): String =
-            function::class.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }.call(function) as String
+        fun signature(function: KFunction<*>): String {
+            return function::class.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }.call(function) as String
+            // It is not very nice that we rely on this internal signature, but we don't have much of a choice...
+            // We have also tried using the "descriptor" field and the "overriddenDescriptors" and/or "overriddenFunctions" from that,
+            // but it's even uglier with a lot of weird lazy types involved and the code for doing so becomes very brittle.
+        }
 
         fun matchesAnnotationsRecursively(function: KFunction<*>, receiverClass: KClass<*>, predicate: (Annotation) -> Boolean): Boolean =
             if (function.annotations.any(predicate)) {
