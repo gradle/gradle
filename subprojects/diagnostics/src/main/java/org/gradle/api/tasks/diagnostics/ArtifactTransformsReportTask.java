@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.transform.TransformAction;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
@@ -52,6 +53,7 @@ public abstract class ArtifactTransformsReportTask extends DefaultTask {
 
     @Inject protected abstract ObjectFactory getObjectFactory();
     @Inject protected abstract StyledTextOutputFactory getTextOutputFactory();
+    @Inject protected abstract DocumentationRegistry getDocumentationRegistry();
 
     /**
      * Limits the report to reporting on transforms using a type with this (simple) classname.
@@ -84,7 +86,7 @@ public abstract class ArtifactTransformsReportTask extends DefaultTask {
     }
 
     private void reportToConsole(ArtifactTransformReportSpec reportSpec, ArtifactTransformReportModel reportModel) {
-        final ConsoleArtifactTransformReportRenderer renderer = new ConsoleArtifactTransformReportRenderer(reportSpec);
+        final ConsoleArtifactTransformReportRenderer renderer = new ConsoleArtifactTransformReportRenderer(reportSpec, getDocumentationRegistry());
         final StyledTextOutput output = getTextOutputFactory().create(getClass());
         renderer.render(reportModel, output);
     }

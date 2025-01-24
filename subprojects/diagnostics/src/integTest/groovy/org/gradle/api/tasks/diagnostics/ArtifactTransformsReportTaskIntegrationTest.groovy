@@ -17,11 +17,14 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 
 /**
  * Integration tests for the {@link ArtifactTransformsReportTask}.
  */
 class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpec {
+    private static final String CACHEABILITY_NUDGE = "Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html#artifact_transforms_with_caching."
+
     def setup() {
         settingsFile << """
             rootProject.name = "myLib"
@@ -32,6 +35,7 @@ class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpe
         expect:
         succeeds ':artifactTransforms'
         reportsCompleteAbsenceOfArtifactTransforms()
+        assertsDoesntNudgeAboutCacheability()
     }
 
     def "if single transform is registered by buildscript, task reports it"() {
@@ -58,14 +62,13 @@ class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpe
 EmptyTransform
 --------------------------------------------------
 Type: EmptyTransform
+Cacheable: No
 From Attributes:
     - color = blue
     - shape = square
 To Attributes:
     - color = red
     - shape = circle
-
-(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
     }
 
@@ -97,6 +100,7 @@ To Attributes:
 EmptyTransform
 --------------------------------------------------
 Type: EmptyTransform
+Cacheable: No
 From Attributes:
     - color = blue
 To Attributes:
@@ -105,14 +109,15 @@ To Attributes:
 --------------------------------------------------
 OtherTransform
 --------------------------------------------------
-Type: OtherTransform (c)
+Type: OtherTransform
+Cacheable: Yes
 From Attributes:
     - shape = square
 To Attributes:
     - shape = circle
-
-(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
+
+        assertsNudgesAboutCacheability()
     }
 
     def "if named transform is registered by buildscript, task reports it"() {
@@ -141,7 +146,8 @@ To Attributes:
         result.groupedOutput.task(":artifactTransforms").assertOutputContains("""--------------------------------------------------
 EmptyTransform
 --------------------------------------------------
-Type: EmptyTransform (c)
+Type: EmptyTransform
+Cacheable: Yes
 From Attributes:
     - color = blue
 To Attributes:
@@ -150,14 +156,15 @@ To Attributes:
 --------------------------------------------------
 EmptyTransform
 --------------------------------------------------
-Type: EmptyTransform (c)
+Type: EmptyTransform
+Cacheable: Yes
 From Attributes:
     - shape = square
 To Attributes:
     - shape = circle
-
-(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
+
+        assertsDoesntNudgeAboutCacheability()
     }
 
     def "report can filter transforms by type"() {
@@ -198,6 +205,7 @@ To Attributes:
 EmptyTransform
 --------------------------------------------------
 Type: EmptyTransform
+Cacheable: No
 From Attributes:
     - color = blue
 To Attributes:
@@ -207,13 +215,14 @@ To Attributes:
 EmptyTransform
 --------------------------------------------------
 Type: EmptyTransform
+Cacheable: No
 From Attributes:
     - color = yellow
 To Attributes:
     - color = purple
-
-(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.
 """)
+
+        assertsNudgesAboutCacheability()
     }
 
     private String defineAttributes() {
@@ -234,5 +243,13 @@ To Attributes:
 
     private void reportsCompleteAbsenceOfArtifactTransforms(String projectName = "myLib") {
         outputContains("There are no transforms registered in project '$projectName'.")
+    }
+
+    private void assertsNudgesAboutCacheability() {
+        outputContains(CACHEABILITY_NUDGE)
+    }
+
+    private void assertsDoesntNudgeAboutCacheability() {
+        outputDoesNotContain(CACHEABILITY_NUDGE)
     }
 }

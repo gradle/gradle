@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer;
 
 import com.google.common.collect.Streams;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ArtifactTransformReportModel;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.model.ReportArtifactTransform;
 import org.gradle.api.tasks.diagnostics.internal.artifact.transforms.spec.ArtifactTransformReportSpec;
@@ -30,11 +31,13 @@ import java.util.List;
  * to the console with richly formatted output.
  */
 public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifactTransformReportRenderer<StyledTextOutput> {
+    private final DocumentationRegistry documentationRegistry;
     private StyledTextOutput output;
     private int depth;
 
-    public ConsoleArtifactTransformReportRenderer(ArtifactTransformReportSpec spec) {
+    public ConsoleArtifactTransformReportRenderer(ArtifactTransformReportSpec spec, DocumentationRegistry documentationRegistry) {
         super(spec);
+        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
@@ -55,7 +58,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
 
     private void writeResults(ArtifactTransformReportModel data) {
         writeArtifactTransforms(data.getTransforms());
-        writeLegend();
+        writeSuggestions(data.getTransforms());
     }
 
     private void writeArtifactTransforms(List<ReportArtifactTransform> artifactTransforms) {
@@ -77,13 +80,10 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
 
     private void writeType(ReportArtifactTransform artifactTransform) {
         output.style(StyledTextOutput.Style.Description).text("Type: ");
-        output.style(StyledTextOutput.Style.Normal).text(artifactTransform.getTransformClass().getName());
+        output.style(StyledTextOutput.Style.Normal).println(artifactTransform.getTransformClass().getName());
 
-        if (artifactTransform.isCacheable()) {
-            output.style(StyledTextOutput.Style.Description).println(" (c)");
-        } else {
-            newLine();
-        }
+        output.style(StyledTextOutput.Style.Description).text("Cacheable: ");
+        output.style(StyledTextOutput.Style.Normal).println(artifactTransform.isCacheable() ? "Yes" : "No");
     }
 
     @SuppressWarnings("CodeBlock2Expr")
@@ -107,9 +107,11 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
         newLine();
     }
 
-    private void writeLegend() {
+    private void writeSuggestions(List<ReportArtifactTransform> transforms) {
         output.style(StyledTextOutput.Style.Info);
-        output.println("(c) Artifact transform uses a type annotated with @CacheableTransform. This asserts the transformation is idempotent and results can be reused without rerunning the transform.");
+        if (transforms.stream().anyMatch(t -> !t.isCacheable())) {
+            output.println("Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: " + documentationRegistry.getDocumentationFor("artifact_transforms", "artifact_transforms_with_caching") + ".");
+        }
     }
 
     private void writeCompleteAbsenceOfResults(ArtifactTransformReportModel model, boolean searchingByType) {
