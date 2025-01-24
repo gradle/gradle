@@ -15,6 +15,7 @@ jobs:
     if: github.event.pull_request.base.ref == 'master'
     permissions:
       contents: read
+      issues: write
     runs-on: ubuntu-latest
 
     steps:

@@ -49,7 +49,6 @@ class CheckBadMerge {
         }
 
         List<String> commits = Files.readAllLines(Paths.get(args[0]))
-        println("Commits to check: ${Arrays.toString(commits)}")
         try {
             commits.each { checkCommit(it) }
         } finally {
@@ -64,6 +63,13 @@ class CheckBadMerge {
             return
         }
 
+        List<String> commitBranches = branchesOf(commit)
+        if (commitBranches.contains("origin/release")) {
+            println("$commit is a merge commit already on release, ignoring.")
+            println("  Branches: $commitBranches")
+            return
+        }
+
         // The correct state we are looking for is:
         // 1. It's a merge commit.
         // 2. One of its parent commits is from master only.
@@ -72,15 +78,23 @@ class CheckBadMerge {
         List<String> p1Branches = branchesOf(parentCommits[0])
         List<String> p2Branches = branchesOf(parentCommits[1])
 
+        println("$commit parents: $parentCommits")
+        println(" p1Branches: $p1Branches")
+        println(" p2Branches: $p2Branches")
         if (p1Branches.contains("origin/master") && !p2Branches.contains("origin/master") && p2Branches.any { it.startsWith("origin/release") }) {
             List<String> badFiles = filesFromMerge(commit).findAll {gitFile -> MONITORED_PATHS.any { forbiddenPath -> gitFile.startsWith(forbiddenPath)} }
             if (!badFiles.empty) {
-                throw new RuntimeException("Found bad files in merge commit $commit: $badFiles")
+                System.err.println("Found bad files in merge commit $commit, run the listed commands:")
+                badFiles.each {
+                    System.err.println("git restore --source=master -SW -- '$it'")
+                }
+                System.err.println("And then amend the merge commit to remove all offending changes.")
+                System.exit(1)
             } else {
-                println("No bad files found in $commit")
+                println(" -> No bad files found")
             }
         } else {
-            println("$commit is not a merge commit we're looking for. Parents: $parentCommits, p1Branches: $p1Branches, p2Branches: $p2Branches")
+            println(" -> is not a merge commit we're looking for.")
         }
     }
 
