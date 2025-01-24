@@ -71,7 +71,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
 
     private void writeArtifactTransformNameHeader(ReportArtifactTransform artifactTransform) {
         printHeader(() -> {
-            output.style(StyledTextOutput.Style.Identifier).text(artifactTransform.getDisplayName());
+            output.style(StyledTextOutput.Style.Identifier).println(artifactTransform.getDisplayName());
         });
     }
 
