@@ -171,7 +171,13 @@ public class DefaultPluginRegistry implements PluginRegistry {
         // Only allow lookups in the current scope after it's been locked
         return classLoaderScope.isLocked()
             ? classLoaderScope.getLocalClassLoader()
-            : classLoaderScope.getParent().getExportClassLoader();
+            : findLockedAncestorExportClassLoader(classLoaderScope.getParent());
+    }
+
+    private static ClassLoader findLockedAncestorExportClassLoader(ClassLoaderScope scope) {
+        return scope.isLocked()
+            ? scope.getExportClassLoader()
+            : findLockedAncestorExportClassLoader(scope.getParent());
     }
 
     @Nullable
