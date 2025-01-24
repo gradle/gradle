@@ -108,10 +108,6 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
         this(null, NO_PARENTS);
     }
 
-    public DefaultServiceRegistry(String displayName) {
-        this(displayName, NO_PARENTS);
-    }
-
     public DefaultServiceRegistry(ServiceRegistry... parents) {
         this(null, parents);
     }
@@ -351,6 +347,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     @Override
     public Object find(Type serviceType) throws ServiceLookupException {
+        // wrap in build operation
         assertValidServiceType(unwrap(serviceType));
         Service provider = getService(serviceType);
         return provider == null ? null : provider.get();
