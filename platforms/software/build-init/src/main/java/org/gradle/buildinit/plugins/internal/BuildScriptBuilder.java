@@ -745,20 +745,36 @@ public class BuildScriptBuilder {
         final String configuration;
         final String dependencyOrCatalogReference;
         final boolean catalogReference;
+        final Collection<DependencyExclusion> exclusions;
 
-        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference) {
+        DepSpec(String configuration, @Nullable String comment, String dependencyOrCatalogReference, boolean catalogReference, Collection<DependencyExclusion> exclusions) {
             super(comment);
             this.configuration = configuration;
             this.dependencyOrCatalogReference = dependencyOrCatalogReference;
             this.catalogReference = catalogReference;
+            this.exclusions = exclusions;
         }
 
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
+            String notation;
             if (catalogReference) {
-                printer.println(printer.syntax.dependencySpec(configuration, dependencyOrCatalogReference));
+                notation = dependencyOrCatalogReference;
             } else {
-                printer.println(printer.syntax.dependencySpec(configuration, printer.syntax.string(dependencyOrCatalogReference)));
+                notation = printer.syntax.string(dependencyOrCatalogReference);
+            }
+            if (exclusions.isEmpty()) {
+                printer.println(printer.syntax.dependencySpec(configuration, notation));
+            } else {
+                ScriptBlockImpl dependencyBlock = new ScriptBlockImpl();
+                for (DependencyExclusion exclusion : exclusions) {
+                    Map<String, String> exclusionConfig = new LinkedHashMap<>();
+                    exclusionConfig.put("module", exclusion.getModule());
+                    exclusionConfig.put("group", exclusion.getGroup());
+                    dependencyBlock.add(new MethodInvocation(null, new MethodInvocationExpression(null, "exclude", expressionValues(exclusionConfig))));
+                }
+                printer.printBlock(printer.syntax.complexDependencySpec(configuration, notation), dependencyBlock);
+                printer.needSeparatorLine = false;
             }
         }
     }
@@ -1142,9 +1158,9 @@ public class BuildScriptBuilder {
             for (BuildInitDependency d : dependencies) {
                 if (d.version != null && buildScriptBuilder.useVersionCatalog) {
                     String versionCatalogRef = buildScriptBuilder.buildContentGenerationContext.getVersionCatalogDependencyRegistry().registerLibrary(d.module, d.version);
-                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true));
+                    statementGroup.add(new DepSpec(configuration, null, versionCatalogRef, true, d.exclusions));
                 } else {
-                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false));
+                    statementGroup.add(new DepSpec(configuration, null, d.toNotation(), false, d.exclusions));
                 }
             }
             return statementGroup;
@@ -1973,6 +1989,8 @@ public class BuildScriptBuilder {
 
         String dependencySpec(String config, String notation);
 
+        String complexDependencySpec(String config, String notation);
+
         String propertyAssignment(PropertyAssignment expression);
 
         String taskSelector(TaskSelector selector);
@@ -2069,6 +2087,11 @@ public class BuildScriptBuilder {
         @Override
         public String dependencySpec(String config, String notation) {
             return config + "(" + notation + ")";
+        }
+
+        @Override
+        public String complexDependencySpec(String config, String notation) {
+            return dependencySpec(config, notation);
         }
 
         @Override
@@ -2252,6 +2275,11 @@ public class BuildScriptBuilder {
         @Override
         public String dependencySpec(String config, String notation) {
             return config + " " + notation;
+        }
+
+        @Override
+        public String complexDependencySpec(String config, String notation) {
+            return config + "(" + notation + ")";
         }
 
         @Override

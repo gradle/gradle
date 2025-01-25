@@ -120,6 +120,10 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
 
         assertContainsPublishingConfig(conventionPluginScript, scriptDsl)
         assertContainsEncodingConfig(conventionPluginScript, scriptDsl, 'UTF-8')
+        assertContainsDependenciesConfig(implSubprojectBuildFile, scriptDsl,
+            [new Dependency("api", "libs.commons.lang.commons.lang", ["javax.servlet:servlet-api", "javax.servlet:jsp-api"]),
+             new Dependency("api", "project(':webinar-api')"),
+             new Dependency("testImplementation", "libs.junit.junit")])
         conventionPluginScript.text.contains(TextUtil.toPlatformLineSeparators('''
 java {
     withSourcesJar()
@@ -289,6 +293,9 @@ Root project 'webinar-parent'
         dsl.assertGradleFilesGenerated()
         dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
         assertContainsPublishingConfig(dsl.getBuildFile(), scriptDsl)
+        assertContainsDependenciesConfig(dsl.getBuildFile(), scriptDsl,
+            [new Dependency("api", "libs.commons.lang.commons.lang", ["javax.servlet:servlet-api", "javax.servlet:jsp-api"]),
+             new Dependency("testImplementation", "libs.junit.junit")])
 
         when:
         fails 'clean', 'build'
@@ -401,6 +408,59 @@ ${TextUtil.indent(configLines.join("\n"), "                    ")}
             assert text.contains(publishingBlock)
         }
 
+    }
+
+    private static class Dependency {
+        final String configuration
+        final String module
+        final List<String> exclusions
+
+        Dependency(String configuration, String module, List<String> exclusions = []) {
+            this.module = module
+            this.configuration = configuration
+            this.exclusions = exclusions
+        }
+
+        String asString(BuildInitDsl dsl) {
+            String moduleStr
+            if (dsl == BuildInitDsl.GROOVY) {
+                moduleStr = module.replaceAll("\"", "'")
+            } else {
+                moduleStr = module.replaceAll("'", "\"")
+            }
+            String dependencyStr = "$configuration($moduleStr)"
+            if (exclusions.isEmpty()) {
+                if (dsl == BuildInitDsl.GROOVY) {
+                    // groovy uses infix syntax when no exclusions are needed
+                    dependencyStr = "$configuration $moduleStr"
+                }
+            } else {
+                if (dsl == BuildInitDsl.GROOVY) {
+                    dependencyStr += TextUtil.toPlatformLineSeparators(""" {
+${TextUtil.indent(exclusions.collect {
+                        def (group, module) = it.split(":")
+                        "exclude(module: '$module', group: '$group')"
+                    }.join("\n"), "    ")}
+}""")
+                } else {
+                    dependencyStr += TextUtil.toPlatformLineSeparators(""" {
+${TextUtil.indent(exclusions.collect {
+                        def (group, module) = it.split(":")
+                        "exclude(mapOf(\"module\" to \"$module\", \"group\" to \"$group\"))"
+                    }.join("\n"), "    ")}
+}""")
+                }
+            }
+            return dependencyStr
+        }
+    }
+
+    static void assertContainsDependenciesConfig(TestFile buildScript, BuildInitDsl dsl, List<Dependency> dependencies) {
+        assert buildScript.text.contains(TextUtil.toPlatformLineSeparators("""
+dependencies {
+${TextUtil.indent(dependencies.collect { it.asString(dsl) }.join("\n"), "    ")}
+}
+"""))
     }
 
     def "singleModule with explicit project dir"() {

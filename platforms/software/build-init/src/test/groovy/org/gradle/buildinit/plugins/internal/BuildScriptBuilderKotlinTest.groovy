@@ -157,7 +157,7 @@ repositories {
     def "can add compile dependencies"() {
         when:
         builder.implementationDependency("Use slf4j", BuildInitDependency.of("org.slf4j:slf4j-api", "2.7"), BuildInitDependency.of("org.slf4j:slf4j-simple", "2.7"))
-        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a:c", "4.5"))
+        builder.implementationDependency(null, BuildInitDependency.of("a:b", "1.2"), BuildInitDependency.of("a", "c", "4.5", [new DependencyExclusion("a", "e")]))
         builder.implementationDependency(null, BuildInitDependency.of("a:d", "4.5"))
         builder.implementationDependency("Use Scala to compile", BuildInitDependency.of("org.scala-lang:scala-library", "2.10"))
         builder.create(target).generate()
@@ -173,7 +173,9 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:2.7")
 
     implementation("a:b:1.2")
-    implementation("a:c:4.5")
+    implementation("a:c:4.5") {
+        exclude(mapOf("module" to "e", "group" to "a"))
+    }
     implementation("a:d:4.5")
 
     // Use Scala to compile

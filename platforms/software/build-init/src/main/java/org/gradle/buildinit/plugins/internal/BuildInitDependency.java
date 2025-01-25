@@ -19,6 +19,10 @@ package org.gradle.buildinit.plugins.internal;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * Data object for use with version catalog generation to encode module, version and if generated aliases should be shortened or qualified.
  */
@@ -26,21 +30,27 @@ import org.jspecify.annotations.Nullable;
 public class BuildInitDependency {
     final String module;
     final String version;
-    private BuildInitDependency(String module, @Nullable String version) {
+    final Collection<DependencyExclusion> exclusions;
+    private BuildInitDependency(String module, @Nullable String version, Collection<DependencyExclusion> exclusions) {
         this.module = module;
         this.version = version;
+        this.exclusions = exclusions;
     }
 
     public static BuildInitDependency of(String module, String version) {
-        return new BuildInitDependency(module, version);
+        return new BuildInitDependency(module, version, Collections.emptyList());
     }
 
     public static BuildInitDependency of(String group, String name, String version) {
-        return new BuildInitDependency(group + ":" + name, version);
+        return new BuildInitDependency(group + ":" + name, version, Collections.emptyList());
+    }
+
+    public static BuildInitDependency of(String group, String name, String version, Collection<DependencyExclusion> excludes) {
+        return new BuildInitDependency(group + ":" + name, version, excludes);
     }
 
     public static BuildInitDependency of(String module) {
-        return new BuildInitDependency(module, null);
+        return new BuildInitDependency(module, null, Collections.emptyList());
     }
 
     public String toNotation() {
