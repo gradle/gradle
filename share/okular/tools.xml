@@ -1,0 +1,133 @@
+<!DOCTYPE okularAnnotatingTools>
+<!--
+Tool
+  [id]              {int = unique id identifying the built-in tool}
+  [name]            {string = name of the tool displayed when configuring it}
+  [type]            {highlight, underline, squiggly, strikeout, typewriter, note-inline, note-linked, ink, straight-line, rectangle, ellipse, polygon, stamp}
+
+Engine
+  TextSelector
+    [color]         {RGB HEX}
+  PickPoint
+    [color]         {RGB HEX}
+    [block]         {true=allow click and drag, false=click only}
+    [hoverIcon]     {string or path}
+    [size]          {int = hoover icon size}
+  PolyLine
+    [color]         {RGB HEX}
+    [points]        {-1=arbitrary number of vertex, n=number of vertices}
+
+Annotation
+  Highlight, Underline, Squiggly, StrikeOut
+    [color]         {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+  Typewriter
+    [textColor]     {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+    [font]          {string as returned by QFont::toString()}
+  FreeText
+    [textColor]     {RGB HEX}
+    [color]         {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+    [font]          {string as returned by QFont::toString()}
+  Text
+    [color]         {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+    [icon]          {string}
+    [align]         {0=left, 1=center, 2=right}
+  Ink
+    [color]         {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+    [width]         {decimal > 0}
+  Line
+    [color]         {RGB HEX}
+    [innerColor]    {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+    [width]         {decimal > 0}
+    [startStyle]    {0=Square, 1=Circle, 2=Diamond, 3=Open Arrow, 4=Closed Arrow,
+                     5=None, 6=Butt, 7=Right Open Arrow, 8=Right Closed Arrow, 9=Slash}
+    [endStyle]      {same of [startStyle]}
+    [leadFwd]       {decimal > 0}
+    [leadBack]      {decimal > 0}
+  GeomSquare, GeomCircle
+    [color]         {RGB HEX}
+    [innerColor]    {RGB HEX}
+    [opacity]       {decimal in range [0, 1]}
+    [width]         {decimal > 0}
+  Stamp
+    [icon]          {string or path}
+-->
+<annotatingTools>
+    <tool id="1" type="highlight">
+        <engine type="TextSelector" color="#ffff00">
+            <annotation type="Highlight" color="#ffffff00" />
+        </engine>
+    </tool>
+    <tool id="2" type="underline">
+        <engine type="TextSelector" color="#ff0000">
+            <annotation type="Underline" color="#ffff0000" />
+        </engine>
+    </tool>
+    <tool id="3" type="squiggly">
+        <engine type="TextSelector" color="#ff0000">
+            <annotation type="Squiggly" color="#ffff0000" />
+        </engine>
+    </tool>
+    <tool id="4" type="strikeout">
+        <engine type="TextSelector" color="#ff0000">
+            <annotation type="StrikeOut" color="#ffff0000" />
+        </engine>
+    </tool>
+    <tool id="5" type="typewriter">
+        <engine type="PickPoint" block="true">
+            <annotation type="Typewriter" color="#00ffffff" textColor="#000000" width="0"
+                        font="Noto Sans,10,-1,5,50,0,0,0,0,0,Regular"/>
+        </engine>
+    </tool>
+    <tool id="6" type="note-inline">
+        <engine type="PickPoint" color="#ffff00" hoverIcon="tool-note-inline" block="true">
+            <annotation type="FreeText" color="#ffffff00"
+                        font="Noto Sans,10,-1,5,50,0,0,0,0,0,Regular"/>
+        </engine>
+    </tool>
+    <tool id="7" type="note-linked">
+        <engine type="PickPoint" color="#ffff00" hoverIcon="tool-note">
+            <annotation type="Text" color="#ffffff00" icon="Note" />
+        </engine>
+    </tool>
+    <tool id="8" type="ink">
+        <engine type="SmoothLine" color="#00ff00">
+            <annotation type="Ink" color="#ff00ff00" width="2" />
+        </engine>
+    </tool>
+    <tool id="9" type="straight-line" name="Arrow">
+        <engine type="PolyLine" color="#000000" points="2">
+            <annotation type="Line" width="2" endStyle="3" color="#ff000000" />
+        </engine>
+    </tool>
+    <tool id="10" type="straight-line">
+        <engine type="PolyLine" color="#000000" points="2">
+            <annotation type="Line" width="2" color="#ff000000" />
+        </engine>
+    </tool>
+    <tool id="11" type="rectangle">
+        <engine type="PickPoint" color="#ff0000" block="true">
+            <annotation type="GeomSquare" width="3" color="#ffff0000" />
+        </engine>
+    </tool>
+    <tool id="12" type="ellipse">
+        <engine type="PickPoint" color="#00ffff" block="true">
+            <annotation type="GeomCircle" width="3" color="#ff00ffff" />
+        </engine>
+    </tool>
+    <tool id="13" type="polygon">
+        <engine type="PolyLine" color="#007eee" points="-1">
+            <annotation type="Line" width="2" color="#ff007eee" />
+        </engine>
+    </tool>
+    <tool id="14" type="stamp">
+        <engine type="PickPoint" size="64" block="true">
+            <annotation type="Stamp"/>
+        </engine>
+    </tool>
+</annotatingTools>
