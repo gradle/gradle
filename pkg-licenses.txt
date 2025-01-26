@@ -1,0 +1,1314 @@
+Here is a list with collected copyright notices.  For details see the
+description of each individual package.  This list is not meant as an
+exhaustive list of copyright notices.  Notices from several packages
+are even not listed.  The license with the most restrictive terms is
+the GNU General Public License version 3 (GPLv3+); thus complying to
+those terms and conditions will be sufficient.  If in doubt check the
+source code of the individual packages.
+
+
+The installer is
+
+  Copyright (C) 2005-2013,2019-2023 g10 Code GmbH
+                2013-2018 Intevation GmbH
+                2015-2018 Bundesamt für Sicherheit in der Informationstechnik
+
+  Gpg4win is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Gpg4win is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, see <https://gnu.org/licenses/>.
+
+GNUPG is
+
+  Copyright (C) 1997-2019 Werner Koch
+  Copyright (C) 1994-2021 Free Software Foundation, Inc.
+  Copyright (C) 2003-2023 g10 Code GmbH
+  Copyright (C) 2002 Klarälvdalens Datakonsult AB
+  Copyright (C) 1995-1997, 2000-2007 Ulrich Drepper <drepper@gnu.ai.mit.edu>
+  Copyright (C) 1994 X Consortium
+  Copyright (C) 1998 by The Internet Society.
+  Copyright (C) 1998-2004 The OpenLDAP Foundation
+  Copyright (C) 1998-2004 Kurt D. Zeilenga.
+  Copyright (C) 1998-2004 Net Boolean Incorporated.
+  Copyright (C) 2001-2004 IBM Corporation.
+  Copyright (C) 1999-2003 Howard Y.H. Chu.
+  Copyright (C) 1999-2003 Symas Corporation.
+  Copyright (C) 1998-2003 Hallvard B. Furuseth.
+  Copyright (C) 1992-1996 Regents of the University of Michigan.
+  Copyright (C) 2000 Dimitrios Souflis
+  Copyright (C) 2008,2009,2010,2012-2016 William Ahern
+  Copyright (C) 2017 Bundesamt für Sicherheit in der Informationstechnik
+
+  GnuPG is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  GnuPG is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+  License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+LIBGCRYPT is
+
+  Copyright (C) 2012-2023 g10 Code GmbH
+  Copyright (C) 2013-2018 Jussi Kivilinna
+  Copyright (C) 1989,1991-2019 Free Software Foundation, Inc.
+  Copyright (C) 1994 X Consortium
+  Copyright (C) 1996 L. Peter Deutsch
+  Copyright (C) 1997 Werner Koch
+  Copyright (C) 1998 The Internet Society
+  Copyright (C) 1996-1999 Peter Gutmann, Paul Kendall, and Chris Wedgwood
+  Copyright (C) 1996-2006 Peter Gutmann, Matt Thomlinson and Blake Coverett
+  Copyright (C) 2003 Nikos Mavroyanopoulos
+  Copyright (C) 2006-2007 NTT (Nippon Telegraph and Telephone Corporation)
+  Copyright (C) 2012 Simon Josefsson, Niels Möller
+  Copyright (c) 2012 Intel Corporation
+  Copyright (C) 2013 Christian Grothoff
+  Copyright (C) 2013-2014 Dmitry Eremin-Solenikov
+  Copyright (C) 2014 Stephan Mueller
+  Copyright (C) 2017 Bundesamt für Sicherheit in der Informationstechnik
+
+  Libgcrypt is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of
+  the License, or (at your option) any later version.
+
+  Libgcrypt is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+LIBGPG-ERROR is
+
+  Copyright (C) 2001-2023 g10 Code GmbH
+  Copyright (C) 1995-2017 Free Software Foundation, Inc.
+  Copyright (C) 1998-2006, 2008-2017  Werner Koch
+  Copyright (C) 2014 Jedi Lin
+
+  Libgpg-error is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public License
+  as published by the Free Software Foundation; either version 2.1 of
+  the License, or (at your option) any later version.
+
+  Libgpg-error is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+LIBASSUAN is
+
+  Copyright (C) 1992-2013 Free Software Foundation, Inc.
+  Copyright (C) 1994 X Consortium
+  Copyright (C) 2000 Werner Koch (dd9jn)
+  Copyright (C) 2001-2021 g10 Code GmbH
+  Copyright (C) 2004 Simon Josefsson
+
+  Libassuan is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of
+  the License, or (at your option) any later version.
+
+  Libassuan is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+LIBKSBA is
+
+  Copyright (C) 2001-2006, 2010-2015, 2018-2023 g10 Code GmbH
+  Copyright (C) 2001-2003, 2007 Free Software Foundation, Inc.
+  Copyright (C) 2000, 2001 Fabio Fiorina
+
+  The library and the header files are distributed under the following
+  terms (LGPLv3+/GPLv2+):
+
+  KSBA is free software; you can redistribute it and/or modify
+  it under the terms of either
+
+    - the GNU Lesser General Public License as published by the Free
+      Software Foundation; either version 3 of the License, or (at
+      your option) any later version.
+
+  or
+
+    - the GNU General Public License as published by the Free
+      Software Foundation; either version 2 of the License, or (at
+      your option) any later version.
+
+  or both in parallel, as here.
+
+  KSBA is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+  License for more details.
+
+  The other parts (e.g. manual, build system, tests) are distributed
+  under the following terms (GPLv3):
+
+  KSBA is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  KSBA is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+
+NPTH is
+
+  Copyright (C) 2011, 2012, 2014, 2015, 2017 g10 Code GmbH
+
+  nPth is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of
+  the License, or (at your option) any later version.
+
+  nPth is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+  the GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+NTBTLS is
+
+  Copyright (C) 2006-2014 Brainspark B.V.
+  Copyright (C) 2014-2022 g10 Code GmbH
+
+  NTBTLS is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  NTBTLS is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+PINENTRY is
+
+  Copyright (C) 1999 Robert Bihlmeyer <robbe@orcus.priv.at>
+  Copyright (C) 2001-2004, 2007-2008, 2010, 2015-2016 g10 Code GmbH
+  Copyright (C) 2002, 2008 Klarälvdalens Datakonsult AB (KDAB)
+  Copyright (C) 2004 by Albrecht Dreß <albrecht.dress@arcor.de>
+  Copyright 2007 Ingo Klöcker
+  Copyright (C) 2014 Serge Voilokov
+  Copyright (C) 2015 Daiki Ueno
+  Copyright (C) 2015 Daniel Kahn Gillmor <dkg@fifthhorseman.net>
+  Copyright 2016 Intevation GmbH
+
+  PINENTRY is free software; you can redistribute it and/or modify it
+  under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  PINENTRY is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, see <https://www.gnu.org/licenses/>.
+
+
+GPGME is
+
+  Copyright (C) 1991-2013 Free Software Foundation, Inc.
+  Copyright (C) 2000-2001 Werner Koch
+  Copyright (C) 2001-2023 g10 Code GmbH
+  Copyright (C) 2002 Klarälvdalens Datakonsult AB
+  Copyright (C) 2004-2008 Igor Belyi
+  Copyright (C) 2002 John Goerzen
+  Copyright (c) 2009 Dave Gamble
+  Copyright (C) 2014, 2015 Martin Albrecht
+  Copyright (C) 2015, 2018 Ben McGinnes
+  Copyright (C) 2015, 2016, 2018
+                Bundesamt für Sicherheit in der Informationstechnik
+  Copyright (C) 2016 Intevation GmbH
+
+
+  GPGME is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of
+  the License, or (at your option) any later version.
+
+  GPGME is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+NSIS is
+
+  Copyright 1999-2009 Nullsoft and Contributors
+  Copyright 2002-2008 Amir Szekely
+  Copyright 2003 Ramon
+
+  This license applies to everything in the NSIS package, except where
+  otherwise noted.
+
+  This software is provided 'as-is', without any express or implied
+  warranty. In no event will the authors be held liable for any
+  damages arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any
+  purpose, including commercial applications, and to alter it and
+  redistribute it freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must
+     not claim that you wrote the original software. If you use this
+     software in a product, an acknowledgment in the product
+     documentation would be appreciated but is not required.
+
+  2. Altered source versions must be plainly marked as such, and must
+     not be misrepresented as being the original software.
+
+  3. This notice may not be removed or altered from any source
+     distribution.
+
+  The user interface used with the installer is
+
+  Copyright 2002-2009 Joost Verburg
+
+  [It is distributed along with NSIS and the same conditions as stated
+   above apply]
+
+
+TinySCHEME is part of the GnuPG package and is
+
+  Copyright (c) 2000, Dimitrios Souflis
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  Redistributions of source code must retain the above copyright notice,
+  this list of conditions and the following disclaimer.
+
+  Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  Neither the name of Dimitrios Souflis nor the names of the
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR
+  CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+  EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+LIBDNS is part of the GnuPG package and is
+
+  Copyright (c) 2008, 2009, 2010, 2012-2016  William Ahern
+
+  Permission is hereby granted, free of charge, to any person obtaining a
+  copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to permit
+  persons to whom the Software is furnished to do so, subject to the
+  following conditions:
+
+  The above copyright notice and this permission notice shall be included
+  in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+  NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+  DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+  OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+  USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+ZLIB is
+
+  (C) 1995-2013 Jean-loup Gailly and Mark Adler
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Jean-loup Gailly        Mark Adler
+  jloup@gzip.org          madler@alumni.caltech.edu
+
+
+BZIP2 is
+
+  This program, "bzip2", the associated library "libbzip2", and all
+  documentation, are copyright (C) 1996-2010 Julian R Seward.  All
+  rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+
+  2. The origin of this software must not be misrepresented; you must
+     not claim that you wrote the original software.  If you use this
+     software in a product, an acknowledgment in the product
+     documentation would be appreciated but is not required.
+
+  3. Altered source versions must be plainly marked as such, and must
+     not be misrepresented as being the original software.
+
+  4. The name of the author may not be used to endorse or promote
+     products derived from this software without specific prior written
+     permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+  GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+SQLITE has
+
+  been put into the public-domain by its author D. Richard Hipp:
+  The author disclaims copyright to this source code.  In place of
+  a legal notice, here is a blessing:
+
+      May you do good and not evil.
+      May you find forgiveness for yourself and forgive others.
+      May you share freely, never taking more than you give.
+
+
+GPGEX is
+
+  Copyright (C) 2007-2023 g10 Code GmbH
+
+  GpgEX is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  GpgEX is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+GpgOL is
+
+  Copyright (C) 2004-2011,2019-2023 g10 Code GmbH
+                2015-2018 Bundesamt für Sicherheit in der Informationstechnik
+                2013-2018 Intevation GmbH
+
+  GpgOL is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  GpgOL is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+Mimetreeparser
+
+  Copyright 1998,1999,2000,2001,2002,2003 Free Software Foundation, Inc.
+  Copyright 2001,2002 the KPGP authors
+  Copyright 2002-2004,2009,2010 Klarälvdalens Datakonsult AB
+  Copyright 2002-2003 Karl-Heinz Zimmer
+  Copyright 2003,2004 Marc Mutz
+  Copyright 2004 Ingo Kloecker
+  Copyright 2006 Alexander Neundorf
+  Copyright 2009 Andras Mantia
+  Copyright 2009 Thomas McGuire
+  Copyright 2010 Leo Franchi
+  Copyright 2013,2015,2016 Sandro Knauß
+  Copyright 2015-2023 Laurent Montel
+  Copyright 2015 Volker Krause
+  Copyright 2016 Christian Mollekopf
+  Copyright 2016 Michael Bohlender
+  Copyright 2017-2019 Christian Mollekopf
+  Copyright 2017 Daniel Vrátil
+  Copyright 2021-2023 Carl Schwan
+  Copyright 2022 Devin Lin
+  Copyright 2023 Eloy Cuadra
+  Copyright 2023 Freek de Kruijf
+  Copyright 2023 g10 Code GmbH
+  Copyright 2023 Vincenzo Reale
+  Copyright 2023 Xavier BESNARD
+
+  This Program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This Program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+KMime
+
+  Copyright 2001-2002 the KMime authors.
+  Copyright 2001-2002 Marc Mutz
+  Copyright 2006-2015 Volker Krause
+  Copyright 2009 Constantin Berzan
+  Copyright 2009 Thomas McGuire
+  Copyright 2010 Leo Franchi
+  Copyright 2015 Albert Astals Cid
+  Copyright 2016 Daniel Vrátil
+  Copyright 2021-2023 Laurent Montel
+
+  This Program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This Program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+KMbox
+
+  Copyright 1996-1998 Stefan Taferner
+  Copyright 2009 Bertjan Broeksema
+  Copyright 2010 Tobias Koenig
+  Copyright 2014 Christophe Giboudeaux
+  Copyright 2016 Daniel Vrátil
+  Copyright 2021-2023 Laurent Montel
+
+  This Program is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This Program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+Paperkey
+
+  Copyright (C) 2007, 2008, 2009 David Shaw <dshaw@jabberwocky.com>
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+  MA 02110-1301, USA.
+
+  The included man page is
+
+  Copyright (C) 2007 Peter Palfrader <peter@palfrader.org>
+
+  Examples have been taken from David Shaw's README. The license is
+  the same as for Paperkey.
+
+
+Scute
+
+  Copyright 2006, 2008 g10 Code GmbH
+
+  Scute is licensed under the GNU General Pubic License, either
+  version 2, or (at your option) any later version with this special
+  exception:
+
+  In addition, as a special exception, g10 Code GmbH gives permission
+  to link this library: with the Mozilla Foundation's code for
+  Mozilla (or with modified versions of it that use the same license
+  as the "Mozilla" code), and distribute the linked executables.  You
+  must obey the GNU General Public License in all respects for all of
+  the code used other than "Mozilla".  If you modify the software, you
+  may extend this exception to your version of the software, but you
+  are not obligated to do so.  If you do not wish to do so, delete this
+  exception statement from your version and from all source files.
+
+
+PCRE2
+
+  PCRE2 LICENCE
+  -------------
+
+  PCRE2 is a library of functions to support regular expressions whose syntax
+  and semantics are as close as possible to those of the Perl 5 language.
+
+  Releases 10.00 and above of PCRE2 are distributed under the terms of the "BSD"
+  licence, as specified below, with one exemption for certain binary
+  redistributions. The documentation for PCRE2, supplied in the "doc" directory,
+  is distributed under the same terms as the software itself. The data in the
+  testdata directory is not copyrighted and is in the public domain.
+
+  The basic library functions are written in C and are freestanding. Also
+  included in the distribution is a just-in-time compiler that can be used to
+  optimize pattern matching. This is an optional feature that can be omitted when
+  the library is built.
+
+
+  THE BASIC LIBRARY FUNCTIONS
+  ---------------------------
+
+  Written by:       Philip Hazel
+  Email local part: Philip.Hazel
+  Email domain:     gmail.com
+
+  Retired from University of Cambridge Computing Service,
+  Cambridge, England.
+
+  Copyright (c) 1997-2022 University of Cambridge
+  All rights reserved.
+
+
+  PCRE2 JUST-IN-TIME COMPILATION SUPPORT
+  --------------------------------------
+
+  Written by:       Zoltan Herczeg
+  Email local part: hzmester
+  Email domain:     freemail.hu
+
+  Copyright(c) 2010-2022 Zoltan Herczeg
+  All rights reserved.
+
+
+  STACK-LESS JUST-IN-TIME COMPILER
+  --------------------------------
+
+  Written by:       Zoltan Herczeg
+  Email local part: hzmester
+  Email domain:     freemail.hu
+
+  Copyright(c) 2009-2022 Zoltan Herczeg
+  All rights reserved.
+
+
+  THE "BSD" LICENCE
+  -----------------
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+      * Redistributions of source code must retain the above copyright notices,
+        this list of conditions and the following disclaimer.
+
+      * Redistributions in binary form must reproduce the above copyright
+        notices, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+
+      * Neither the name of the University of Cambridge nor the names of any
+        contributors may be used to endorse or promote products derived from this
+        software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+
+  EXEMPTION FOR BINARY LIBRARY-LIKE PACKAGES
+  ------------------------------------------
+
+  The second condition in the BSD licence (covering binary redistributions) does
+  not apply all the way down a chain of software. If binary package A includes
+  PCRE2, it must respect the condition, but if package B is software that
+  includes package A, the condition is not imposed on package B unless it uses
+  PCRE2 independently.
+
+
+Freetype
+
+  The FreeType Project LICENSE
+  ----------------------------
+
+          2006-Jan-27
+
+  Copyright 1996-2002, 2006 by
+  David Turner, Robert Wilhelm, and Werner Lemberg
+
+
+
+  Introduction
+  ============
+
+  The FreeType  Project is distributed in  several archive packages;
+  some of them may contain, in addition to the FreeType font engine,
+  various tools and  contributions which rely on, or  relate to, the
+  FreeType Project.
+
+  This  license applies  to all  files found  in such  packages, and
+  which do not  fall under their own explicit  license.  The license
+  affects  thus  the  FreeType   font  engine,  the  test  programs,
+  documentation and makefiles, at the very least.
+
+  This  license   was  inspired  by  the  BSD,   Artistic,  and  IJG
+  (Independent JPEG  Group) licenses, which  all encourage inclusion
+  and  use of  free  software in  commercial  and freeware  products
+  alike.  As a consequence, its main points are that:
+
+  o We don't promise that this software works. However, we will be
+  interested in any kind of bug reports. (`as is' distribution)
+
+  o You can  use this software for whatever you  want, in parts or
+  full form, without having to pay us. (`royalty-free' usage)
+
+  o You may not pretend that  you wrote this software.  If you use
+  it, or  only parts of it,  in a program,  you must acknowledge
+  somewhere  in  your  documentation  that  you  have  used  the
+  FreeType code. (`credits')
+
+  We  specifically  permit  and  encourage  the  inclusion  of  this
+  software, with  or without modifications,  in commercial products.
+  We  disclaim  all warranties  covering  The  FreeType Project  and
+  assume no liability related to The FreeType Project.
+
+
+  Finally,  many  people  asked  us  for  a  preferred  form  for  a
+  credit/disclaimer to use in compliance with this license.  We thus
+  encourage you to use the following text:
+
+  """
+  Portions of this software are copyright © <year> The FreeType
+  Project (www.freetype.org).  All rights reserved.
+  """
+
+  Please replace <year> with the value from the FreeType version you
+  actually use.
+
+
+  Legal Terms
+  ===========
+
+  0. Definitions
+  --------------
+
+  Throughout this license,  the terms `package', `FreeType Project',
+  and  `FreeType  archive' refer  to  the  set  of files  originally
+  distributed  by the  authors  (David Turner,  Robert Wilhelm,  and
+  Werner Lemberg) as the `FreeType Project', be they named as alpha,
+  beta or final release.
+
+  `You' refers to  the licensee, or person using  the project, where
+  `using' is a generic term including compiling the project's source
+  code as  well as linking it  to form a  `program' or `executable'.
+  This  program is  referred to  as  `a program  using the  FreeType
+  engine'.
+
+  This  license applies  to all  files distributed  in  the original
+  FreeType  Project,   including  all  source   code,  binaries  and
+  documentation,  unless  otherwise  stated   in  the  file  in  its
+  original, unmodified form as  distributed in the original archive.
+  If you are  unsure whether or not a particular  file is covered by
+  this license, you must contact us to verify this.
+
+  The FreeType  Project is copyright (C) 1996-2000  by David Turner,
+  Robert Wilhelm, and Werner Lemberg.  All rights reserved except as
+  specified below.
+
+  1. No Warranty
+  --------------
+
+  THE FREETYPE PROJECT  IS PROVIDED `AS IS' WITHOUT  WARRANTY OF ANY
+  KIND, EITHER  EXPRESS OR IMPLIED,  INCLUDING, BUT NOT  LIMITED TO,
+  WARRANTIES  OF  MERCHANTABILITY   AND  FITNESS  FOR  A  PARTICULAR
+  PURPOSE.  IN NO EVENT WILL ANY OF THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE  FOR ANY DAMAGES CAUSED  BY THE USE OR  THE INABILITY TO
+  USE, OF THE FREETYPE PROJECT.
+
+  2. Redistribution
+  -----------------
+
+  This  license  grants  a  worldwide, royalty-free,  perpetual  and
+  irrevocable right  and license to use,  execute, perform, compile,
+  display,  copy,   create  derivative  works   of,  distribute  and
+  sublicense the  FreeType Project (in  both source and  object code
+  forms)  and  derivative works  thereof  for  any  purpose; and  to
+  authorize others  to exercise  some or all  of the  rights granted
+  herein, subject to the following conditions:
+
+  o Redistribution of  source code  must retain this  license file
+  (`FTL.TXT') unaltered; any  additions, deletions or changes to
+  the original  files must be clearly  indicated in accompanying
+  documentation.   The  copyright   notices  of  the  unaltered,
+  original  files must  be  preserved in  all  copies of  source
+  files.
+
+  o Redistribution in binary form must provide a  disclaimer  that
+  states  that  the software is based in part of the work of the
+  FreeType Team,  in  the  distribution  documentation.  We also
+  encourage you to put an URL to the FreeType web page  in  your
+  documentation, though this isn't mandatory.
+
+  These conditions  apply to any  software derived from or  based on
+  the FreeType Project,  not just the unmodified files.   If you use
+  our work, you  must acknowledge us.  However, no  fee need be paid
+  to us.
+
+  3. Advertising
+  --------------
+
+  Neither the  FreeType authors and  contributors nor you  shall use
+  the name of the  other for commercial, advertising, or promotional
+  purposes without specific prior written permission.
+
+  We suggest,  but do not require, that  you use one or  more of the
+  following phrases to refer  to this software in your documentation
+  or advertising  materials: `FreeType Project',  `FreeType Engine',
+  `FreeType library', or `FreeType Distribution'.
+
+  As  you have  not signed  this license,  you are  not  required to
+  accept  it.   However,  as  the FreeType  Project  is  copyrighted
+  material, only  this license, or  another one contracted  with the
+  authors, grants you  the right to use, distribute,  and modify it.
+  Therefore,  by  using,  distributing,  or modifying  the  FreeType
+  Project, you indicate that you understand and accept all the terms
+  of this license.
+
+  4. Contacts
+  -----------
+
+  There are two mailing lists related to FreeType:
+
+  o freetype@nongnu.org
+
+  Discusses general use and applications of FreeType, as well as
+  future and  wanted additions to the  library and distribution.
+  If  you are looking  for support,  start in  this list  if you
+  haven't found anything to help you in the documentation.
+
+  o freetype-devel@nongnu.org
+
+  Discusses bugs,  as well  as engine internals,  design issues,
+  specific licenses, porting, etc.
+
+  Our home page can be found at
+
+  https://www.freetype.org
+
+
+LibPNG
+
+  PNG Reference Library License version 2
+  ---------------------------------------
+
+   * Copyright (c) 1995-2023 The PNG Reference Library Authors.
+   * Copyright (c) 2018-2023 Cosmin Truta.
+   * Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.
+   * Copyright (c) 1996-1997 Andreas Dilger.
+   * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
+
+  The software is supplied "as is", without warranty of any kind,
+  express or implied, including, without limitation, the warranties
+  of merchantability, fitness for a particular purpose, title, and
+  non-infringement.  In no event shall the Copyright owners, or
+  anyone distributing the software, be liable for any damages or
+  other liability, whether in contract, tort or otherwise, arising
+  from, out of, or in connection with the software, or the use or
+  other dealings in the software, even if advised of the possibility
+  of such damage.
+
+  Permission is hereby granted to use, copy, modify, and distribute
+  this software, or portions hereof, for any purpose, without fee,
+  subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you
+      must not claim that you wrote the original software.  If you
+      use this software in a product, an acknowledgment in the product
+      documentation would be appreciated, but is not required.
+
+   2. Altered source versions must be plainly marked as such, and must
+      not be misrepresented as being the original software.
+
+   3. This Copyright notice may not be removed or altered from any
+      source or altered source distribution.
+
+
+JPEG
+
+  The authors make NO WARRANTY or representation, either express or implied,
+  with respect to this software, its quality, accuracy, merchantability, or
+  fitness for a particular purpose.  This software is provided "AS IS", and you,
+  its user, assume the entire risk as to its quality and accuracy.
+
+  This software is copyright (C) 1991-2022, Thomas G. Lane, Guido Vollbeding.
+  All Rights Reserved except as specified below.
+
+  Permission is hereby granted to use, copy, modify, and distribute this
+  software (or portions thereof) for any purpose, without fee, subject to these
+  conditions:
+  (1) If any part of the source code for this software is distributed, then this
+  README file must be included, with this copyright and no-warranty notice
+  unaltered; and any additions, deletions, or changes to the original files
+  must be clearly indicated in accompanying documentation.
+  (2) If only executable code is distributed, then the accompanying
+  documentation must state that "this software is based in part on the work of
+  the Independent JPEG Group".
+  (3) Permission for use of this software is granted only if the user accepts
+  full responsibility for any undesirable consequences; the authors accept
+  NO LIABILITY for damages of any kind.
+
+  These conditions apply to any software derived from or based on the IJG code,
+  not just to the unmodified library.  If you use our work, you ought to
+  acknowledge us.
+
+  Permission is NOT granted for the use of any IJG author's name or company name
+  in advertising or publicity relating to this software or products derived from
+  it.  This software may be referred to only as "the Independent JPEG Group's
+  software".
+
+  We specifically permit and encourage the use of this software as the basis of
+  commercial products, provided that all warranty or liability claims are
+  assumed by the product vendor.
+
+
+  The Unix configuration script "configure" was produced with GNU Autoconf.
+  It is copyright by the Free Software Foundation but is freely distributable.
+  The same holds for its supporting scripts (config.guess, config.sub,
+  ltmain.sh).  Another support script, install-sh, is copyright by X Consortium
+  but is also freely distributable.
+
+
+LibTIFF
+
+  LibTIFF license
+
+  Copyright © 1988-1997 Sam Leffler\
+  Copyright © 1991-1997 Silicon Graphics, Inc.
+
+  Permission to use, copy, modify, distribute, and sell this software and
+  its documentation for any purpose is hereby granted without fee, provided
+  that (i) the above copyright notices and this permission notice appear in
+  all copies of the software and related documentation, and (ii) the names of
+  Sam Leffler and Silicon Graphics may not be used in any advertising or
+  publicity relating to the software without the specific, prior written
+  permission of Sam Leffler and Silicon Graphics.
+
+  THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+  WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+  IN NO EVENT SHALL SAM LEFFLER OR SILICON GRAPHICS BE LIABLE FOR
+  ANY SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND,
+  OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+  WHETHER OR NOT ADVISED OF THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF
+  LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+  OF THIS SOFTWARE.
+
+Openjpeg
+
+  The copyright in this software is being made available under the 2-clauses
+  BSD License, included below. This software may be subject to other third
+  party and contributor rights, including patent rights, and no such rights
+  are granted under this license.
+
+  Copyright (c) 2002-2014, Universite catholique de Louvain (UCL), Belgium
+  Copyright (c) 2002-2014, Professor Benoit Macq
+  Copyright (c) 2003-2014, Antonin Descampe
+  Copyright (c) 2003-2009, Francois-Olivier Devaux
+  Copyright (c) 2005, Herve Drolon, FreeImage Team
+  Copyright (c) 2002-2003, Yannick Verschueren
+  Copyright (c) 2001-2003, David Janssens
+  Copyright (c) 2011-2012, Centre National d'Etudes Spatiales (CNES), France
+  Copyright (c) 2012, CS Systemes d'Information, France
+
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  1. Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS `AS IS'
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  POSSIBILITY OF SUCH DAMAGE.
+
+
+Gettext
+
+  Copyright (C) 1995-1998, 2000-2002, 2004-2006,
+                2009-2020 Free Software Foundation, Inc.
+
+  Lincese for the libintl.h and libasprintf library:
+
+  This program is free software: you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as published
+  by the Free Software Foundation; either version 2.1 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  License for all other parts:
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
+The Breeze Icon Theme
+
+  Copyright (C) 2014 Uri Herrera <uri_herrera@nitrux.in> and others
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 3 of the License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+  Clarification:
+
+  The GNU Lesser General Public License or LGPL is written for
+  software libraries in the first place. We expressly want the LGPL to
+  be valid for this artwork library too.
+
+  KDE Breeze theme icons is a special kind of software library, it is an
+  artwork library, it's elements can be used in a Graphical User Interface, or
+  GUI.
+
+  Source code, for this library means:
+   - where they exist, SVG;
+   - otherwise, if applicable, the multi-layered formats xcf or psd, or
+  otherwise png.
+
+  The LGPL in some sections obliges you to make the files carry
+  notices. With images this is in some cases impossible or hardly useful.
+
+  With this library a notice is placed at a prominent place in the directory
+  containing the elements. You may follow this practice.
+
+  The exception in section 5 of the GNU Lesser General Public License covers
+  the use of elements of this art library in a GUI.
+
+  https://vdesign.kde.org/
+
+
+libical
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of
+  the License, or (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+  Copyright 1984, 1989-1991, 1999-2006 Free Software Foundation, Inc.
+  Copyright 1986-2000 Hiram Clawson
+  Copyright 1994 Gisle Hannemyr
+  Copyright 1995-1998  The University of Utah
+                       and The Regents of the University of California.
+  Copyright 1996 Apple Computer,
+  Copyright 1996 Apple Computer, Inc., AT&T Corp., International
+  Copyright 1999-2001,2008 Eric Busboom
+  Copyright 1999 The Software Studio
+  Copyright 2000,2002 Andrea Campi
+  Copyright 2001,2002 Critical Path
+  Copyright 2001 Damon Chaplin
+  Copyright 2001 Patrick Lewis
+  Copyright 2001 Ximian, Inc.
+  Copyright 2001-2006, NLnet Labs
+  Copyright 2002 Paul Lindner
+  Copyright 2007 Novell, Inc.
+  Copyright 2009 Johns Hopkins University (JHU)
+  Copyright 2010 Glenn Washburn
+  Copyright 2010-2011 Ethan Rublee
+  Copyright 2010-2018 Klaralvdalens Datakonsult AB.
+  Copyright 2010 Andreas Holzammer
+  Copyright 2010 Pino Toscano
+  Copyright 2011-2014 Andrey Kamaev
+  Copyright 2014 Milan Crha
+  Copyright 2015 William Yu
+  Copyright 2017,2019 Red Hat, Inc.
+
+
+libiconv
+
+  Copyright 1999-2003, 2005-2006, 2008-2011 Free Software Foundation, Inc.
+  This file is part of the GNU LIBICONV Library.
+
+  The GNU LIBICONV Library is free software; you can redistribute it
+  and/or modify it under the terms of the GNU Library General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  The GNU LIBICONV Library is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
+
+  You should have received a copy of the GNU Library General Public
+  License along with the GNU LIBICONV Library; see the file COPYING.LIB.
+
+
+qrencode
+
+  Copyright (C) 2006-2018 Kentaro Fukuchi
+
+  This library is free software; you can redistribute it and/or modify it under
+  the terms of the GNU Lesser General Public License as published by the Free
+  Software Foundation; either version 2.1 of the License, or any later version.
+
+  This library is distributed in the hope that it will be useful, but WITHOUT ANY
+  WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+  PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License along
+  with this library; if not, write to the Free Software Foundation, Inc., 51
+  Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+Poppler, Libkleo, Gpg4win-tools, pkg-config
+
+  This program is licensed under the GNU General Pubic License, either
+  version 2, or (at your option) any later version.
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, write to the Free Software
+  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+  MA 02110-1301, USA.
+
+
+KDE-Frameworks
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) version 3, or any
+  later version accepted by the membership of KDE e.V. (or its
+  successor approved by the membership of KDE e.V.), which shall
+  act as a proxy defined in Section 6 of version 3 of the license.
+
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
+
+gpgpass
+
+  Copyright (C) 2014-2023 Anne Jan Brouwer <brouwer@annejan.com>
+  Copyright (C) 2023 g10 Code GmbH
+
+  gpgpass is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  gpgpass is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+
+Okular
+
+  Copyright (C) 2002 Wilco Greven, Christophe Devriese
+  Copyright (C) 2002-2008,2013-2015,2020,2022 Albert Astals Cid
+  Copyright (C) 2002,2021,2023 g10 Code GmbH
+  Copyright (C) 2004-2005 Enrico Ros
+  Copyright (C) 2005 Piotr Szymanski
+  Copyright (C) 2006-2009 Pino Toscano
+  and others
+
+  Okular is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Okular is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
+
+Kleopatra
+
+  Copyright (C) 2002-2003 Marc Mutz <mutz@kde.org>
+  Copyright (C) 2008 Nokia Corporation and/or its subsidiary(-ies)
+  Copyright (C) 2001-2010 Klarälvdalens Datakonsult AB
+  Copyright (C) 2015-2018 Intevation GmbH
+  Copyright (C) 2015-2018 Bundesamt für Sicherheit in der Informationstechnik
+  Copyright (C) 2019-2023 g10 Code GmbH
+
+  Kleopatra is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 2 of the License, or
+  (at your option) any later version.
+
+  Kleopatra is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
+
+Qt Toolkit
+
+  Copyright (C) 2018 The Qt Company Ltd. and other contributors
+
+  Qt is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; version 3 of
+  the License.
+
+  Qt is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+  For a list of other, less restrictive, licenses used in Qt see
+  <https://doc.qt.io/qt-5/licenses-used-in-qt.html>
+
+[Compiled by wk 2006-02-15, last updated 2023-11-28]
