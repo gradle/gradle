@@ -1,0 +1,39 @@
+<!DOCTYPE okularQuickAnnotatingTools>
+<!--
+Refer to tools.xml for the documentation of the attribues not documented here.
+
+Tool
+  [id]              {int = unique id identifying the quick tool}
+-->
+<quickAnnotatingTools>
+    <tool id="1" type="highlight" name="Yellow Highlighter" default="true">
+        <engine type="TextSelector" color="#ffff00">
+            <annotation type="Highlight" color="#ffffff00"/>
+        </engine>
+    </tool>
+    <tool id="2" type="highlight" name="Green Highlighter" default="true">
+        <engine type="TextSelector" color="#00ff00">
+            <annotation type="Highlight" color="#ff00ff00"/>
+        </engine>
+    </tool>
+    <tool id="3" type="underline">
+        <engine type="TextSelector" color="#ff0000">
+            <annotation type="Underline" color="#ffff0000"/>
+        </engine>
+    </tool>
+    <tool id="4" type="typewriter" name="Insert Text" default="true">
+        <engine type="PickPoint" block="true">
+            <annotation type="Typewriter" color="#00ffffff" textColor="#000000" width="0"/>
+        </engine>
+    </tool>
+    <tool id="5" type="note-inline">
+        <engine type="PickPoint" color="#ffff00" hoverIcon="tool-note-inline" block="true">
+            <annotation type="FreeText" color="#ffffff00" textColor="#ff000000"/>
+        </engine>
+    </tool>
+    <tool id="6" type="note-linked">
+        <engine type="PickPoint" color="#ffff00" hoverIcon="tool-note">
+            <annotation type="Text" color="#ffffff00" icon="Note" />
+        </engine>
+    </tool>
+</quickAnnotatingTools>
