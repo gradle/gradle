@@ -1,0 +1,127 @@
+To use S/MIME certificates for sign and encrypt, you have to define
+the trustability of X.509 root certificates.
+
+A root certificate (root CA) is used to check the validity of all
+child certificates.  If you trust the root certificate therby you
+trust also all underlying certificates.
+
+To avoid that each user must search and install the required root
+certificates, and also check and authenticate the trustworthiness of
+the same, it is useful to install a system-wide default of the most
+important root certificates:
+
+1.  Store the root certificates
+
+     Copy root certificate file to:
+
+        %ProgramData%\GNU\etc\gnupg\trusted-certs
+
+     e.g.:
+
+        C:\ProgramData\GNU\etc\gnupg\trusted-certs
+
+     The corresponding root certificates must be available as files in DER
+     format in the above file folder, with the file extension .crt or .der.
+
+     You get the root certificates from the respective CA administrators.
+     CA operators often provide their root certificates also on websites
+     for download.
+
+     If the above folder is not visible?
+     Please read the reference note to the view options [1].
+
+
+2.  Store intermediate certificates
+
+     Some Certificate Authorities require additional intermediate
+     certificates.
+
+     Copy intermediate certificates to:
+
+         %ProgramData%\GNU\etc\gnupg\extra-certs
+
+     e.g.:
+
+         C:\ProgramData\GNU\etc\gnupg\extra-certs
+
+     The format is the same as the root certificates.
+
+
+3.  Set root trust
+
+     a) Open the following file with a text editor:
+
+        %ProgramData%\GNU\etc\gnupg\trustlist.txt
+
+     e.g.:
+
+        C:\ProgramData\GNU\etc\gnupg\trustlist.txt
+
+     b) Create a new line per root certificate with the corresponding
+        fingerprint, such as:
+
+         <FINGERPRINT> S
+
+         You get the fingerprint from the CA operators (often
+         available from the website where you can download the root
+         certificate).  Alternatively, you can get the fingerprint
+         also via the command line tool "sha1sum" from the binary root
+         certificate file (those files usually have a suffix of
+         ".crt:, ".bin", ".cert" or ".cer"):
+
+           sha1sum < <ROOT-CERTIFICATE-FILE>
+
+         A row that begins with # will be treated as a comment and ignored.
+         The end of the file must be followed by an empty row.
+
+         Example of two entries with comments:
+           # CN=Wurzel ZS 3,O=Intevation GmbH,C=DE
+           A6935DD34EF3087973C706FC311AA2CCF733765B S
+
+           # CN=PCA-1-Verwaltung-02/O=PKI-1-Verwaltung/C=DE
+           DC:BD:69:25:48:BD:BB:7E:31:6E:BB:80:D3:00:80:35:D4:F8:A6:CD S
+
+         In some cases it is useful to reduce the criteria for
+         checking the root certificate.  To do this, you can set an
+         additional flag relax after the S:
+
+         <FINGERPRINT> S relax
+
+
+3.  Complete Gpg4win installation and restart computer
+
+     a) Enable the option "Root certificate defined or skip configuration".
+
+     b) Complete the Gpg4win installation wizard regular.
+
+     c) Restart your computer! (Required because the DirMngr have to
+        read your root certificates from step (1).)
+
+     Now, you have finished your S/MIME configuration successfully.
+
+4.  Review later in Kleopatra: Import and check certificate chains
+
+     Open Kleopatra and import your X.509 certificate chains.  The
+     imported certificate chains should appear under the tab "Trusted
+     Certificates". Gpg4win recognizes your imported root certificates
+     as trusted.
+
+     Problems? Kleopatra doesn't shows your root certificate as
+     trusted?  Solutions:
+
+     * Click on the "Redisplay" button in Kleopatra to update the
+       certificate view.
+
+     * Add "relax" after the relevant root certificate in the
+       trustlist.txt - see step (2).
+
+--
+For more information, see the Gpg4win Compendium, chapter 22:
+     http://gpg4win.org/doc/en/gpg4win-compendium_28.html
+
+[1] Note to view options in Windows Explorer:
+
+    Ensure that you have enabled the folder option "Show hidden files
+    and folders".  You find this option under:
+
+      File > Folder and Search Options > Ansicht
