@@ -1,0 +1,62 @@
+<!doctype html public "-//WC3//DTD HTML 4.0 Transitional//EN">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Help for GnuPG Shell Extension (GpgEX)</title>
+  </head>
+  <body>
+    <h1>GnuPG Shell Extension</h1>
+    <p>
+      (Available languages: English, <a href="gpgex-de.html">Deutsch</a>)
+    </p>
+    <p>
+      The GNU Privacy Guard extensions for the Windows Explorer shell
+      allow you to access cryptographic functions of the GnuPG user
+      interface using the context menu to files.
+    </p>
+    <h2>Commands</h2>
+    <h3>Decrypt and verify, Decrypt, Verify</h3>
+    <p>
+      Decrypt and/or verify the selected files.  FIXME: Add a link
+      to the Gpg4win documentation for the decrypt and verify
+      functions.
+    </p>
+    <h3>Encrypt and sign, Encrypt, Sign</h3>
+    <p>
+      Encrypt and/or sign the selected files.  FIXME: Add a link to the
+      Gpg4win documentation for the sign and encrypt
+      functions.
+    </p>
+    <h3>Import keys</h3>
+    <p>
+      Import certificates in the selected files.  FIXME: Add a link to the
+      Gpg4win documentation for the import function.
+    <p>
+    <h3>Help on GpgEX</h3>
+    <p>
+      Display this help.
+    </p>
+    <h3>About GpgEX</h3>
+    <p>
+      Display the version number.
+    </p>
+
+    <h2>Debugging</h2>
+    <p>
+      If the GnuPG user interface (either GPA or Kleopatra) can not be
+      accessed, a message box with an error message will be displayed.
+      To get more information, you can either check the error log, or
+      specify a debug file: Select the
+      key <code><acronym title="HKEY_LOCAL_MACHINE">HKLM</acronym>\Software\GNU\GnuPG</code>
+      in the registry editor, create a new string value with the name
+      <code>GpgEX Debug File</code> and the value of the debug filename
+      (e.g. <code>c:\temp\gpgex-debug-file.log</code>).  To this file
+      logging information is appended, after a restart if necessary.
+    </p>
+    <h2>Reference</h2>
+    <p>
+      Please find more information and new software versions at
+      the <a href="http://www.gpg4win.org/">Gpg4win website</a>.
+    </p>
+  </body>
+</html>
