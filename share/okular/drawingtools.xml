@@ -1,0 +1,41 @@
+<!DOCTYPE okularDrawingTools>
+<!--
+Engine/DrawingTools Types [specific attributes]:
+  [color]
+  SmoothLine 
+    [color]
+    [opacity]
+    Ink [width]
+-->
+<drawingTools>
+    <tool id="1" name="Red" default="true">
+        <engine color="#ff0000">
+            <annotation type="Ink" color="#ff0000" width="2" />
+        </engine>
+    </tool>
+    <tool id="2" name="Green" default="true">
+        <engine color="#00ff00">
+            <annotation type="Ink" color="#00ff00" width="2" />
+        </engine>
+    </tool>
+    <tool id="3" name="Blue" default="true">
+        <engine color="#0000ff">
+            <annotation type="Ink" color="#0000ff" width="2" />
+        </engine>
+    </tool>
+    <tool id="4" name="Yellow" default="true">
+        <engine color="#ffff00">
+            <annotation type="Ink" color="#ffff00" width="2" />
+        </engine>
+    </tool>
+    <tool id="5" name="Black" default="true">
+        <engine color="#000000">
+            <annotation type="Ink" color="#000000" width="2" />
+        </engine>
+    </tool>
+    <tool id="6" name="White" default="true">
+        <engine color="#ffffff">
+            <annotation type="Ink" color="#ffffff" width="2" />
+        </engine>
+    </tool>
+</drawingTools>
