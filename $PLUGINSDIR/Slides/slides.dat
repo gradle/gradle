@@ -1,0 +1,26 @@
+; Add slideshow definition for each language here
+; Remember to use the 8bit encoding of the language until
+; Gpg4win switches to unicode nsis.
+; Ending with a period will cause the slideshow not to loop.
+
+; For more info see: http://wiz0u.free.fr/prog/nsisSlideshow/
+
+; For the language codes see https://ss64.com/locale.html
+
+; FIXME: The strings should be generated from the PO Files.
+; FIXME: Encoding needs to match the native 8bit encoding of windows.
+;        This will be annoying once we have multiple encodings in here.
+
+[1033]
+=slide1-gpgol.png,50,5000,"Encrypt emails in Outlook with GpgOL."
+=slide2-gpgex.png,50,5000,"Encrypt files via context menu with GpgEX."
+;=slide3-kleopatra.png,50,5000,"Manage your certificates in Kleopatra."
+=slide4-summary.png,50,4000,"Gpg4win brings crypto to your desktop!"
+=.
+
+[1031]
+=slide1-gpgol.png,50,5000,"Verschlüsseln Sie E-Mails in Outlook mit GpgOL."
+=slide2-gpgex.png,50,5000,"Verschlüsseln Sie Dateien mit GpgEX."
+;=slide3-kleopatra.png,50,5000,"Verwalten Sie Zertifikate mit Kleopatra."
+=slide4-summary.png,50,4000,"Gpg4win bringt Krypto auf Ihren Desktop!"
+=.
