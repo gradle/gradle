@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<gui name="okular_part_viewermode" version="6">
+
+<MenuBar>
+  <Menu name="file"><text>&amp;File</text>
+    <Action name="file_print_preview" group="okular_print_merge"/>
+  </Menu>
+
+  <Menu name="settings"><text>&amp;Settings</text>
+    <Action name="options_configure_generators" group="configure_merge"/>
+    <Action name="options_configure" group="configure_merge"/>
+  </Menu>
+
+  <Menu name="help"><text>&amp;Help</text>
+    <Action name="help_about_backend" group="about_merge"/>
+  </Menu>
+</MenuBar>
+
+<Menu name="menu_okular_part_viewer">
+  <Action name="mouse_drag" group="viewer_menu_merge"/>
+  <Action name="mouse_zoom" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="view_zoom_in" group="viewer_menu_merge"/>
+  <Action name="view_zoom_out" group="viewer_menu_merge"/>
+  <Action name="view_actual_size" group="viewer_menu_merge"/>
+  <Action name="view_fit_to_width" group="viewer_menu_merge"/>
+  <Action name="view_fit_to_page" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="view_render_mode" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Menu name="view_orientation" group="viewer_menu_merge"><text>&amp;Orientation</text>
+    <Action name="view_orientation_rotate_ccw" group="viewer_menu_merge"/>
+    <Action name="view_orientation_rotate_cw" group="viewer_menu_merge"/>
+    <Action name="view_orientation_original" group="viewer_menu_merge"/>
+  </Menu>
+  <Action name="view_trim" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="go_previous" group="viewer_menu_merge"/>
+  <Action name="go_next" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="first_page" group="viewer_menu_merge"/>
+  <Action name="last_page" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="go_document_back" group="viewer_menu_merge"/>
+  <Action name="go_document_forward" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="go_goto_page" group="viewer_menu_merge"/>
+  <Separator group="viewer_menu_merge"/>
+  <Menu name="okular_bookmarks" group="viewer_menu_merge"><text>&amp;Bookmarks</text>
+    <Action name="bookmark_add" group="viewer_menu_merge"/>
+    <Action name="previous_bookmark" group="viewer_menu_merge"/>
+    <Action name="next_bookmark" group="viewer_menu_merge"/>
+    <Separator group="viewer_menu_merge"/>
+    <ActionList name="bookmarks_currentdocument" group="viewer_menu_merge"/>
+  </Menu>
+  <Separator group="viewer_menu_merge"/>
+  <Action name="edit_find" group="viewer_menu_merge"/>
+  <Action name="edit_find_next" group="viewer_menu_merge"/>
+  <Action name="edit_find_prev" group="viewer_menu_merge"/>
+</Menu>
+
+<ToolBar name="OkularViewerToolBar"><text>Viewer Toolbar</text>
+  <Action name="zoom_to" />
+  <Action name="view_zoom_out"/>
+  <Action name="view_zoom_in"/>
+  <Separator/>
+  <Action name="mouse_drag"/>
+  <Action name="mouse_zoom"/>
+  <Action name="mouse_selecttools"/>
+</ToolBar>
+
+</gui>
