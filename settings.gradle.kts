@@ -14,9 +14,11 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise") version "3.16.2"
-    id("io.github.gradle.gradle-enterprise-conventions-plugin") version "0.9.1"
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+    id("com.gradle.enterprise").version("3.16.2")
+    id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.9.1")
+    id("org.gradle.toolchains.foojay-resolver-convention").version("0.8.0")
+
+    id("org.gradle.experimental.kmp-ecosystem").version("0.1.37")
 }
 
 dependencyResolutionManagement {
@@ -30,9 +32,8 @@ dependencyResolutionManagement {
             }
         }
         gradlePluginPortal {
-            content { 
-                includeGroup("org.gradle.toolchains")
-                includeGroup("org.gradle.experimental")
+            content {
+                includeGroupAndSubgroups("org.gradle")
             }
         }
         maven(url = "https://repo.gradle.org/gradle/libs-releases") {

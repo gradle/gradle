@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import java.time.Year
 
@@ -5,8 +7,13 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
+    alias(libs.plugins.kotlinCompose)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.detekt)
+}
+
+kotlinLibrary {
+
 }
 
 group = "org.gradle.client"

@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.9.23"
+kotlin = "2.0.21"
 kotlinx-coroutines = "1.8.1"
 kotlinx-serialization = "1.6.3"
 compose-plugin = "1.6.11"
@@ -36,9 +36,10 @@ logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.6"
 junit-junit = { module = "junit:junit", version = "4.13.2" }
 
 [plugins]
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version = "1.23.6" }
