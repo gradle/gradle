@@ -62,7 +62,8 @@ class IsolateTransformParametersCodec(
             buildOperationRunner,
             classLoaderHierarchyHasher,
             fileCollectionFactory,
-            problems
+            problems,
+            documentationRegistry
         )
     }
 }

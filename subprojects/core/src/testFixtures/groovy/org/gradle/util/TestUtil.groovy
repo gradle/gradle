@@ -47,10 +47,13 @@ import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
+import org.gradle.api.problems.internal.InternalProblem
+import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.hash.ChecksumService
@@ -66,6 +69,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationsParameters
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
@@ -381,6 +385,14 @@ interface TestClosure {
     Object call(Object param);
 }
 
+class MockInstantiator implements Instantiator {
+
+    @Override
+    def <T> T newInstance(Class<? extends T> type, Object... parameters) throws ObjectInstantiationException {
+        return null
+    }
+}
+
 class TestProblems implements InternalProblems {
     private final TestProblemSummarizer summarizer
     private final InternalProblems delegate
@@ -392,6 +404,8 @@ class TestProblems implements InternalProblems {
             null,
             new TestCurrentBuildOperationRef(),
             new ExceptionProblemRegistry(),
+            null,
+            new MockInstantiator(),
             null
         )
     }
@@ -409,6 +423,16 @@ class TestProblems implements InternalProblems {
     @Override
     AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
         delegate.additionalDataBuilderFactory
+    }
+
+    @Override
+    Instantiator getInstantiator() {
+        return delegate.instantiator
+    }
+
+    @Override
+    InternalProblemBuilder getProblemBuilder() {
+        delegate.getProblemBuilder()
     }
 
     void assertProblemEmittedOnce(Object expectedProblem) {
@@ -436,7 +460,7 @@ class TestProblemSummarizer implements ProblemSummarizer {
     List emitted = []
 
     @Override
-    void emit(Problem problem, @Nullable OperationIdentifier id) {
+    void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         emitted.add(problem)
     }
 

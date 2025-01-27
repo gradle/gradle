@@ -31,7 +31,6 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -103,7 +102,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalDataInternal(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -139,7 +138,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                .additionalDataInternal(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -255,14 +254,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

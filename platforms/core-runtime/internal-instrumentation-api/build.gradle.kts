@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
