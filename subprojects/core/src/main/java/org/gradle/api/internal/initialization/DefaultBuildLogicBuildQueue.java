@@ -24,6 +24,10 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.work.Synchronizer;
 import org.gradle.internal.work.WorkerLeaseService;
 
@@ -37,6 +41,7 @@ import static org.gradle.cache.internal.filelock.DefaultLockOptions.mode;
 
 public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
 
+    private final BuildOperationRunner runner;
     private final FileLockManager fileLockManager;
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ProjectCacheDir projectCacheDir;
@@ -44,11 +49,13 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private FileLock fileLock = null;
 
     public DefaultBuildLogicBuildQueue(
+        BuildOperationRunner runner,
         FileLockManager fileLockManager,
         BuildTreeWorkGraphController buildTreeWorkGraphController,
         ProjectCacheDir projectCacheDir,
         WorkerLeaseService workerLeaseService
     ) {
+        this.runner = runner;
         this.fileLockManager = fileLockManager;
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.projectCacheDir = projectCacheDir;
@@ -66,11 +73,15 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
             // all tasks already executed
             return continuationUnderLock.get();
         }
-        return withBuildLogicQueueLock(() -> doBuild(remaining, continuationUnderLock));
+        return withBuildLogicQueueLockInBuildOperation(
+            "Run included build logic build for " + nameOf(requester),
+            () -> doBuild(tasks, continuationUnderLock)
+        );
     }
 
     @Override
     public <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock) {
+        // This function is already called inside the build operation.
         return withBuildLogicQueueLock(() -> buildSrcBuild.run(continuationUnderLock));
     }
 
@@ -83,6 +94,20 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
             return null;
         });
         return continuationUnderLock.get();
+    }
+
+    private <T> T withBuildLogicQueueLockInBuildOperation(String buildOperationDescription, Supplier<T> buildAction) {
+        return runner.call(new CallableBuildOperation<T>() {
+            @Override
+            public T call(BuildOperationContext context) {
+                return withBuildLogicQueueLock(buildAction);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName(buildOperationDescription);
+            }
+        });
     }
 
     private <T> T withBuildLogicQueueLock(Supplier<T> buildAction) {
@@ -113,5 +138,9 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         return tasks.stream()
             .filter(identifier -> !identifier.getTask().getState().getExecuted())
             .collect(Collectors.toList());
+    }
+
+    private static String nameOf(BuildState build) {
+        return build.getDisplayName().getDisplayName();
     }
 }
