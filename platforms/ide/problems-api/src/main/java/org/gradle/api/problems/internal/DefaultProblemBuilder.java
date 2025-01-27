@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.api.problems.internal.deprecation.DeprecationData;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -295,6 +296,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public ProblemId getId() {
         return id;
+    }
+
+    public void additionalData(DeprecationData additionalData) {
+        this.additionalData = additionalData;
     }
 
     private static class UnsupportedAdditionalDataSpec implements AdditionalData {
