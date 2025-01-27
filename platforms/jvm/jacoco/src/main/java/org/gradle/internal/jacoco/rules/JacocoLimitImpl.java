@@ -66,36 +66,4 @@ public class JacocoLimitImpl implements JacocoLimit {
     public void setMaximum(BigDecimal maximum) {
         this.maximum = maximum;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JacocoLimitImpl that = (JacocoLimitImpl) o;
-
-        if (counter != that.counter) {
-            return false;
-        }
-        if (value != that.value) {
-            return false;
-        }
-        if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) {
-            return false;
-        }
-        return maximum != null ? maximum.equals(that.maximum) : that.maximum == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = counter != null ? counter.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
-        result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
-        return result;
-    }
 }
