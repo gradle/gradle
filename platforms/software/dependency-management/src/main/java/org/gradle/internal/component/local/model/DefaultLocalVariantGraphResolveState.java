@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.composite.internal.CompositeProjectComponentArtifactMetadata;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -80,10 +79,11 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         ImmutableSet.Builder<LocalVariantMetadata> copiedArtifactSets = ImmutableSet.builderWithExpectedSize(artifactSets.size());
 
         for (LocalVariantMetadata oldArtifactSet : artifactSets) {
+            @SuppressWarnings("deprecation")
             CalculatedValue<ImmutableList<LocalComponentArtifactMetadata>> newArtifacts =
                 calculatedValueContainerFactory.create(Describables.of(oldArtifactSet.asDescribable(), "artifacts"), c ->
                     oldArtifactSet.getArtifacts().stream()
-                        .map(originalArtifact -> new CompositeProjectComponentArtifactMetadata(overrideComponentId, originalArtifact))
+                        .map(originalArtifact -> new org.gradle.composite.internal.CompositeProjectComponentArtifactMetadata(overrideComponentId, originalArtifact))
                         .collect(ImmutableList.toImmutableList())
                 );
 

@@ -24,6 +24,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+@SuppressWarnings("deprecation")
 public class CompositeProjectComponentArtifactMetadataSerializer implements Serializer<CompositeProjectComponentArtifactMetadata> {
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();

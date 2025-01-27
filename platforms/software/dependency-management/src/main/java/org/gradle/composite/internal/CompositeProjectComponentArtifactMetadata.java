@@ -33,7 +33,10 @@ import java.io.File;
  * This should be better named as {@code OverriddenComponentIdArtifactMetadata} or similar, but Kotlin currently references this internal class.
  *
  * @see <a href="https://github.com/JetBrains/kotlin/blame/83a7ecda3eccd378a3882b81d8e83ecc12b3b786/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/js/npm/resolver/KotlinCompilationNpmResolver.kt#L245">Link</a>
+ *
+ * @deprecated This class will be removed in Gradle 9.0.
  */
+@Deprecated
 public class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
 
     private final ComponentIdentifier overrideComponentId;
