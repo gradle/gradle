@@ -16,9 +16,12 @@
 
 package org.gradle.util.internal;
 
+import org.gradle.api.NonNullApi;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@NonNullApi
 public class ArgumentsSplitter {
 
     /**

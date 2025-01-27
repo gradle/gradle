@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class SystemPropertiesHandlerTest extends Specification {
+class PropertiesFileHandlerTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
@@ -36,11 +36,11 @@ systemProp=f
 """
 
         expect:
-        [c: 'd'] == SystemPropertiesHandler.getSystemProperties(propFile)
+        [c: 'd'] == PropertiesFileHandler.getSystemProperties(propFile)
     }
 
     def ifNoPropertyFileExistShouldReturnEmptyMap() {
         expect:
-        [:] == SystemPropertiesHandler.getSystemProperties(temporaryFolder.file('unknown'))
+        [:] == PropertiesFileHandler.getSystemProperties(temporaryFolder.file('unknown'))
     }
 }
