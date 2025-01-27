@@ -46,8 +46,10 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             gradle.lifecycle.beforeProject { Project project ->
+                def numberSource = project.description ?: project.name
+
                 def numberTask = project.tasks.register("number", SomeTask) {
-                    number = project.name.length()
+                    number = numberSource.length()
                     output = project.layout.buildDirectory.file("out.txt")
                 }
 
@@ -83,13 +85,23 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run "sum"
+//        run "sum", "-Dorg.gradle.unsafe.isolated-projects=true"
+        run "sum", "--configuration-cache"
 
         then:
+        file("build/sum.txt").text == "20"
 
-        def outFile = file("build/sum.txt")
-        outFile.exists()
-        outFile.text == "20"
+        when:
+        buildFile "sub-one/build.gradle","""
+            description = "one"
+        """
+
+        and:
+        run "sum", "--configuration-cache"
+//        run "sum", "-Dorg.gradle.unsafe.isolated-projects=true"
+
+        then:
+        file("build/sum.txt").text == "16"
     }
 
 }
