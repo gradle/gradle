@@ -351,14 +351,32 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-    private static <T> void validateMethods(Class<T> type) {
+    static <T extends AdditionalData> void validateMethods(Class<T> type) {
         Method[] methods = type.getMethods();
         for (Method method : methods) {
             String name = method.getName();
             if (!isValidGetter(method, name) && !isValidSetter(method, name)) {
-                throw new IllegalArgumentException(type.getName() + " must have only getters or setters using the following types: " + TYPES);
+                throw new IllegalArgumentException(getExceptionMessage(type));
             }
         }
+    }
+
+    private static String getExceptionMessage(Class<? extends AdditionalData> invalidType) {
+        StringBuilder sb = new StringBuilder(invalidType.getSimpleName()).append(" must have only getters or setters using the following types: ");
+        int size = TYPES.size();
+        int index = 0;
+        for (Class<?> type : TYPES) {
+            sb.append(type.getSimpleName());
+            index++;
+            if (index < size - 1) {
+                sb.append(", ");
+            } else if (index == size - 1) {
+                sb.append(", or ");
+            }
+        }
+
+        sb.append(".");
+        return sb.toString();
     }
 
     private static boolean isValidSetter(Method method, String name) {
