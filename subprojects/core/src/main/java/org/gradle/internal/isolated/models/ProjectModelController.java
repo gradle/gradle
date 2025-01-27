@@ -52,6 +52,8 @@ public class ProjectModelController {
         return new ConsumerProjectScopeModelBatchProvider<>(this, request);
     }
 
+    // TODO: this can only run after all model producers have been registered
+    //  due to the eager get-by-key lookup
     public <T> ProviderInternal<? extends List<T>> calculateBatchValueProvider(ProjectScopeModelBatchRequest<T> request) {
         IsolatedModelKey<T> modelKey = request.getModelKey();
         ListProperty<T> batchValuesProperty = objectFactory.listProperty(modelKey.getType());
@@ -83,7 +85,7 @@ public class ProjectModelController {
             batchValuesProperty.addAll(listWrappedValueProvider);
         }
 
-        return (ProviderInternal<? extends List<T>>) batchValuesProperty;
+        return Providers.internal(batchValuesProperty);
     }
 
     private static final class ProducerKey<T> {
