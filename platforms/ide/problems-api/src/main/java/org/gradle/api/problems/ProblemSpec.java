@@ -152,7 +152,7 @@ public interface ProblemSpec {
      *
      * @param config The configuration action for the additional data.
      *
-     * @throws IllegalArgumentException if the conditions for the type are not met.
+     * @throws IllegalArgumentException if the conditions for the type are not met or if a different type for the same problem id is used.
      *
      * @return this
      * @since 8.13
