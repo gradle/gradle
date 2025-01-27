@@ -46,13 +46,13 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin autho
 
 #### Configurations are initialized lazily
 
-Similar to [tasks](userguide/lazy_configuration.html), Configurations are now only realized when necessary.
+Similar to [tasks](userguide/lazy_configuration.html), [configurations](userguide/declaring_configurations.html) are now realized only when necessary.
 
-Starting with this release, applying the `base` plugin or any plugin that applies the `base` plugin (e.g., JVM plugins) will no longer realize all configurations declared using `register` or the incubating role-based factory methods.
+Starting with this release, applying the `base` plugin (or any plugin that applies it, such as JVM plugins) no longer realizes all configurations declared using `register` or the incubating role-based factory methods.
 
-In some builds, this will reduce configuration time and memory usage.
+This change can reduce configuration time and memory usage in some builds.
 
-Configurations should be declared using the `register` method instead of the `create` methods to have the largest impact.
+To leverage these improvements, declare configurations using the `register` method instead of the `create` method:
 
 ```kotlin
 configurations {
