@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.AdditionalData
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
@@ -73,8 +74,8 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         """
 
         when:
-        List<DefaultAdditionalData> failureData = runAndGetProblems().collect { ProblemEvent event ->
-            event.problem.additionalData as DefaultAdditionalData
+        List<AdditionalData> failureData = runAndGetProblems().collect { ProblemEvent event ->
+            event.problem.additionalData
         }
 
         then:
