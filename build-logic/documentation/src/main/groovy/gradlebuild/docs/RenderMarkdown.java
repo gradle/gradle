@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package gradlebuild.docs;
 
+import com.vladsch.flexmark.ext.anchorlink.AnchorLinkExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -75,6 +77,8 @@ public abstract class RenderMarkdown extends DefaultTask {
     public void process() {
         MutableDataSet options = new MutableDataSet();
         options.set(Parser.EXTENSIONS, Collections.singletonList(TablesExtension.create()));
+        options.set(Parser.EXTENSIONS, Arrays.asList(AnchorLinkExtension.create()));
+
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
         File markdownFile = getMarkdownFile().get().getAsFile();
