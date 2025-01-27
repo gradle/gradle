@@ -142,7 +142,7 @@ public class ConsumerProvidedVariantFinder {
 
         List<ChainState> toProcess = new ArrayList<>();
         List<ChainState> nextDepth = new ArrayList<>();
-        toProcess.add(new ChainState(null, requested, ImmutableFilteredList.allOf(variantTransforms.getRegistrations())));
+        toProcess.add(new ChainState(null, requested, ImmutableFilteredList.allOf(new ArrayList<>(variantTransforms.getRegistrations()))));
 
         List<CachedVariant> results = new ArrayList<>(1);
         while (results.isEmpty() && !toProcess.isEmpty()) {
