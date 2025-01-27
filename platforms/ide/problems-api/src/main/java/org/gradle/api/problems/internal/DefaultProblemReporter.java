@@ -70,8 +70,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Nonnull
-    private DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
+    private DefaultProblemBuilder createProblemBuilder() { // TODO (donat) ensure this needs to be public
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-/**
- * The Problems API.
- */
+package org.gradle.api.problems.internal.deprecation;
 
-@NonNullApi
-package org.gradle.api.problems;
+import org.gradle.api.problems.deprecation.OpaqueDeprecatedVersion;
 
-import org.gradle.api.NonNullApi;
+import javax.annotation.Nullable;
+
+class DefaultOpaqueDeprecatedVersion implements OpaqueDeprecatedVersion {
+
+    private final String opaqueVersion;
+
+    public DefaultOpaqueDeprecatedVersion(String opaqueVersion) {
+        this.opaqueVersion = opaqueVersion;
+    }
+
+    @Nullable
+    @Override
+    public String getVersion() {
+        return opaqueVersion;
+    }
+
+}
+

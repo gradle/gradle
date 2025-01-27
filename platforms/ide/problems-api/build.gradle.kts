@@ -41,6 +41,7 @@ dependencies {
     api(projects.serialization)
 
     testImplementation(projects.logging)
+    testImplementation(testFixtures(projects.core))
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
     integTestDistributionRuntimeOnly(projects.distributionsCore)
