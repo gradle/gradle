@@ -1,5 +1,4 @@
 @file:Suppress("UnstableApiUsage")
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import java.time.Year
 
@@ -12,8 +11,72 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
-kotlinLibrary {
+kotlinApplication {
+    targets {
+        jvm {
+            jdkVersion = 17
 
+            dependencies {
+                implementation(project(":build-action"))
+                implementation(project(":mutations-demo"))
+
+                // TODO: These were originally added for the `all` sourceSet, as common dependencies, but we're only
+                // supporting JVM now, so here is the only place they need to live
+                implementation(project.dependencies.platform(libs.kotlin.bom))
+                implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
+                implementation(project.dependencies.platform(libs.kotlinx.serialization.bom))
+                implementation(project.dependencies.platform(libs.ktor.bom))
+
+                implementation(libs.gradle.tooling.api)
+
+                implementation(libs.sqldelight.extensions.coroutines)
+                implementation(libs.sqldelight.runtime)
+                implementation(libs.sqldelight.driver.sqlite)
+
+                implementation(libs.decompose.decompose)
+                implementation(libs.decompose.compose)
+                implementation(libs.essenty.lifecycle.coroutines)
+                implementation(libs.kotlinx.serialization.json)
+
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.ktor.serialization.kotlinx.json)
+
+                implementation(libs.material3WindowSizeClassMultiplatform)
+                implementation(libs.materialKolor)
+                implementation(libs.filekit.compose)
+
+                implementation(libs.slf4j.api)
+                implementation(libs.logback.classic)
+
+                implementation(libs.gradle.declarative.dsl.core)
+                implementation(libs.gradle.declarative.dsl.evaluator)
+                implementation(libs.gradle.declarative.dsl.tooling.models)
+
+                runtimeOnly(libs.kotlinx.coroutines.swing)
+            }
+        }
+    }
+}
+
+kotlin {
+    sourceSets {
+        jvmMain.dependencies {
+            // TODO: Compose doesn't play well with DCL SoftwareTypes
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.materialIconsExtended)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
+            implementation(compose.desktop.currentOs)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.junit.junit)
+            implementation(compose.desktop.uiTestJUnit4)
+        }
+    }
 }
 
 group = "org.gradle.client"
@@ -26,68 +89,6 @@ val appName = "GradleClient"
 val appDisplayName = "Gradle Client"
 val appQualifiedName = "org.gradle.client"
 val appUUID = file("app-uuid.txt").readText().trim()
-
-kotlin {
-    jvm()
-    sourceSets {
-
-        all {
-            dependencies {
-                implementation(project.dependencies.platform(libs.kotlin.bom))
-                implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
-                implementation(project.dependencies.platform(libs.kotlinx.serialization.bom))
-                implementation(project.dependencies.platform(libs.ktor.bom))
-            }
-        }
-
-        jvmMain.dependencies {
-
-            implementation(project(":build-action"))
-            implementation(project(":mutations-demo"))
-
-            implementation(libs.gradle.tooling.api)
-
-            implementation(libs.sqldelight.extensions.coroutines)
-            implementation(libs.sqldelight.runtime)
-            implementation(libs.sqldelight.driver.sqlite)
-
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(compose.desktop.currentOs)
-
-            implementation(libs.decompose.decompose)
-            implementation(libs.decompose.compose)
-            implementation(libs.essenty.lifecycle.coroutines)
-            implementation(libs.kotlinx.serialization.json)
-
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.ktor.serialization.kotlinx.json)
-
-            implementation(libs.material3WindowSizeClassMultiplatform)
-            implementation(libs.materialKolor)
-            implementation(libs.filekit.compose)
-
-            implementation(libs.slf4j.api)
-            implementation(libs.logback.classic)
-
-            implementation(libs.gradle.declarative.dsl.core)
-            implementation(libs.gradle.declarative.dsl.evaluator)
-            implementation(libs.gradle.declarative.dsl.tooling.models)
-
-            runtimeOnly(libs.kotlinx.coroutines.swing)
-        }
-
-        jvmTest.dependencies {
-            implementation(libs.junit.junit)
-            implementation(compose.desktop.uiTestJUnit4)
-        }
-    }
-}
 
 sqldelight {
     databases {
