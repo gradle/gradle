@@ -36,7 +36,7 @@ We would like to thank the following community members for their contributions t
 [TheGoesen](https://github.com/TheGoesen),
 [Zongle Wang](https://github.com/Goooler)
 
-Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announcement) for insight into what's planned for future releases.
+Be sure to check out the [public roadmap](https://roadmap.gradle.org/) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
