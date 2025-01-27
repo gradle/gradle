@@ -20,12 +20,14 @@ Distribution archives typically contain the executable application and other sup
 
 [[sec:distribution_base]]
 == Base Plugin
+
 The distribution plugin is split into the `distribution` and `distribution-base` plugins.
 
 The `distribution-base` plugin adds an extension named `distributions` of type link:{groovyDslPath}/org.gradle.api.distribution.DistributionContainer.html[DistributionContainer] to the project.
 
 The `distribution` plugin applies the `distribution-base` plugin and creates a single distribution in the distributions container extension named `main`.
-If your build only produces one distribution you only need to configure this distribution (or use the defaults).
+
+If your build produces only one distribution, you only need to configure the distribution or rely on the defaults.
 
 [[sec:distribution_usage]]
 == Usage

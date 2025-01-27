@@ -166,11 +166,10 @@ Nested events are reflected in the HTML test reports, providing clear traceabili
 
 #### Distribution base plugin introduced
 
-This release introduces a new `distribution-base` plugin.
-This plugin is identical to the existing [Distribution Plugin](userguide/distribution_plugin.html), except it does not add any distributions by default.
-The existing `distribution` plugin is now a simple wrapper over the `distribution-base` plugin, except it additionally adds a `main` distribution by default.
+Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the [Distribution Plugin](userguide/distribution_plugin.html) but does not add a default distribution.
+The existing `distribution` plugin now acts as a wrapper for the `distribution-base` plugin, adding a default `main` distribution.
 
-The `distribution-base` plugin is useful when you want to create plugins that do not have a `main` distribution, while retaining the other features of the Distribution Plugin.
+The `distribution-base` plugin is particularly useful for plugin developers who want the capabilities of the Distribution Plugin without a `main` distribution.
 
 ```kotlin
 plugins {
