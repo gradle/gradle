@@ -1,10 +1,8 @@
-import gradle.kotlin.dsl.accessors._23cdd86de02729e5f5eded3732f08da5.kotlin
-import gradle.kotlin.dsl.accessors._23cdd86de02729e5f5eded3732f08da5.libs
-import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.main
-import gradle.kotlin.dsl.accessors._6ace721833a4087eb4375b4fb92577a6.sourceSets
 import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsRuntimeJarClasspath
+import gradlebuild.modules.extension.ExternalModulesExtension
 import gradlebuild.packaging.tasks.ExtractJavaAbi
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.plugin.CompilerPluginConfig
 import org.jetbrains.kotlin.gradle.plugin.FilesSubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile
@@ -28,7 +26,10 @@ import org.jetbrains.kotlin.gradle.tasks.BaseKotlinCompile
 // Common configuration for everything that belongs to the Gradle distribution
 plugins {
     id("gradlebuild.task-properties-validation")
+    id("gradlebuild.dependency-modules")
 }
+
+val libs = project.the<ExternalModulesExtension>()
 
 val apiStubElements = configurations.consumable("apiStubElements") {
     isVisible = false
@@ -74,7 +75,7 @@ pluginManager.withPlugin("gradlebuild.kotlin-library") {
     }
 
     val abiClassesDirectory = layout.buildDirectory.dir("generated/kotlin-abi")
-    kotlin {
+    configure<KotlinJvmProjectExtension> {
         target.compilations.named("main") {
             compileTaskProvider.configure {
                 this as BaseKotlinCompile // TODO: Is there a way we can avoid a cast here?
@@ -92,13 +93,12 @@ pluginManager.withPlugin("gradlebuild.kotlin-library") {
                 })
             }
         }
-    }
 
-    configurations {
-        // TODO: Why are we not generating extensions for this configuration?
-        named("apiStubElements") {
-            outgoing.artifact(abiClassesDirectory) {
-                builtBy(kotlin.target.compilations.named("main").flatMap { it.compileTaskProvider })
+        configurations {
+            named("apiStubElements") {
+                outgoing.artifact(abiClassesDirectory) {
+                    builtBy(target.compilations.named("main").flatMap { it.compileTaskProvider })
+                }
             }
         }
     }
