@@ -29,6 +29,7 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
  *     <li>{@link GeneralData}</li>
  *     <li>{@link org.gradle.api.problems.internal.TypeValidationData}</li>
  *     <li>{@link org.gradle.api.problems.internal.DeprecationData}</li>
+ *     <li>{@link org.gradle.api.problems.deprecation.DeprecationData}</li>
  *     <li>{@link org.gradle.api.problems.internal.PropertyTraceData}</li>
  * </ul>
  *

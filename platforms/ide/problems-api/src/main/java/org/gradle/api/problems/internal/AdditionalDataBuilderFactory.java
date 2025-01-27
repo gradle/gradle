@@ -41,6 +41,7 @@ public final class AdditionalDataBuilderFactory {
                     return DefaultGeneralData.builder((GeneralData) instance);
                 }
             }));
+        // DeprecationLogger-based deprecation problems
         additionalDataProviders.put(DeprecationDataSpec.class, new DataTypeAndProvider(
             DeprecationData.class,
             new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
@@ -49,6 +50,16 @@ public final class AdditionalDataBuilderFactory {
                     return DefaultDeprecationData.builder((DeprecationData) instance);
                 }
             }));
+        // Problems API's deprecation problems
+        additionalDataProviders.put(org.gradle.api.problems.deprecation.DeprecationDataSpec.class, new DataTypeAndProvider(
+            org.gradle.api.problems.deprecation.DeprecationData.class,
+            new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
+                @Override
+                public AdditionalDataBuilder<? extends AdditionalData> apply(@Nullable AdditionalData instance) {
+                    return org.gradle.api.problems.internal.deprecation.DefaultDeprecationData.builder((org.gradle.api.problems.deprecation.DeprecationData) instance);
+                }
+            }
+        ));
         additionalDataProviders.put(TypeValidationDataSpec.class, new DataTypeAndProvider(
             TypeValidationData.class,
             new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {

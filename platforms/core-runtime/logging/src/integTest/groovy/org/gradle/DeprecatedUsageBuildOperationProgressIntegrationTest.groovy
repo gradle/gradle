@@ -169,7 +169,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:custom-task-action'
+            fqid == 'deprecation-logger:custom-task-action'
             contextualLabel == 'Custom Task action has been deprecated.'
             solutions == [
                 'Use task type X instead.',
@@ -177,37 +177,37 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             ]
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:init-script'
+            fqid == 'deprecation-logger:init-script'
             contextualLabel == 'Init script has been deprecated.'
         }
         verifyAll(receivedProblem(2)) {
-            fqid == 'deprecation:init-script'
+            fqid == 'deprecation-logger:init-script'
             contextualLabel == 'Init script has been deprecated.'
         }
         verifyAll(receivedProblem(3)) {
-            fqid == 'deprecation:plugin'
+            fqid == 'deprecation-logger:plugin'
             contextualLabel == 'Plugin has been deprecated.'
         }
         verifyAll(receivedProblem(4)) {
-            fqid == 'deprecation:plugin-script'
+            fqid == 'deprecation-logger:plugin-script'
             contextualLabel == 'Plugin script has been deprecated.'
         }
         verifyAll(receivedProblem(5)) {
-            fqid == 'deprecation:some-indirect-deprecation'
+            fqid == 'deprecation-logger:some-indirect-deprecation'
             contextualLabel == 'Some indirect deprecation has been deprecated.'
             solutions == [ 'Some advice.' ]
         }
         verifyAll(receivedProblem(6)) {
-            fqid == 'deprecation:some-invocation-feature'
+            fqid == 'deprecation-logger:some-invocation-feature'
             contextualLabel == 'Some invocation feature has been deprecated.'
             solutions == [ 'Don\'t do custom invocation.' ]
         }
         verifyAll(receivedProblem(7)) {
-            fqid == 'deprecation:typed-task'
+            fqid == 'deprecation-logger:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
         }
         verifyAll(receivedProblem(8)) {
-            fqid == 'deprecation:typed-task'
+            fqid == 'deprecation-logger:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
         }
     }
@@ -235,7 +235,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'deprecation:buildsrc-script'
+            fqid == 'deprecation-logger:buildsrc-script'
             contextualLabel == 'BuildSrc script has been deprecated.'
         }
     }
@@ -288,11 +288,11 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:included-build-script'
+            fqid == 'deprecation-logger:included-build-script'
             contextualLabel == 'Included build script has been deprecated.'
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'deprecation:included-build-task'
+            fqid == 'deprecation-logger:included-build-task'
             contextualLabel == 'Included build task has been deprecated.'
         }
     }
@@ -323,7 +323,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         and:
         THRESHOLD_DEFAULT_VALUE.times {
             verifyAll(receivedProblem(it)) {
-                fqid == 'deprecation:thing'
+                fqid == 'deprecation-logger:thing'
                 contextualLabel.contains(" has been deprecated.")
             }
         }
@@ -366,7 +366,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         and:
         THRESHOLD_DEFAULT_VALUE.times {
             verifyAll(receivedProblem(it)) {
-                fqid == 'deprecation:thing'
+                fqid == 'deprecation-logger:thing'
                 contextualLabel.contains('has been deprecated.')
             }
         }

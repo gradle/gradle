@@ -100,7 +100,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             public void execute(InternalProblemSpec builder) {
                 InternalProblemSpec problemSpec = builder
                     // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
+                    .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecationLogger())
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())

@@ -802,7 +802,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
                 // However, since it isn't we do not know if the test has disabled the filtering of
                 // these deprecation logs from the normal deprecation checks.
                 // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
-                it.fqid != 'deprecation:executing-gradle-on-jvm-versions-and-lower'
+                it.fqid != 'deprecation-logger:executing-gradle-on-jvm-versions-and-lower'
             }
         }
     }
