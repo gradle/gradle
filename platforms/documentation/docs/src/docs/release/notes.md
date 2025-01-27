@@ -168,11 +168,12 @@ Nested events are reflected in the HTML test reports, providing clear traceabili
 
 #### Scala version can be declared explicitly
 
-Starting in this version of Gradle, when applying the `scala-base` or `scala` plugins, the version of Scala can now be declared explicitly on the `scala` extension.
-Based on the declared version, Gradle can derive the required Scala toolchain dependencies without requiring them to be declared by the user.
-Further, this allows Gradle to avoid inferring the Scala version from the production runtime classpath, a process which can be error-prone.
+Starting in this version of Gradle, when applying the `scala-base` or `scala` plugins, you can now explicitly declare the Scala version on the `scala` extension.
+This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
+It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
 
-Previously, a `scala-library` dependency was required:
+Previously, you had to declare a `scala-library` dependency, like this:
+
 ```kotlin
 plugins {
     id("scala")
@@ -189,7 +190,7 @@ dependencies {
 }
 ```
 
-Now, the Scala version can be declared explicitly and the `scala-library` dependency is no longer required:
+Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
 ```kotlin
 plugins {
     id("scala")
