@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-plugins {
-    id("gradlebuild.distribution.uninstrumented.api-java")
-    id("gradlebuild.instrumented-java-project")
-}
+package gradlebuild.basics
 
-description = "Used for Gradle API projects that apply instrumentation"
+import org.gradle.api.attributes.Attribute
+
+enum class ClassFileContentsAttribute {
+    /**
+     * Only include method declarations with stub code; eliminate private members.
+     */
+    STUBS,
+
+    /**
+     * Include the complete bytecode complete with method bodies and private members.
+     */
+    COMPLETE;
+
+    companion object {
+        val attribute = Attribute.of(ClassFileContentsAttribute::class.java)
+    }
+}
