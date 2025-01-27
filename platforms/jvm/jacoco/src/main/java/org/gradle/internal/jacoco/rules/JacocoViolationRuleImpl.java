@@ -31,7 +31,7 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
     private String scope = "BUNDLE";
     private List<String> includes = ImmutableList.of("*");
     private List<String> excludes = ImmutableList.of();
-    private final List<JacocoLimit> limits = new ArrayList<JacocoLimit>();
+    private final List<JacocoLimit> limits = new ArrayList<>();
 
     @Override
     public boolean isEnabled() {
@@ -84,41 +84,5 @@ public class JacocoViolationRuleImpl implements JacocoViolationRule {
         configureAction.execute(limit);
         limits.add(limit);
         return limit;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        JacocoViolationRuleImpl that = (JacocoViolationRuleImpl) o;
-
-        if (enabled != that.enabled) {
-            return false;
-        }
-        if (scope != that.scope) {
-            return false;
-        }
-        if (includes != null ? !includes.equals(that.includes) : that.includes != null) {
-            return false;
-        }
-        if (excludes != null ? !excludes.equals(that.excludes) : that.excludes != null) {
-            return false;
-        }
-        return limits != null ? limits.equals(that.limits) : that.limits == null;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = enabled ? 1 : 0;
-        result = 31 * result + (scope != null ? scope.hashCode() : 0);
-        result = 31 * result + (includes != null ? includes.hashCode() : 0);
-        result = 31 * result + (excludes != null ? excludes.hashCode() : 0);
-        result = 31 * result + (limits != null ? limits.hashCode() : 0);
-        return result;
     }
 }
