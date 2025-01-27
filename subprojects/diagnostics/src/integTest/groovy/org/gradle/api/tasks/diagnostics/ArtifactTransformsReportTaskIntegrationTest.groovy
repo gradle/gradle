@@ -34,7 +34,7 @@ class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpe
     def "if no transforms present in project, task reports complete absence"() {
         expect:
         succeeds ':artifactTransforms'
-        reportsCompleteAbsenceOfArtifactTransforms()
+        reportsCompleteAbsenceOfArtifactTransforms("root project 'myLib'")
         assertsDoesntNudgeAboutCacheability()
     }
 
@@ -241,8 +241,8 @@ To Attributes:
         """
     }
 
-    private void reportsCompleteAbsenceOfArtifactTransforms(String projectName = "myLib") {
-        outputContains("There are no transforms registered in project '$projectName'.")
+    private void reportsCompleteAbsenceOfArtifactTransforms(String projectDisplayName = "project 'myLib'") {
+        outputContains("There are no transforms registered in $projectDisplayName.")
     }
 
     private void assertsNudgesAboutCacheability() {

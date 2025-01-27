@@ -26,16 +26,16 @@ import java.util.stream.Collectors;
  * report logic running.  This enables the reporting logic to remain completely independent of the actual project classes.
  */
 public final class ArtifactTransformReportModel {
-    private final String projectName;
+    private final String projectDisplayName;
     private final List<ReportArtifactTransform> transforms;
 
-    ArtifactTransformReportModel(String projectName, List<ReportArtifactTransform> transforms) {
-        this.projectName = projectName;
+    ArtifactTransformReportModel(String projectDisplayName, List<ReportArtifactTransform> transforms) {
+        this.projectDisplayName = projectDisplayName;
         this.transforms = transforms;
     }
 
-    public String getProjectName() {
-        return projectName;
+    public String getProjectDisplayName() {
+        return projectDisplayName;
     }
 
     public List<ReportArtifactTransform> getTransforms() {
@@ -52,6 +52,6 @@ public final class ArtifactTransformReportModel {
         List<ReportArtifactTransform> matchingTransforms = transforms.stream()
             .filter(t -> t.getTransformClass().getSimpleName().contains(typeName))
             .collect(Collectors.toList());
-        return new ArtifactTransformReportModel(projectName, matchingTransforms);
+        return new ArtifactTransformReportModel(projectDisplayName, matchingTransforms);
     }
 }

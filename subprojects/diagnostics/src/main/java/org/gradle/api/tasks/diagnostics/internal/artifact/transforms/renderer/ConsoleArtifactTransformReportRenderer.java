@@ -115,7 +115,7 @@ public final class ConsoleArtifactTransformReportRenderer extends AbstractArtifa
     }
 
     private void writeCompleteAbsenceOfResults(ArtifactTransformReportModel model, boolean searchingByType) {
-        message("There are no transforms registered in project '" + model.getProjectName() + "'" + (searchingByType ? " with this type." : "."));
+        message("There are no transforms registered in " + model.getProjectDisplayName() + (searchingByType ? " with this type." : "."));
     }
 
     private void printHeader(Runnable action) {

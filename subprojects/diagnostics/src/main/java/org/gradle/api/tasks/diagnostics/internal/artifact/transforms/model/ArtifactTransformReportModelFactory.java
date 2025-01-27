@@ -41,7 +41,7 @@ public abstract class ArtifactTransformReportModelFactory {
             .map(this::convertArtifactTransform)
             .collect(Collectors.toList());
 
-        return new ArtifactTransformReportModel(project.getName(), artifactTransformData);
+        return new ArtifactTransformReportModel(project.getDisplayName(), artifactTransformData);
     }
 
     private ReportArtifactTransform convertArtifactTransform(TransformRegistration transformRegistration) {
