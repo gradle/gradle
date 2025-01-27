@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.serialization;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import org.gradle.api.Transformer;
+import org.gradle.api.NonNullApi;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,6 +32,18 @@ import java.util.concurrent.locks.ReentrantLock;
 @ThreadSafe
 @ServiceScope(Scope.Global.class)
 public class ClassLoaderCache {
+    @NonNullApi
+    public interface Transformer<OUT, IN> {
+        /**
+         * Transforms the given object, and returns the transformed value.
+         *
+         * @param in The object to transform.
+         * @return The transformed object.
+         */
+        OUT transform(IN in);
+    }
+
+
     private final Lock lock = new ReentrantLock();
     private final Cache<ClassLoader, ClassLoaderDetails> classLoaderDetails;
     private final Cache<UUID, ClassLoader> classLoaderIds;
@@ -68,7 +80,7 @@ public class ClassLoaderCache {
         }
     }
 
-    public ClassLoaderDetails getDetails(ClassLoader classLoader, Transformer<ClassLoaderDetails, ClassLoader> factory) {
+    public ClassLoaderDetails getDetails(ClassLoader classLoader, ClassLoaderCache.Transformer<ClassLoaderDetails, ClassLoader> factory) {
         lock.lock();
         try {
             ClassLoaderDetails details = classLoaderDetails.getIfPresent(classLoader);

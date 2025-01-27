@@ -14,24 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.problems.internal;
+package org.gradle.internal.build.event.types;
 
-import com.google.common.collect.ImmutableMap;
-import org.gradle.tooling.events.problems.AdditionalData;
+import org.gradle.api.NonNullApi;
+import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 
 import java.io.Serializable;
 import java.util.Map;
 
-public class GeneralData implements AdditionalData, Serializable {
+@NonNullApi
+public class DefaultInternalPayloadSerializedAdditionalData extends DefaultInternalAdditionalData implements InternalPayloadSerializedAdditionalData, Serializable {
+    private final Object payload;
 
-    private final Map<String, Object> additionalData;
-
-    public GeneralData(Map<String, Object> additionalData) {
-        this.additionalData = ImmutableMap.copyOf(additionalData);
+    public DefaultInternalPayloadSerializedAdditionalData(Map<String, Object> additionalData, Object payload) {
+        super(additionalData);
+        this.payload = payload;
     }
 
     @Override
-    public Map<String, Object> getAsMap() {
-        return additionalData;
+    public Object getSerializedType() {
+        return payload;
     }
 }

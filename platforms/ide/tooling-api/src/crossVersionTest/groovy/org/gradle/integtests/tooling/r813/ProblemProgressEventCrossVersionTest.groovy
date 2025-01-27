@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r813
 
-
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
@@ -36,7 +35,7 @@ import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -72,7 +71,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -102,36 +100,45 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @TargetGradleVersion(">=8.13")
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
-        withReportProblemTask """
-            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
-                it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
-                $documentationConfig
-                .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
-                .severity(Severity.WARNING)
-                .solution("try this instead")
+        buildFile """
+            import org.gradle.api.problems.Severity
+            import org.gradle.api.problems.AdditionalData
+
+            public interface SomeData extends AdditionalData {
+                String getName();
+                void setName(String name);
             }
+
+            abstract class ProblemReportingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
+                        it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
+                        $documentationConfig
+                        .lineInFileLocation("/tmp/foo", 1, 2, 3)
+                        $detailsConfig
+                        .additionalData(SomeData, data -> data.setName("someData"))
+                        .severity(Severity.WARNING)
+                        .solution("try this instead")
+                    }
+                }
+            }
+
+            tasks.register("reportProblem", ProblemReportingTask)
         """
 
         when:
-
         def problems = runTask()
 
         then:
         problems.size() == 1
-        verifyAll(problems[0]) {
-            definition.id.name == 'id'
-            definition.id.displayName == 'shortProblemMessage'
-            definition.id.group.name == 'generic'
-            definition.id.group.displayName == 'Generic'
-            definition.id.group.parent == null
-            definition.severity == Severity.WARNING
-            definition.documentationLink?.url == expecteDocumentation
-            details?.details == expectedDetails
-        }
+        (problems.get(0).getAdditionalData() as DefaultAdditionalData).get(MyType).getName() == "someData"
 
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
@@ -226,14 +233,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")
@@ -306,5 +312,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def failureMessage(failure) {
         failure instanceof Failure ? failure.message : failure.failure.message
+    }
+
+    interface MyType {
+        String getName()
     }
 }

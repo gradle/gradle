@@ -18,9 +18,9 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
@@ -34,7 +34,7 @@ import static java.util.stream.Collectors.toList;
 public class DefaultTypeValidationContext extends ProblemRecordingTypeValidationContext {
     public static final String MISSING_NORMALIZATION_ANNOTATION = "MISSING_NORMALIZATION_ANNOTATION";
     private final boolean reportCacheabilityProblems;
-    private final ImmutableList.Builder<Problem> problems = ImmutableList.builder();
+    private final ImmutableList.Builder<InternalProblem> problems = ImmutableList.builder();
 
     public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable, InternalProblems problems) {
         return new DefaultTypeValidationContext(rootType, cacheable, problems);
@@ -57,18 +57,18 @@ public class DefaultTypeValidationContext extends ProblemRecordingTypeValidation
 
 
     @Override
-    protected void recordProblem(Problem problem) {
+    protected void recordProblem(InternalProblem problem) {
         if (onlyAffectsCacheableWork(problem.getDefinition().getId()) && !reportCacheabilityProblems) { // TODO (donat) is already fixed on master
             return;
         }
         problems.add(problem);
     }
 
-    public ImmutableList<Problem> getProblems() {
+    public ImmutableList<InternalProblem> getProblems() {
         return problems.build();
     }
 
-    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<Problem> validationMessages) {
+    public static void throwOnProblemsOf(Class<?> implementation, ImmutableList<InternalProblem> validationMessages) {
         if (!validationMessages.isEmpty()) {
             String formatString = validationMessages.size() == 1
                 ? "A problem was found with the configuration of %s."

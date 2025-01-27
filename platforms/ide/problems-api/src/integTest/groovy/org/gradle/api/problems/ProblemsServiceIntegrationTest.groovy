@@ -219,7 +219,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                it.additionalDataInternal(org.gradle.api.problems.internal.GeneralDataSpec) {
                     it.put('key','value')
                 }
             }
@@ -259,7 +259,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.additionalData(InvalidData) {}
+                it.additionalDataInternal(InvalidData) {}
             }
         """
 

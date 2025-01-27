@@ -24,11 +24,11 @@ import java.io.Serializable;
 import java.util.Map;
 
 @NonNullApi
-public class DefaultAdditionalData implements InternalAdditionalData, Serializable {
+public class DefaultInternalAdditionalData implements InternalAdditionalData, Serializable {
 
     private final Map<String, Object> additionalData;
 
-    public DefaultAdditionalData(Map<String, Object> additionalData) {
+    public DefaultInternalAdditionalData(Map<String, Object> additionalData) {
         this.additionalData = ImmutableMap.copyOf(additionalData);
     }
 

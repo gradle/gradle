@@ -23,9 +23,10 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.problems.AdditionalData
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
+import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 
 /**
@@ -42,14 +43,14 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             TestResolutionFailure failure = new TestResolutionFailure()
             getProblems().${report(targetVersion)} {
                 it.${id(targetVersion)}
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems()
+        List<DefaultAdditionalData> failureData = runAndGetProblems()
             .findAll { it instanceof SingleProblemEvent }
-            .collect { ProblemEvent problem -> problem.additionalData as GeneralData }
+            .collect { ProblemEvent problem -> problem.additionalData as DefaultAdditionalData }
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one
@@ -68,13 +69,13 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
 
             getProblems().${report(targetVersion)} {
                it.${id(targetVersion)}
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                .additionalData${targetVersion < GradleVersion.version("8.13") ? "" : "Internal"}(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
 
         when:
-        List<GeneralData> failureData = runAndGetProblems().collect { ProblemEvent event ->
-            event.problem.additionalData as GeneralData
+        List<AdditionalData> failureData = runAndGetProblems().collect { ProblemEvent event ->
+            event.problem.additionalData
         }
 
         then:

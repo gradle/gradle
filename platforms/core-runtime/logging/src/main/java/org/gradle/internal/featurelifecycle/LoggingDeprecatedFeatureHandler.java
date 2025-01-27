@@ -104,7 +104,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
-                    .additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
+                    .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
                         @Override
                         public void execute(DeprecationDataSpec data) {
                             data.type(usage.getType().toDeprecationDataType());
