@@ -26,5 +26,5 @@ import org.gradle.api.Incubating;
  * @since 8.14
  */
 @Incubating
-public interface UnlockedConfiguration extends Configuration {
+public interface LegacyConfiguration extends Configuration {
 }
