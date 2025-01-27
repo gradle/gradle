@@ -18,7 +18,6 @@ package org.gradle.api.plugins.scala;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Optional;
 
 /**
  * Common configuration for Scala based projects. This is added by the {@link ScalaBasePlugin}.
@@ -47,7 +46,6 @@ public interface ScalaPluginExtension {
      *
      * @since 8.13
      */
-    @Optional
     @Incubating
     Property<String> getScalaVersion();
 
