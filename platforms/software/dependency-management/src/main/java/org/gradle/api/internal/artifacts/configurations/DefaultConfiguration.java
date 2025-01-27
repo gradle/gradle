@@ -943,6 +943,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      */
     @Override
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
+        DeprecationLogger.deprecateMethod(Configuration.class, "getTaskDependencyFromProjectDependency(boolean, String)")
+            .withContext("This method has been removed without replacement.")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(10, "deprecate_getTaskDependencyFromProjectDependency")
+            .nagUser();
+
         if (useDependedOn) {
             return new TasksFromProjectDependencies(taskName, () -> {
                 return getAllDependencies().withType(ProjectDependency.class);

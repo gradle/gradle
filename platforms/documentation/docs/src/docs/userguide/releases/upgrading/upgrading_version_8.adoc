@@ -107,6 +107,12 @@ container.attributeProvider(firstAttribute, project.getProviders().provider(() -
 }));
 ----
 
+==== Deprecate Configuration#getTaskDependencyFromProjectDependency(boolean, String)
+
+The Configuration#getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated and will be removed in Gradle 10.0.
+This method has been deprecated without replacement.
+This method is inherently Isolated Projects incompatible.
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
