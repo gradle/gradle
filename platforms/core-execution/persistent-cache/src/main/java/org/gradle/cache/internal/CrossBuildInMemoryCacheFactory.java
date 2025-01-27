@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -43,6 +44,8 @@ public interface CrossBuildInMemoryCacheFactory {
      * <p>Note: this should be used to create _only_ global scoped instances.
      */
     <K, V> CrossBuildInMemoryCache<K, V> newCache();
+
+    <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse);
 
     /**
      * Creates a new cache instance. Keys and values are always referenced using strong references.
