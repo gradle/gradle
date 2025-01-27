@@ -46,19 +46,37 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin autho
 
 The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
 
-Starting with this version of Gradle, it can also access the settings directory (the location of the `settings.gradle(.kts)` file). 
+Starting with this version of Gradle, it can also access the settings directory (the location of the `settings.gradle(.kts)` file).
 While the settings directory is not specific to any project, some use cases require resolving file paths relative to it.
 
-Previously, accessing the settings directory required using `rootProject.layout.projectDirectory`. 
+Previously, accessing the settings directory required using `rootProject.layout.projectDirectory`.
 This approach involved accessing the `rootProject` object, which is discouraged, and then manually resolving paths to the settings directory.
 
 The new capability addresses a common scenario: resolving files shared across all projects in a build, such as linting configurations or `version.txt` files in the root folder.
 
 Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
 
+#### New Artifact Transforms report task
+
+There is a new `artifactTransforms` report available by default which displays information about all the registered [Artifact Transforms](userguide/artifact_transforms.html) in a project.
+
+This report aides build authors in discovering all the transforms registered by the buildscripts and plugins used in their projects.
+Viewing the list of registered transforms can help when debugging [ambiguous transform failures](userguide/variant_model.html#sec:transform-ambiguity).
+
+TODO: embed AT_report_example.png here
+
+The report provides the following information:
+
+- The fully qualified type name of the action used to implement the transform
+- Whether this type is cacheable
+- The complete set of input attributes and their values used to select this transform
+- The complete set of output attributes and their values resulting from this transform
+
+See the [ArtifactTransformsReportTask](dsl/org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask.html) DSL reference for more details.
+
 #### TestEventReporting API improvements
 
-Gradle provides an [HTML test report](userguide/java_testing.html#test_reporting) to help you understand and resolve test failures. 
+Gradle provides an [HTML test report](userguide/java_testing.html#test_reporting) to help you understand and resolve test failures.
 This report is automatically generated when using the `test` task with supported test frameworks, such as `JUnit`.
 
 Plugin authors and platform providers can now leverage the [Test Event Reporting APIs](javadoc/org/gradle/api/tasks/testing/TestReport.html) to capture test events and generate reports for tests executed outside Gradle's built-in testing infrastructure:
@@ -71,7 +89,7 @@ public abstract class CustomTest extends DefaultTask {
 
     @Inject
     protected abstract TestEventReporterFactory getTestEventReporterFactory();
-    
+
     @TaskAction
     void runTests() {
         try (TestEventReporter test = getTestEventReporterFactory().createTestEventReporter(
@@ -101,7 +119,7 @@ You can find additional details and sample code in [Test Reporting API](userguid
 
 ##### Metadata support
 
-Custom tests can include metadata to provide supplementary information about test execution. 
+Custom tests can include metadata to provide supplementary information about test execution.
 
 The metadata is displayed in the HTML test report for better visibility:
 
@@ -148,7 +166,7 @@ The console properly prints out:
 Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.
 ```
 
-Previously, the console printed the incorrect suggestion: 
+Previously, the console printed the incorrect suggestion:
 
 ```text
 Run with --stacktrace to get the full stack trace of this deprecation warning.
@@ -172,7 +190,7 @@ and the `BuildController.send(Object)` method.
 -->
 
 ### Strongly-typed `dependencies` block API
-The [strongly-typed `dependencies` block API](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) introduced in Gradle 7.6 
+The [strongly-typed `dependencies` block API](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) introduced in Gradle 7.6
 is now partially stable. Version catalog dependencies remain under review for potential changes.
 
 This API enables plugin authors to create custom DSL-like `dependencies` blocks, similar to the top-level `dependencies` block in a build script.
