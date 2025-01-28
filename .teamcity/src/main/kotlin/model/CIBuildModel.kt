@@ -36,10 +36,10 @@ enum class StageName(
 ) {
     QUICK_FEEDBACK_LINUX_ONLY(
         "Quick Feedback - Linux Only",
-        "Run checks and functional tests (embedded executer, Linux)",
+        "Run checks and functional tests (Linux)",
         "QuickFeedbackLinuxOnly",
     ),
-    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (embedded executer, Windows)", "QuickFeedback"),
+    QUICK_FEEDBACK("Quick Feedback", "Run checks and functional tests (Windows)", "QuickFeedback"),
     PULL_REQUEST_FEEDBACK("Pull Request Feedback", "Run various functional tests", "PullRequestFeedback"),
     READY_FOR_NIGHTLY(
         "Ready for Nightly",
@@ -158,12 +158,12 @@ data class CIBuildModel(
                     listOf(
                         TestCoverage(
                             3,
-                            TestType.PLATFORM,
+                            TestType.QUICK,
                             Os.LINUX,
                             JvmCategory.MIN_VERSION,
                             DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE,
                         ),
-                        TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmCategory.MAX_VERSION),
+                        TestCoverage(4, TestType.QUICK, Os.WINDOWS, JvmCategory.MAX_VERSION),
                         TestCoverage(
                             20,
                             TestType.CONFIG_CACHE,
@@ -262,7 +262,7 @@ data class CIBuildModel(
                         TestCoverage(13, TestType.NO_DAEMON, Os.WINDOWS, JvmCategory.MAX_LTS_VERSION),
                         TestCoverage(
                             14,
-                            TestType.PLATFORM,
+                            TestType.QUICK,
                             Os.MACOS,
                             JvmCategory.MIN_VERSION_WINDOWS_MAC,
                             expectedBucketNumber = 5,
@@ -291,7 +291,7 @@ data class CIBuildModel(
                         ),
                         TestCoverage(
                             36,
-                            TestType.PLATFORM,
+                            TestType.QUICK,
                             Os.MACOS,
                             JvmCategory.MAX_LTS_VERSION,
                             expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE,
@@ -563,9 +563,6 @@ enum class TestType(
 ) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     QUICK(true, true, true, 120, 4),
-
-    // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
-    PLATFORM(true, true, true),
 
     // Cross version tests select a small set of versions to cover when run as part of this stage
     QUICK_FEEDBACK_CROSS_VERSION(false, false, true),

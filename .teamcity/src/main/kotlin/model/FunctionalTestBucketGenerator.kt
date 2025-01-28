@@ -205,7 +205,7 @@ class FunctionalTestBucketGenerator(
             val testCoverages = model.stages.flatMap { it.functionalTests }
             val foundTestCoverage =
                 testCoverages.firstOrNull {
-                    it.testType == TestType.PLATFORM &&
+                    it.testType == TestType.QUICK &&
                         it.os == testCoverage.os &&
                         it.arch == testCoverage.arch &&
                         it.buildJvm == testCoverage.buildJvm
