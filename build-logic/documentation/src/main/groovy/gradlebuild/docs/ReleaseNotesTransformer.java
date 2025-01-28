@@ -85,7 +85,7 @@ public class ReleaseNotesTransformer extends FilterReader {
                 append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>");
         addCssToHead(document);
         addJavascriptToHead(document);
-
+        addHighlightJsToHead(document);
         wrapH2InSectionTopic(document);
         //addAnchorsForHeadings(document);
         document.body().prepend("<h1>Gradle Release Notes</h1>");
@@ -139,6 +139,20 @@ public class ReleaseNotesTransformer extends FilterReader {
                 "</details>");
 
         document.body().html(rewritten);
+    }
+
+    private void addHighlightJsToHead(Document document) {
+        Element head = document.head();
+
+        head.appendElement("link")
+            .attr("rel", "stylesheet")
+            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css");
+
+        head.appendElement("script")
+            .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");
+
+        head.appendElement("script")
+            .append("hljs.highlightAll();");
     }
 
     private void addJavascriptToHead(Document document) {
