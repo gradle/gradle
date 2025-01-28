@@ -92,7 +92,7 @@ class ReceivedProblem implements InternalProblem {
         result.first()
     }
 
-    private <T> List<T> allLocations(Class<T> type) {
+    <T> List<T> allLocations(Class<T> type) {
         allLocations.findAll { type.isInstance(it) } as List<T>
     }
 
