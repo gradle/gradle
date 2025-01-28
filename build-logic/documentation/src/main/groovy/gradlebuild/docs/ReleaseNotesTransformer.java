@@ -235,7 +235,8 @@ public class ReleaseNotesTransformer extends FilterReader {
         for (Element h23element: h23elements) {
             String tag = h23element.tagName();
             String name = h23element.text();
-            String anchor = h23element.attr("id");
+            Element link = h23element.selectFirst("a");
+            String anchor = (link != null) ? link.attr("id") : "";
             if(!name.startsWith("Table") && tag.equals("h2")){
                 toc.append("<li class=\"mainTopic\"><a/></li>").children().last().select("a").first().text(name).attr("href", "#" + anchor);
             } else if(!name.startsWith("Table") && tag.equals("h3")){
