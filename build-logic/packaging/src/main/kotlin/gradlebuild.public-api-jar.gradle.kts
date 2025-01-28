@@ -17,6 +17,10 @@
 import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
+import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
+import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
+import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -56,7 +60,7 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
     }
 }
 
-val task = tasks.register<Jar>("jarGradleApi") {
+val jarGradleApi = tasks.register("jarGradleApi", Jar::class) {
     from(distributionClasspath.map { configuration ->
         configuration.incoming.artifactView {
             componentFilter { componentId -> componentId is ProjectComponentIdentifier }
@@ -70,12 +74,26 @@ val task = tasks.register<Jar>("jarGradleApi") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+val jarGradleSources = tasks.register("jarGradleSources", Jar::class) {
+    group = BasePlugin.BUILD_GROUP
+    with(srcDistributionSpec())
+    archiveClassifier = "sources"
+}
+
 // The consumable configuration containing the public Gradle API artifact
 // and its external dependencies.
 val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
-    outgoing.artifact(task)
+    outgoing.artifact(jarGradleApi)
     configureAsApiElements(objects)
+}
+
+val gradleApiSources = configurations.resolvable("gradleApiSources") {
+    outgoing.artifact(jarGradleSources)
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+    attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
+    attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, DocsType.SOURCES))
 }
 
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
@@ -86,4 +104,6 @@ components.add(gradleApiComponent)
 // Published component containing the public Gradle API
 gradleApiComponent.addVariantsFromConfiguration(gradleApiElements.get()) {
     mapToMavenScope("compile")
+}
+gradleApiComponent.addVariantsFromConfiguration(gradleApiSources.get()) {
 }
