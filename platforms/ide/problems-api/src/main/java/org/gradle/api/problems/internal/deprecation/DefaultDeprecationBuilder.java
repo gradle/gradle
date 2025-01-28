@@ -16,11 +16,10 @@
 
 package org.gradle.api.problems.internal.deprecation;
 
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.deprecation.DeprecateGenericSpec;
 import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
 import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
-import org.gradle.api.problems.internal.DefaultProblemBuilder;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 
 import javax.annotation.Nullable;
@@ -68,8 +67,8 @@ class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePlugin
         return builder;
     }
 
-    public Problem build() {
-        ((DefaultProblemBuilder)builder).additionalData(additionalDataBuilder.build()); // TODO (donat) remove once https://github.com/gradle/gradle/pull/32122/files is merged and the pr is rebased
+    public InternalProblem build() {
+        builder .additionalDataInternal(additionalDataBuilder.build());
         return builder.build();
     }
 }

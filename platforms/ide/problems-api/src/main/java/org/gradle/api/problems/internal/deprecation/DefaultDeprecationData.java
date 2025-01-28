@@ -19,8 +19,9 @@ package org.gradle.api.problems.internal.deprecation;
 import org.gradle.api.problems.deprecation.DeprecatedVersion;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
-class DefaultDeprecationData implements DeprecationData {
+class DefaultDeprecationData implements DeprecationData, Serializable {
 
     private final DeprecatedVersion removedIn;
     private final String replacedBy;

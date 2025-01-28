@@ -24,6 +24,7 @@ import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
 import org.gradle.api.problems.deprecation.DeprecationReporter;
 import org.gradle.api.problems.internal.DefaultProblemReporter;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 
 public class DefaultDeprecationReporter implements DeprecationReporter {
 
@@ -68,9 +69,8 @@ public class DefaultDeprecationReporter implements DeprecationReporter {
     }
 
     private Problem reportBuiltProblem(DefaultDeprecationBuilder builder) {
-        Problem deprecationProblem = builder.build();
+        InternalProblem deprecationProblem = builder.build();
         reporter.report(deprecationProblem);
         return deprecationProblem;
     }
-
 }
