@@ -528,6 +528,11 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
         group = ciGroup
     }
 
+    register("embeddedTest") {
+        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
+        group = ciGroup
+    }
+
     register("noDaemonTest") {
         description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
         group = ciGroup

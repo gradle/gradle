@@ -53,6 +53,10 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
         dependsOn("parallelIntegTest")
     }
 
+    named("embeddedTest") {
+        dependsOn("embeddedIntegTest")
+    }
+
     named("noDaemonTest") {
         dependsOn("noDaemonIntegTest")
     }
