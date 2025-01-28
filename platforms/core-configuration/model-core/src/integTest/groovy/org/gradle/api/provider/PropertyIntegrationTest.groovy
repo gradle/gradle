@@ -406,6 +406,45 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    def "can set Enum property value using an string"() {
+        given:
+        buildFile << """
+            enum MyEnumOptions {
+                FIRST, SECOND, THIRD, FORTH
+            }
+
+            interface SomeExtension {
+                Property<MyEnumOptions> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = "first"
+            assert custom.prop.get() == MyEnumOptions.FIRST
+            custom.prop = null
+            assert !custom.prop.isPresent()
+            custom.prop = "FIRST"
+            assert custom.prop.get() == MyEnumOptions.FIRST
+
+            custom.prop = providers.provider { "second" }
+            assert custom.prop.get() == MyEnumOptions.SECOND
+
+            custom.prop = null
+            custom.prop.convention("third")
+            assert custom.prop.get() == MyEnumOptions.THIRD
+
+            custom.prop.convention(providers.provider { "forth" })
+            assert custom.prop.get() == MyEnumOptions.FORTH
+        """
+
+        expect:
+        executer.expectDeprecationWarningWithPattern("Assigning String value to Enum rich property. This behavior has been deprecated.*")
+        executer.expectDeprecationWarningWithPattern("Assigning String value to Enum rich property. This behavior has been deprecated.*")
+        executer.expectDeprecationWarningWithPattern("Assigning String value to Enum rich property. This behavior has been deprecated.*")
+        executer.expectDeprecationWarningWithPattern("Assigning String value to Enum rich property. This behavior has been deprecated.*")
+        executer.expectDeprecationWarningWithPattern("Assigning String value to Enum rich property. This behavior has been deprecated.*")
+        succeeds()
+    }
+
     @Requires(
         value = IntegTestPreconditions.NotConfigCached,
         reason = "Config cache does not support extensions during execution, leading to 'Could not get unknown property 'custom' for task ':wrongValueTypeDsl' of type org.gradle.api.DefaultTask."

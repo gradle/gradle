@@ -39,7 +39,7 @@ class ValidatingValueCollector<T> implements ValueCollector<T> {
             "Cannot get the value of a property of type %s with element type %s as the source value contains a null element.",
             collectionType.getName(), elementType.getName());
 
-        T sanitized = sanitizer.sanitize(value);
+        T sanitized = sanitizer.sanitize(elementType, value);
         if (!elementType.isInstance(sanitized)) {
             throw new IllegalArgumentException(String.format(
                 "Cannot get the value of a property of type %s with element type %s as the source value contains an element of type %s.",

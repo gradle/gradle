@@ -20,5 +20,5 @@ import javax.annotation.Nullable;
 
 public interface ValueSanitizer<T> {
     @Nullable
-    T sanitize(@Nullable T value);
+    T sanitize(Class<?> valueType, @Nullable T value);
 }
