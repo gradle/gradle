@@ -15,10 +15,12 @@
  */
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import java.util.Set;
+import org.gradle.api.tasks.Internal;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * Allows filtering tests for execution. Some examples:
@@ -29,35 +31,35 @@ import java.util.Set;
  *   test {
  *       filter {
  *          //specific test class, this can match 'SomeTest' class and corresponding method under any package
- *          includeTestsMatching "SomeTest"
- *          includeTestsMatching "SomeTest.someTestMethod*"
+ *          includeTestsMatching("SomeTest")
+ *          includeTestsMatching("SomeTest.someTestMethod*")
  *
  *          //specific test class
- *          includeTestsMatching "org.gradle.SomeTest"
+ *          includeTestsMatching("org.gradle.SomeTest")
  *
  *          //specific test class and method
- *          includeTestsMatching "org.gradle.SomeTest.someSpecificFeature"
- *          includeTest "org.gradle.SomeTest", "someTestMethod"
+ *          includeTestsMatching("org.gradle.SomeTest.someSpecificFeature")
+ *          includeTest("org.gradle.SomeTest", "someTestMethod")
  *
  *          //specific test method, use wildcard
- *          includeTestsMatching "*SomeTest.someSpecificFeature"
+ *          includeTestsMatching("*SomeTest.someSpecificFeature")
  *
  *          //specific test class, wildcard for packages
- *          includeTestsMatching "*.SomeTest"
+ *          includeTestsMatching("*.SomeTest")
  *
  *          //all classes in package, recursively
- *          includeTestsMatching "com.gradle.tooling.*"
+ *          includeTestsMatching("com.gradle.tooling.*")
  *
  *          //all integration tests, by naming convention
- *          includeTestsMatching "*IntegTest"
+ *          includeTestsMatching("*IntegTest")
  *
  *          //only ui tests from integration tests, by some naming convention
- *          includeTestsMatching "*IntegTest*ui"
+ *          includeTestsMatching("*IntegTest*ui")
  *
  *          //exclude a specific test by its name
- *          excludeTestsMatching "*canDoSomethingSpecific"
+ *          excludeTestsMatching("*canDoSomethingSpecific")
  *          //excluding tests by name also works for test names which have spaces
- *          excludeTestsMatching "*can do something specific"
+ *          excludeTestsMatching("*can do something specific")
  *       }
  *   }
  *
@@ -68,7 +70,7 @@ import java.util.Set;
 public interface TestFilter {
 
     /**
-     * Appends a test name pattern to the inclusion filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names: "com.foo.FooTest.someMethod",
+     * Appends a test name pattern to the inclusion filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names:("com.foo.FooTest.someMethod",
      * "com.foo.FooTest", "*FooTest*", "com.foo*". See examples in the docs for {@link TestFilter}.
      *
      * @param testNamePattern test name pattern to include, can be class or method name, can contain wildcard '*'
@@ -88,43 +90,23 @@ public interface TestFilter {
     TestFilter excludeTestsMatching(String testNamePattern);
 
     /**
-     * Returns the included test name patterns. They can be class or method names and may contain wildcard '*'. Test name patterns can be appended via {@link #includeTestsMatching(String)} or set via
-     * {@link #setIncludePatterns(String...)}.
+     * Returns the included test name patterns. They can be class or method names and may contain wildcard '*'.
      *
      * @return included test name patterns
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    Set<String> getIncludePatterns();
+    @ReplacesEagerProperty(adapter = TestFilterAdapters.IncludePatternsAdapter.class)
+    SetProperty<String> getIncludePatterns();
 
     /**
      * Returns the excluded test name patterns. They can be class or method names and may contain wildcard '*'.
-     * Test name patterns can be appended via {@link #excludeTestsMatching(String)} or set via
-     * {@link #setExcludePatterns(String...)}.
      *
      * @return included test name patterns
      * @since 5.0
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    Set<String> getExcludePatterns();
-
-    /**
-     * Sets the test name patterns to be included in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
-     *
-     * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
-     * @return this filter object
-     */
-    TestFilter setIncludePatterns(String... testNamePatterns);
-
-    /**
-     * Sets the test name patterns to be excluded in the filter. Wildcard '*' is supported. Replaces any existing test name patterns.
-     *
-     * @param testNamePatterns class or method name patterns to set, may contain wildcard '*'
-     * @return this filter object
-     * @since 5.0
-     */
-    TestFilter setExcludePatterns(String... testNamePatterns);
+    @ReplacesEagerProperty(adapter = TestFilterAdapters.ExcludePatternsAdapter.class)
+    SetProperty<String> getExcludePatterns();
 
     /**
      * Add a test method specified by test class name and method name.
@@ -146,16 +128,20 @@ public interface TestFilter {
     TestFilter excludeTest(String className, String methodName);
 
     /**
-     * Let the test task fail if a filter configuration was provided but no test matched the given configuration.
-     * @param failOnNoMatchingTests whether a test task should fail if no test is matching the filter configuration.
-     * */
-    void setFailOnNoMatchingTests(boolean failOnNoMatchingTests);
-
-    /**
-     * Returns whether the task should fail if no matching tests where found.
+     * Defines whether the task should fail if no matching tests where found.
      * The default is true.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isFailOnNoMatchingTests();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getFailOnNoMatchingTests();
+
+    /**
+     * Used for Kotlin source compatibility. use {@link #getFailOnNoMatchingTests()} instead.
+     */
+    @Internal
+    @Deprecated
+    default Property<Boolean> getIsFailOnNoMatchingTests() {
+        ProviderApiDeprecationLogger.logDeprecation(getClass(), "getIsFailOnNoMatchingTests()", "getFailOnNoMatchingTests()");
+        return getFailOnNoMatchingTests();
+    }
 }
