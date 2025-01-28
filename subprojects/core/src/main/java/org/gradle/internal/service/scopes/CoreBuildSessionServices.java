@@ -55,6 +55,8 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
+import org.gradle.internal.problems.ProblemLocationAnalyzer;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scopeids.PersistentScopeIdLoader;
 import org.gradle.internal.scopeids.ScopeIdsServices;
@@ -75,6 +77,7 @@ import java.io.File;
 public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration) {
         registration.add(CalculatedValueContainerFactory.class);
+        registration.add(ProblemLocationAnalyzer.class, DefaultProblemLocationAnalyzer.class);
         registration.add(InMemoryCacheFactory.class);
         registration.add(StateTransitionControllerFactory.class);
         registration.add(BuildLayoutValidator.class);
