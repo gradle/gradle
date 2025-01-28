@@ -225,7 +225,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                destinationDir = reporting.file("tr")
+                destinationDir = reporting.baseDirectory.dir("tr").get().asFile
             }
         """
 
@@ -374,7 +374,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
             }
             tasks.register('testReport', TestReport) {
                 reportOn test, otherTests
-                destinationDir = reporting.file("myTestReports")
+                destinationDir = reporting.baseDirectory.dir("myTestReports").get().asFile
             }
         """
 

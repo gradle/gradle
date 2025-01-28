@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile.daemon;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
-import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
+import org.gradle.api.internal.tasks.compile.MinimalCompilerDaemonForkOptionsConverter;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
@@ -105,14 +105,15 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
-        javaForkOptions.setWorkingDir(daemonWorkingDir);
-        javaForkOptions.setExecutable(javaOptions.getExecutable());
-        if (jvmVersionDetector.getJavaVersionMajor(javaForkOptions.getExecutable()) >= 9) {
+        JavaForkOptions javaForkOptions = new MinimalCompilerDaemonForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
+        javaForkOptions.getWorkingDir().set(daemonWorkingDir);
+        javaForkOptions.getExecutable().set(javaOptions.getExecutable());
+        String executable = javaOptions.getExecutable();
+        if (jvmVersionDetector.getJavaVersionMajor(executable) >= 9) {
             javaForkOptions.jvmArgs(JpmsConfiguration.GROOVY_JPMS_ARGS);
         } else {
             // In JDK 8 and below, we need to attach the 'tools.jar' to the classpath.
-            File javaExecutable = new File(javaForkOptions.getExecutable());
+            File javaExecutable = new File(executable);
             JavaInfo jvm = Jvm.forHome(javaExecutable.getParentFile().getParentFile());
             File toolsJar = jvm.getToolsJar();
             if (toolsJar == null) {

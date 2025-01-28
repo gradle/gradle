@@ -1,0 +1,222 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.reporting.GenerateBuildDashboard",
+            "member": "Method org.gradle.api.reporting.GenerateBuildDashboard.getInputReports()",
+            "acceptation": "Should only be used to track inputs",
+            "changes": [
+                "Method is less accessible",
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionComparator()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionParser()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.reporting.dependencies.HtmlDependencyReportTask",
+            "member": "Method org.gradle.api.reporting.dependencies.HtmlDependencyReportTask.getVersionSelectorScheme()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getSelectedConfiguration()",
+            "acceptation": "It replaces eager property (with a rename)",
+            "changes": [
+                "Method added to public class",
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()",
+            "acceptation": "Upgraded",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.AbstractDependencyReportTask.getTaskConfigurations()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is less accessible",
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getClientMetaData()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getProjectReportDirectory()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getRenderer()",
+            "acceptation": "This is protected method and the change is needed for proper inheritance",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ConventionReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ConventionReportTask.getTextOutputFactory()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getDependencySpec()",
+            "acceptation": "It's a spec on a diagnostic task, it should not be used",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getTextOutputFactory()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionComparator()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionParser()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.getVersionSelectorScheme()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.DependencyInsightReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.setConfigurationName(java.lang.String)",
+            "acceptation": "It's only for CLI",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getOutputFile()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getProjectReportDirectory()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getProjects()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.getRenderer()",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.setOutputFile(java.io.File)",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectBasedReportTask.setProjects(java.util.Set)",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectBasedReportTask",
+            "member": "Superclass [removed]",
+            "acceptation": "Temporary for AGP compatibility",
+            "changes": [
+                "Superclass has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getBuildStateRegistry()",
+            "acceptation": "Changed to idiomatic injection",
+            "changes": [
+                "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.ProjectReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.ProjectReportTask.getRenderer()",
+            "acceptation": "It was made abstract to support idiomatic property getter",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.diagnostics.TaskReportTask",
+            "member": "Method org.gradle.api.tasks.diagnostics.TaskReportTask.getShowTypes()",
+            "acceptation": "Changed to idiomatic property getter",
+            "changes": [
+                "Method is now abstract"
+            ]
+        }
+    ]
+}

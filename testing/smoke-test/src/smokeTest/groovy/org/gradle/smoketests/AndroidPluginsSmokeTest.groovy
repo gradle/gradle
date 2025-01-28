@@ -58,6 +58,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     }
 
     @UnsupportedWithConfigurationCache
+    // See https://android.googlesource.com/platform/tools/base/+/refs/heads/mirror-goog-studio-master-dev/build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/SourceSetsTask.java#40
     def "can use sourceSets task with android library and application build (agp=#agpVersion, ide=#ide)"() {
         given:
         // SourceSetsTask has been deprecated in 8.8 and will be removed in AGP 9.0
@@ -103,7 +104,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         )
         when: 'first build'
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        def result = runner.build()
+        def result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -136,7 +139,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'abi change on library'
         abiChange.run()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.build()
+        result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then: 'dependent sources are recompiled'
         result.task(':library:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS
@@ -152,7 +157,9 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         when: 'clean re-build'
         agpRunner(agpVersion, 'clean').build()
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
-        result = runner.build()
+        result = runner
+            .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
+            .build()
 
         then:
         result.task(':app:compileDebugJavaWithJavac').outcome == TaskOutcome.SUCCESS

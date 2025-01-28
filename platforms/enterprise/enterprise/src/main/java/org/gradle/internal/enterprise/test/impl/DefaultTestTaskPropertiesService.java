@@ -115,7 +115,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         });
         return new DefaultTestTaskProperties(
             task.getOptions() instanceof JUnitPlatformOptions,
-            task.getForkEvery(),
+            task.getForkEvery().get(),
             task.getDryRun().get(),
             collectFilters(task),
             collectForkOptions(task),
@@ -155,10 +155,10 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
             filter.getIncludePatterns(),
             filter.getCommandLineIncludePatterns(),
             filter.getExcludePatterns(),
-            getOrEmpty(options, JUnitPlatformOptions::getIncludeTags),
-            getOrEmpty(options, JUnitPlatformOptions::getExcludeTags),
-            getOrEmpty(options, JUnitPlatformOptions::getIncludeEngines),
-            getOrEmpty(options, JUnitPlatformOptions::getExcludeEngines)
+            getOrEmpty(options, o -> o.getIncludeTags().get()),
+            getOrEmpty(options, o -> o.getExcludeTags().get()),
+            getOrEmpty(options, o -> o.getIncludeEngines().get()),
+            getOrEmpty(options, o -> o.getExcludeEngines().get())
         );
     }
 
@@ -172,14 +172,14 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         boolean testIsModule = javaModuleDetector.isModule(task.getModularity().getInferModulePath().get(), task.getTestClassesDirs());
         JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
         task.copyTo(forkOptions);
-        String executable = forkOptions.getExecutable();
+        String executable = forkOptions.getExecutable().get();
         return new DefaultTestTaskForkOptions(
-            forkOptions.getWorkingDir(),
+            forkOptions.getWorkingDir().getAsFile().get(),
             executable,
             detectJavaVersion(executable),
             javaModuleDetector.inferClasspath(testIsModule, task.getClasspath()),
             javaModuleDetector.inferModulePath(testIsModule, task.getClasspath()),
-            forkOptions.getAllJvmArgs(),
+            forkOptions.getAllJvmArgs().get(),
             DefaultProcessForkOptions.getActualEnvironment(forkOptions)
         );
     }

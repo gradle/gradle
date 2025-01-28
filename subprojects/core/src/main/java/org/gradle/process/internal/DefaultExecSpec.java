@@ -16,26 +16,25 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.internal.lambdas.SerializableLambdas;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.BaseExecSpec;
-import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecSpec;
 
 import javax.inject.Inject;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
-
-public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec, ProcessArgumentsSpec.HasExecutable {
-
-    private boolean ignoreExitValue;
-    private final ProcessStreamsSpec streamsSpec = new ProcessStreamsSpec();
-    private final ProcessArgumentsSpec argumentsSpec = new ProcessArgumentsSpec(this);
+public abstract class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSpec {
 
     @Inject
-    public DefaultExecSpec(PathToFileResolver resolver) {
-        super(resolver);
+    public DefaultExecSpec(ObjectFactory objectFactory, PathToFileResolver resolver) {
+        super(objectFactory, resolver);
+        getIgnoreExitValue().convention(false);
     }
 
     public void copyTo(ExecSpec targetSpec) {
@@ -44,130 +43,65 @@ public class DefaultExecSpec extends DefaultProcessForkOptions implements ExecSp
         // BaseExecSpec
         copyBaseExecSpecTo(this, targetSpec);
         // ExecSpec
-        targetSpec.setArgs(getArgs());
+        targetSpec.getArgs().set(getArgs());
         targetSpec.getArgumentProviders().addAll(getArgumentProviders());
     }
 
     static void copyBaseExecSpecTo(BaseExecSpec source, BaseExecSpec target) {
-        target.setIgnoreExitValue(source.isIgnoreExitValue());
-        if (source.getStandardInput() != null) {
-            target.setStandardInput(source.getStandardInput());
+        target.getIgnoreExitValue().set(source.getIgnoreExitValue());
+        if (source.getStandardInput().isPresent()) {
+            target.getStandardInput().set(source.getStandardInput());
         }
-        if (source.getStandardOutput() != null) {
-            target.setStandardOutput(source.getStandardOutput());
+        if (source.getStandardOutput().isPresent()) {
+            target.getStandardOutput().set(source.getStandardOutput());
         }
-        if (source.getErrorOutput() != null) {
-            target.setErrorOutput(source.getErrorOutput());
+        if (source.getErrorOutput().isPresent()) {
+            target.getErrorOutput().set(source.getErrorOutput());
+        }
+        if (source.getExecutable().isPresent()) {
+            target.getExecutable().set(source.getExecutable());
         }
     }
 
     @Override
-    public List<String> getCommandLine() {
-        return argumentsSpec.getCommandLine();
+    public Provider<List<String>> getCommandLine() {
+        return getExecutable().zip(getArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, args) -> {
+            List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(Collections.emptyList(), args, getArgumentProviders().get());
+            return ExecHandleCommandLineCombiner.getCommandLine(executable, allArgs);
+        });
     }
 
     @Override
     public ExecSpec commandLine(Object... arguments) {
-        argumentsSpec.commandLine(arguments);
+        commandLine(Arrays.asList(arguments));
         return this;
     }
 
     @Override
     public ExecSpec commandLine(Iterable<?> args) {
-        argumentsSpec.commandLine(args);
+        Iterator<?> iterator = args.iterator();
+        if (!iterator.hasNext()) {
+            throw new IllegalArgumentException("Can't set an empty command line");
+        }
+        executable(iterator.next());
+        getArgs().empty();
+        while (iterator.hasNext()) {
+            args(iterator.next());
+        }
         return this;
     }
 
     @Override
-    public void setCommandLine(List<String> args) {
-        argumentsSpec.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Object... args) {
-        argumentsSpec.commandLine(args);
-    }
-
-    @Override
-    public void setCommandLine(Iterable<?> args) {
-        argumentsSpec.commandLine(args);
-    }
-
-    @Override
     public ExecSpec args(Object... args) {
-        argumentsSpec.args(args);
+        ExecHandleCommandLineCombiner.collectArgs(getArgs(), args);
         return this;
     }
 
     @Override
     public ExecSpec args(Iterable<?> args) {
-        argumentsSpec.args(args);
+        for (Object arg : args) {
+            args(arg);
+        }
         return this;
-    }
-
-    @Override
-    public ExecSpec setArgs(List<String> arguments) {
-        argumentsSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public ExecSpec setArgs(Iterable<?> arguments) {
-        argumentsSpec.setArgs(arguments);
-        return this;
-    }
-
-    @Override
-    public List<String> getArgs() {
-        return argumentsSpec.getArgs();
-    }
-
-    @Override
-    public List<CommandLineArgumentProvider> getArgumentProviders() {
-        return argumentsSpec.getArgumentProviders();
-    }
-
-    @Override
-    public ExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
-        return ignoreExitValue;
-    }
-
-    @Override
-    public BaseExecSpec setStandardInput(InputStream inputStream) {
-        streamsSpec.setStandardInput(inputStream);
-        return this;
-    }
-
-    @Override
-    public InputStream getStandardInput() {
-        return streamsSpec.getStandardInput();
-    }
-
-    @Override
-    public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        streamsSpec.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return streamsSpec.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        streamsSpec.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return streamsSpec.getErrorOutput();
     }
 }

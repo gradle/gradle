@@ -70,14 +70,14 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
     private Pair<String, String> runCompiler(File gccBinary, List<String> args, Map<String, ?> environmentVariables) {
         ExecAction exec = execActionFactory.newExecAction();
         exec.executable(gccBinary.getAbsolutePath());
-        exec.setWorkingDir(gccBinary.getParentFile());
+        exec.getWorkingDir().set(gccBinary.getParentFile());
         exec.args(args);
         exec.environment(environmentVariables);
         StreamByteBuffer buffer = new StreamByteBuffer();
         StreamByteBuffer errorBuffer = new StreamByteBuffer();
-        exec.setStandardOutput(buffer.getOutputStream());
-        exec.setErrorOutput(errorBuffer.getOutputStream());
-        exec.setIgnoreExitValue(true);
+        exec.getStandardOutput().set(buffer.getOutputStream());
+        exec.getErrorOutput().set(errorBuffer.getOutputStream());
+        exec.getIgnoreExitValue().set(true);
         ExecResult result = exec.execute();
 
         int exitValue = result.getExitValue();

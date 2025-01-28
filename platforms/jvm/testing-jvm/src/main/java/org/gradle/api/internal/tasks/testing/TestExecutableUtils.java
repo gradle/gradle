@@ -17,21 +17,14 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
 
-import javax.annotation.Nullable;
-
 public class TestExecutableUtils {
 
-    @Nullable
-    public static JavaToolchainSpec getExecutableToolchainSpec(Test task, ObjectFactory objectFactory) {
-        String customExecutable = task.getExecutable();
-        if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
-        }
-
-        return null;
+    public static Provider<JavaToolchainSpec> getExecutableToolchainSpec(Test task, ObjectFactory objectFactory) {
+        return task.getExecutable().map(executable -> SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, executable));
     }
 }

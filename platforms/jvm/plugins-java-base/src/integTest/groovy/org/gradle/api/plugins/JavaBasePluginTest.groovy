@@ -287,15 +287,15 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.sourceCompatibility == project.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
-        test.workingDir == project.projectDir
+        test.workingDir.asFile.get() == project.projectDir
         test.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
         test.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
         test.reports.junitXml.required.get()
         test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.destinationDir == project.file("$project.docsDir/javadoc")
-        javadoc.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        javadoc.destinationDir.get().asFile == project.file("$project.docsDir/javadoc")
+        javadoc.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle.get()
     }
 
     def "applies mappings to custom jar tasks"() {

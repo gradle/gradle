@@ -345,8 +345,8 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private void configureJavaDoc(final Project project, final JavaPluginExtension javaPluginExtension) {
         project.getTasks().withType(Javadoc.class).configureEach(javadoc -> {
-            javadoc.getConventionMapping().map("destinationDir", () -> new File(javaPluginExtension.getDocsDir().get().getAsFile(), "javadoc"));
-            javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
+            javadoc.getDestinationDir().convention(javaPluginExtension.getDocsDir().dir("javadoc"));
+            javadoc.getTitle().convention(project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
                 JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, objectFactory));
@@ -390,8 +390,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         test.getBinaryResultsDirectory().convention(javaPluginExtension.getTestResultsDir().dir(test.getName() + "/binary"));
         test.workingDir(project.getProjectDir());
 
-        Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-            TestExecutableUtils.getExecutableToolchainSpec(test, objectFactory));
+        Provider<JavaToolchainSpec> toolchainOverrideSpec = TestExecutableUtils.getExecutableToolchainSpec(test, objectFactory);
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
     }
 

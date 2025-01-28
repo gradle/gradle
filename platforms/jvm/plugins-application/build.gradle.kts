@@ -32,7 +32,6 @@ dependencies {
     implementation(projects.languageJava)
     implementation(projects.languageJvm)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.platformJvm)
     implementation(projects.pluginsDistribution)
     implementation(projects.pluginsJava)

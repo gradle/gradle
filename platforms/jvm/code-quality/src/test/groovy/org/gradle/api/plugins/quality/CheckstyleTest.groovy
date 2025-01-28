@@ -27,24 +27,24 @@ class CheckstyleTest extends Specification {
     def "default configuration"() {
         expect:
         with(checkstyle) {
-            checkstyleClasspath == null
-            classpath == null
+            checkstyleClasspath.empty
+            classpath.empty
             configFile == null
             config == null
-            configProperties == [:]
+            configProperties.get() == [:]
             !reports.xml.required.get()
             !reports.xml.outputLocation.isPresent()
-            reports.xml.outputType == Report.OutputType.FILE
+            reports.xml.outputType.get() == Report.OutputType.FILE
             !reports.html.required.get()
             !reports.html.outputLocation.isPresent()
-            reports.html.outputType == Report.OutputType.FILE
+            reports.html.outputType.get() == Report.OutputType.FILE
             !reports.sarif.required.get()
             !reports.sarif.outputLocation.isPresent()
-            reports.sarif.outputType == Report.OutputType.FILE
+            reports.sarif.outputType.get() == Report.OutputType.FILE
             !ignoreFailures
             showViolations
-            maxErrors == 0
-            maxWarnings == Integer.MAX_VALUE
+            maxErrors.get() == 0
+            maxWarnings.get() == Integer.MAX_VALUE
             !minHeapSize.isPresent()
             !maxHeapSize.isPresent()
         }

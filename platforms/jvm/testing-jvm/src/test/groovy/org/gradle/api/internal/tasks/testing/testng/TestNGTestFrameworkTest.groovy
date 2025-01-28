@@ -56,10 +56,12 @@ public class TestNGTestFrameworkTest extends Specification {
         }
 
         then:
-        testTask.options.suiteName == 'Custom Suite'
+        testTask.options.suiteName.get() == 'Custom Suite'
     }
 
     TestNGTestFramework createFramework() {
-        new TestNGTestFramework(testTask, new DefaultTestFilter(), objects)
+        TestNGTestFramework framework = new TestNGTestFramework(testTask, new DefaultTestFilter(), objects)
+        framework.options.outputDirectory = project.file('build/test-results')
+        return framework
     }
 }
