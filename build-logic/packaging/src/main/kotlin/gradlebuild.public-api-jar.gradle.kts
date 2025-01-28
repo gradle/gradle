@@ -15,7 +15,7 @@
  */
 
 import gradlebuild.basics.ClassFileContentsAttribute
-import gradlebuild.configureAsRuntimeElements
+import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
 
 plugins {
@@ -75,7 +75,7 @@ val task = tasks.register<Jar>("jarGradleApi") {
 val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
     outgoing.artifact(task)
-    configureAsRuntimeElements(objects)
+    configureAsApiElements(objects)
 }
 
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
