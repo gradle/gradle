@@ -56,6 +56,11 @@ import org.gradle.internal.HasInternalProtocol;
  *         <td>"aarch64", "arm64", "arm-v8"</td>
  *     </tr>
  * </table>
+ *
+ * <p>
+ * Note that this class differs from {@link org.gradle.platform.Architecture} in that this class is used to represent the target architecture of a native binary, while
+ * {@link org.gradle.platform.Architecture} is used to represent the architecture of the platform that Gradle is running on.
+ * </p>
  */
 @HasInternalProtocol
 public interface Architecture extends Named {

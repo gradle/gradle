@@ -36,7 +36,7 @@ public class NoToolchainAvailableException extends GradleException {
                 "Cannot find a Java installation on your machine matching this tasks requirements: %s for %s on %s.",
                 specification.getDisplayName(),
                 buildPlatform.getOperatingSystem(),
-                buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT)
+                buildPlatform.getArchitecture().getName().toLowerCase(Locale.ROOT)
             ),
             cause
         );

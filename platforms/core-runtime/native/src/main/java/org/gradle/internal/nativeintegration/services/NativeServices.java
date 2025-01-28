@@ -58,6 +58,8 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.platform.Architecture;
+import org.gradle.platform.CurrentArchitectureSupplier;
 import org.gradle.util.internal.VersionNumber;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +86,26 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
+
+    /**
+     * Inner class to hold the current architecture, allowing it to be lazily initialized.
+     */
+    private static final class CurrentArchitectureHolder {
+        private static final Architecture CURRENT_ARCHITECTURE;
+        static {
+            String architectureName;
+            try {
+                architectureName = NativeServices.getInstance().get(SystemInfo.class).getArchitectureName();
+            } catch (org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException e) {
+                architectureName = System.getProperty("os.arch");
+            }
+            CURRENT_ARCHITECTURE = new Architecture(architectureName);
+        }
+    }
+
+    public static Architecture getCurrentArchitecture() {
+        return CurrentArchitectureHolder.CURRENT_ARCHITECTURE;
+    }
 
     private boolean initialized;
     private boolean useNativeIntegrations;
@@ -326,6 +348,16 @@ public class NativeServices implements ServiceRegistrationProvider {
     @Provides
     protected OperatingSystem createOperatingSystem() {
         return OperatingSystem.current();
+    }
+
+    @Provides
+    protected CurrentArchitectureSupplier createCurrentArchitectureSupplier() {
+        return new CurrentArchitectureSupplier() {
+            @Override
+            public Architecture get() {
+                return getCurrentArchitecture();
+            }
+        };
     }
 
     @Provides

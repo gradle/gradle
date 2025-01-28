@@ -16,15 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
-import net.rubygrapefruit.platform.SystemInfo;
 import org.gradle.api.GradleException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.platform.Architecture;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.platform.BuildPlatformFactory;
+import org.gradle.platform.CurrentArchitectureSupplier;
 import org.gradle.platform.OperatingSystem;
 
 import javax.inject.Inject;
@@ -35,13 +33,13 @@ import javax.inject.Inject;
 @ServiceScope(Scope.Global.class)
 public class CurrentBuildPlatform {
 
-    private final Supplier<Architecture> architecture;
+    private final CurrentArchitectureSupplier architecture;
 
     private final OperatingSystem operatingSystem;
 
     @Inject
-    public CurrentBuildPlatform(final SystemInfo systemInfo, final org.gradle.internal.os.OperatingSystem operatingSystem) {
-        this.architecture = Suppliers.memoize(() -> getArchitecture(systemInfo));
+    public CurrentBuildPlatform(final CurrentArchitectureSupplier architectureSupplier, final org.gradle.internal.os.OperatingSystem operatingSystem) {
+        this.architecture = architectureSupplier;
         this.operatingSystem = getOperatingSystem(operatingSystem);
     }
 
@@ -51,19 +49,6 @@ public class CurrentBuildPlatform {
 
     public Architecture getArchitecture() {
         return architecture.get();
-    }
-
-    private static Architecture getArchitecture(SystemInfo systemInfo) {
-        SystemInfo.Architecture architecture = systemInfo.getArchitecture();
-        switch (architecture) {
-            case i386:
-                return Architecture.X86;
-            case amd64:
-                return Architecture.X86_64;
-            case aarch64:
-                return Architecture.AARCH64;
-        }
-        throw new GradleException("Unhandled system architecture: " + architecture);
     }
 
     public static OperatingSystem getOperatingSystem(org.gradle.internal.os.OperatingSystem operatingSystem) {

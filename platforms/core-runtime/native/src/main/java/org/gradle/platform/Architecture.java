@@ -16,27 +16,68 @@
 
 package org.gradle.platform;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
+import org.gradle.api.NonNullApi;
 
 /**
- * Constants for various processor architectures Gradle runs on.
+ * Represents details about the specific architecture of the current platform that Gradle is running on.
+ *
+ * <p>
+ * Get the current instance by injecting {@link CurrentArchitectureSupplier}.
+ * </p>
+ *
+ * <p>
+ * The provided string constants should be used to check for specific architectures, by using an equality check against {@link #getName()}.
+ * Architectures that are not recognized by Gradle may be represented by this interface.
+ * </p>
+ *
+ * <p>
+ * The presence of a specific architecture as a constant does not imply that Gradle has full support for it, but rather that it is recognized by Gradle
+ * and can be used for operations such as toolchain provisioning. Other architectures may not work as expected.
+ * </p>
  *
  * @since 7.6
  */
+@NonNullApi
 @Incubating
-public enum Architecture {
-    /**
-     * 32-bit complex instruction set computer (CISC) architectures, including "x32", "i386", "x86"..
-     */
-    X86,
+public final class Architecture implements Named {
+    public static final String X86 = "x86";
+    public static final String X86_64 = "x86-64";
+    public static final String AARCH64 = "aarch64";
 
-    /**
-     * 64-bit variant of the X86 instruction set, including "x64", "x86_64", "amd64", "ia64".
-     */
-    X86_64,
+    // Note: this class is intended to transition to a `record` later, hence the already public constructor.
+    private final String name;
 
-    /**
-     * 64-bit reduced instruction set computer (RISC) architectures, including "aarch64", "arm64".
-     */
-    AARCH64
+    public Architecture(String name) {
+        this.name = Preconditions.checkNotNull(name);
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "Architecture '" + name + "'";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+        Architecture that = (Architecture) obj;
+        return name.equals(that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 }
