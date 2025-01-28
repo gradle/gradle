@@ -554,7 +554,7 @@ Fixing this deprecation requires one of two things:
 * Or change the type of the property (both get and set) to `boolean`.
 
 For task input properties using the first option, you should also annotate the old `is-` method with `@Deprecated` and `@ReplacedBy` to ensure it is not used by Gradle.
-For example, given this old code:
+For example, this code:
 
 [source,java]
 ```
@@ -566,7 +566,7 @@ class MyValue {
 }
 ```
 
-it should be replaced with the following:
+Should be replaced with the following:
 
 [source,java]
 ```
