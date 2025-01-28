@@ -112,7 +112,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * @see StartParameterInternal.configurationCacheParallel
      */
     val isParallelCache: Boolean by lazy {
-        startParameter.isConfigurationCacheParallel.also { enabled ->
+        isIsolatedProjects || startParameter.isConfigurationCacheParallel.also { enabled ->
             if (enabled) {
                 IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
             }
