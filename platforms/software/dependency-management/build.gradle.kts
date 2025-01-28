@@ -100,12 +100,14 @@ dependencies {
     implementation(libs.httpcore)
 
     testImplementation(projects.buildCachePackaging)
-    testImplementation(projects.diagnostics)
+    testImplementation(projects.softwareDiagnostics)
+
     testImplementation(projects.processServices)
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
+
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))

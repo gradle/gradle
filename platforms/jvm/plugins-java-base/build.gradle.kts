@@ -57,8 +57,6 @@ dependencies {
     implementation(libs.commonsLang)
     implementation(libs.guava)
 
-    runtimeOnly(projects.diagnostics)
-
     testImplementation(testFixtures(projects.core))
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)

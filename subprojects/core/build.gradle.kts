@@ -268,7 +268,7 @@ dependencies {
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.diagnostics))
+    testImplementation(testFixtures(projects.baseDiagnostics))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))

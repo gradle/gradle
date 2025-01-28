@@ -223,7 +223,8 @@
 					"ide-native",
 					"plugins-java-library",
 					"language-jvm",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"antlr",
 					"platform-base",
 					"ide",
@@ -569,7 +570,8 @@
 					"language-jvm",
 					"plugins-java-library",
 					"testing-native",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"ide-native",
 					"antlr",
 					"platform-base"
@@ -853,7 +855,8 @@
 					"file-collections",
 					"ide-plugins",
 					"jacoco",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"execution-e2e-tests",
 					"declarative-dsl-provider",
 					"ide",
@@ -1205,7 +1208,8 @@
 				},
 				"subprojects":[
 					"scala",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"file-watching"
 				]
 			},
@@ -1386,7 +1390,8 @@
 				},
 				"subprojects":[
 					"scala",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"jacoco",
 					"execution-e2e-tests",
 					"platform-native",
@@ -1516,7 +1521,8 @@
 					"declarative-dsl-core",
 					"declarative-dsl-provider",
 					"dependency-management",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"ear",
 					"execution",
 					"execution-e2e-tests",
@@ -1727,7 +1733,8 @@
 					"file-collections",
 					"version-control",
 					"ide",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"wrapper-main",
 					"tooling-api",
 					"file-watching",
@@ -1922,7 +1929,8 @@
 					"ide",
 					"ide-native",
 					"launcher",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"language-groovy"
 				]
 			},
@@ -2259,7 +2267,8 @@
 				},
 				"subprojects":[
 					"code-quality",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"ide"
 				]
 			},
@@ -2448,7 +2457,8 @@
 					"scala",
 					"ide-plugins",
 					"plugins-java-library",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"platform-base",
 					"ide-native",
 					"ide",
@@ -2620,7 +2630,8 @@
 					"declarative-dsl-core",
 					"declarative-dsl-provider",
 					"dependency-management",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"ear",
 					"enterprise",
 					"execution",
@@ -2770,7 +2781,8 @@
 					"core-api",
 					"declarative-dsl-core",
 					"declarative-dsl-provider",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"ear",
 					"enterprise",
 					"execution",
@@ -3074,7 +3086,8 @@
 					"platform-base",
 					"ear",
 					"build-events",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"resources-sftp",
 					"plugins-jvm-test-fixtures",
 					"unit-test-fixtures",
@@ -3242,8 +3255,9 @@
 					"build-cache-local",
 					"persistent-cache",
 					"ide-native",
-					"diagnostics"
-				]
+					"base-diagnostics",
+					"software-diagnostics"
+                ]
 			},
 			{
 				"parallelizationMethod":{
@@ -3561,7 +3575,8 @@
 				"subprojects":[
 					"model-core",
 					"signing",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"ide-native",
 					"declarative-dsl-provider"
 				]
@@ -3741,7 +3756,8 @@
 					"name":"TestDistribution"
 				},
 				"subprojects":[
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"file-collections",
 					"declarative-dsl-provider",
 					"antlr",
@@ -3948,7 +3964,8 @@
 					"configuration-cache",
 					"core-api",
 					"declarative-dsl-provider",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"enterprise",
 					"execution-e2e-tests",
 					"file-collections"
@@ -4108,8 +4125,9 @@
 					"name":"None"
 				},
 				"subprojects":[
-					"diagnostics"
-				]
+					"base-diagnostics",
+					"software-diagnostics"
+                ]
 			},
 			{
 				"parallelizationMethod":{
@@ -4869,7 +4887,8 @@
 					"configuration-cache",
 					"core-api",
 					"declarative-dsl-provider",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"enterprise",
 					"execution-e2e-tests",
 					"file-collections"
@@ -5124,7 +5143,8 @@
 					"build-configuration",
 					"ide",
 					"ide-native",
-					"diagnostics",
+					"base-diagnostics",
+					"software-diagnostics",
 					"signing",
 					"antlr",
 					"platform-base",

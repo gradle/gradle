@@ -1,6 +1,20 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.plugins.SoftwareReportingTasksPlugin",
+            "member": "Class org.gradle.api.plugins.SoftwareReportingTasksPlugin",
+            "acceptation": "Splitting diagnostics into base- and software-",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.SoftwareReportingTasksPlugin",
+            "member": "Constructor org.gradle.api.plugins.SoftwareReportingTasksPlugin()",
+            "acceptation": "Splitting diagnostics into base- and software-",
+            "changes": []
+        },
+        {
             "type": "org.gradle.api.tasks.testing.TestReport",
             "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
             "acceptation": "Protected methods intended to be overriden by Gradle, not API",
@@ -22,6 +36,14 @@
             "acceptation": "Protected methods intended to be overriden by Gradle, not API",
             "changes": [
                 "Method is now abstract"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSoftware-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Splitting diagnostics into base- and software-",
+            "changes": [
+                "Method added to public class"
             ]
         }
     ]

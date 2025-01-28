@@ -993,6 +993,7 @@ Class <org.gradle.api.plugins.internal.JavaConfigurationVariantMapping> is not a
 Class <org.gradle.api.plugins.internal.JavaPluginHelper> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JavaPluginHelper.java:0)
 Class <org.gradle.api.plugins.internal.JvmLanguageUtilsServices> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JvmLanguageUtilsServices.java:0)
 Class <org.gradle.api.plugins.internal.JvmPluginsHelper> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (JvmPluginsHelper.java:0)
+Class <org.gradle.api.plugins.internal.SoftwareReportingTasksAutoApplyAction> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (SoftwareReportingTasksAutoApplyAction.java:0)
 Class <org.gradle.api.publish.internal.CompositePublicationArtifactSet> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (CompositePublicationArtifactSet.java:0)
 Class <org.gradle.api.publish.internal.DefaultPublicationArtifactSet$1> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultPublicationArtifactSet.java:0)
 Class <org.gradle.api.publish.internal.DefaultPublicationArtifactSet> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultPublicationArtifactSet.java:0)
