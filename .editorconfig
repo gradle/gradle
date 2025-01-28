@@ -5,11 +5,11 @@
 root = true
 
 [*]
-# You can change these settings to your own preference
+
 indent_style = space
 indent_size = 4
 
-# We recommend that you keep these unchanged
+
 end_of_line = lf
 charset = utf-8
 trim_trailing_whitespace = true
