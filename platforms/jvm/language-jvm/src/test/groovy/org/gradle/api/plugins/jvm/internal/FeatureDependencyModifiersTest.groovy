@@ -21,76 +21,80 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDepen
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
+import org.gradle.api.plugins.jvm.FeatureDependencyModifiers
 import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class TestFixturesDependencyModifiersTest extends Specification {
-    def "copies given external dependency to select test fixtures"() {
-        def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
+class FeatureDependencyModifiersTest extends Specification {
+    def "copies given external dependency to select a feature by name"() {
+        def modifier = TestUtil.objectFactory().newInstance(FeatureDependencyModifiers.FeatureDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
-        dependency = modifier.modify(dependency)
+        dependency = modifier.modify(dependency, "featureName")
+
         then:
         dependency.getCapabilitySelectors().size() == 1
         dependency.getCapabilitySelectors()[0].with {
             assert it instanceof SuffixCapabilitySelector
-            assert it.suffix == "-test-fixtures"
+            assert it.suffix == "-feature-name"
         }
     }
 
-    def "copies given project dependency to select test fixtures"() {
-        def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
+    def "copies given project dependency to select a feature by name"() {
+        def modifier = TestUtil.objectFactory().newInstance(FeatureDependencyModifiers.FeatureDependencyModifier)
         def projectInternal = Stub(ProjectInternal) {
             group >> "group"
             name >> "name"
             version >> "1.0"
         }
-        def dependency = new DefaultProjectDependency(projectInternal, false, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        def dependency = new DefaultProjectDependency(projectInternal, false)
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
-        dependency = modifier.modify(dependency)
+        dependency = modifier.modify(dependency, "featureName")
+
         then:
         dependency.getCapabilitySelectors().size() == 1
         dependency.getCapabilitySelectors()[0].with {
             assert it instanceof SuffixCapabilitySelector
-            assert it.suffix == "-test-fixtures"
+            assert it.suffix == "-feature-name"
         }
 
         0 * _
     }
 
-    def "does not modify given external dependency to select test fixtures"() {
-        def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
+    def "does not modify given external dependency to select a feature by name"() {
+        def modifier = TestUtil.objectFactory().newInstance(FeatureDependencyModifiers.FeatureDependencyModifier)
         def dependency = new DefaultExternalModuleDependency("group", "name", "1.0")
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
-        modifier.modify(dependency)
+        modifier.modify(dependency, "featureName")
+
         then:
         dependency.getCapabilitySelectors().isEmpty()
     }
 
-    def "does not modify given project dependency to select test fixtures"() {
-        def modifier = TestUtil.objectFactory().newInstance(TestFixturesDependencyModifiers.TestFixturesDependencyModifier)
+    def "does not modify given project dependency to select a feature by name"() {
+        def modifier = TestUtil.objectFactory().newInstance(FeatureDependencyModifiers.FeatureDependencyModifier)
         def projectInternal = Stub(ProjectInternal) {
             group >> "group"
             name >> "name"
             version >> "1.0"
         }
-        def dependency = new DefaultProjectDependency(projectInternal, false, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        def dependency = new DefaultProjectDependency(projectInternal, false)
         dependency.setCapabilityNotationParser(new CapabilityNotationParserFactory(true).create())
         dependency.setObjectFactory(TestUtil.objectFactory())
 
         when:
-        modifier.modify(dependency)
+        modifier.modify(dependency, "featureName")
+
         then:
         dependency.getCapabilitySelectors().isEmpty()
 

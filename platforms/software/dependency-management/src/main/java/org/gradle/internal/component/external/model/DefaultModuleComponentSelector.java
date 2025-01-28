@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SuffixCapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -111,10 +111,10 @@ public class DefaultModuleComponentSelector implements ModuleComponentSelector {
             .map(c -> {
                 if (c instanceof SpecificCapabilitySelector) {
                     return ((DefaultSpecificCapabilitySelector) c).getBackingCapability();
-                } else if (c instanceof FeatureCapabilitySelector) {
+                } else if (c instanceof SuffixCapabilitySelector) {
                     return new DefaultImmutableCapability(
                         getGroup(),
-                        getModule() + "-" + ((FeatureCapabilitySelector) c).getFeatureName(),
+                        getModule() + ((SuffixCapabilitySelector) c).getSuffix(),
                         getVersion()
                     );
                 } else {

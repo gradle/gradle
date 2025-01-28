@@ -18,47 +18,68 @@ package org.gradle.api.plugins.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.dsl.DependencyModifier;
+import org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier;
 import org.gradle.api.tasks.Nested;
-import org.gradle.internal.component.external.model.TestFixturesSupport;
+import org.gradle.util.internal.TextUtil;
+
+import javax.inject.Inject;
 
 /**
- * Dependency modifier APIs that can find test fixtures in other modules for {@code dependencies} blocks.
+ * Dependency modifier APIs that can find a feature of a target module for {@code dependencies} blocks.
  *
  * @apiNote This interface is intended to be used to mix-in methods that modify dependencies into the DSL.
  * @implSpec The default implementation of all methods should not be overridden.
  *
- * @since 8.0
+ * @since 8.13
  */
 @Incubating
-public interface TestFixturesDependencyModifiers {
+public interface FeatureDependencyModifiers {
+
     /**
-     * A dependency modifier that can modify a dependency to select a test fixtures variant.
+     * A dependency modifier that can modify a dependency to select a feature by name.
      *
      * @return the dependency modifier
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
-     * @see TestFixturesDependencyModifier#modifyImplementation(ModuleDependency)
+     * @see FeatureDependencyModifier#modifyImplementation(ModuleDependency, String)
+     *
+     * @since 8.13
      */
     @Nested
-    TestFixturesDependencyModifier getTestFixtures();
+    FeatureDependencyModifier getFeature();
 
     /**
-     * Implementation for the test fixtures dependency modifier.
+     * Implementation for the feature dependency modifier.
      *
-     * @since 8.0
-     * @see #modifyImplementation(ModuleDependency)
+     * @see #modifyImplementation(ModuleDependency, String)
+     *
+     * @since 8.13
      */
     @Incubating
-    abstract class TestFixturesDependencyModifier extends DependencyModifier {
+    abstract class FeatureDependencyModifier extends SingleArgumentDependencyModifier<String> {
+
+        /**
+         * Create a new instance
+         *
+         * @since 8.13
+         */
+        @Inject
+        public FeatureDependencyModifier() {
+
+        }
+
         /**
          * {@inheritDoc}
          *
-         * Selects the test fixtures variant of the given dependency.
+         * Selects the feature of the given dependency.
+         *
+         * @since 8.13
          */
         @Override
-        protected void modifyImplementation(ModuleDependency dependency) {
-            dependency.capabilities(c -> c.requireSuffix(TestFixturesSupport.TEST_FIXTURES_CAPABILITY_SUFFIX));
+        protected void modifyImplementation(ModuleDependency dependency, String featureName) {
+            dependency.capabilities(c -> c.requireSuffix("-" + TextUtil.camelToKebabCase(featureName)));
         }
+
     }
+
 }

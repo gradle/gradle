@@ -23,6 +23,38 @@
             "changes": [
                 "Method is now abstract"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier,java.lang.CharSequence,java.lang.Object)",
+            "acceptation": "Since annotation was added",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier,org.gradle.api.artifacts.ModuleDependency,java.lang.Object)",
+            "acceptation": "Since annotation was added",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier,org.gradle.api.provider.Provider,java.lang.Object)",
+            "acceptation": "Since annotation was added",
+            "changes": [
+                "Method added to public class"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependenciesExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.DependenciesExtensionsKt.invoke(org.gradle.api.artifacts.dsl.SingleArgumentDependencyModifier,org.gradle.api.provider.ProviderConvertible,java.lang.Object)",
+            "acceptation": "Since annotation was added",
+            "changes": [
+                "Method added to public class"
+            ]
         }
     ]
 }

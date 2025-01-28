@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.internal.artifacts.capability.SpecificCapabilitySelector;
-import org.gradle.api.internal.artifacts.capability.FeatureCapabilitySelector;
+import org.gradle.api.internal.artifacts.capability.SuffixCapabilitySelector;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -341,11 +341,11 @@ public class ModuleMetadataSpecBuilder {
                 specificSelector.getName(),
                 null
             );
-        } else if (capabilitySelector instanceof FeatureCapabilitySelector) {
-            FeatureCapabilitySelector featureSelector = (FeatureCapabilitySelector) capabilitySelector;
+        } else if (capabilitySelector instanceof SuffixCapabilitySelector) {
+            SuffixCapabilitySelector featureSelector = (SuffixCapabilitySelector) capabilitySelector;
             return new ModuleMetadataSpec.Capability(
                 componentCoordinates.group,
-                componentCoordinates.name + "-" + featureSelector.getFeatureName(),
+                componentCoordinates.name + featureSelector.getSuffix(),
                 null
             );
         } else {

@@ -693,7 +693,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         succeeds("verifyConfigurations")
     }
 
-    def "can depend on a feature using requireFeature"() {
+    def "can depend on a feature using requireSuffix"() {
         settingsFile << """
             include("other")
         """
@@ -722,7 +722,7 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 implementation(project(":other")) {
                     capabilities {
-                        requireFeature("foo")
+                        requireSuffix("-foo")
                     }
                 }
             }
@@ -731,6 +731,48 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
                 def files = configurations.runtimeClasspath.incoming.files
                 doLast {
                     assert files*.name == ["other-foo.jar"]
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+    }
+
+    def "can depend on a feature using a feature modifier"() {
+        settingsFile << """
+            include("other")
+        """
+
+        file("other/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            sourceSets {
+                create("featureName")
+            }
+
+            java {
+                registerFeature("featureName") {
+                    usingSourceSet(sourceSets.featureName)
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation(feature(project(":other"), "featureName"))
+            }
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    assert files*.name == ["other-feature-name.jar"]
                 }
             }
         """

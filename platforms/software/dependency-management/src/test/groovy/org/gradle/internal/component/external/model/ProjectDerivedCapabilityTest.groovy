@@ -31,7 +31,7 @@ class ProjectDerivedCapabilityTest extends Specification {
     }
 
     def "equals and hash code are compatible with immutable capability when using feature name"() {
-        Capability capability1 = new ProjectDerivedCapability(project("org", "name", "1.0"), "featureName")
+        Capability capability1 = ProjectDerivedCapability.forFeature(project("org", "name", "1.0"), "featureName")
         Capability capability2 = new DefaultImmutableCapability("org", "name-feature-name", "1.0")
 
         expect:

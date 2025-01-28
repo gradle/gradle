@@ -16,6 +16,7 @@
 
 package org.gradle.api.artifacts.dsl
 
+import org.gradle.api.plugins.jvm.FeatureDependencyModifiers
 import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.api.plugins.jvm.TestFixturesDependencyModifiers
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -65,6 +66,10 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
 
     String testFixtures(String expression) {
         return "testFixtures($expression)"
+    }
+
+    String feature(String expression, String featureName) {
+        return "feature($expression, \"$featureName\")"
     }
 
     String platform(String expression) {
@@ -151,6 +156,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             [
                 it,
                 testFixtures(it),
+                feature(it, "featureName"),
                 platform(it),
             ]
         })
@@ -185,6 +191,7 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
             [
                 it,
                 testFixtures(it),
+                feature(it, "featureName"),
                 platform(it),
             ]
         })
@@ -255,10 +262,11 @@ abstract class DependencyCollectorDslIntegrationTest extends AbstractIntegration
         succeeds("help")
 
         where:
-        expression              | expectedProjectExpression
-        project()               | "project"
-        project(":subproject")  | "project.project(\":subproject\")"
-        testFixtures(project()) | "project"
+        expression                        | expectedProjectExpression
+        project()                         | "project"
+        project(":subproject")            | "project.project(\":subproject\")"
+        testFixtures(project())           | "project"
+        feature(project(), "featureName") | "project"
     }
 
     def "bundles add dependencies that show up in related configuration"() {
@@ -402,7 +410,7 @@ class DependencyCollectorGroovyDslIntegrationTest extends DependencyCollectorDsl
     @Override
     String setupDependencies() {
         return """
-            abstract class MyDependencies implements Dependencies, ${TestFixturesDependencyModifiers.class.name}, ${PlatformDependencyModifiers.class.name}, ${GradleDependencies.class.name} {
+            abstract class MyDependencies implements Dependencies, ${TestFixturesDependencyModifiers.class.name}, ${FeatureDependencyModifiers.class.name}, ${PlatformDependencyModifiers.class.name}, ${GradleDependencies.class.name} {
                 abstract DependencyCollector getTestingCollector()
 
                 void call(Closure closure) {
@@ -445,7 +453,7 @@ class DependencyCollectorKotlinDslIntegrationTest extends DependencyCollectorDsl
     @Override
     String setupDependencies() {
         return """
-            abstract class MyDependencies : Dependencies, ${TestFixturesDependencyModifiers.class.name}, ${PlatformDependencyModifiers.class.name}, ${GradleDependencies.class.name} {
+            abstract class MyDependencies : Dependencies, ${TestFixturesDependencyModifiers.class.name}, ${FeatureDependencyModifiers.class.name}, ${PlatformDependencyModifiers.class.name}, ${GradleDependencies.class.name} {
                 abstract val testingCollector: DependencyCollector
 
                 operator fun invoke(closure: MyDependencies.() -> Unit) {

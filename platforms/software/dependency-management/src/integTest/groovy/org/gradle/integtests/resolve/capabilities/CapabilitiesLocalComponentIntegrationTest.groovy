@@ -140,7 +140,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
                 implementation(project(":other")) {
                     capabilities {
                         requireCapability("org:capability:1.0")
-                        requireFeature("foo")
+                        requireSuffix("-foo")
                     }
                 }
             }
@@ -157,7 +157,7 @@ class CapabilitiesLocalComponentIntegrationTest extends AbstractIntegrationSpec 
         fails("resolve")
 
         then:
-        failure.assertHasCause("Unable to find a variant with the requested capabilities: [coordinates 'org:capability', feature 'foo']")
+        failure.assertHasCause("Unable to find a variant with the requested capabilities: [coordinates 'org:capability', suffix '-foo']")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/26377")

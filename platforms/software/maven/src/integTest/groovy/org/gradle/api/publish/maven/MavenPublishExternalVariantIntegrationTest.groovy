@@ -383,7 +383,7 @@ class MavenPublishExternalVariantIntegrationTest extends AbstractMavenPublishInt
                 }
                 firstImplementation create(project(':other')) {
                     capabilities {
-                        requireFeature("third")
+                        requireSuffix("-third")
                     }
                 }
             }

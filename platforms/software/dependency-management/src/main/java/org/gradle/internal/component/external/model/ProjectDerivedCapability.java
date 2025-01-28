@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
 
 public class ProjectDerivedCapability implements CapabilityInternal {
     private final Project project;
-    private final String featureName;
+    private final String suffix;
 
     private volatile String capabilityName;
 
@@ -34,9 +34,13 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         this(project, null);
     }
 
-    public ProjectDerivedCapability(Project project, @Nullable String featureName) {
+    public static ProjectDerivedCapability forFeature(Project project, String featureName) {
+        return new ProjectDerivedCapability(project, "-" + TextUtil.camelToKebabCase(featureName));
+    }
+
+    public ProjectDerivedCapability(Project project, @Nullable String suffix) {
         this.project = project;
-        this.featureName = featureName;
+        this.suffix = suffix;
     }
 
     @Override
@@ -47,16 +51,16 @@ public class ProjectDerivedCapability implements CapabilityInternal {
     @Override
     public String getName() {
         if (capabilityName == null) {
-            capabilityName = computeCapabilityName(project, featureName);
+            capabilityName = computeCapabilityName(project, suffix);
         }
         return capabilityName;
     }
 
-    private static String computeCapabilityName(Project project, @Nullable String featureName) {
-        if (featureName == null) {
+    private static String computeCapabilityName(Project project, @Nullable String suffix) {
+        if (suffix == null) {
             return project.getName();
         }
-        return project.getName() + "-" + TextUtil.camelToKebabCase(featureName);
+        return project.getName() + suffix;
     }
 
     @Override

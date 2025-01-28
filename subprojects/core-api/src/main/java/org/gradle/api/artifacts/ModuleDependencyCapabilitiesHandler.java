@@ -46,28 +46,28 @@ public interface ModuleDependencyCapabilitiesHandler {
     void requireCapabilities(Object... capabilityNotations);
 
     /**
-     * Require a capability of a component based on the name of the feature provided by the component.
+     * Require a capability of a component by appending the given suffix to the module name of the resolved component.
      * <p>
-     * A capability is derived from a feature based on the module identity of the component that a dependency
-     * resolves to. For example, variant of a component with module identity 'group:name:version' that provides
-     * a feature named 'test-fixtures' would have a capability 'group:name-test-fixtures:version'.
+     * A capability is derived from a suffix based on the module identity of the component that a dependency
+     * resolves to. For example, variant of a component with module identity 'group:name:version' appending the suffix
+     * '-test-fixtures' would have a capability 'group:name-test-fixtures:version'.
      *
-     * @param featureName The name of the feature to require
+     * @param suffix The name of the feature to require
      *
-     * @since 8.11
+     * @since 8.13
      */
     @Incubating
-    void requireFeature(String featureName);
+    void requireSuffix(String suffix);
 
     /**
-     * Lazily require a capability of a component based on the name of the feature provided by the component.
+     * Lazily require a capability of a component by appending the given suffix to the module name of the resolved component.
      *
-     * @param featureName The name of the feature to require
+     * @param suffix The suffix to append to the module name of the resolved component.
      *
-     * @see #requireFeature(String)
+     * @see #requireSuffix(String)
      *
-     * @since 8.11
+     * @since 8.13
      */
     @Incubating
-    void requireFeature(Provider<String> featureName);
+    void requireSuffix(Provider<String> suffix);
 }

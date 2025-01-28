@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.dsl;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -604,6 +605,7 @@ public interface DependencyHandler extends ExtensionAware {
 
     /**
      * Declares a dependency on the test fixtures of a component.
+     *
      * @param notation the coordinates of the component to use test fixtures for
      *
      * @since 5.6
@@ -613,11 +615,41 @@ public interface DependencyHandler extends ExtensionAware {
     /**
      * Declares a dependency on the test fixtures of a component and allows configuring
      * the resulting dependency.
+     *
      * @param notation the coordinates of the component to use test fixtures for
+     * @param configureAction the dependency configuration block
      *
      * @since 5.6
      */
     Dependency testFixtures(Object notation, Action<? super Dependency> configureAction);
+
+    /**
+     * Declares a dependency on a feature of a component.
+     *
+     * @param notation the coordinates of the component
+     * @param featureName the name of the feature to depend on
+     *
+     * @return the new dependency
+     *
+     * @since 8.13
+     */
+    @Incubating
+    Dependency feature(Object notation, String featureName);
+
+    /**
+     * Declares a dependency on a feature of a component and allows configuring
+     * the resulting dependency.
+     *
+     * @param notation the coordinates of the component
+     * @param featureName the name of the feature to depend on
+     * @param configureAction the dependency configuration block
+     *
+     * @return the new dependency
+     *
+     * @since 8.13
+     */
+    @Incubating
+    Dependency feature(Object notation, String featureName, Action<? super Dependency> configureAction);
 
     /**
      * Allows fine-tuning what variant to select for the target dependency. This can be used to
