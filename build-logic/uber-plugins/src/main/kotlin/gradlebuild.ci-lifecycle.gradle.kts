@@ -18,9 +18,6 @@ tasks.registerEarlyFeedbackLifecycleTasks()
 tasks.named("quickTest") {
     dependsOn("test")
 }
-tasks.named("platformTest") {
-    dependsOn("test")
-}
 tasks.configureCIIntegrationTestDistributionLifecycleTasks()
 tasks.configureCICrossVersionTestDistributionLifecycleTasks()
 
@@ -45,10 +42,6 @@ fun TaskContainer.registerEarlyFeedbackLifecycleTasks() {
 
 fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
     named("quickTest") {
-        dependsOn("embeddedIntegTest")
-    }
-
-    named("platformTest") {
         dependsOn("forkingIntegTest")
     }
 
@@ -75,10 +68,6 @@ fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
 
 fun TaskContainer.configureCICrossVersionTestDistributionLifecycleTasks() {
     named("quickTest") {
-        dependsOn("embeddedCrossVersionTest")
-    }
-
-    named("platformTest") {
         dependsOn("forkingCrossVersionTest")
     }
 

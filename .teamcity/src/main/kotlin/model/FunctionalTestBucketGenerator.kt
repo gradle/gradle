@@ -173,7 +173,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         } else {
             val testCoverages = model.stages.flatMap { it.functionalTests }
             val foundTestCoverage = testCoverages.firstOrNull {
-                it.testType == TestType.platform &&
+                it.testType == TestType.quick &&
                     it.os == testCoverage.os &&
                     it.arch == testCoverage.arch &&
                     it.buildJvm == testCoverage.buildJvm
