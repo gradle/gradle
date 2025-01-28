@@ -10,7 +10,7 @@
 <meta name="twitter:description" content="TO DO">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
-The Gradle team is excited to announce Gradle @version@ (released @releaseDate@).
+The Gradle team is excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 This release features [1](), [2](), ... [n](), and more.
 
@@ -78,6 +78,7 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
 See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 

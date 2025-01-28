@@ -83,25 +83,36 @@ public class ReleaseNotesTransformer extends FilterReader {
                 append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
                 append("<title>Gradle @version@ Release Notes</title>").
                 append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>");
+
         addCssToHead(document);
         addJavascriptToHead(document);
         addHighlightJsToHead(document);
+
         wrapH2InSectionTopic(document);
+
         document.body().prepend("<h1>Gradle Release Notes</h1>");
+
+        cleanUpIssueLinks(document);
+        handleVideos(document);
+
         addTOC(document);
         wrapContentInContainer(document);
         removeLeftoverComments(document);
-        dealWithVideos(document);
 
         return new StringReader(document.toString());
     }
 
-    private void dealWithVideos(Document document) {
+    private void cleanUpIssueLinks(Document document) {
         String rewritten = document.body().html();
         // Turn Gradle Jira issue numbers into issue links
         rewritten = rewritten.replaceAll("GRADLE-\\d+", "<a href=\"https://issues.gradle.org/browse/$0\">$0</a>");
         // Turn Gradle Github issue numbers into issue links
         rewritten = rewritten.replaceAll("(gradle/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
+        document.body().html(rewritten);
+    }
+
+    private void handleVideos(Document document) {
+        String rewritten = document.body().html();
 
         // Replace YouTube references by embedded videos, ?si= attribute is a must
         // E.g. @youtube(Summary,UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&start=371)@ => https://www.youtube.com/embed/UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&amp;start=371"

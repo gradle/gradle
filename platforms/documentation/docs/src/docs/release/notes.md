@@ -2,15 +2,15 @@
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="TBD">
+<meta property="og:description" content="TO DO">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="TBD">
+<meta name="twitter:description" content="TO DO">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
-The Gradle team is excited to announce Gradle @version@ (released @releaseDate@).
+The Gradle team is excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 This release features [1](), [2](), ... [n](), and more.
 
