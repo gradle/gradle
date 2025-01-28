@@ -44,7 +44,7 @@ public class ValueSanitizers {
             if (value instanceof CharSequence) {
                 DeprecationLogger.deprecateBehaviour("Assigning String value to Enum rich property.")
                     .willBecomeAnErrorInGradle10()
-                    .withUpgradeGuideSection(8, "enum_rich_properties_with_string_values")
+                    .withUpgradeGuideSection(8, "deprecated_string_value_to_enum_rich_property_assignment")
                     .nagUser();
             }
             return GUtil.toEnum(Cast.uncheckedCast(valueType), value);
