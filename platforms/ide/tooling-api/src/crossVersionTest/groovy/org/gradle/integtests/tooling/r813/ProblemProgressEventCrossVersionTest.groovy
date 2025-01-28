@@ -16,37 +16,25 @@
 
 package org.gradle.integtests.tooling.r813
 
-import org.gradle.integtests.fixtures.AvailableJavaHomes
+
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.r85.CustomModel
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
-import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
-import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.TaskPathLocation
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
-import org.gradle.util.GradleVersion
-import org.junit.Assume
 
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
-import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
-import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
 
 @ToolingApiVersion(">=8.13")
-@TargetGradleVersion(">=8.9")
+@TargetGradleVersion(">=8.13")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
@@ -63,44 +51,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
-    def "Problems expose details via Tooling API events with failure"() {
-        given:
-        withReportProblemTask """
-            getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion)} {
-              it.${ProblemsApiGroovyScriptUtils.id(targetVersion, 'id', 'shortProblemMessage')}
-                $documentationConfig
-                .lineInFileLocation("/tmp/foo", 1, 2, 3)
-                $detailsConfig
-                .severity(Severity.WARNING)
-                .solution("try this instead")
-            }
-        """
-        when:
-
-        def problems = runTask()
-
-        then:
-        problems.size() == 1
-        verifyAll(problems[0]) {
-            details?.details == expectedDetails
-            definition.documentationLink?.url == expectedDocumentation
-            (originLocations[0] as LineInFileLocation).path == '/tmp/foo'
-            (originLocations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            if (targetVersion >= GradleVersion.version("8.13")) {
-                assert (contextualLocations[0] as TaskPathLocation).buildTreePath == ':reportProblem'
-            }
-            definition.severity == Severity.WARNING
-            solutions.size() == 1
-            solutions[0].solution == 'try this instead'
-        }
-
-        where:
-        detailsConfig              | expectedDetails | documentationConfig                         | expectedDocumentation
-        '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
-        ''                         | null            | ''                                          | null
-    }
-
-    @TargetGradleVersion(">=8.13")
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         buildFile """
@@ -146,58 +96,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    def "Can serialize groovy compilation error"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
-        failureMessage(problems[0].failure) == "Could not compile build file '$buildFile.absolutePath'."
-    }
-
-    def "Can use problems service in model builder and get failure objects"() {
-        given:
-        Assume.assumeTrue(javaHome != null)
-        buildFile getBuildScriptSampleContent(false, false, targetVersion)
-        org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener listener
-        listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
-
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .setJavaHome(javaHome.javaHome)
-                .addProgressListener(listener)
-                .get()
-        }
-        def problems = listener.problems.findAll { it instanceof SingleProblemEvent }
-
-        then:
-        problems.size() == 1
-        problems[0].problem.definition.id.displayName == 'label'
-        problems[0].problem.definition.id.group.displayName == 'Generic'
-        failureMessage(problems[0].problem.failure) == 'test'
-
-        where:
-        javaHome << [
-            jdk8,
-            jdk17,
-            jdk21
-        ]
-    }
 
     static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
         problems.size() == 1
@@ -240,54 +138,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         listener.problems.size() == 1
         (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
-    }
-
-    @TargetGradleVersion("=8.6")
-    def "8.6 version doesn't send failure"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
-        problems[0].failure == null
-    }
-
-    @TargetGradleVersion("=8.5")
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
-    def "No problem for exceptions in 8.5"() {
-        // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
-        withReportProblemTask """
-            throw new RuntimeException("boom")
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.newBuild()
-                .forTasks(":reportProblem")
-                .setJavaHome(AvailableJavaHomes.differentJdk.javaHome)
-                .addProgressListener(listener)
-                .run()
-        }
-
-        then:
-        thrown(BuildException)
-        listener.problems.size() == 0
     }
 
     class ProblemProgressListener implements ProgressListener {
