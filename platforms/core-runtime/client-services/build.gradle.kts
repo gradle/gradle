@@ -27,6 +27,7 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.functional)
     api(projects.jvmServices)
     api(projects.modelCore)
     api(projects.native)
@@ -50,6 +51,7 @@ dependencies {
     api(projects.fileCollections)
 
     api(libs.jsr305)
+    api(libs.nativePlatform)
 
     implementation(projects.baseAsm)
     implementation(projects.fileTemp)

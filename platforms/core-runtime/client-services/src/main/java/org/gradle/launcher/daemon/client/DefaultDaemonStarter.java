@@ -33,6 +33,7 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
@@ -81,10 +82,10 @@ public class DefaultDaemonStarter implements DaemonStarter {
     private final DaemonGreeter daemonGreeter;
     private final JvmVersionValidator versionValidator;
     private final JvmVersionDetector jvmVersionDetector;
-    private final JavaToolchainQueryService javaToolchainQueryService;
+    private final Lazy<JavaToolchainQueryService> javaToolchainQueryService;
     private final PropertyFactory propertyFactory;
 
-    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, JavaToolchainQueryService javaToolchainQueryService, PropertyFactory propertyFactory) {
+    public DefaultDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonRequestContext daemonRequestContext, DaemonGreeter daemonGreeter, JvmVersionValidator versionValidator, JvmVersionDetector jvmVersionDetector, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
         this.daemonDir = daemonDir;
         this.daemonParameters = daemonParameters;
         this.daemonRequestContext = daemonRequestContext;
@@ -108,7 +109,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             DaemonJvmCriteria.Spec daemonJvmCriteria = (DaemonJvmCriteria.Spec) criteria;
             IncubationLogger.incubatingFeatureUsed("Daemon JVM discovery");
             JavaToolchainSpec daemonJvmToolchainSpec = getDaemonJvmToolchainSpec(daemonJvmCriteria);
-            ProviderInternal<JavaToolchain> jvmInstallationMetadata = javaToolchainQueryService.findMatchingToolchain(daemonJvmToolchainSpec);
+            ProviderInternal<JavaToolchain> jvmInstallationMetadata = javaToolchainQueryService.apply(service -> service.findMatchingToolchain(daemonJvmToolchainSpec));
             JavaInfo resolvedJvm = Jvm.forHome(jvmInstallationMetadata.get().getInstallationPath().getAsFile());
             majorJavaVersion = daemonJvmCriteria.getJavaVersion().asInt();
             resolvedJava = resolvedJvm.getJavaExecutable();

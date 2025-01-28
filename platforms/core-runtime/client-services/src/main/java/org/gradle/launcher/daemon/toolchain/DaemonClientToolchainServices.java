@@ -16,10 +16,11 @@
 
 package org.gradle.launcher.daemon.toolchain;
 
+import net.rubygrapefruit.platform.SystemInfo;
+import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -31,12 +32,12 @@ import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.transport.http.HttpClientHelper;
@@ -50,21 +51,25 @@ import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.OsXInstallationSupplier;
-import org.gradle.jvm.toolchain.internal.OsXJavaHomeCommand;
 import org.gradle.jvm.toolchain.internal.SdkmanInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.ToolchainConfiguration;
 import org.gradle.jvm.toolchain.internal.WindowsInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory;
-import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.platform.internal.CurrentBuildPlatform;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Those services are only useful when daemon toolchain is active and there is no compatible running daemon.
+ * <p>
+ * This is why we only expose one service, wrapped in a {@link Lazy}, and which triggers the creation of all needed instances.
+ */
 public class DaemonClientToolchainServices implements ServiceRegistrationProvider {
 
     private final ToolchainConfiguration toolchainConfiguration;
@@ -78,65 +83,47 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         this.buildProgressListener = buildProgressListener;
     }
 
-    public void configure(ServiceRegistration registration) {
-        registration.add(ToolchainConfiguration.class, toolchainConfiguration);
-        registration.add(OsXJavaHomeCommand.class, DefaultOsXJavaHomeCommand.class);
-
-        // NOTE: These need to be kept in sync with ToolchainsJvmServices
-        registration.add(InstallationSupplier.class, AsdfInstallationSupplier.class);
-        registration.add(InstallationSupplier.class, IntellijInstallationSupplier.class);
-        registration.add(InstallationSupplier.class, JabbaInstallationSupplier.class);
-        registration.add(InstallationSupplier.class, SdkmanInstallationSupplier.class);
-
-//        registration.add(InstallationSupplier.class, MavenToolchainsInstallationSupplier.class);
-
-        registration.add(InstallationSupplier.class, LinuxInstallationSupplier.class);
-        registration.add(InstallationSupplier.class, OsXInstallationSupplier.class);
-        registration.add(InstallationSupplier.class, WindowsInstallationSupplier.class);
-
-        registration.add(CurrentBuildPlatform.class);
-    }
-
-
-
     @Provides
-    protected DaemonJavaToolchainProvisioningService createDaemonJavaToolchainProvisioningService(SecureFileDownloader secureFileDownloader, JdkCacheDirectory jdkCacheDirectory, CurrentBuildPlatform buildPlatform) {
-        return new DaemonJavaToolchainProvisioningService(secureFileDownloader, jdkCacheDirectory, buildPlatform, toolchainDownloadUrlProvider, toolchainConfiguration.isDownloadEnabled());
+    protected Lazy<JavaToolchainQueryService> createJavaToolchainQueryService(
+        JvmMetadataDetector jvmMetadataDetector,
+        FileSystem fileSystem,
+        ListenerManager listenerManager,
+        ProgressLoggerFactory progressLoggerFactory,
+        Clock clock,
+        BuildOperationIdFactory operationIdFactory,
+        GradleUserHomeDirProvider gradleUserHomeDirProvider,
+        FileLockManager fileLockManager,
+        ClientExecHandleBuilderFactory execHandleFactory,
+        GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider,
+        FileResolver fileResolver,
+        PropertyHost propertyHost,
+        FileCollectionFactory fileCollectionFactory,
+        WindowsRegistry windowsRegistry,
+        OperatingSystem os,
+        SystemInfo systemInfo
+    ) {
+        return Lazy.unsafe().of(() -> {
+            // NOTE: These need to be kept in sync with ToolchainsJvmServices
+            List<InstallationSupplier> installationSuppliers = new ArrayList<>(8);
+            installationSuppliers.add(new AsdfInstallationSupplier(toolchainConfiguration));
+            installationSuppliers.add(new IntellijInstallationSupplier(toolchainConfiguration));
+            installationSuppliers.add(new JabbaInstallationSupplier(toolchainConfiguration));
+            installationSuppliers.add(new SdkmanInstallationSupplier(toolchainConfiguration));
+            installationSuppliers.add(new LinuxInstallationSupplier());
+            installationSuppliers.add(new OsXInstallationSupplier(os, new DefaultOsXJavaHomeCommand(execHandleFactory)));
+            installationSuppliers.add(new WindowsInstallationSupplier(windowsRegistry, os));
+
+            CurrentBuildPlatform currentBuildPlatform = new CurrentBuildPlatform(systemInfo, os);
+            DefaultFilePropertyFactory filePropertyFactory = new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
+            JdkCacheDirectory jdkCacheDirectory = new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
+            JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
+            JavaToolchainHttpRedirectVerifierFactory redirectVerifierFactory = new JavaToolchainHttpRedirectVerifierFactory();
+            HttpClientHelper.Factory httpClientHelperFactory = HttpClientHelper.Factory.createFactory(new DocumentationRegistry());
+            ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, redirectVerifierFactory, httpClientHelperFactory, progressLoggerFactory, clock, operationIdFactory, buildProgressListener);
+            SecureFileDownloader secureFileDownloader = new SecureFileDownloader(externalResourceFactory);
+            DaemonJavaToolchainProvisioningService javaToolchainProvisioningService = new DaemonJavaToolchainProvisioningService(secureFileDownloader, jdkCacheDirectory, currentBuildPlatform, toolchainDownloadUrlProvider, toolchainConfiguration.isDownloadEnabled());
+            return new JavaToolchainQueryService(jvmMetadataDetector, filePropertyFactory, javaToolchainProvisioningService, javaInstallationRegistry, null);
+        });
     }
 
-    @Provides
-    protected JavaToolchainQueryService createJavaToolchainQueryService(JvmMetadataDetector jvmMetadataDetector, JavaToolchainProvisioningService javaToolchainProvisioningService, FileFactory fileFactory, JavaInstallationRegistry javaInstallationRegistry) {
-        return new JavaToolchainQueryService(jvmMetadataDetector, fileFactory, javaToolchainProvisioningService, javaInstallationRegistry, null);
-    }
-
-    @Provides
-    protected JavaInstallationRegistry createJavaInstallationRegistry(ToolchainConfiguration toolchainConfiguration, List<InstallationSupplier> installationSuppliers, JvmMetadataDetector jvmMetadataDetector, ProgressLoggerFactory progressLoggerFactory, FileResolver fileResolver, JdkCacheDirectory jdkCacheDirectory) {
-        return new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter());
-    }
-
-    @Provides
-    protected JdkCacheDirectory createJdkCacheDirectory(GradleUserHomeDirProvider gradleUserHomeDirProvider, FileLockManager fileLockManager, ClientExecHandleBuilderFactory execHandleFactory, GradleUserHomeTemporaryFileProvider gradleUserHomeTemporaryFileProvider) {
-        return new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, null, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
-    }
-
-    @Provides
-    protected SecureFileDownloader createSecureFileDownloader(FileSystem fileSystem, ListenerManager listenerManager, JavaToolchainHttpRedirectVerifierFactory httpRedirectVerifierFactory, HttpClientHelper.Factory httpClientHelperFactory, ProgressLoggerFactory progressLoggerFactory, Clock clock, BuildOperationIdFactory operationIdFactory) {
-        ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(fileSystem, listenerManager, httpRedirectVerifierFactory, httpClientHelperFactory, progressLoggerFactory, clock, operationIdFactory, buildProgressListener);
-        return new SecureFileDownloader(externalResourceFactory);
-    }
-
-    @Provides
-    protected DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
-    }
-
-    @Provides
-    protected HttpClientHelper.Factory createHttpClientHelperFactory() {
-        return HttpClientHelper.Factory.createFactory(new DocumentationRegistry());
-    }
-
-    @Provides
-    protected JavaToolchainHttpRedirectVerifierFactory createJavaToolchainHttpRedirectVerifierFactory() {
-        return new JavaToolchainHttpRedirectVerifierFactory();
-    }
 }

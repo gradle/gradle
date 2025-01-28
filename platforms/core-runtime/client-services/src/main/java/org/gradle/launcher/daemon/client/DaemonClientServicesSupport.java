@@ -38,6 +38,7 @@ import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.jvm.inspection.PersistentJvmMetadataDetector;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -144,7 +145,7 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, JavaToolchainQueryService javaToolchainQueryService, PropertyFactory propertyFactory) {
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
         return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionValidator, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
     }
 
