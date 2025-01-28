@@ -86,6 +86,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -259,6 +260,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
         InternalProblems problemsService,
+        ObjectFactory objectFactory,
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
@@ -301,7 +303,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, fileCollectionFactory, taskDependencyFactory);
 
-        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory);
+        this.outgoing = instantiator.newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, instantiator, artifactNotationParser, capabilityNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory, objectFactory);
         this.rootComponentMetadataBuilder = rootComponentMetadataBuilder;
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
