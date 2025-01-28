@@ -87,7 +87,6 @@ public class ReleaseNotesTransformer extends FilterReader {
         addJavascriptToHead(document);
         addHighlightJsToHead(document);
         wrapH2InSectionTopic(document);
-        //addAnchorsForHeadings(document);
         document.body().prepend("<h1>Gradle Release Notes</h1>");
         addTOC(document);
         wrapContentInContainer(document);
@@ -146,7 +145,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         head.appendElement("link")
             .attr("rel", "stylesheet")
-            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css");
+            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css");
 
         head.appendElement("script")
             .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");
