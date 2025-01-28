@@ -340,6 +340,7 @@ When your transform runs, Gradle will inject the transitive dependencies into th
 
 Note that using input artifact dependencies in a transform has performance implications; only inject them when needed.
 
+[[sec:caching-transforms]]
 === Artifact Transforms with Caching
 
 Artifact Transforms can make use of the <<build_cache.adoc#build_cache,build cache>> to store their outputs and avoid rerunning their transform actions when the result is known.

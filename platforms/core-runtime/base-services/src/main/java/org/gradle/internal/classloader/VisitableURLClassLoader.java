@@ -153,9 +153,10 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     private static class InstrumentingVisitableURLClassLoader extends VisitableURLClassLoader implements InstrumentingClassLoader {
         static {
             try {
+                // Not supported on Java 6, hence the try-catch
                 ClassLoader.registerAsParallelCapable();
             } catch (NoSuchMethodError ignore) {
-                // Not supported on Java 6
+                // ignore in Java 6
             }
         }
 

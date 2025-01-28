@@ -62,8 +62,10 @@ dependencies {
     api(libs.jsr305)
     api(libs.kotlinStdlib)
 
+    implementation(projects.baseServices)
     implementation(projects.logging)
     implementation(projects.messaging)
+    implementation(projects.serialization)
 
     implementation(libs.guava)
 

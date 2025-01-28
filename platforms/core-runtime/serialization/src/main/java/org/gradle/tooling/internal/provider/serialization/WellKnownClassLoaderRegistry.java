@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ public class WellKnownClassLoaderRegistry implements PayloadClassLoaderRegistry 
     public SerializeMap newSerializeSession() {
         final SerializeMap delegateSession = delegate.newSerializeSession();
         return new SerializeMap() {
-            final Map<Short, ClassLoaderDetails> knownLoaders = new HashMap<>();
+            final Map<Short, ClassLoaderDetails> knownLoaders = new HashMap<Short, ClassLoaderDetails>();
 
             @Override
             public short visitClass(Class<?> target) {

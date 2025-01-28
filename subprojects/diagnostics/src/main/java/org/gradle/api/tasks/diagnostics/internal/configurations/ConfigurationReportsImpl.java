@@ -28,7 +28,7 @@ import java.util.Collections;
 /**
  * Default implementation of {@link ConfigurationReports} which allows for adding and configuring reports.
  *
- * Class must by non-{@code final}.
+ * Class must be non-{@code final}.
  */
 public class ConfigurationReportsImpl extends DelegatingReportContainer<ConfigurableReport> implements ConfigurationReports {
     @Inject
