@@ -35,22 +35,22 @@ public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     /**
      * @param maxUsages Same semantics as {@link SharedResource#getMaxUsages()}.
      */
-    BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
+    BuildServiceProviderInternal<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
     /**
      * Same as #register(name, implementationType, parameters, maxUsages), but conditional.
      *
      * @return the registered or already existing provider
      */
-    BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
+    BuildServiceProviderInternal<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, @Nullable BuildServiceParameters parameters, int maxUsages);
 
     /**
      * Returns a shared build service provider that can lazily resolve to the service named and typed as given.
      */
-    BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType);
+    BuildServiceProviderInternal<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType);
 
     @Nullable
-    SharedResource forService(BuildServiceProvider<?, ?> service);
+    SharedResource forService(BuildServiceProviderInternal<?, ?> service);
 
     @Nullable
     BuildServiceRegistration<?, ?> findByName(String name);

@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.api.services.internal.BuildServiceProviderInternal;
 
 import java.util.List;
 import java.util.Set;
@@ -43,7 +43,7 @@ public interface TaskRequiredServices {
      */
     boolean isServiceRequired(Provider<? extends BuildService<?>> toCheck);
 
-    void acceptServiceReferences(List<? extends BuildServiceProvider<?, ?>> serviceReferences);
+    void acceptServiceReferences(List<? extends BuildServiceProviderInternal<?, ?>> serviceReferences);
 
     boolean hasServiceReferences();
 }

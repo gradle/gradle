@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
-import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceProviderInternal
 import org.gradle.internal.cc.impl.serialize.baseTypes
 import org.gradle.internal.serialize.codecs.core.DirectoryCodec
 import org.gradle.internal.serialize.codecs.core.DirectoryPropertyCodec
@@ -120,6 +120,6 @@ class IsolatedActionCodecsFactory(
     private
     fun BindingsBuilder.unsupportedProviderTypes() {
         bind(unsupported<ValueSourceProvider<*, *>>())
-        bind(unsupported<BuildServiceProvider<*, *>>())
+        bind(unsupported<BuildServiceProviderInternal<*, *>>())
     }
 }

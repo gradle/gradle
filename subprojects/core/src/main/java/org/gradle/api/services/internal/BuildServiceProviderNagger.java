@@ -23,7 +23,7 @@ import java.util.Optional;
 
 import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
 
-public class BuildServiceProviderNagger implements BuildServiceProvider.Listener {
+public class BuildServiceProviderNagger implements BuildServiceProviderInternal.Listener {
 
     private final WorkExecutionTracker taskExecutionTracker;
 
@@ -32,7 +32,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
     }
 
     @Override
-    public void beforeGet(BuildServiceProvider<?, ?> provider) {
+    public void beforeGet(BuildServiceProviderInternal<?, ?> provider) {
         currentTask().ifPresent(task -> {
             if (!isServiceRequiredBy(task, provider)) {
                 nagAboutUndeclaredUsageOf(provider, task);
@@ -44,11 +44,11 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
         return taskExecutionTracker.getCurrentTask();
     }
 
-    private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProvider<?, ?> provider) {
+    private static boolean isServiceRequiredBy(TaskInternal task, BuildServiceProviderInternal<?, ?> provider) {
         return task.getRequiredServices().isServiceRequired(provider);
     }
 
-    private static void nagAboutUndeclaredUsageOf(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+    private static void nagAboutUndeclaredUsageOf(BuildServiceProviderInternal<?, ?> provider, TaskInternal task) {
         deprecateBehaviour(undeclaredBuildServiceUsage(provider, task))
             .withProblemIdDisplayName("Build Service " + provider.getName()+ " undeclared usage")
             .withAdvice("Declare the association between the task by declaring the consuming property as a '@ServiceReference'.")
@@ -57,7 +57,7 @@ public class BuildServiceProviderNagger implements BuildServiceProvider.Listener
             .nagUser();
     }
 
-    private static String undeclaredBuildServiceUsage(BuildServiceProvider<?, ?> provider, TaskInternal task) {
+    private static String undeclaredBuildServiceUsage(BuildServiceProviderInternal<?, ?> provider, TaskInternal task) {
         return "Build service '" + provider.getName() + "'" +
             " is being used by task '" + task.getIdentityPath() + "'" +
             " without the corresponding declaration via 'Task#usesService'.";

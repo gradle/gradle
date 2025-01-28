@@ -455,7 +455,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final Type SERVICE_LOOKUP_TYPE = getType(ServiceLookup.class);
         private static final Type MANAGED_OBJECT_FACTORY_TYPE = getType(ManagedObjectFactory.class);
         private static final Type DEFAULT_PROPERTY_TYPE = getType(DefaultProperty.class);
-        private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProvider;");
+        private static final Type BUILD_SERVICE_PROVIDER_TYPE = getType("Lorg/gradle/api/services/internal/BuildServiceProviderInternal;");
         private static final Type INSTRUMENTED_EXECUTION_ACCESS_TYPE = getType("Lorg/gradle/internal/classpath/InstrumentedExecutionAccess;");
 
         // This set is unlikely to change often, so instead of introducing an additional level of indirection,

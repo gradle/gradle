@@ -55,7 +55,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
-import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.api.services.internal.BuildServiceProviderInternal;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -1054,7 +1054,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public void acceptServiceReferences(Set<ServiceReferenceSpec> serviceReferences) {
         if (!taskRequiredServices.hasServiceReferences()) {
             BuildServiceRegistryInternal buildServiceRegistry = getBuildServiceRegistry();
-            List<? extends BuildServiceProvider<?, ?>> asConsumedServices = serviceReferences.stream()
+            List<? extends BuildServiceProviderInternal<?, ?>> asConsumedServices = serviceReferences.stream()
                 .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
                 .collect(Collectors.toList());
             taskRequiredServices.acceptServiceReferences(asConsumedServices);

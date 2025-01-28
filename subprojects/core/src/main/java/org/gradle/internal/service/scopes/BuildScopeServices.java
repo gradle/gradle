@@ -82,7 +82,7 @@ import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.services.internal.BuildServiceProvider;
+import org.gradle.api.services.internal.BuildServiceProviderInternal;
 import org.gradle.api.services.internal.BuildServiceProviderNagger;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
@@ -803,7 +803,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             sharedResourceLeaseRegistry,
             featureFlags.isEnabled(FeaturePreviews.Feature.INTERNAL_BUILD_SERVICE_USAGE)
                 ? new BuildServiceProviderNagger(services.get(WorkExecutionTracker.class))
-                : BuildServiceProvider.Listener.EMPTY
+                : BuildServiceProviderInternal.Listener.EMPTY
         );
     }
 
