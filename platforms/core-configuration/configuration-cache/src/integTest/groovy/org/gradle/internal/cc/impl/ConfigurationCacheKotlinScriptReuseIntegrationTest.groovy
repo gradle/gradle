@@ -16,10 +16,13 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 class ConfigurationCacheKotlinScriptReuseIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
+    @Requires(value = IntegTestPreconditions.NotEmbeddedExecutor, reason = 'non-strict ClassLoader scope')
     @Issue('https://github.com/gradle/gradle/issues/32039')
     def 'compiled Kotlin script with non-strict ClassLoaderScope parent can be reused in same build in the presence of version catalog'() {
         given: 'a version catalog'
