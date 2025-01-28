@@ -42,7 +42,7 @@ Be sure to check out the [public roadmap](https://roadmap.gradle.org/) for insig
 
 Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
-`./gradlew wrapper --gradle-version=@version@`
+`./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper`
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 

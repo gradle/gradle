@@ -83,20 +83,17 @@ public class ReleaseNotesTransformer extends FilterReader {
                 append("<meta name='viewport' content='width=device-width, initial-scale=1'>").
                 append("<title>Gradle @version@ Release Notes</title>").
                 append("<link rel='stylesheet' type='text/css' href='https://assets.gradle.com/lato/css/lato-font.css'/>");
-
         addCssToHead(document);
         addJavascriptToHead(document);
         addHighlightJsToHead(document);
 
         wrapH2InSectionTopic(document);
-
         document.body().prepend("<h1>Gradle Release Notes</h1>");
+        addTOC(document);
+        wrapContentInContainer(document);
 
         cleanUpIssueLinks(document);
         handleVideos(document);
-
-        addTOC(document);
-        wrapContentInContainer(document);
         removeLeftoverComments(document);
 
         return new StringReader(document.toString());
@@ -156,7 +153,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
         head.appendElement("link")
             .attr("rel", "stylesheet")
-            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css");
+            .attr("href", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css");
 
         head.appendElement("script")
             .attr("src", "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js");

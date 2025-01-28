@@ -29,7 +29,7 @@ Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announ
 
 Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
-`./gradlew wrapper --gradle-version=@version@`
+`./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper`
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
@@ -58,7 +58,9 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
-<!-- To embed videos, use the macros below. You can extract the URL from YouTube by clicking the "Share" button. For Wistia, contact Gradle's Video Team -->
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button. 
+For Wistia, contact Gradle's Video Team.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 @wistia(Summary,a5izazvgit)@
 
