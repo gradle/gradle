@@ -54,15 +54,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private ProblemId id;
     private String contextualLabel;
     private Severity severity;
-    private final ImmutableList.Builder<ProblemLocation> locations = ImmutableList.builder();
-    private final ImmutableList.Builder<ProblemLocation> contextLocations = ImmutableList.builder();
+    private final List<ProblemLocation> locations = new ArrayList<ProblemLocation>();
+    private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
     private String details;
     private DocLink docLink;
     private List<String> solutions;
     private Throwable exception;
     //TODO Reinhold make private again
     private AdditionalData additionalData;
-    private Class<? extends AdditionalData> additionalDataType;
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final Instantiator instantiator;
@@ -121,20 +120,20 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             problemDefinition,
             contextualLabel,
             solutions,
-            locations.build(),
-            contextLocations.build(),
+            locations,
+            contextLocations,
             details,
             exceptionForProblemInstantiation,
             additionalData
         );
     }
 
-    private void addLocationsFromProblemStream(ImmutableList.Builder<ProblemLocation> locations, Throwable exceptionForProblemInstantiation) {
+    private void addLocationsFromProblemStream(List<ProblemLocation> locations, Throwable exceptionForProblemInstantiation) {
         assert problemStream != null;
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
-            locations.add(getFileLocation(loc));
+            addFileLocationTo(locations, getFileLocation(loc));
         }
         if (problemDiagnostics.getSource() != null && problemDiagnostics.getSource().getPluginId() != null) {
             locations.add(getDefaultPluginIdLocation(problemDiagnostics));
@@ -159,12 +158,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
-        ImmutableList.Builder<ProblemLocation> problemLocations = ImmutableList.builder();
+        List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
         return new DefaultProblem(problemDefinition,
             contextualLabel,
             ImmutableList.<String>of(),
-            problemLocations.build(),
+            problemLocations,
             ImmutableList.<ProblemLocation>of(),
             null,
             exceptionForProblemInstantiation,
@@ -203,31 +202,44 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder fileLocation(String path) {
-        this.locations.add(DefaultFileLocation.from(path));
+        addFileLocation(DefaultFileLocation.from(path));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line) {
-        this.locations.add(DefaultLineInFileLocation.from(path, line));
+        return addFileLocation(DefaultLineInFileLocation.from(path, line));
+    }
+
+    @Nonnull
+    private DefaultProblemBuilder addFileLocation(FileLocation from) {
+        return addFileLocationTo(this.locations, from);
+    }
+
+    @Nonnull
+    private DefaultProblemBuilder addFileLocationTo(List<ProblemLocation> problemLocations, FileLocation from) {
+        if (problemLocations.contains(from)) {
+            return this;
+        }
+        problemLocations.add(from);
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line, int column) {
-        this.locations.add(DefaultLineInFileLocation.from(path, line, column));
+        addFileLocation(DefaultLineInFileLocation.from(path, line, column));
         return this;
     }
 
     @Override
     public InternalProblemBuilder offsetInFileLocation(String path, int offset, int length) {
-        this.locations.add(DefaultOffsetInFileLocation.from(path, offset, length));
+        addFileLocation(DefaultOffsetInFileLocation.from(path, offset, length));
         return this;
     }
 
     @Override
     public InternalProblemBuilder lineInFileLocation(String path, int line, int column, int length) {
-        this.locations.add(DefaultLineInFileLocation.from(path, line, column, length));
+        addFileLocation(DefaultLineInFileLocation.from(path, line, column, length));
         return this;
     }
 
@@ -306,9 +318,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
         validateMethods(type);
 
-        if (this.additionalDataType != null && !this.additionalDataType.equals(type)) {
-            throw new IllegalArgumentException("Only one additional data type is allowed per problem");
-        }
         AdditionalData additionalDataInstance = createAdditionalData(type, config);
         Map<String, Object> methodValues = getAdditionalDataMap(type, additionalDataInstance);
 
