@@ -10,7 +10,7 @@
 <meta name="twitter:description" content="TBD">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-8.13.png">
 
-The Gradle team is excited to announce Gradle @version@.
+The Gradle team is excited to announce Gradle @version@ (released @releaseDate@).
 
 This release features [1](), [2](), ... [n](), and more.
 
