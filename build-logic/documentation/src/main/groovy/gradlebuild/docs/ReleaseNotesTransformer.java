@@ -23,7 +23,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.DocumentType;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
+import org.jsoup.select.NodeVisitor;
 
 import java.io.File;
 import java.io.FileReader;
@@ -84,6 +86,7 @@ public class ReleaseNotesTransformer extends FilterReader {
         addCssToHead(document);
         addJavascriptToHead(document);
 
+        removeLeftoverComments(document);
         wrapH2InSectionTopic(document);
         addAnchorsForHeadings(document);
         document.body().prepend("<h1>Gradle Release Notes</h1>");
@@ -95,11 +98,11 @@ public class ReleaseNotesTransformer extends FilterReader {
         rewritten = rewritten.replaceAll("GRADLE-\\d+", "<a href=\"https://issues.gradle.org/browse/$0\">$0</a>");
         // Turn Gradle Github issue numbers into issue links
         rewritten = rewritten.replaceAll("(gradle/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
-        
+
         // Replace YouTube references by embedded videos, ?si= attribute is a must
         // E.g. @youtube(Summary,UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&start=371)@ => https://www.youtube.com/embed/UN0AFCLASZA?si=9aG5tDzj6nL1_IKT&amp;start=371"
         // "&rel=0" is also force-injected to prevent video recommendations from other channels
-        rewritten = rewritten.replaceAll("\\@youtube\\(([a-zA-Z\\-_]+)\\,([^\\s<]+)\\)\\@", 
+        rewritten = rewritten.replaceAll("\\@youtube\\(([a-zA-Z\\-_]+)\\,([^\\s<]+)\\)\\@",
 "<details> \n" +
 "  <summary>📺 Watch the $1</summary> \n" +
 "  <div class=\"youtube-video\"> \n" +
@@ -113,7 +116,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 "</details>");
 
         // Same for the Wistia-hosted videos
-        rewritten = rewritten.replaceAll("\\@wistia\\(([a-zA-Z\\-_]+)\\,([^\\s<]+)\\)\\@", 
+        rewritten = rewritten.replaceAll("\\@wistia\\(([a-zA-Z\\-_]+)\\,([^\\s<]+)\\)\\@",
 "<details> \n" +
 "  <summary>📺 Watch the $1</summary> \n" +
 "  <div class=\"wistia-video\"> \n" +
@@ -154,6 +157,22 @@ public class ReleaseNotesTransformer extends FilterReader {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private void removeLeftoverComments(Document document) {
+        document.traverse(new NodeVisitor() {
+            @Override
+            public void head(Node node, int depth) {
+                if (node.nodeName().equals("#comment")) {
+                    node.remove();
+                }
+            }
+
+            @Override
+            public void tail(Node node, int depth) {
+                // Do nothing
+            }
+        });
     }
 
     private void wrapH2InSectionTopic(Document document) {
