@@ -80,7 +80,7 @@ class RerunFlakyTest(os: Os, arch: Arch = Arch.AMD64) : BuildType({
     params {
         text(
             testTaskParameterName,
-            ":core:embeddedIntegTest",
+            ":core:forkingIntegTest",
             display = ParameterDisplay.PROMPT,
             allowEmpty = false,
             description = "The test task you want to run"
