@@ -44,16 +44,19 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         groovyBuildFile(inputDeclaration, inputValue, "=")
 
         expect:
+        if (inputType == "Property<MyEnum>") {
+            executer.expectDeprecationWarningWithPattern("Assigning String value to Enum rich property. This behavior has been deprecated.*")
+        }
         runAndAssert("myTask", expectedResult)
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
-        "T = null" | "Property<MyObject>" | 'null' | "undefined"
+        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
         "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
         "String = Object"                               | "Property<String>"   | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
-        "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+        "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | "YES"
         "File = T extends FileSystemLocation"           | "DirectoryProperty"  | 'layout.buildDirectory.dir("out").get()' | "out"
         "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"  | 'layout.buildDirectory.dir("out")'       | "out"
         "File = File"                                   | "DirectoryProperty"  | 'file("out")'                            | "out"
