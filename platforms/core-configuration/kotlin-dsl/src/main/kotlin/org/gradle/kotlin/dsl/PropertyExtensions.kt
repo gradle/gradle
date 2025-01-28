@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.HasMultipleValues
@@ -102,4 +103,139 @@ fun <K : Any, V : Any> MapProperty<K, V>.assign(entries: Map<out K, V>?) {
  */
 fun <K : Any, V : Any> MapProperty<K, V>.assign(provider: Provider<out Map<out K, V>>) {
     this.set(provider)
+}
+
+
+/**
+ * Adds an element to the property value.
+ *
+ * @see HasMultipleValues.add
+ * @since 9.1.0
+ */
+@Incubating
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(element: T) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.add(element)
+}
+
+
+/**
+ * Adds an element to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ * Adding a provider with no value discards the value of the whole property.
+ *
+ * @see HasMultipleValues.add
+ * @since 9.1.0
+ */
+@Incubating
+@JvmName("plusAssignElementProvider")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out T>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.add(provider)
+}
+
+
+/**
+ * Adds zero or more elements to the property value.
+ *
+ * The given iterable will be queried when the value of this property is queried.
+ *
+ * @see HasMultipleValues.addAll
+ * @since 9.1.0
+ */
+@Incubating
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Iterable<T>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.addAll(elements)
+}
+
+
+/**
+ * Adds zero or more elements to the property value.
+ *
+ * @see HasMultipleValues.addAll
+ * @since 9.1.0
+ */
+@Incubating
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(elements: Array<T>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.addAll(elements.asList())
+}
+
+
+/**
+ * Adds zero or more elements to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ *
+ * Adding a provider with no value discards the value of the whole property.
+ *
+ * @see HasMultipleValues.addAll
+ * @since 9.1.0
+ */
+@Incubating
+@JvmName("plusAssignElementsProvider")
+operator fun <T : Any> HasMultipleValues<T>.plusAssign(provider: Provider<out Iterable<T>>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.addAll(provider)
+}
+
+
+/**
+ * Adds a map entry to the property value.
+ *
+ * @see MapProperty.put
+ * @since 9.1.0
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Pair<K, V>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.put(value.first, value.second)
+}
+
+
+/**
+ * Adds a map entry to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ * Adding a provider with no value discards the value of the whole property.
+ *
+ * @see MapProperty.put
+ * @since 9.1.0
+ */
+@Incubating
+@JvmName("plusAssignElementProvider")
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Provider<out Pair<K, V>>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.putAll(value.map { pair -> mapOf(pair) })
+}
+
+
+/**
+ * Adds all entries from another [Map] to the property value.
+ *
+ * @see MapProperty.putAll
+ * @since 9.1.0
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Map<out K, V>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.putAll(value)
+}
+
+
+/**
+ * Adds all entries from another [Map] to the property value.
+ *
+ * The given provider will be queried when the value of this property is queried.
+ * Adding a provider with no value discards the value of the whole property.
+ * @see MapProperty.putAll
+ * @since 9.1.0
+ */
+@Incubating
+@JvmName("plusAssignElementsProvider")
+operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Provider<out Map<out K, V>>) {
+    // TODO(mlopatkin): consider changing this to a function with better incremental update semantics
+    this.putAll(value)
 }
