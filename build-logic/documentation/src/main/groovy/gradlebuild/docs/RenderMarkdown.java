@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,7 +41,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Generates release notes file from markdown to HTML
@@ -76,8 +75,10 @@ public abstract class RenderMarkdown extends DefaultTask {
     @TaskAction
     public void process() {
         MutableDataSet options = new MutableDataSet();
-        options.set(Parser.EXTENSIONS, Collections.singletonList(TablesExtension.create()));
-        options.set(Parser.EXTENSIONS, Arrays.asList(AnchorLinkExtension.create()));
+        options.set(Parser.EXTENSIONS, Arrays.asList(
+            TablesExtension.create(),
+            AnchorLinkExtension.create()
+        ));
 
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
