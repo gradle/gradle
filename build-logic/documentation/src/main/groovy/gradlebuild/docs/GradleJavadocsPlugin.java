@@ -102,17 +102,43 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             new JavadocSupport(task).setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.encoding("utf-8");
+            options.docEncoding("utf-8");
+            options.charSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader(loadJavadocHeader());
+            options.header(
+                "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
+                    "<script>" +
+                    "(function() {" +
+                    "var mql = window.matchMedia('(prefers-color-scheme: dark)');" +
+                    "var hljsEl = document.getElementById('hljs-theme');" +
+                    "function applyTheme(dark) {" +
+                    "var t = dark ? 'dark' : 'light';" +
+                    "document.documentElement.setAttribute('data-theme', t);" +
+                    "if (hljsEl) hljsEl.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-' + t + '.min.css';" +
+                    "}" +
+                    "applyTheme(mql.matches);" +
+                    "mql.addEventListener('change', function(e) { applyTheme(e.matches); });" +
+                    "})();" +
+                    "</script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/xml.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/kotlin.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/groovy.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/java.min.js\"></script>" +
+                    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/properties.min.js\"></script>" +
+                    "<script>if (typeof hljs !== 'undefined') { hljs.highlightAll(); }</script>" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans\" rel=\"stylesheet\">" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-serif\" rel=\"stylesheet\">" +
+                    "<link href=\"https://fonts.cdnfonts.com/css/dejavu-sans-mono\" rel=\"stylesheet\">"
+            );
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
-            options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
-            options.addStringOption("source", "8");
+            // TODO: This breaks the provider
+            options.stylesheetFile(javadocs.getJavadocCss().get().getAsFile());
+            options.source("8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             task.getInputs().dir(javadocs.getJavaPackageListLoc());
             var javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> {
