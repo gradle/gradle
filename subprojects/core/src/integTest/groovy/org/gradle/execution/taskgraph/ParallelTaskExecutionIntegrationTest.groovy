@@ -130,12 +130,14 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
     void withInvalidPing() {
         buildFile << """
             abstract class InvalidPing extends Ping {
-                @org.gradle.integtests.fixtures.validation.ValidationProblem File invalidInput
+                ${DummyInvalidTask.invalidProperty()}
             }
             allprojects {
                 tasks.addRule("<>InvalidPing") { String name ->
                     if (name.endsWith("InvalidPing")) {
-                        tasks.create(name, InvalidPing)
+                        tasks.create(name, InvalidPing){
+                            ${DummyInvalidTask.setDummyProperty()}
+                        }
                     }
                 }
             }
@@ -529,8 +531,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "other tasks are not started when an invalid task is running"() {
         given:
         withParallelThreads(3)
@@ -538,7 +538,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem { type('InvalidPing') })
 
             blockingServer.expect(":aInvalidPing")
             blockingServer.expectConcurrent(":bPing", ":cPing")
@@ -555,8 +555,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         run ":aPingWithCacheableWarnings", ":bPing", ":cPing"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task is not executed in parallel with other task"() {
         given:
         withParallelThreads(3)
@@ -564,7 +562,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
 
         expect:
         2.times {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidPing', 'invalidInput'), 'id', 'section')
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem { type('InvalidPing') })
 
             blockingServer.expectConcurrent(":aPing", ":bPing")
             blockingServer.expect(":cInvalidPing")

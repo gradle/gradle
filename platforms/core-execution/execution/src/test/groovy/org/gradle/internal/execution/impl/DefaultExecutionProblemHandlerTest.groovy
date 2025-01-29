@@ -72,9 +72,8 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         then:
         def ex = thrown(WorkValidationException)
         WorkValidationExceptionChecker.check(ex) {
-            def validationProblem = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error', 'Test').trim()
             hasMessage """A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType').
-  - ${validationProblem}"""
+  - ${sampleValidationProblem()}"""
         }
         0 * _
     }
@@ -104,19 +103,22 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         then:
         def ex = thrown WorkValidationException
         WorkValidationExceptionChecker.check(ex) {
-            def validationProblem1 = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error #1', 'Test')
-            def validationProblem2 = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation error #2', 'Test')
             hasMessage """Some problems were found with the configuration of job ':test' (types ${quotedOxfordListOf(of('DefaultExecutionProblemHandlerTest.JobType', 'DefaultExecutionProblemHandlerTest.SecondaryJobType'), 'and')}).
-  - ${validationProblem1.trim()}
-  - ${validationProblem2.trim()}"""
+  - ${sampleValidationProblem('Validation error #1')}
+  - ${sampleValidationProblem('Validation error #2')}"""
         }
 
         0 * _
     }
 
     def "reports deprecation warning and invalidates VFS for validation warning"() {
-        String expectedWarning = convertToSingleLine(dummyValidationProblem('java.lang.Object', null, 'Validation warning', 'Test').trim())
         given:
+        String expectedWarning = convertToSingleLine(dummyValidationProblem {
+            type('java.lang.Object')
+            property(null)
+            description('Validation warning')
+            reason('Test')
+        }.trim())
         validationContext.forType(JobType, true).visitTypeProblem {
             it
                 .withAnnotationType(Object)
@@ -139,17 +141,17 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
     }
 
     def "reports deprecation warning even when there's also an error"() {
-        String expectedWarning = convertToSingleLine(dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation problem', 'Test').trim())
+        String expectedWarning = convertToSingleLine(sampleValidationProblem())
         // errors are reindented but not warnings
         expectReindentedValidationMessage()
-        String expectedError = dummyPropertyValidationProblemWithLink('java.lang.Object', null, 'Validation problem', 'Test')
+        String expectedError = sampleValidationProblem()
 
         given:
         def typeContext = validationContext.forType(JobType, true)
         typeContext.visitTypeProblem {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
+                .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
                 .severity(Severity.ERROR)
                 .details("Test")
@@ -157,7 +159,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         typeContext.visitTypeProblem {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
+                .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
                 .documentedAt(userManual("id", "section"))
                 .severity(Severity.WARNING)
                 .details("Test")
@@ -181,4 +183,15 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
     interface JobType {}
 
     interface SecondaryJobType {}
+
+    private String sampleValidationProblem(String descriptionMessage = 'Validation error') {
+        dummyValidationProblemWithLink {
+            type('java.lang.Object')
+            property(null)
+            description(descriptionMessage)
+            reason('Test')
+            documentationId("id")
+            documentationSection("section")
+        }.trim()
+    }
 }

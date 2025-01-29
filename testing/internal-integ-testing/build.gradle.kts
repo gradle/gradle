@@ -95,7 +95,6 @@ dependencies {
     implementation(projects.scopedPersistentCache)
     implementation(projects.serialization)
     implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)
 
     implementation(testFixtures(projects.buildProcessServices))
