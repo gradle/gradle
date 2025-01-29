@@ -18,13 +18,13 @@ package org.gradle.jvm.toolchain.internal;
 
 import com.google.common.base.MoreObjects;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Objects;
 
-public abstract class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
+public class SpecificInstallationToolchainSpec extends DefaultToolchainSpec {
 
     public static class Key implements JavaToolchainSpecInternal.Key {
 
@@ -55,18 +55,18 @@ public abstract class SpecificInstallationToolchainSpec extends DefaultToolchain
     private final File javaHome;
 
     @Inject
-    public SpecificInstallationToolchainSpec(File javaHome) {
-        super();
+    public SpecificInstallationToolchainSpec(PropertyFactory propertyFactory, File javaHome) {
+        super(propertyFactory);
         this.javaHome = javaHome;
 
         // disallow changing property values
         finalizeProperties();
     }
 
-    public static SpecificInstallationToolchainSpec fromJavaHome(ObjectFactory objectFactory, File javaHome) {
+    public static SpecificInstallationToolchainSpec fromJavaHome(PropertyFactory propertyFactory, File javaHome) {
         if (javaHome.exists()) {
             if (javaHome.isDirectory()) {
-                return objectFactory.newInstance(SpecificInstallationToolchainSpec.class, javaHome);
+                return new SpecificInstallationToolchainSpec(propertyFactory, javaHome);
             } else {
                 throw new InvalidUserDataException("The configured Java home is not a directory (" + javaHome.getAbsolutePath() + ")");
             }
@@ -75,8 +75,8 @@ public abstract class SpecificInstallationToolchainSpec extends DefaultToolchain
         }
     }
 
-    public static SpecificInstallationToolchainSpec fromJavaExecutable(ObjectFactory objectFactory, String executable) {
-        return objectFactory.newInstance(SpecificInstallationToolchainSpec.class, JavaExecutableUtils.resolveJavaHomeOfExecutable(executable));
+    public static SpecificInstallationToolchainSpec fromJavaExecutable(PropertyFactory propertyFactory, String executable) {
+        return new SpecificInstallationToolchainSpec(propertyFactory, JavaExecutableUtils.resolveJavaHomeOfExecutable(executable));
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.install;
-
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
-
-import java.io.File;
-
-public interface JavaToolchainProvisioningService {
-
-    File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException;
-
-    boolean isAutoDownloadEnabled();
-
-    boolean hasConfiguredToolchainRepositories();
-}
+/**
+ * Contains types used on the daemon side to send events to the launcher - CLI or TAPI client.
+ * <p>
+ * Some of those events are also used by the elements of the launcher that are used from the TAPI client to start the daemon.
+ */
+package org.gradle.internal.build.event.types;

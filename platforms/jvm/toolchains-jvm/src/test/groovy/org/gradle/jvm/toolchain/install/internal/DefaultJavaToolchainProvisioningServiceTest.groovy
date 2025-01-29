@@ -29,7 +29,7 @@ import org.gradle.jvm.toolchain.JavaToolchainDownload
 import org.gradle.jvm.toolchain.JavaToolchainRequest
 import org.gradle.jvm.toolchain.JavaToolchainResolver
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform
+import org.gradle.platform.internal.CurrentBuildPlatform
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
 import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException

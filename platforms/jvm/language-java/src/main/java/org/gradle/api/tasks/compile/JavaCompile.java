@@ -25,6 +25,7 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -105,7 +106,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
         modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavaCompiler> javaCompilerConvention = getProviderFactory()
-            .provider(() -> JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
+            .provider(() -> JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(this, getPropertyFactory()))
             .flatMap(javaToolchainService::compilerFor)
             .orElse(javaToolchainService.compilerFor(it -> {}));
         javaCompiler = objectFactory.property(JavaCompiler.class).convention(javaCompilerConvention);
@@ -368,6 +369,11 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
 
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 

@@ -17,10 +17,13 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     /*
