@@ -20,7 +20,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.workers.internal.DefaultWorkResult;
 
 /**
- * Marks compilation as beeing performed incrementally.
+ * Marks compilation as being performed incrementally.
  */
 public class DefaultIncrementalCompileResult extends DefaultWorkResult implements IncrementalCompilationResult {
     private final PreviousCompilationData previousCompilationData;

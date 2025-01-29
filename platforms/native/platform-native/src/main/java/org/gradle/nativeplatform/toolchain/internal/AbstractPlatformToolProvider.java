@@ -18,7 +18,6 @@ package org.gradle.nativeplatform.toolchain.internal;
 
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
 import org.gradle.nativeplatform.internal.LinkerSpec;
@@ -114,7 +113,7 @@ public abstract class AbstractPlatformToolProvider implements PlatformToolProvid
     }
 
     @Override
-    public <T extends CompileSpec> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
+    public <T> org.gradle.language.base.internal.compile.Compiler<T> newCompiler(Class<T> spec) {
         if (CppCompileSpec.class.isAssignableFrom(spec)) {
             return CompilerUtil.castCompiler(createCppCompiler());
         }

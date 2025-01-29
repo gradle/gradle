@@ -12,5 +12,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
 
+    implementation(libs.slf4jApi)
+
     testImplementation(testFixtures(projects.core))
 }

@@ -132,7 +132,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
                 new ProcessIsolatedCompilerWorkerExecutor(workerDaemonFactory, actionExecutionSpecFactory, projectCacheDir), getScalaClasspath(),
                 getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry,
                 getServices().get(ClasspathHasher.class));
-            compiler = scalaCompilerFactory.newCompiler(spec);
+            compiler = scalaCompilerFactory.newCompiler();
         }
         return compiler;
     }

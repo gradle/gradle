@@ -13,14 +13,12 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
-    api(projects.hashing)
-    api(projects.languageJava)
+    api(projects.jvmCompilerWorker)
     api(projects.languageJvm)
     api(projects.loggingApi)
     api(projects.modelCore)
-    api(projects.platformBase)
     api(projects.platformJvm)
-    api(projects.scopedPersistentCache)
+    api(projects.scalaCompilerWorker)
     api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
@@ -29,25 +27,20 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.time)
-    implementation(projects.serviceLookup)
     implementation(projects.dependencyManagement)
     implementation(projects.fileCollections)
+    implementation(projects.javaCompilerWorker)
     implementation(projects.jvmServices)
+    implementation(projects.languageJava)
     implementation(projects.logging)
-    implementation(projects.persistentCache)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
     implementation(projects.reporting)
+    implementation(projects.scopedPersistentCache)
+    implementation(projects.serviceLookup)
     implementation(projects.workerMain)
 
     implementation(libs.guava)
-
-    compileOnly(libs.zinc) {
-        // Because not needed and was vulnerable
-        exclude(module="log4j-core")
-        exclude(module="log4j-api")
-    }
 
     runtimeOnly(libs.groovy)
 
@@ -70,24 +63,6 @@ dependencies {
         because("ProjectBuilder tests load services from a Gradle distribution.")
     }
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-}
-
-dependencyAnalysis {
-    issues {
-        onUsedTransitiveDependencies {
-            // These are compileOnly transitive dependencies that are needed by the Scala compiler
-            exclude("org.scala-sbt:compiler-interface")
-            exclude("org.scala-sbt:util-interface")
-            exclude("org.scala-sbt:zinc-classpath_2.13")
-            exclude("org.scala-lang:scala-library")
-            exclude("org.scala-sbt:io_2.13")
-            exclude("org.scala-sbt:util-logging_2.13")
-            exclude("org.scala-sbt:util-relation_2.13")
-            exclude("org.scala-sbt:zinc-compile-core_2.13")
-            exclude("org.scala-sbt:zinc-core_2.13")
-            exclude("org.scala-sbt:zinc-persist_2.13")
-        }
-    }
 }
 
 packageCycles {

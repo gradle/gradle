@@ -17,13 +17,12 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.internal.operations.logging.BuildOperationLogger;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.nativeplatform.platform.NativePlatform;
 
 import java.io.File;
 import java.util.List;
 
-public interface BinaryToolSpec extends CompileSpec {
+public interface BinaryToolSpec {
     NativePlatform getTargetPlatform();
 
     void setTargetPlatform(NativePlatform platform);

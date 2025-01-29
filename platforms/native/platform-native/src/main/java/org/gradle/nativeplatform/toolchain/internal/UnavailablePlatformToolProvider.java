@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal;
 import org.gradle.api.GradleException;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.nativeplatform.platform.internal.OperatingSystemInternal;
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetadata;
@@ -118,7 +117,7 @@ public class UnavailablePlatformToolProvider implements PlatformToolProvider, Co
     }
 
     @Override
-    public <T extends CompileSpec> Compiler<T> newCompiler(Class<T> specType) {
+    public <T> Compiler<T> newCompiler(Class<T> specType) {
         throw failure();
     }
 
