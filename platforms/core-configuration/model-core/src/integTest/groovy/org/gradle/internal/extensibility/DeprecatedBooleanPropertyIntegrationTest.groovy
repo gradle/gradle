@@ -51,6 +51,22 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assertProperty")
     }
 
+    def "does not emit deprecation warning when a decorated class exposes a boolean getter"() {
+        buildFile << """
+            abstract class MyExtension {
+                boolean getProperty() { return Boolean.TRUE }
+            }
+            def myext = extensions.create("myext", MyExtension)
+            task assertProperty {
+                doLast {
+                    assert myext.property
+                }
+            }
+        """
+        expect:
+        succeeds("assertProperty")
+    }
+
     def "does not emit deprecation warning when a decorated class exposes a boolean is-getter"() {
         buildFile << """
             abstract class MyExtension {
