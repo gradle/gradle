@@ -815,6 +815,8 @@ tasks.named<Test>("docsTest") {
                 "snippet-plugins-dsl_groovy_sanityCheck.sample",
                 "snippet-plugins-dsl_kotlin_sanityCheck.sample",
                 // TODO(lkasso) remove this when config cache is working later but needed to merge for now.
+                "snippet-dependency-management-artifact-transforms-view_groovy_artifactTransformViews.sample",
+                "snippet-dependency-management-artifact-transforms-view_kotlin_artifactTransformViews.sample",
                 "snippet-dependency-management-introduction-core-dependencies_groovy_sanityCheck.sample",
                 "snippet-dependency-management-introduction-core-dependencies_kotlin_sanityCheck.sample",
                 "snippet-dependency-management-introduction-core-dependencies_groovy_dependencyIntroReport.sample",
