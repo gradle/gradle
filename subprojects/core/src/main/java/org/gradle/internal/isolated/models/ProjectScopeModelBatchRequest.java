@@ -16,20 +16,32 @@
 
 package org.gradle.internal.isolated.models;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ProjectScopeModelBatchRequest<T> {
+    public enum Kind {
+        LENIENT, STRICT, ALL
+    }
 
     private final ProjectModelScopeIdentifier consumer;
     private final IsolatedModelKey<T> key;
     private final List<ProjectModelScopeIdentifier> producers;
-    private final boolean lenient;
+    private final Kind kind;
 
     public ProjectScopeModelBatchRequest(ProjectModelScopeIdentifier consumer, IsolatedModelKey<T> key, List<ProjectModelScopeIdentifier> producers, boolean lenient) {
+        this(consumer, key, producers, lenient ? Kind.LENIENT : Kind.STRICT);
+    }
+
+    private ProjectScopeModelBatchRequest(ProjectModelScopeIdentifier consumer, IsolatedModelKey<T> key) {
+        this(consumer, key, Collections.emptyList(), Kind.ALL);
+    }
+
+    public ProjectScopeModelBatchRequest(ProjectModelScopeIdentifier consumer, IsolatedModelKey<T> key, List<ProjectModelScopeIdentifier> producers, Kind kind) {
         this.consumer = consumer;
         this.key = key;
         this.producers = producers;
-        this.lenient = lenient;
+        this.kind = kind;
     }
 
     public ProjectModelScopeIdentifier getConsumer() {
@@ -45,7 +57,11 @@ public class ProjectScopeModelBatchRequest<T> {
     }
 
     public boolean isLenient() {
-        return lenient;
+        return kind == Kind.LENIENT;
+    }
+
+    public boolean isAll() {
+        return kind == Kind.ALL;
     }
 
     @Override
@@ -64,5 +80,9 @@ public class ProjectScopeModelBatchRequest<T> {
         result = 31 * result + key.hashCode();
         result = 31 * result + producers.hashCode();
         return result;
+    }
+
+    public static <T> ProjectScopeModelBatchRequest<T> all(ProjectModelScopeIdentifier consumerScope, IsolatedModelKey<T> key) {
+        return new ProjectScopeModelBatchRequest<>(consumerScope, key);
     }
 }

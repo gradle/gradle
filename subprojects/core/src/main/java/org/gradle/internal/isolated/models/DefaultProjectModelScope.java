@@ -49,8 +49,17 @@ public class DefaultProjectModelScope implements ProjectModelScope {
         return request(keyFor(modelType), targetProjects(projects));
     }
 
+    @Override
+    public <T> ProjectScopeModelRequest<T> requestAll(Class<T> modelType) {
+        return requestAll(keyFor(modelType));
+    }
+
     private <T> ProjectScopeModelRequest<T> request(IsolatedModelKey<T> key, List<ProjectModelScopeIdentifier> projects) {
         return new DefaultProjectScopeModelRequest<>(projectModelController, ownerScope, key, projects);
+    }
+
+    private <T> ProjectScopeModelRequest<T> requestAll(IsolatedModelKey<T> key) {
+        return new AllModelsRequest<>(projectModelController, ownerScope, key);
     }
 
     private static List<ProjectModelScopeIdentifier> targetProjects(Collection<Project> projects) {

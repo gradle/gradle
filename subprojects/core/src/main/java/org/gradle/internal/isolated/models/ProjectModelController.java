@@ -26,9 +26,11 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @ServiceScope(Scope.BuildTree.class)
 public class ProjectModelController {
@@ -57,8 +59,9 @@ public class ProjectModelController {
         IsolatedModelKey<T> modelKey = request.getModelKey();
         ListProperty<T> batchValuesProperty = objectFactory.listProperty(modelKey.getType());
 
-        for (ProjectModelScopeIdentifier producerId : request.getProducers()) {
-            ProducerKey<T> producerKey = new ProducerKey<>(producerId, modelKey);
+        Collection<ProducerKey<?>> producerKeys = request.isAll() ? workByKey.keySet() : getProducerKeys(modelKey, request.getProducers());
+
+        for (ProducerKey producerKey : producerKeys) {
             IsolatedModelProducer<?> producer = workByKey.get(producerKey);
 
             Provider<T> producerSideProvider;
@@ -68,7 +71,7 @@ public class ProjectModelController {
             } else {
 
                 if (!producer.getModelType().equals(modelKey.getType())) {
-                    throw new IllegalStateException("Producer " + producerKey + " with type " + producer.getModelType() + " does not match model type " + modelKey.getType());
+                    throw new IllegalStateException("Producer " + producerKey + " with type " + producer.getModelType() + " (from " + producer.getModelType().getClassLoader()  + ") does not match model type " + modelKey.getType() + " (from " + modelKey.getType().getClassLoader()  + ")");
                 }
 
                 @SuppressWarnings("unchecked")
@@ -85,6 +88,10 @@ public class ProjectModelController {
         }
 
         return (ProviderInternal<? extends List<T>>) batchValuesProperty;
+    }
+
+    private <T> Collection<ProducerKey<?>> getProducerKeys(IsolatedModelKey<T> modelKey, List<ProjectModelScopeIdentifier> producers) {
+        return producers.stream().map(it -> new ProducerKey<>(it, modelKey)).collect(Collectors.toList());
     }
 
     private static final class ProducerKey<T> {

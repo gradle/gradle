@@ -76,7 +76,7 @@ class IsolatedModelAggregationIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register("sum", SummingTask) {
-                Provider<List<RegularFile>> numberFiles = isolated.models.request(RegularFile, allprojects).all
+                Provider<List<RegularFile>> numberFiles = isolated.models.requestAll(RegularFile).all
                 numbers.from(files(numberFiles))
                 output = layout.buildDirectory.file("sum.txt")
             }

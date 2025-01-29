@@ -51,4 +51,6 @@ public interface ProjectModelScope {
      */
     <T> ProjectScopeModelRequest<T> request(Class<T> modelType, Collection<Project> projects);
 
+    <T> ProjectScopeModelRequest<T> requestAll(Class<T> modelType);
+
 }
