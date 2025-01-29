@@ -79,12 +79,12 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.encoding("utf-8");
+            options.docEncoding("utf-8");
+            options.charSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setFooter("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">" +
+            options.footer("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +
@@ -113,8 +113,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             // TODO: This breaks the provider
-            options.addStringOption("stylesheetfile", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
-            options.addStringOption("source", "8");
+            options.stylesheetFile(javadocs.getJavadocCss().get().getAsFile());
+            options.source("8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
