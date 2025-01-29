@@ -478,7 +478,7 @@ Joe!""")
                 id 'java'
             }
             javadoc {
-                options.bootClasspath = [file('$bootClasspath')]
+                options.bootClasspath = files(file('$bootClasspath'))
             }
         """
         writeSourceFile()
