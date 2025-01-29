@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
 
@@ -43,5 +44,22 @@ public class DefaultOffsetInFileLocation extends DefaultFileLocation implements 
     @Override
     public int getLength() {
         return length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultOffsetInFileLocation)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+        DefaultOffsetInFileLocation that = (DefaultOffsetInFileLocation) o;
+        return offset == that.offset && length == that.length;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(), offset, length);
     }
 }
