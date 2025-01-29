@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
@@ -25,8 +26,9 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
+
+import static com.google.common.base.Objects.equal;
 
 @NonNullApi
 public class DefaultProblem implements Serializable, InternalProblem {
@@ -108,10 +110,6 @@ public class DefaultProblem implements Serializable, InternalProblem {
         return new DefaultProblemBuilder(this, additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
 
-    private static boolean equals(@Nullable Object a, @Nullable Object b) {
-        return (a == b) || (a != null && a.equals(b));
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -121,18 +119,18 @@ public class DefaultProblem implements Serializable, InternalProblem {
             return false;
         }
         DefaultProblem that = (DefaultProblem) o;
-        return equals(problemDefinition, that.problemDefinition) &&
-            equals(contextualLabel, that.contextualLabel) &&
-            equals(solutions, that.solutions) &&
-            equals(originLocations, that.originLocations) &&
-            equals(details, that.details) &&
-            equals(exception, that.exception) &&
-            equals(additionalData, that.additionalData);
+        return equal(problemDefinition, that.problemDefinition) &&
+            equal(contextualLabel, that.contextualLabel) &&
+            equal(solutions, that.solutions) &&
+            equal(originLocations, that.originLocations) &&
+            equal(details, that.details) &&
+            equal(exception, that.exception) &&
+            equal(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{problemDefinition, contextualLabel});
+        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData);
     }
 
 }
