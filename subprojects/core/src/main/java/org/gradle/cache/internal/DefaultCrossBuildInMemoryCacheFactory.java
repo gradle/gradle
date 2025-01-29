@@ -67,6 +67,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
             protected V maybeGetRetainedValue(K key) {
                 V v = super.maybeGetRetainedValue(key);
                 if (v != null) {
+                    // This callback better be swift as it runs under the cache lock.
                     onReuse.accept(v);
                 }
                 return v;

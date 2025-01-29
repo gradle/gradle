@@ -48,7 +48,7 @@ public interface CrossBuildInMemoryCacheFactory {
     /**
      * See {@link #newCache()}.
      *
-     * @param onReuse callback triggered when a cached value is reused in a new session after being retained.
+     * @param onReuse callback triggered when a cached value is reused in a new session after being retained. The callback will be invoked under the cache lock so make it swift.
      */
     <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse);
 
