@@ -102,9 +102,9 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             new JavadocSupport(task).setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.encoding("utf-8");
+            options.docEncoding("utf-8");
+            options.charSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
             options.addStringOption("top", loadJavadocHeader());
