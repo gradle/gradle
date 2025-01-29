@@ -16,8 +16,10 @@
 
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
+import org.gradle.api.file.ProjectLayout
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.Configuring
+import org.gradle.declarative.dsl.model.annotations.Restricted
 
 
 /**
@@ -27,6 +29,9 @@ interface DefaultsTopLevelReceiver {
     @Configuring
     @AccessFromCurrentReceiverOnly
     fun defaults(defaults: DefaultsConfiguringBlock.() -> Unit)
+
+    @get:Restricted
+    val layout: ProjectLayout
 }
 
 
