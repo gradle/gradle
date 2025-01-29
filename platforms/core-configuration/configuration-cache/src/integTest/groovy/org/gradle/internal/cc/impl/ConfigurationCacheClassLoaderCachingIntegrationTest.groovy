@@ -82,9 +82,6 @@ class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuil
             """
         }
 
-        and: 'non-strict classloaders are allowed'
-        executer.withStackTraceChecksDisabled()
-
         when:
         configurationCacheRun ":foo:foo:ok", ":bar:bar:ok"
 
