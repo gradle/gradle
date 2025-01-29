@@ -74,7 +74,7 @@ tasks.register("configureJavadoc") {
     doLast {
         tasks.javadoc {
             options.doclet = "org.asciidoctor.Asciidoclet"
-            options.docletpath = asciidoclet.files.toList()
+            options.docletpath = asciidoclet
         }
     }
 }
