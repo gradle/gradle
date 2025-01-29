@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope(Scope.Build.class)
 public class ProjectModelController {
 
     // TODO: what states are there for the controller?
@@ -43,7 +43,6 @@ public class ProjectModelController {
 
     public ProjectModelController(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        System.out.println("*** Instantiating ProjectModelController");
     }
 
     public <T> void register(ProjectModelScopeIdentifier producerScope, IsolatedModelKey<T> key, IsolatedModelProducer<T> work) {
