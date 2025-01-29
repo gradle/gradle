@@ -30,7 +30,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    def 'set #name'() {
+    def 'set #name (overwrite defaults: #overwriteDefaults)'() {
         given:
         withSoftwareTypePlugins(
             extensionClassContent,
@@ -40,19 +40,24 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
         settingsFile() << pluginsFromIncludedBuild
 
-        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFileForProject("a") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(overwriteDefaults)
+        buildFileForProject("b") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(overwriteDefaults)
 
         when:
-        run(":printTestSoftwareTypeExtensionConfiguration")
+        run("printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        assertThatDeclaredValuesAreSetProperly()
+        assertThatDeclaredValuesAreSetProperly("a", expectedNamePrefix)
+        assertThatDeclaredValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
-        extensionClassContent                           | name
-        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"
-        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"
-        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"
+        extensionClassContent                           | name                                                  | overwriteDefaults     | expectedNamePrefix
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true                  | "some"
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | false                 | "default"
+        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | true                  | "some"
+        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | false                 | "default"
+        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | true                  | "some"
+        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | false                 | "default"
     }
 
     def "using a read-only property by mistake gives a helpful error message for #name"() {
@@ -250,19 +255,34 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             plugins {
                 id("com.example.test-software-type")
             }
-        """
-    }
-
-    private static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
-        return """
-            testSoftwareType {
-                dir = layout.projectDirectory.dir("someDir")
-                file = layout.settingsDirectory.file("someFile")
+            include("a")
+            include("b")
+            defaults {
+                testSoftwareType {
+                    dir = layout.projectDirectory.dir("defaultDir")
+                    file = layout.settingsDirectory.file("defaultFile")
+                }
             }
         """
     }
 
-    private void assertThatDeclaredValuesAreSetProperly() {
-        outputContains("dir = ${testDirectory.file("someDir").path}\nfile = ${testDirectory.file("someFile").path}")
+    private static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(boolean overwriteDefaults) {
+        if (overwriteDefaults) {
+            return """
+                testSoftwareType {
+                    dir = layout.projectDirectory.dir("someDir")
+                    file = layout.settingsDirectory.file("someFile")
+                }
+            """.stripIndent()
+        } else {
+            return """
+                testSoftwareType {
+                }
+            """.stripIndent()
+        }
+    }
+
+    private void assertThatDeclaredValuesAreSetProperly(String project, String namePrefix) {
+        outputContains("$project:\ndir = ${testDirectory.file("$project/${namePrefix}Dir").path}\nfile = ${testDirectory.file("${namePrefix}File").path}")
     }
 }
