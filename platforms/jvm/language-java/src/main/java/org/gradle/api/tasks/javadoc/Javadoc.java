@@ -105,7 +105,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  * task generateRestApiDocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
  *   destinationDir = reporting.baseDirectory.dir("rest-api-docs")
- *   options.docletpath = configurations.jaxDoclet.files.asType(List)
+ *   options.docletpath = configurations.jaxDoclet
  *   options.doclet = "com.lunatech.doclets.jax.jaxrs.JAXRSDoclet"
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
  * }
@@ -114,7 +114,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
 @CacheableTask
 public abstract class Javadoc extends SourceTask {
 
-    private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
+    private final StandardJavadocDocletOptions options;
     private final ModularitySpec modularity;
     private final Property<JavadocTool> javadocTool;
     private final Provider<Directory> optionsDestinationDir;
@@ -123,6 +123,7 @@ public abstract class Javadoc extends SourceTask {
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
         PropertyFactory propertyFactory = getPropertyFactory();
+        this.options = objectFactory.newInstance(StandardJavadocDocletOptions.class);
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
@@ -131,8 +132,7 @@ public abstract class Javadoc extends SourceTask {
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
         this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
-        this.optionsDestinationDir = getObjectFactory().directoryProperty()
-            .fileProvider(getProviderFactory().provider(options::getDestinationDirectory));
+        this.optionsDestinationDir = options.getDestinationDirectory();
         this.optionsFile = getObjectFactory().fileProperty()
             .fileProvider(getProviderFactory().provider(() -> new File(getTemporaryDir(), "javadoc.options")));
         getFailOnError().convention(true);
@@ -147,9 +147,9 @@ public abstract class Javadoc extends SourceTask {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
 
-        StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
+        StandardJavadocDocletOptions options = getObjectFactory().newInstance(StandardJavadocDocletOptions.class).copy((StandardJavadocDocletOptions) getOptions());
 
-        if (options.getDestinationDirectory() == null) {
+        if (!options.getDestinationDirectory().isPresent()) {
             options.destinationDirectory(destinationDir);
         }
 
@@ -163,19 +163,21 @@ public abstract class Javadoc extends SourceTask {
         }
 
         String title = getTitle().getOrNull();
-        if (!isTrue(options.getWindowTitle()) && isTrue(title)) {
+        String windowTitle = options.getWindowTitle().getOrNull();
+        String docTitle = options.getDocTitle().getOrNull();
+        if (!isTrue(windowTitle) && isTrue(title)) {
             options.windowTitle(title);
         }
-        if (!isTrue(options.getDocTitle()) && isTrue(title)) {
-            options.setDocTitle(title);
+        if (!isTrue(docTitle) && isTrue(title)) {
+            options.getDocTitle().set(title);
         }
 
         String maxMemory = getMaxMemory().getOrNull();
-        if (maxMemory != null && options.getJFlags().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
+        if (maxMemory != null && options.getJFlags().get().stream().noneMatch(flag -> flag.startsWith("-Xmx"))) {
             options.jFlags("-Xmx" + maxMemory);
         }
 
-        options.setSourceNames(sourceNames());
+        options.getSourceNames().set(sourceNames());
 
         JavadocSpec spec = createJavadocSpec(options);
         getJavadocToolAdapter().execute(spec);
