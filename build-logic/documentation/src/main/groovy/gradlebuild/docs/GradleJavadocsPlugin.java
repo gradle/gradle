@@ -99,12 +99,12 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             new JavadocSupport(task).setTitle("Gradle API " + project.getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.encoding("utf-8");
+            options.docEncoding("utf-8");
+            options.charSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader(
+            options.header(
                 "<link id=\"hljs-theme\" rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css\">" +
                     "<script>" +
                     "(function() {" +
@@ -134,8 +134,8 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");
             // TODO: This breaks the provider
-            options.addStringOption("-add-stylesheet", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
-            options.addStringOption("source", "8");
+            options.stylesheetFile(javadocs.getJavadocCss().get().getAsFile());
+            options.source("8");
             options.tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:");
             // TODO: This breaks the provider
             task.getInputs().dir(javadocs.getJavaPackageListLoc());

@@ -1,0 +1,28 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.external.javadoc.CoreJavadocOptions",
+            "member": "Class org.gradle.external.javadoc.CoreJavadocOptions",
+            "acceptation": "This looks like a false report for upgraded methods on interface",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.CoreJavadocOptions",
+            "member": "Constructor org.gradle.external.javadoc.CoreJavadocOptions()",
+            "acceptation": "CoreJavadocOptions should not be instantiated directly",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.CoreJavadocOptions",
+            "member": "Constructor org.gradle.external.javadoc.CoreJavadocOptions(org.gradle.external.javadoc.CoreJavadocOptions,org.gradle.external.javadoc.internal.JavadocOptionFile)",
+            "acceptation": "CoreJavadocOptions should not be instantiated directly",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        }
+    ]
+}
