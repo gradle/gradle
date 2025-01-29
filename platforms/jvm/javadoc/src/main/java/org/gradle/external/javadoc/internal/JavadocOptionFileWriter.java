@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.gradle.api.provider.ListProperty;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
@@ -29,6 +30,7 @@ import java.util.Map;
 public class JavadocOptionFileWriter {
     private final JavadocOptionFile optionFile;
 
+    @SuppressWarnings("this-escape")
     public JavadocOptionFileWriter(JavadocOptionFile optionFile) {
         if (optionFile == null) {
             throw new IllegalArgumentException("optionFile == null!");
@@ -36,7 +38,7 @@ public class JavadocOptionFileWriter {
         this.optionFile = optionFile;
     }
 
-    void write(File outputFile) throws IOException {
+    void write(File outputFile, ListProperty<String> sourceNames) throws IOException {
         IoActions.writeTextFile(outputFile, new ErroringAction<BufferedWriter>() {
             @Override
             protected void doExecute(BufferedWriter writer) throws Exception {
@@ -52,7 +54,7 @@ public class JavadocOptionFileWriter {
                     options.get(option).write(writerContext);
                 }
 
-                optionFile.getSourceNames().write(writerContext);
+                new OptionLessStringsJavadocOptionFileOption(sourceNames.get()).write(writerContext);
             }
         });
     }
