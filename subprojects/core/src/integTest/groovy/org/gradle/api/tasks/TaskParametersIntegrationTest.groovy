@@ -28,11 +28,11 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
+
 
 class TaskParametersIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -384,81 +384,39 @@ task someTask {
         "123"                | "123 as short"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid task causes VFS to drop"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
+        buildFile << DummyInvalidTask.source()
 
-            class InvalidTask extends DefaultTask {
-                @ValidationProblem inputFile
-
-                @TaskAction void execute() {
-                    println "Executed"
-                }
-            }
-
-            task invalid(type: InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
 
         when:
-        run "invalid", "--info"
+        run(DummyInvalidTask.name, "--info")
         then:
-        executedAndNotSkipped(":invalid")
-        outputContains("Invalidating VFS because task ':invalid' failed validation")
+        executedAndNotSkipped(":${DummyInvalidTask.name}")
+        outputContains("Invalidating VFS because task ':${DummyInvalidTask.name}' failed validation")
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are displayed once"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
+        buildFile << DummyInvalidTask.source()
 
-            class InvalidTask extends DefaultTask {
-                @ValidationProblem File inputFile
-
-                @TaskAction void execute() {
-                    println "Executed"
-                }
-            }
-
-            task invalid(type: InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
 
         when:
-        run "invalid"
+        run(DummyInvalidTask.name)
         then:
-        executedAndNotSkipped(":invalid")
-        output.count("- Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test.") == 1
+        executedAndNotSkipped(":${DummyInvalidTask.name}")
+        output.count("- ${convertToSingleLine(dummyValidationProblemWithLink())}") == 1
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "validation warnings are reported even when task is skipped"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
+        buildFile << DummyInvalidTask.source("SourceTask")
 
-            class InvalidTask extends SourceTask {
-                @ValidationProblem File inputFile
-
-                @TaskAction void execute() {
-                    println "Executed"
-                }
-            }
-
-            task invalid(type: InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'inputFile'), 'id', 'section')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
 
         when:
-        run "invalid"
+        run(DummyInvalidTask.name)
         then:
-        skipped(":invalid")
+        skipped(":${DummyInvalidTask.name}")
     }
 
     def "task can use input property of type #type"() {

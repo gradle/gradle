@@ -17,58 +17,54 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
-@Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-// this test only works in embedded mode because of the use of validation test fixtures
+import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
+
 class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
-
     def setup() {
         expectReindentedValidationMessage()
     }
 
     def "detects that a problem is from a task declared in a precompiled script plugin"() {
-        withPrecompiledScriptPlugins()
-        def pluginFile = file("buildSrc/src/main/groovy/test.gradle.demo.plugin.gradle")
-        writeTaskInto(pluginFile)
-        pluginFile << """
-            tasks.register("myTask", SomeTask) {
-                input.set("hello")
-                output.set(layout.buildDirectory.file("out.txt"))
+        def pluginId = "test.gradle.demo.plugin"
+
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
             }
         """
+        def pluginFile = file("buildSrc/src/main/groovy/${pluginId}.gradle")
+        pluginFile << DummyInvalidTask.source()
 
         buildFile """plugins {
-            id 'test.gradle.demo.plugin'
+            id '$pluginId'
         }"""
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem { inPlugin(pluginId) })
 
         when:
-        fails ':myTask'
+        run(DummyInvalidTask.name)
 
         then:
-        failureDescriptionContains(dummyValidationProblem {
-            inPlugin('test.gradle.demo.plugin')
-            type('SomeTask').property('input')
-        }.trim())
+        output.contains("- ${convertToSingleLine(dummyValidationProblemWithLink { inPlugin(pluginId) })}")
     }
 
     def "detects that a problem is from a task declared in plugin"() {
+        def pluginId = "org.gradle.demo.plugin"
+
         settingsFile << """
             includeBuild 'my-plugin'
         """
-        copyValidationProblemClass()
         def pluginFile = file("my-plugin/src/main/groovy/org/gradle/demo/plugin/MyTask.groovy")
-        writeTaskInto("""package org.gradle.demo.plugin
+        pluginFile << """package ${pluginId}
 
             import org.gradle.api.*
             import org.gradle.api.file.*
             import org.gradle.api.provider.*
             import org.gradle.api.tasks.*
-        """, pluginFile)
+
+            ${DummyInvalidTask.definition()}
+        """
 
         file("my-plugin/build.gradle") << """
             plugins {
@@ -78,8 +74,8 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
             gradlePlugin {
                 plugins {
                     create("simplePlugin") {
-                        id = "org.gradle.demo.plugin"
-                        implementationClass = "org.gradle.demo.plugin.MyPlugin"
+                        id = "${pluginId}"
+                        implementationClass = "${pluginId}.MyPlugin"
                     }
                 }
             }
@@ -87,85 +83,33 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         file("my-plugin/settings.gradle") << """
             rootProject.name = "my-plugin"
         """
-        file("my-plugin/src/main/groovy/org/gradle/demo/plugin/MyPlugin.groovy") << """package org.gradle.demo.plugin
+        file("my-plugin/src/main/groovy/org/gradle/demo/plugin/MyPlugin.groovy") << """package ${pluginId}
             import org.gradle.api.*
             class MyPlugin implements Plugin<Project> {
                 void apply(Project p) {
-                    p.tasks.register("myTask", SomeTask) {
-                        it.input.set("hello")
-                        it.output.set(p.layout.buildDirectory.file("out.txt"))
-                    }
+                    ${DummyInvalidTask.registration("p")}
                 }
             }
         """
 
         buildFile """plugins {
-            id 'org.gradle.demo.plugin'
+            id '$pluginId'
         }"""
 
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem {
+            type("${pluginId}.${DummyInvalidTask.className}")
+            inPlugin(pluginId)
+        })
+
         when:
-        fails ':myTask'
+        run(DummyInvalidTask.name)
 
         then:
-        failureDescriptionContains(dummyValidationProblem {
-            inPlugin('org.gradle.demo.plugin')
-            type('org.gradle.demo.plugin.SomeTask').property('input')
+        def expectedMessage = convertToSingleLine(dummyValidationProblemWithLink {
+            type("${pluginId}.${DummyInvalidTask.className}")
+            inPlugin(pluginId)
         })
+        output.contains("- $expectedMessage")
     }
 
-    /**
-     * This method creates a dummy ValidationProblem class in the plugin source set, because
-     * the test fixture is not visible at compile time for included builds like they are
-     * typically for precompiled script plugins.
-     * This is really a workaround for the test setup, which doesn't bring any value to the
-     * test itself and therefore is separated for readability.
-     */
-    private void copyValidationProblemClass() {
-        file("my-plugin/src/main/groovy/org/gradle/integtests/fixtures/validation/ValidationProblem.groovy") << """
-package org.gradle.integtests.fixtures.validation;
-
-import org.gradle.api.problems.Severity;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-/**
- * A dummy annotation which is used to trigger validation problems
- * during tests
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Target([ElementType.METHOD, ElementType.FIELD])
-public @interface ValidationProblem {
-    Severity value() default Severity.WARNING;
-}
-        """
-    }
-
-    private TestFile withPrecompiledScriptPlugins() {
-        file("buildSrc/build.gradle") << """
-            plugins {
-                id 'groovy-gradle-plugin'
-            }
-        """
-    }
-
-    private void writeTaskInto(@GroovyBuildScriptLanguage String header = "", TestFile testFile) {
-        testFile << """$header
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-            import org.gradle.api.problems.Severity
-
-            abstract class SomeTask extends DefaultTask {
-                @ValidationProblem(value=Severity.ERROR)
-                abstract Property<String> getInput()
-
-                @OutputFile
-                abstract RegularFileProperty getOutput()
-
-                @TaskAction
-                void doSomething() {}
-            }
-        """
-    }
 }
