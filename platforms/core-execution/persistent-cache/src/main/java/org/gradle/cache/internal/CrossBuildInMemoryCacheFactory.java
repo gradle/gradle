@@ -45,6 +45,11 @@ public interface CrossBuildInMemoryCacheFactory {
      */
     <K, V> CrossBuildInMemoryCache<K, V> newCache();
 
+    /**
+     * See {@link #newCache()}.
+     *
+     * @param onReuse callback triggered when a cached value is reused in a new session after being retained.
+     */
     <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse);
 
     /**
