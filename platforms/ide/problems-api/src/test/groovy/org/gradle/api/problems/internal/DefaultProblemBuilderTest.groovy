@@ -17,7 +17,6 @@
 package org.gradle.api.problems.internal
 
 import org.gradle.api.problems.AdditionalData
-import org.gradle.api.problems.GeneralData
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory

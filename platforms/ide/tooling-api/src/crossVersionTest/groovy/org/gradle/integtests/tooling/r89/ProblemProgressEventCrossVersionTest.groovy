@@ -32,7 +32,6 @@ import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -92,10 +91,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName == "Deprecation"
             definition.id.group.name == "deprecation"
             definition.severity == Severity.WARNING
-            locations.size() == 2
+            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : 1)
             (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            additionalData instanceof DefaultAdditionalData
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
     }
@@ -108,7 +105,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                ${ProblemsApiGroovyScriptUtils.additionalData(targetVersion, 'aKey', 'aValue')}
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -147,7 +144,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                ${ProblemsApiGroovyScriptUtils.additionalData(targetVersion, 'aKey', 'aValue')}
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -272,7 +269,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
+        listener.problems[0].additionalData.asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

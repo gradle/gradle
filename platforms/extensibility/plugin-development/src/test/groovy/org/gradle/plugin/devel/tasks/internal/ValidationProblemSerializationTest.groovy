@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks.internal
 
 import com.google.gson.Gson
-import org.gradle.api.problems.GeneralData
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
@@ -25,6 +24,7 @@ import org.gradle.api.problems.internal.DefaultProblemReporter
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.DeprecationDataSpec
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
+import org.gradle.api.problems.internal.GeneralData
 import org.gradle.api.problems.internal.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalDocLink
