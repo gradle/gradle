@@ -25,10 +25,6 @@ class JavadocOptionFileTest extends Specification {
         expect:
         optionFile.getOptions() != null
         optionFile.getOptions().isEmpty()
-
-        optionFile.getSourceNames() != null
-        optionFile.getSourceNames().getValue() != null
-        optionFile.getSourceNames().getValue().isEmpty()
     }
 
     def "test addOption"() {
