@@ -16,36 +16,34 @@
 
 package org.gradle.external.javadoc.internal;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.external.javadoc.JavadocOptionFileOption;
-import org.gradle.external.javadoc.OptionLessJavadocOptionFileOption;
 import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOptionInternal<?>> options;
 
-    private final OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames;
-
     public JavadocOptionFile() {
-        this(new LinkedHashMap<>(), new OptionLessStringsJavadocOptionFileOption(new ArrayList<>()));
-    }
-
-    private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options, OptionLessJavadocOptionFileOptionInternal<List<String>> sourceNames) {
-        this.options = options;
-        this.sourceNames = sourceNames;
+        this.options = new LinkedHashMap<>();
     }
 
     public JavadocOptionFile(JavadocOptionFile original) {
-        this(duplicateOptions(original.options), original.sourceNames.duplicate());
+        this.options = duplicateOptions(original.options);
     }
 
     private static Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions(Map<String, JavadocOptionFileOptionInternal<?>> original) {
@@ -54,10 +52,6 @@ public class JavadocOptionFile {
             duplicateOptions.put(entry.getKey(), entry.getValue().duplicate());
         }
         return duplicateOptions;
-    }
-
-    public OptionLessJavadocOptionFileOption<List<String>> getSourceNames() {
-        return sourceNames;
     }
 
     public Map<String, JavadocOptionFileOptionInternal<?>> getOptions() {
@@ -76,6 +70,22 @@ public class JavadocOptionFile {
 
     public JavadocOptionFileOption<String> addStringOption(String option) {
         return addStringOption(option, null);
+    }
+
+    public JavadocOptionFileOption<Property<?>> addPropertyOption(String option, Property<?> value) {
+        return addOption(new PropertyJavadocOptionFileOption(option, value));
+    }
+
+    public JavadocOptionFileOption<ConfigurableFileCollection> addConfigurableFileCollectionOption(String option, ConfigurableFileCollection value) {
+        return addOption(new ConfigurableFileCollectionJavadocOptionFileOption(option, value));
+    }
+
+    public JavadocOptionFileOption<Provider<? extends Collection<?>>> addMultiValuePropertyOption(String option, Provider<? extends Collection<?>> value, BiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
+        return addOption(new MultiValuePropertyJavadocOptionFileOption(option, value, valueWriter));
+    }
+
+    public JavadocOptionFileOption<Provider<? extends Map<?, ?>>> addMapPropertyOption(String option, Provider<? extends Map<?, ?>> value, BiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
+        return addOption(new MapPropertyJavadocOptionFileOption(option, value, valueWriter));
     }
 
     public JavadocOptionFileOption<String> addStringOption(String option, String value) {
@@ -126,14 +136,14 @@ public class JavadocOptionFile {
         return addOption(new FileJavadocOptionFileOption(option, value));
     }
 
-    public void write(File optionFile) throws IOException {
+    public void write(File optionFile, ListProperty<String> sourceNames) throws IOException {
         if (optionFile == null) {
             throw new IllegalArgumentException("optionFile == null!");
         }
 
         final JavadocOptionFileWriter optionFileWriter = new JavadocOptionFileWriter(this);
 
-        optionFileWriter.write(optionFile);
+        optionFileWriter.write(optionFile, sourceNames);
     }
 
     public <T> JavadocOptionFileOption<T> getOption(String option) {
