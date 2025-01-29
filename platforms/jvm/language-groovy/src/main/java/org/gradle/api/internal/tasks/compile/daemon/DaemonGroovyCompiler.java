@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.ApiCompilerResult;
 import org.gradle.api.internal.tasks.compile.BaseForkOptionsConverter;
+import org.gradle.api.internal.tasks.compile.GroovyDaemonSideCompiler;
 import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.MinimalGroovyCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.compile.MinimalJavaCompilerDaemonForkOptions;
@@ -38,7 +39,7 @@ import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
-import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.language.base.internal.compile.CompilerParameters;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.workers.internal.DaemonForkOptions;
@@ -52,7 +53,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJointCompileSpec> {
-    private final Class<? extends Compiler<GroovyJavaJointCompileSpec>> compilerClass;
+
     private final static Iterable<String> SHARED_PACKAGES = Arrays.asList("groovy", "org.codehaus.groovy", "groovyjarjarantlr", "groovyjarjarasm", "groovyjarjarcommonscli", "org.apache.tools.ant", "com.sun.tools.javac");
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
@@ -63,7 +64,6 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
 
     public DaemonGroovyCompiler(
         File daemonWorkingDir,
-        Class<? extends Compiler<GroovyJavaJointCompileSpec>> compilerClass,
         ClassPathRegistry classPathRegistry,
         CompilerWorkerExecutor compilerWorkerExecutor,
         ClassLoaderRegistry classLoaderRegistry,
@@ -72,7 +72,6 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         InternalProblemReporter problemReporter
     ) {
         super(compilerWorkerExecutor);
-        this.compilerClass = compilerClass;
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
         this.forkOptionsFactory = forkOptionsFactory;
@@ -82,8 +81,8 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
     }
 
     @Override
-    protected CompilerWorkerExecutor.CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
-        return new GroovyCompilerParameters(compilerClass.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
+    protected CompilerParameters getCompilerParameters(GroovyJavaJointCompileSpec spec) {
+        return new GroovyCompilerParameters(GroovyDaemonSideCompiler.class.getName(), new Object[]{classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles()}, spec);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
             gradleAndUserFilter.allowPackage(sharedPackage);
         }
 
-        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, groovyOptions));
+        JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(javaOptions, groovyOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
         javaForkOptions.setExecutable(javaOptions.getExecutable());
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaOptions.getExecutable());
@@ -179,17 +178,4 @@ public class DaemonGroovyCompiler extends AbstractDaemonCompiler<GroovyJavaJoint
         return gradleFilterSpec;
     }
 
-    public static class GroovyCompilerParameters extends CompilerWorkerExecutor.CompilerParameters {
-        private final GroovyJavaJointCompileSpec compileSpec;
-
-        public GroovyCompilerParameters(String compilerClassName, Object[] compilerInstanceParameters, GroovyJavaJointCompileSpec compileSpec) {
-            super(compilerClassName, compilerInstanceParameters);
-            this.compileSpec = compileSpec;
-        }
-
-        @Override
-        public GroovyJavaJointCompileSpec getCompileSpec() {
-            return compileSpec;
-        }
-    }
 }

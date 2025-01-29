@@ -65,7 +65,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler.delegate instanceof AnnotationProcessorDiscoveringCompiler
         compiler.delegate.delegate instanceof NormalizingJavaCompiler
         compiler.delegate.delegate.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.delegate.delegate.compilerClass == JdkJavaCompiler.class
     }
 
     private static class TestCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {
