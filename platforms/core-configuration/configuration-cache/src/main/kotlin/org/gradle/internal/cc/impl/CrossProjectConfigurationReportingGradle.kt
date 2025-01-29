@@ -301,6 +301,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
     override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier =
         delegate.configurationTargetIdentifier
 
+    override fun executeRootProjectActions() {
+        delegate.executeRootProjectActions()
+    }
+
     override fun isRootBuild(): Boolean =
         delegate.isRootBuild
 

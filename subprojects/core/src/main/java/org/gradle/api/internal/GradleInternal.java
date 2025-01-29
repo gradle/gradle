@@ -55,6 +55,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Nullable
     GradleInternal getParent();
 
+    void executeRootProjectActions();
+
     GradleInternal getRoot();
 
     boolean isRootBuild();
