@@ -58,7 +58,7 @@ public class ProjectModelController {
         IsolatedModelKey<T> modelKey = request.getModelKey();
         ListProperty<T> batchValuesProperty = objectFactory.listProperty(modelKey.getType());
 
-        Collection<ProducerKey<?>> producerKeys = request.isAll() ? workByKey.keySet() : getProducerKeys(modelKey, request.getProducers());
+        Collection<ProducerKey<?>> producerKeys = (request.isAllValues() || request.isAllModels()) ? workByKey.keySet() : getProducerKeys(modelKey, request.getProducers());
 
         for (ProducerKey producerKey : producerKeys) {
             IsolatedModelProducer<?> producer = workByKey.get(producerKey);
@@ -68,8 +68,7 @@ public class ProjectModelController {
                 // the producer has not been registered at all
                 producerSideProvider = Providers.notDefined();
             } else {
-
-                if (!producer.getModelType().equals(modelKey.getType())) {
+                if (!modelKey.getType().isAssignableFrom(producer.getModelType())) {
                     throw new IllegalStateException("Producer " + producerKey + " with type " + producer.getModelType() + " (from " + producer.getModelType().getClassLoader()  + ") does not match model type " + modelKey.getType() + " (from " + modelKey.getType().getClassLoader()  + ")");
                 }
 

@@ -18,6 +18,18 @@ package org.gradle.internal.isolated.models;
 
 public interface IsolatedModelKey<T> {
 
+    IsolatedModelKey<Object> ANY = new IsolatedModelKey<Object>() {
+        @Override
+        public String getName() {
+            return "ANY";
+        }
+
+        @Override
+        public Class<Object> getType() {
+            return Object.class;
+        }
+    };
+
     String getName();
 
     Class<T> getType();

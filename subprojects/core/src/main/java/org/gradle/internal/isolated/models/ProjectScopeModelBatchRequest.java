@@ -16,12 +16,14 @@
 
 package org.gradle.internal.isolated.models;
 
+import org.gradle.internal.Cast;
+
 import java.util.Collections;
 import java.util.List;
 
 public class ProjectScopeModelBatchRequest<T> {
     public enum Kind {
-        LENIENT, STRICT, ALL
+        LENIENT, STRICT, ALL_VALUES, ALL_MODELS
     }
 
     private final ProjectModelScopeIdentifier consumer;
@@ -34,7 +36,11 @@ public class ProjectScopeModelBatchRequest<T> {
     }
 
     private ProjectScopeModelBatchRequest(ProjectModelScopeIdentifier consumer, IsolatedModelKey<T> key) {
-        this(consumer, key, Collections.emptyList(), Kind.ALL);
+        this(consumer, key, Collections.emptyList(), Kind.ALL_VALUES);
+    }
+
+    private ProjectScopeModelBatchRequest(ProjectModelScopeIdentifier consumer) {
+        this(consumer, Cast.uncheckedNonnullCast(IsolatedModelKey.ANY), Collections.emptyList(), Kind.ALL_MODELS);
     }
 
     public ProjectScopeModelBatchRequest(ProjectModelScopeIdentifier consumer, IsolatedModelKey<T> key, List<ProjectModelScopeIdentifier> producers, Kind kind) {
@@ -60,8 +66,12 @@ public class ProjectScopeModelBatchRequest<T> {
         return kind == Kind.LENIENT;
     }
 
-    public boolean isAll() {
-        return kind == Kind.ALL;
+    public boolean isAllValues() {
+        return kind == Kind.ALL_VALUES;
+    }
+
+    public boolean isAllModels() {
+        return kind == Kind.ALL_MODELS;
     }
 
     @Override
@@ -71,7 +81,7 @@ public class ProjectScopeModelBatchRequest<T> {
         }
 
         ProjectScopeModelBatchRequest<?> that = (ProjectScopeModelBatchRequest<?>) o;
-        return consumer.equals(that.consumer) && key.equals(that.key) && producers.equals(that.producers);
+        return kind == that.kind && consumer.equals(that.consumer) && key.equals(that.key) && producers.equals(that.producers);
     }
 
     @Override
@@ -82,7 +92,11 @@ public class ProjectScopeModelBatchRequest<T> {
         return result;
     }
 
-    public static <T> ProjectScopeModelBatchRequest<T> all(ProjectModelScopeIdentifier consumerScope, IsolatedModelKey<T> key) {
+    public static <T> ProjectScopeModelBatchRequest<T> allValues(ProjectModelScopeIdentifier consumerScope, IsolatedModelKey<T> key) {
         return new ProjectScopeModelBatchRequest<>(consumerScope, key);
+    }
+
+    public static <T> ProjectScopeModelBatchRequest<T> allModels(ProjectModelScopeIdentifier consumerScope) {
+        return new ProjectScopeModelBatchRequest<>(consumerScope);
     }
 }

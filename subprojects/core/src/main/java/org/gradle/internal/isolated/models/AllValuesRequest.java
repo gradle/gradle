@@ -21,29 +21,32 @@ import org.gradle.api.provider.Provider;
 
 import java.util.List;
 
-public class AllModelsRequest implements ProjectScopeModelRequest<Object> {
+public class AllValuesRequest<T> implements ProjectScopeModelRequest<T> {
     private final ProjectModelController projectModelController;
     private final ProjectModelScopeIdentifier consumerScope;
+    private final IsolatedModelKey<T> key;
 
-    public AllModelsRequest(
+    public AllValuesRequest(
         ProjectModelController projectModelController,
-        ProjectModelScopeIdentifier consumerScope
+        ProjectModelScopeIdentifier consumerScope,
+        IsolatedModelKey<T> key
     ) {
         this.projectModelController = projectModelController;
         this.consumerScope = consumerScope;
+        this.key = key;
     }
 
     @Override
-    public Provider<List<Object>> getAll() {
+    public Provider<List<T>> getAll() {
         return projectModelController.request(getRequest());
     }
 
     @Override
-    public Provider<List<Object>> getPresent() {
+    public Provider<List<T>> getPresent() {
         return projectModelController.request(getRequest());
     }
 
-    private ProjectScopeModelBatchRequest<Object> getRequest() {
-        return ProjectScopeModelBatchRequest.allModels(consumerScope);
+    private ProjectScopeModelBatchRequest<T> getRequest() {
+        return ProjectScopeModelBatchRequest.allValues(consumerScope, key);
     }
 }
