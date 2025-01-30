@@ -31,6 +31,8 @@ import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
 import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.basics.BuildParams.DEBUG_DAEMON
+import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
 import gradlebuild.basics.BuildParams.DEFAULT_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
@@ -135,6 +137,8 @@ object BuildParams {
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
     const val BUNDLE_GROOVY_4 = "bundleGroovy4"
+    const val DEBUG_DAEMON = "debugDaemon"
+    const val DEBUG_LAUNCHER = "debugLauncher"
 
     /**
      * Run docs tests with the configuration cache enabled.
@@ -433,3 +437,9 @@ val Project.isPromotionBuild: Boolean
  */
 val Project.isBundleGroovy4: Boolean
     get() = systemProperty(BUNDLE_GROOVY_4).orNull.toBoolean()
+
+val Project.daemonDebuggingIsEnabled: Boolean
+    get() = propertyFromAnySource(DEBUG_DAEMON).isPresent
+
+val Project.launcherDebuggingIsEnabled: Boolean
+    get() = propertyFromAnySource(DEBUG_LAUNCHER).isPresent

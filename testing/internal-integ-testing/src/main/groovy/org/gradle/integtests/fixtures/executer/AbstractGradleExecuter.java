@@ -106,6 +106,8 @@ import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
     private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
+    public static final int DAEMON_DEBUG_PORT = 5005;
+    public static final int LAUNCHER_DEBUG_PORT = 5006;
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
@@ -191,9 +193,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
-    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
+    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
 
-    private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+    private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
 
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
@@ -267,8 +269,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
-        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
-        debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
+        debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -419,8 +421,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts))
-            .startLauncherInDebugger(opts -> debugLauncher.copyTo(opts))
+        if (debug.isEnabled()){
+            executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts));
+        }
+        if (debugLauncher.isEnabled()){
+            executer.startLauncherInDebugger(opts -> debugLauncher.copyTo(opts));
+        }
+
+        executer
             .withProfiler(profiler)
             .withForceInteractive(interactive);
 

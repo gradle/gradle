@@ -128,10 +128,14 @@ The commit messages that accompany your code changes are an important piece of d
 
 After making changes, you can test your code in 2 ways:
 
-1. Run tests.
+#### Run tests
+
 - Run `./gradlew :<subproject>:quickTest` where `<subproject>` is the name of the subproject you've changed. 
 - For example: `./gradlew :launcher:quickTest`.
-2. Install Gradle locally and try out a change in behavior manually. 
+
+#### Install Gradle locally
+
+and try out a change in behavior manually. 
 - Install: `./gradlew install -Pgradle_installPath=/any/path`
 - Use: `/any/path/bin/gradle taskName`.
 
@@ -159,7 +163,7 @@ This may help you better understand and contribute to Gradle.
 
 ### Debugging Gradle
 
-You can debug Gradle by adding `-Dorg.gradle.debug=true` to the command-line. Gradle will wait for you to attach a debugger at `localhost:5005` by default.
+See the [Debugging Gradle](./contributing/Debugging.md) guide for tips on debugging Gradle.
 
 If you made changes to build logic in the `build-logic` included build, you can run its tests by executing `./gradlew :build-logic:check`.
 
