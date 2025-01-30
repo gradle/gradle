@@ -84,21 +84,21 @@ class AndroidSantaTrackerCachingSmokeTest extends AbstractAndroidSantaTrackerSmo
         }
 
         and:
-        def expectedResults = agpVersion.startsWith('7.3')
+        def expectedResults = agpVersion.startsWith('7.3.')
             ? AndroidPluginExpectations7.EXPECTED_RESULTS_7_3
-            : agpVersion.startsWith('7.4')
+            : agpVersion.startsWith('7.4.')
             ? AndroidPluginExpectations7.EXPECTED_RESULTS_7_4
-            : agpVersion.startsWith('8.0')
+            : agpVersion.startsWith('8.0.')
             ? AndroidPluginExpectationsOld8.EXPECTED_RESULTS_8_0
-            : agpVersion.startsWith('8.1') || agpVersion.startsWith('8.2')
+            : agpVersion.startsWith('8.1.') || agpVersion.startsWith('8.2.')
             ? AndroidPluginExpectationsOld8.EXPECTED_RESULTS_8_1
-            : agpVersion.startsWith('8.3')
+            : agpVersion.startsWith('8.3.')
             ? AndroidPluginExpectationsOld8.EXPECTED_RESULTS_8_3
-            : agpVersion.startsWith('8.4') || agpVersion.startsWith('8.5')
+            : agpVersion.startsWith('8.4.') || agpVersion.startsWith('8.5.')
             ? AndroidPluginExpectationsOld8.EXPECTED_RESULTS_8_4
-            : agpVersion.startsWith(('8.6')) || agpVersion.startsWith(('8.7')) || agpVersion.startsWith(('8.8'))
+            : agpVersion.startsWith(('8.6.')) || agpVersion.startsWith(('8.7.')) || agpVersion.startsWith(('8.8.'))
             ? AndroidPluginExpectations8.EXPECTED_RESULTS_8_6
-            : agpVersion.startsWith(('8.9'))
+            : agpVersion.startsWith(('8.9.'))
             ? AndroidPluginExpectations8.EXPECTED_RESULTS_8_9
             : AndroidPluginExpectations8.EXPECTED_RESULTS_8_10
 
