@@ -29,6 +29,7 @@ import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.LifecycleAwareProject
@@ -391,8 +392,12 @@ class DefaultGradleSpec extends Specification {
     def "root project action is executed when projects are loaded"() {
         given:
         def action = Mock(Action)
+        def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
+            isLocked() >> false
+        }
         def rootProject = project('root')
         gradle.rootProject = rootProject
+        gradle.baseProjectClassLoaderScope = baseProjectClassLoaderScope
 
         when:
         gradle.rootProject(action)
@@ -401,9 +406,21 @@ class DefaultGradleSpec extends Specification {
         0 * action.execute(_)
 
         when:
-        gradle.buildListenerBroadcaster.projectsLoaded(gradle)
+        gradle.executeRootProjectActions()
 
         then:
+        thrown(IllegalStateException)
+
+        when:
+        baseProjectClassLoaderScope.isLocked() >> true
+
+        and:
+        gradle.executeRootProjectActions()
+
+        then:
+        noExceptionThrown()
+
+        and:
         1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
             a.execute(p)
         }
@@ -413,8 +430,12 @@ class DefaultGradleSpec extends Specification {
     def "allprojects action is executed when projects are loaded"() {
         given:
         def action = Mock(Action)
+        def baseProjectClassLoaderScope = Mock(ClassLoaderScope) {
+            isLocked() >> false
+        }
         def rootProject = project('root')
         gradle.rootProject = rootProject
+        gradle.baseProjectClassLoaderScope = baseProjectClassLoaderScope
 
         when:
         gradle.allprojects(action)
@@ -423,9 +444,21 @@ class DefaultGradleSpec extends Specification {
         0 * action.execute(_)
 
         when:
-        gradle.buildListenerBroadcaster.projectsLoaded(gradle)
+        gradle.executeRootProjectActions()
 
         then:
+        thrown(IllegalStateException)
+
+        when:
+        baseProjectClassLoaderScope.isLocked() >> true
+
+        and:
+        gradle.executeRootProjectActions()
+
+        then:
+        noExceptionThrown()
+
+        and:
         1 * crossProjectConfigurator.rootProject(project(), _) >> { p, a ->
             a.execute(p)
         }

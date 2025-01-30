@@ -58,7 +58,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     /**
      * Executes previously registered actions against root project.
-     * Must be called only after base classloader scope has been locked
+     * Must be called only after base classloader scope has been locked.
      * @throws IllegalStateException when base project classloader scope is not locked
      * */
     void executeRootProjectActions();
