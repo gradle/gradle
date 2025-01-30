@@ -82,6 +82,7 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
 public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
     private static final NativeServices INSTANCE = new NativeServices();
+    private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
 
     public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
@@ -89,52 +90,17 @@ public class NativeServices implements ServiceRegistrationProvider {
     private boolean initialized;
     private boolean useNativeIntegrations;
     private Native nativeIntegration;
-    private static FileEvents fileEvents;
+    private FileEvents fileEvents;
 
     private File userHomeDir;
     private File nativeBaseDir;
-    private final EnumSet<NativeFeatures> initializedFeatures = EnumSet.noneOf(NativeFeatures.class);
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
 
     private final ServiceRegistry services;
 
     public enum NativeFeatures {
-        FILE_SYSTEM_WATCHING {
-            @Override
-            public boolean initialize(File nativeBaseDir, boolean useNativeIntegrations) {
-                if (useNativeIntegrations) {
-                    OperatingSystem operatingSystem = OperatingSystem.current();
-                    if (operatingSystem.isMacOsX()) {
-                        String version = operatingSystem.getVersion();
-                        if (VersionNumber.parse(version).getMajor() < 12) {
-                            LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                            return false;
-                        }
-                    }
-                    try {
-                        fileEvents = FileEvents.init(nativeBaseDir);
-                        LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
-                        return true;
-                    } catch (NativeIntegrationUnavailableException ex) {
-                        logFileSystemWatchingUnavailable(ex);
-                        return false;
-                    }
-                }
-                return false;
-            }
-        },
-        JANSI {
-            @Override
-            public boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations) {
-                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
-                return true;
-            }
-        };
-
-        private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
-
-        public abstract boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations);
+        FILE_SYSTEM_WATCHING,
+        JANSI
     }
 
     public enum NativeServicesMode {
@@ -266,13 +232,37 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
         if (useNativeIntegrations) {
-            for (NativeFeatures requestedFeature : requestedFeatures) {
-                if (initializedFeatures.add(requestedFeature)) {
-                    if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
-                        enabledFeatures.add(requestedFeature);
-                    }
+            if (requestedFeatures.contains(NativeFeatures.FILE_SYSTEM_WATCHING)) {
+                fileEvents = initFileEvents();
+                if (fileEvents != null) {
+                    enabledFeatures.add(NativeFeatures.FILE_SYSTEM_WATCHING);
                 }
             }
+            if (requestedFeatures.contains(NativeFeatures.JANSI)) {
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
+                enabledFeatures.add(NativeFeatures.JANSI);
+            }
+        }
+    }
+
+    @Nullable
+    private FileEvents initFileEvents() {
+        OperatingSystem operatingSystem = OperatingSystem.current();
+        if (operatingSystem.isMacOsX()) {
+            String version = operatingSystem.getVersion();
+            if (VersionNumber.parse(version).getMajor() < 12) {
+                LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                return null;
+            }
+        }
+        try {
+            FileEvents fileEvents = FileEvents.init(nativeBaseDir);
+            LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+            return fileEvents;
+        } catch (NativeIntegrationUnavailableException ex) {
+            logFileSystemWatchingUnavailable(ex);
+            return null;
         }
     }
 
@@ -450,6 +440,7 @@ public class NativeServices implements ServiceRegistrationProvider {
         try {
             hostname = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
+            //noinspection Since15
             hostname = InetAddress.getLoopbackAddress().getHostAddress();
         }
         return new FixedHostname(hostname);
