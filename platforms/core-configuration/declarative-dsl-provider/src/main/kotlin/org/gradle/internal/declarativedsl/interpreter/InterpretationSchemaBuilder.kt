@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,6 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator
-
-import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure
+package org.gradle.internal.declarativedsl.interpreter
 
 
-class DeclarativeDslNotEvaluatedException(
-    private val scriptSourceIdentifier: String,
-    private val stageFailures: List<StageFailure>
-) : Exception() {
-    override val message: String
-        get() = EvaluationFailureMessageGenerator.generateFailureMessage(scriptSourceIdentifier, stageFailures)
-}

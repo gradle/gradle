@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator
+package org.gradle.internal.declarativedsl.interpreter
 
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder

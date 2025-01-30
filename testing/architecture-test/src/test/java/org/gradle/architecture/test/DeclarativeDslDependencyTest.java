@@ -17,14 +17,18 @@
 package org.gradle.architecture.test;
 
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
+import static com.tngtech.archunit.base.DescribedPredicate.not;
+import static com.tngtech.archunit.base.DescribedPredicate.or;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 @AnalyzeClasses(packages = "org.gradle")
-public class NoKotlinStdlibBinaryDependencyTest {
+public class DeclarativeDslDependencyTest {
     @ArchTest
     public static final ArchRule schema_types_do_not_have_binary_dependencies_on_kotlin_stdlib =
         // The `declarative-dsl-tooling-models` should be usable in clients that have no Kotlin stdlib.
@@ -33,4 +37,37 @@ public class NoKotlinStdlibBinaryDependencyTest {
             .resideInAPackage("org.gradle.declarative.dsl.schema").or()
             .resideInAPackage("org.gradle.declarative.dsl.evaluation")
             .should().onlyDependOnClassesThat().haveNameNotMatching("kotlin\\.(?!Metadata$).*");
+
+    @ArchTest
+    public static final ArchRule evaluator_classes_do_not_depend_on_generic_gradle_code =
+        // The `declarative-dsl-evaluator` is meant to be used outside the context of Gradle.
+        // We check that it does not depend on Gradle API/internals.
+        classes().that()
+            .haveNameMatching("org\\.gradle\\.internal\\.declarativedsl\\.evaluator.*")
+            .should().onlyDependOnClassesThat(
+                or(
+                    not(new GradleCode()),
+                    new DeclarativeGradleCode()
+                )
+            );
+}
+
+class GradleCode extends DescribedPredicate<JavaClass> {
+    public GradleCode() {
+        super("Gradle Code");
+    }
+    @Override
+    public boolean test(JavaClass input) {
+        return input.getPackageName().startsWith("org.gradle");
+    }
+}
+
+class DeclarativeGradleCode extends DescribedPredicate<JavaClass> {
+    public DeclarativeGradleCode() {
+        super("Declarative Gradle Code");
+    }
+    @Override
+    public boolean test(JavaClass input) {
+        return input.getPackageName().matches("org\\.gradle\\..*declarative.*dsl.*");
+    }
 }
