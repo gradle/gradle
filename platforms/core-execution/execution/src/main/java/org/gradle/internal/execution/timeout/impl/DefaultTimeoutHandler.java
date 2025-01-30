@@ -63,12 +63,12 @@ public class DefaultTimeoutHandler implements TimeoutHandler, Stoppable {
         executor.stop();
     }
 
-    // Value is queried “dynamically” to support testing
+    // Value is queried "dynamically" to support testing
     private static long postTimeoutCheckFrequency() {
         return Integer.parseInt(System.getProperty(POST_TIMEOUT_CHECK_FREQUENCY_PROPERTY, "3000"));
     }
 
-    // Value is queried “dynamically” to support testing
+    // Value is queried "dynamically" to support testing
     private static long slowStopLogStacktraceFrequency() {
         return Integer.parseInt(System.getProperty(SLOW_STOP_LOG_STACKTRACE_FREQUENCY_PROPERTY, "10000"));
     }

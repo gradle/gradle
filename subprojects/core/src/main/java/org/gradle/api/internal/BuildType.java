@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
-@ServiceScope(Scope.BuildTree.class)
 public enum BuildType {
     TASKS,
     MODEL

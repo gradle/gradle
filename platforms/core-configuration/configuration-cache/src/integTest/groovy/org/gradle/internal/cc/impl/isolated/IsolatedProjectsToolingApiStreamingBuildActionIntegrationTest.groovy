@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.isolated
 
 import org.gradle.internal.cc.impl.fixtures.CustomModel
+import org.gradle.internal.cc.impl.fixtures.SomeToolingModel
 import org.gradle.tooling.StreamedValueListener
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -120,8 +121,84 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         streamedModels2[1].value == 2
     }
 
+    def "models are streamed on build action partial cache hit"() {
+        withSomeToolingModelBuilderPluginInBuildSrc()
+        settingsFile """
+            include("a")
+            include("b")
+        """
+        buildFile "a/build.gradle", """
+            plugins.apply(my.MyPlugin)
+        """
+        buildFile "b/build.gradle", """
+            plugins.apply(my.MyPlugin)
+        """
+
+        def listener = new TestStreamedValueListener()
+
+        when:
+        withIsolatedProjects()
+        def messages1 = runBuildAction(new StreamCustomModelForEachProject()) {
+            setStreamedValueListener(listener)
+        }
+
+        then:
+        fixture.assertModelStored {
+            projectConfigured(":buildSrc")
+            buildModelCreated()
+            projectConfigured(":")
+            modelsCreated(":a", ":b")
+        }
+
+        and:
+        messages1 == ["It works from project :a", "It works from project :b"]
+        def streamedModels1 = listener.models as List<SomeToolingModel>
+        streamedModels1.message == ["It works from project :a", "It works from project :b"]
+
+        when: "only one project changes"
+        buildFile "b/build.gradle", """
+            myExtension.message = "It works from updated project :b"
+        """
+
+        and:
+        listener = new TestStreamedValueListener()
+        withIsolatedProjects()
+        def messages2 = runBuildAction(new StreamCustomModelForEachProject()) {
+            setStreamedValueListener(listener)
+        }
+
+        then: "only one model is recreated"
+        fixture.assertModelUpdated {
+            fileChanged("b/build.gradle")
+            projectsConfigured(":buildSrc", ":", ":b")
+            modelsCreated(":b")
+            modelsReused(":buildSrc", ":", ":a")
+        }
+
+        and: "client receives updated models"
+        messages2 == ["It works from project :a", "It works from updated project :b"]
+        def streamedModels2 = listener.models as List<SomeToolingModel>
+        streamedModels2.message == ["It works from project :a", "It works from updated project :b"]
+
+        when: "running without changes after a partial update"
+        listener = new TestStreamedValueListener()
+        withIsolatedProjects()
+        def messages3 = runBuildAction(new StreamCustomModelForEachProject()) {
+            setStreamedValueListener(listener)
+        }
+
+        then:
+        fixture.assertModelLoaded()
+
+        and: "reused models are still correct after a partial update"
+        messages3 == ["It works from project :a", "It works from updated project :b"]
+        def streamedModels3 = listener.models as List<SomeToolingModel>
+        streamedModels3.message == ["It works from project :a", "It works from updated project :b"]
+    }
+
     private static class TestStreamedValueListener implements StreamedValueListener {
         def models = new CopyOnWriteArrayList<Object>()
+
         @Override
         void onValue(Object value) {
             models += value

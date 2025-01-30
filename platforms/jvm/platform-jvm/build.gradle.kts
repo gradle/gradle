@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = """Extends platform-base with base types and interfaces specific to the Java Virtual Machine, including tasks for obtaining a JDK via toolchains, and for compiling and launching Java applications."""
@@ -41,7 +40,6 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(libs.ant)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.diagnostics))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.platformNative))

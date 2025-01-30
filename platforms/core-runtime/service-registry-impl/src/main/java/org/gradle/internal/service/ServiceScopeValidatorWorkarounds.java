@@ -31,10 +31,6 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
-        // Avoid annotating services published as public libraries
-        // build-cache-base:
-        "org.gradle.caching.internal.origin.OriginMetadataFactory",
-
         // It's supposed to be only in the Settings scope
         // However, ProjectBuilderImpl does not instantiate that scope at all, while still requiring the service
         // Because of this, it artificially puts it into the Build-scope to make it available
@@ -49,13 +45,7 @@ class ServiceScopeValidatorWorkarounds {
 
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
-        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory",
-
-        // Problematic with UpdateDaemonJvm task and CC, because marked as a service
-        // This is a data class, but declared as a service for ease of injection
-        // It also is becoming a task input for daemon toolchain
-        // Tried using Factory<BuildPlatform> and it would work but would require all consumers to declare they need the factory
-        "org.gradle.platform.BuildPlatform"
+        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
     ));
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {

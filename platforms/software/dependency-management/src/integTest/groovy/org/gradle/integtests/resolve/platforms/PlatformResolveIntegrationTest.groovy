@@ -144,7 +144,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
             .allowAll()
             .publish()
 
-        createDirs("sub")
         settingsFile << """
             include 'sub'
         """
@@ -161,17 +160,22 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 api platform("org:platform") // no version, will select the "platform" component
                 api project(":sub")
             }
-            project(":sub") {
-                apply plugin: 'java-library'
-                group = "org.test"
-                version = "1.9"
-                dependencies {
-                    constraints {
-                       api "org:platform:1.0"
-                    }
+        """
+
+        file("sub/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            group = "org.test"
+            version = "1.9"
+            dependencies {
+                constraints {
+                   api "org:platform:1.0"
                 }
             }
         """
+
         checkConfiguration("compileClasspath")
 
         run ":checkDeps"

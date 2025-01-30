@@ -422,8 +422,6 @@ Gradle can also activate a feature by default, even if the user did not specify 
 [[custom_dependencies_blocks]]
 == Using a custom `dependencies` block
 
-NOTE: Custom `dependencies` blocks are based on incubating APIs.
-
 A plugin can provide dependency declarations in custom blocks that allow users to declare dependencies in a type-safe and context-aware way.
 
 For instance, instead of users needing to know and use the underlying `Configuration` name to add dependencies, a custom `dependencies` block lets the plugin pick a meaningful name that

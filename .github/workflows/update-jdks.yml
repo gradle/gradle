@@ -23,7 +23,20 @@ jobs:
           fetch-depth: 0
       - name: Update jdks.yaml
         uses: gradle/update-jdks-action@main
+      - name: Add verification comment
+        # https://github.com/gradle/gradle-private/issues/4518
+        run: |
+          cat << 'EOF' > .teamcity/jdks.yaml.tmp
+          # To verify the change, run the build with:
+          # @bot-gradle test ReadyForNightly
+          # ```
+          # stopGradleDaemons=true
+          # ```
+          EOF
+          cat .teamcity/jdks.yaml >> .teamcity/jdks.yaml.tmp
+          mv .teamcity/jdks.yaml.tmp .teamcity/jdks.yaml
       - name: Create Pull Request
+        id: create-pull-request
         uses: peter-evans/create-pull-request@v7
         with:
           signoff: true
@@ -37,3 +50,13 @@ jobs:
           labels: |
             in:building-gradle
             @dev-productivity
+      - name: Trigger a build
+        uses: peter-evans/create-or-update-comment@v4
+        if: ${{ steps.create-pull-request.outputs.pull-request-number }}
+        with:
+          issue-number: ${{ steps.create-pull-request.outputs.pull-request-number }}
+          body: |
+            @bot-gradle test ReadyForNightly
+            ```
+            stopGradleDaemons=true
+            ```

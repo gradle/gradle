@@ -154,7 +154,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     /**
      * Forcibly stops the daemon, even if it is busy.
      *
-     * If the daemon is busy and the client is waiting for a response, it may receive “null” from the daemon as the connection may be closed by this method before the result is sent back.
+     * If the daemon is busy and the client is waiting for a response, it may receive "null" from the daemon as the connection may be closed by this method before the result is sent back.
      *
      * @see #requestStop(String reason)
      */

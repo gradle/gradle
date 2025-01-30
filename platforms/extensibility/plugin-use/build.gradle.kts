@@ -25,6 +25,7 @@ dependencies {
     implementation(projects.jvmServices)
 
     testImplementation(testFixtures(projects.resourcesHttp))
+    testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.baseServicesGroovy)
     integTestImplementation(libs.jetbrainsAnnotations)

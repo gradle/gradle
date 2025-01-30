@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
+import org.gradle.configurationcache.EntrySearchResult
 import org.gradle.configurationcache.ModelStoreResult
 import org.gradle.configurationcache.WorkGraphLoadResult
 import org.gradle.configurationcache.WorkGraphStoreResult
@@ -451,18 +452,20 @@ class DefaultConfigurationCache internal constructor(
     private
     fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val candidates = loadCandidateEntries()
-        val result = searchForValidEntry(candidates)
-        if (result is CheckedFingerprint.Valid) {
-            updateMostRecentEntry(result.entryId)
+        val searchResult = searchForValidEntry(candidates)
+        val checkedFingerprint = searchResult.checkedFingerprint
+        if (checkedFingerprint is CheckedFingerprint.Valid) {
+            updateMostRecentEntry(checkedFingerprint.entryId)
         }
-        result
+        searchResult
     }
 
     private
-    fun searchForValidEntry(candidates: List<CandidateEntry>): CheckedFingerprint {
-        var firstInvalidResult: CheckedFingerprint? = null
+    fun searchForValidEntry(candidates: List<CandidateEntry>): EntrySearchResult {
+        var firstInvalidResult: EntrySearchResult? = null
         for (candidate in candidates) {
-            when (val result = checkCandidate(candidate)) {
+            val result = checkCandidate(candidate)
+            when (result.checkedFingerprint) {
                 is CheckedFingerprint.Valid -> {
                     return result
                 }
@@ -477,7 +480,7 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         return firstInvalidResult
-            ?: CheckedFingerprint.NotFound
+            ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
     }
 
     private
@@ -525,7 +528,7 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.readCandidateEntries(fileForRead(StateType.Candidates))
 
     private
-    fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint {
+    fun checkCandidate(candidateEntry: CandidateEntry): EntrySearchResult {
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
@@ -535,12 +538,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint =
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult =
         cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
             ?.let { entryDetails ->
                 // TODO:configuration-cache read only rootDirs at this point
-                checkFingerprint(candidateEntry, entryDetails.rootDirs)
-            } ?: CheckedFingerprint.NotFound
+                EntrySearchResult(entryDetails.buildInvocationScopeId, checkFingerprint(candidateEntry, entryDetails.rootDirs))
+            } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {

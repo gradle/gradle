@@ -41,7 +41,6 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
         given:
         module.metaData.expectGet()
         ('a'..'z').each {
-            createDirs(it)
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
@@ -80,7 +79,6 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
 
         given:
         ('a'..'z').each {
-            createDirs(it)
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
@@ -117,7 +115,6 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
     def "tasks resolving in parallel do not access Projects in parallel"() {
         given:
         ['project1', 'project2'].each {
-            createDirs(it)
             settingsFile << "include '$it'\n"
             file("$it/build.gradle") << """
                 apply plugin: 'java-library'
@@ -132,7 +129,6 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
         }
 
         ('a'..'z').each {
-            createDirs(it)
             settingsFile << "include '$it'\n"
             file("${it}/build.gradle") << """
                 apply plugin: 'java-library'
@@ -156,45 +152,43 @@ class ParallelDependencyResolutionIntegrationTest extends AbstractHttpDependency
     def "long running task in producing project does not block task in consuming project"() {
         blockingServer.start()
 
-        createDirs("producer", "consumer")
         settingsFile << """
             include "producer"
             include "consumer"
         """
-        buildFile << """
-            allprojects {
-                configurations { create("default") }
+
+        file("producer/build.gradle") << """
+            configurations { create("default") }
+            task producer {
+                ext.output = objects.fileProperty()
+                outputs.file output
+                output.set(file("out"))
             }
-            project(":producer") {
-                task producer {
-                    ext.output = objects.fileProperty()
-                    outputs.file output
-                    output.set(file("out"))
-                }
-                task longRunning {
-                    dependsOn producer
-                    doLast {
-                        ${blockingServer.callFromBuild("longRunning")}
-                    }
-                }
-                artifacts {
-                    "default"(producer.output)
+            task longRunning {
+                dependsOn producer
+                doLast {
+                    ${blockingServer.callFromBuild("longRunning")}
                 }
             }
-            project(":consumer") {
-                dependencies { "default"(project(":producer")) }
-                task guard {
-                    doLast {
-                        Thread.sleep(500)
-                    }
+            artifacts {
+                "default"(producer.output)
+            }
+        """
+
+        file("consumer/build.gradle") << """
+            configurations { create("default") }
+            dependencies { "default"(project(":producer")) }
+            task guard {
+                doLast {
+                    Thread.sleep(500)
                 }
-                task consumer {
-                    inputs.files configurations.default
-                    outputs.file file("out")
-                    dependsOn guard
-                    doLast {
-                        ${blockingServer.callFromBuild("consumer")}
-                    }
+            }
+            task consumer {
+                inputs.files configurations.default
+                outputs.file file("out")
+                dependsOn guard
+                doLast {
+                    ${blockingServer.callFromBuild("consumer")}
                 }
             }
         """

@@ -42,6 +42,16 @@ class ProblemsApiGroovyScriptUtils {
         }
     }
 
+    static String additionalData(GradleVersion targetVersion, String key = 'keyToString', String value = 'value') {
+        if (targetVersion < GradleVersion.version("8.9")) {
+            ".additionalData(\"$key\", \"$value\")\""
+        } else if (targetVersion < GradleVersion.version("8.13")) {
+            ".additionalData(org.gradle.api.problems.internal.GeneralDataSpec) { it.put(\"$key\", \"$value\") }"
+        } else {
+            ".additionalDataInternal(org.gradle.api.problems.internal.GeneralDataSpec) { it.put(\"$key\", \"$value\") }"
+        }
+    }
+
     static String createIdExpression(String name = 'type', String displayName = 'label') {
         "org.gradle.api.problems.ProblemId.create(\"$name\", \"$displayName\", org.gradle.api.problems.ProblemGroup.create(\"generic\", \"Generic\"))"
     }

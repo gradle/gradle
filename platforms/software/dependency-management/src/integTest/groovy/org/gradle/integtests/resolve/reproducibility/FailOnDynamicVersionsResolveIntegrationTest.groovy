@@ -35,20 +35,19 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
     }
 
     def "does not fail with a project and direct dependency with non dynamic version"() {
-        createDirs("other")
         settingsFile << """
             include("other")
-"""
+        """
         buildFile << """
             dependencies {
                 conf(project(':other'))
                 conf 'org:test:1.0'
             }
+        """
 
-            project(':other') {
-                configurations.create('default')
-            }
-"""
+        file("other/build.gradle") << """
+            configurations.create('default')
+        """
         repository {
             'org:test:1.0'()
         }

@@ -181,29 +181,9 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     }
 
     def "artifacts from a Gradle project have standard attributes defined based on their type when none defined for the outgoing variant"() {
-        createDirs("a", "b", "c")
         settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
-            project(':a') {
-                configurations { create 'default' }
-                artifacts {
-                    'default' file('a.custom')
-                }
-            }
-            project(':b') {
-                configurations { create 'default' }
-                artifacts {
-                    'default' file('b.jar')
-                }
-            }
-            project(':c') {
-                configurations { create 'default' }
-                artifacts {
-                    'default'(file('c.jar')) { type = 'other' }
-                }
-            }
-
             configurations {
                 compile
             }
@@ -221,7 +201,28 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-"""
+        """
+
+        file("a/build.gradle") << """
+            configurations { create 'default' }
+            artifacts {
+                'default' file('a.custom')
+            }
+        """
+
+        file("b/build.gradle") << """
+            configurations { create 'default' }
+            artifacts {
+                'default' file('b.jar')
+            }
+        """
+
+        file("c/build.gradle") << """
+            configurations { create 'default' }
+            artifacts {
+                'default'(file('c.jar')) { type = 'other' }
+            }
+        """
 
         when:
         run 'show'
@@ -389,29 +390,9 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
     }
 
     def "can attach attributes to an artifact provided by a Gradle project"() {
-        createDirs("a", "b", "c")
         settingsFile << 'include "a", "b", "c"'
 
         buildFile << """
-            project(':a') {
-                configurations { create 'default' }
-                artifacts {
-                    'default' file('a.jar')
-                }
-            }
-            project(':b') {
-                configurations { create 'default' }
-                artifacts {
-                    'default' file('b.aar')
-                }
-            }
-            project(':c') {
-                configurations { create 'default' }
-                artifacts {
-                    'default'(file('c.thing')) { type = 'ignore-me' }
-                }
-            }
-
             configurations {
                 compile
             }
@@ -443,7 +424,28 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
                     }
                 }
             }
-"""
+        """
+
+        file("a/build.gradle") << """
+            configurations { create 'default' }
+            artifacts {
+                'default' file('a.jar')
+            }
+        """
+
+        file("b/build.gradle") << """
+            configurations { create 'default' }
+            artifacts {
+                'default' file('b.aar')
+            }
+        """
+
+        file("c/build.gradle") << """
+            configurations { create 'default' }
+            artifacts {
+                'default'(file('c.thing')) { type = 'ignore-me' }
+            }
+        """
 
         when:
         run 'show'
@@ -465,67 +467,76 @@ class ExternalModuleVariantsIntegrationTest extends AbstractDependencyResolution
             .hasType('thing')
             .publish()
 
-        createDirs("a", "b")
-        settingsFile << "include 'a', 'b'"
+        settingsFile << """
+            include 'a', 'b'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-        buildFile << """
-            allprojects {
-                repositories {
-                    maven { url = '${mavenRepo.uri}' }
-                }
-                configurations {
-                    compile
-                    create('default') { extendsFrom configurations.compile }
-                }
-                task show {
-                    def artifacts = configurations.compile.incoming.artifacts
-                    inputs.files artifacts.artifactFiles
-                    doLast {
-                        artifacts.each {
-                            println it.file.name + ' ' + it.variant.attributes
-                        }
+        def common = """
+            task show {
+                def artifacts = configurations.compile.incoming.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    artifacts.each {
+                        println it.file.name + ' ' + it.variant.attributes
                     }
                 }
             }
-            project(':a') {
-                dependencies {
-                    compile 'test:test-jar:1.2'
-                    compile 'test:test-aar:1.2'
-                    compile 'test:test-thing:1.2'
-                    artifacts {
-                        compile file("a.jar")
+        """
+
+        file("a/build.gradle") << """
+            configurations {
+                compile
+                create('default') { extendsFrom configurations.compile }
+            }
+            dependencies {
+                compile 'test:test-jar:1.2'
+                compile 'test:test-aar:1.2'
+                compile 'test:test-thing:1.2'
+                artifacts {
+                    compile file("a.jar")
+                }
+                artifactTypes {
+                    jar {
+                        attributes.attribute(Attribute.of('usage', String), 'java-runtime')
+                        attributes.attribute(Attribute.of('javaVersion', String), '1.8')
                     }
-                    artifactTypes {
-                        jar {
-                            attributes.attribute(Attribute.of('usage', String), 'java-runtime')
-                            attributes.attribute(Attribute.of('javaVersion', String), '1.8')
-                        }
-                        aar {
-                            attributes.attribute(Attribute.of('artifactType', String), 'aar')
-                            attributes.attribute(Attribute.of('androidType', String), 'library-archive')
-                        }
-                        thing {
-                            attributes.attribute(Attribute.of('artifactType', String), 'widget')
-                            attributes.attribute(Attribute.of('usage', String), 'unknown')
-                        }
+                    aar {
+                        attributes.attribute(Attribute.of('artifactType', String), 'aar')
+                        attributes.attribute(Attribute.of('androidType', String), 'library-archive')
+                    }
+                    thing {
+                        attributes.attribute(Attribute.of('artifactType', String), 'widget')
+                        attributes.attribute(Attribute.of('usage', String), 'unknown')
                     }
                 }
             }
-            project(':b') {
-                dependencies {
-                    compile project(':a')
-                    artifactTypes {
-                        aar {
-                            attributes.attribute(Attribute.of('artifactType', String), 'android-lib')
-                        }
-                        thing {
-                            attributes.attribute(Attribute.of('artifactType', String), 'a-thing')
-                            attributes.attribute(Attribute.of('usage', String), 'a-thing')
-                        }
+
+            $common
+        """
+
+        file("b/build.gradle") << """
+            configurations {
+                compile
+                create('default') { extendsFrom configurations.compile }
+            }
+            dependencies {
+                compile project(':a')
+                artifactTypes {
+                    aar {
+                        attributes.attribute(Attribute.of('artifactType', String), 'android-lib')
+                    }
+                    thing {
+                        attributes.attribute(Attribute.of('artifactType', String), 'a-thing')
+                        attributes.attribute(Attribute.of('usage', String), 'a-thing')
                     }
                 }
             }
-"""
+
+            $common
+        """
 
         when:
         run ':a:show'

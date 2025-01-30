@@ -30,7 +30,7 @@ public abstract class SigningPlugin implements Plugin<Project> {
     /**
      * <p>Adds the ability to digitally sign files and artifacts.</p>
      *
-     * <p>Adds the extension {@link SigningExtension} with the name “signing”.</p>
+     * <p>Adds the extension {@link SigningExtension} with the name "signing".</p>
      * <p>Also adds conventions to all {@link Sign sign tasks} to use the signing extension setting defaults.</p>
      *
      * @see SigningExtension

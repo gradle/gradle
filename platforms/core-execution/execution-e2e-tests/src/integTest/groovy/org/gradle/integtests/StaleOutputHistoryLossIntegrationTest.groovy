@@ -506,7 +506,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':customCopy'
 
         buildFile << """
-            task customCopy(type: CustomCopy) {
+            tasks.register('customCopy', CustomCopy) {
                 sourceDir = fileTree('source')
                 targetDir = file('build/target')
             }
@@ -520,9 +520,16 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
                 @OutputDirectory
                 File targetDir
 
+                private FileSystemOperations fileSystemOperations
+
+                @javax.inject.Inject
+                CustomCopy(FileSystemOperations fileSystemOperations) {
+                    this.fileSystemOperations = fileSystemOperations
+                }
+
                 @TaskAction
                 void copyFiles() {
-                    project.copy {
+                    fileSystemOperations.copy {
                         from sourceDir
                         into targetDir
                     }

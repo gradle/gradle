@@ -56,7 +56,7 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
 
                     try {
                         def clazz = systemLoader.loadClass(nonLauncherOrCoreClass)
-                        assert clazz == null : "ClassNotFoundException should have been thrown trying to load a “\${nonLauncherOrCoreClass}” class from the system classloader as its not a launcher or core class (loaded class: \$clazz)"
+                        assert clazz == null : "ClassNotFoundException should have been thrown trying to load a '\${nonLauncherOrCoreClass}' class from the system classloader as its not a launcher or core class (loaded class: \$clazz)"
                     } catch (ClassNotFoundException e) {
                         // expected
                     }

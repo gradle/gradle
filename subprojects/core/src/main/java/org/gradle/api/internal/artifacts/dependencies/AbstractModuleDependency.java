@@ -62,10 +62,6 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private boolean transitive = true;
     private boolean endorsing;
 
-    protected AbstractModuleDependency(@Nullable String configuration) {
-        this.configuration = configuration;
-    }
-
     @Override
     public boolean isTransitive() {
         return transitive;
@@ -168,6 +164,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
         }
         target.endorsing = endorsing;
+        if (target.getTargetConfiguration() != null) {
+            target.setTargetConfiguration(getTargetConfiguration());
+        }
     }
 
     protected boolean isKeyEquals(ModuleDependency dependencyRhs) {

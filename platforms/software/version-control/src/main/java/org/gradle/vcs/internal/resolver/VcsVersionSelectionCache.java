@@ -18,8 +18,6 @@ package org.gradle.vcs.internal.resolver;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
 
@@ -29,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServiceScope(Scope.BuildTree.class)
 public class VcsVersionSelectionCache {
     private final Map<String, File> resolvedVersions = new ConcurrentHashMap<String, File>();
     private final Map<String, Set<VersionRef>> repositoryVersions = new ConcurrentHashMap<String, Set<VersionRef>>();

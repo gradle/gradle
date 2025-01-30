@@ -284,7 +284,7 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
     @Override
     public ResolvedCoordinates resolveVariantCoordinates(ProjectDependency dependency, VariantWarningCollector warnings) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
         ProjectDependencyKey key = new ProjectDependencyKey(identityPath, ModuleDependencyDetails.from(dependency, attributeDesugaring));
 
         ModuleVersionIdentifier resolved = mappings.resolvedProjectVariants.get(key);
@@ -321,7 +321,7 @@ public class ResolutionBackedPublicationDependencyResolver implements VariantDep
 
     @Override
     public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-        Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+        Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
         ModuleVersionIdentifier resolved = mappings.resolvedProjectComponents.get(identityPath);
         if (resolved != null) {
             return ResolvedCoordinates.create(resolved);

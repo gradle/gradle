@@ -18,7 +18,6 @@ package org.gradle.process.internal;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.DefaultFileLookup;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -26,6 +25,7 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.util.concurrent.Executor;
@@ -35,12 +35,12 @@ import static java.util.Objects.requireNonNull;
 @NonNullApi
 public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory, Stoppable {
 
-    private final FileResolver fileResolver;
+    private final PathToFileResolver fileResolver;
     private final Executor executor;
     private final BuildCancellationToken buildCancellationToken;
 
     private DefaultClientExecHandleBuilderFactory(
-        FileResolver fileResolver,
+        PathToFileResolver fileResolver,
         Executor executor,
         BuildCancellationToken buildCancellationToken
     ) {
@@ -54,13 +54,18 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
     }
 
+    @Override
+    public ClientExecHandleBuilderFactory withFileResolver(PathToFileResolver fileResolver) {
+        return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
+    }
+
     public static DefaultClientExecHandleBuilderFactory root(File gradleUserHome) {
         requireNonNull(gradleUserHome, "gradleUserHome");
         return of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
     public static DefaultClientExecHandleBuilderFactory of(
-        FileResolver fileResolver,
+        PathToFileResolver fileResolver,
         ExecutorFactory executorFactory,
         BuildCancellationToken buildCancellationToken
     ) {

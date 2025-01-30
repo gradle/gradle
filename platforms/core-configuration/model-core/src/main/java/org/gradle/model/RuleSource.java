@@ -24,7 +24,7 @@ import org.gradle.api.Incubating;
  * A rule source is not used like a regular Java object.
  * It is a stateless container of methods and possibly constants.
  * <p>
- * Please consult the “Rule based model configuration” chapter of the Gradle User Manual for general information about “rules”.
+ * Please consult the "Rule based model configuration" chapter of the Gradle User Manual for general information about "rules".
  *
  * <h2>Rule methods</h2>
  * <p>
@@ -62,7 +62,7 @@ import org.gradle.api.Incubating;
  * For a void {@link Model} method, the subject is the first method parameter.
  * <p>
  * The {@link Path} annotation can be placed on any parameter (except the subject of {@link Model} rules) to indicate the model element to bind to.
- * If there is no {@link Path} annotation, a “by-type” binding will be attempted.
+ * If there is no {@link Path} annotation, a "by-type" binding will be attempted.
  * The binding scope is determined by how the rule source is applied.
  *
  * <h2>General class constraints</h2>

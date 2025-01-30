@@ -39,31 +39,33 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
     void "can replace project dependency with external dependency"() {
         mavenRepo.module("org.gradle.test", "a", '1.3').publish()
 
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
-        buildFile << """
-            project(':a') {
-                apply plugin: 'base'
-                group = 'org.gradle.test'
-                version = '1.2'
-                configurations { 'default' }
+
+        file("a/build.gradle") << """
+            plugins {
+                id("base")
+            }
+            group = 'org.gradle.test'
+            version = '1.2'
+            configurations { 'default' }
+        """
+
+        file("b/build.gradle") << """
+            $common
+            dependencies {
+                conf project(':a')
+            }
+            configurations.conf.resolutionStrategy {
+                eachDependency {
+                    assert it.requested.toString() == 'org.gradle.test:a:1.2'
+                    assert it.target.toString() == 'org.gradle.test:a:1.2'
+                    it.useVersion('1.3')
+                    assert it.target.toString() == 'org.gradle.test:a:1.3'
+                }
             }
 
-            project(':b') {
-                $common
-                dependencies {
-                    conf project(':a')
-                }
-                configurations.conf.resolutionStrategy {
-                    eachDependency {
-                        assert it.requested.toString() == 'org.gradle.test:a:1.2'
-                        assert it.target.toString() == 'org.gradle.test:a:1.2'
-                        it.useVersion('1.3')
-                        assert it.target.toString() == 'org.gradle.test:a:1.3'
-                    }
-                }
-            }
-"""
+        """
+
         resolve.prepare("conf")
 
         expect:

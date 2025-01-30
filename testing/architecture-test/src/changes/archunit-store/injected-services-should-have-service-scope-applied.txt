@@ -22,6 +22,7 @@ Class <org.gradle.api.logging.LoggingManager> is not annotated with @ServiceScop
 Class <org.gradle.api.plugins.PluginManager> is not annotated with @ServiceScope in (PluginManager.java:0)
 Class <org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities> is not annotated with @ServiceScope in (JvmLanguageUtilities.java:0)
 Class <org.gradle.api.plugins.jvm.internal.JvmPluginServices> is not annotated with @ServiceScope in (JvmPluginServices.java:0)
+Class <org.gradle.api.problems.internal.InternalProblems> is not annotated with @ServiceScope in (InternalProblems.java:0)
 Class <org.gradle.api.provider.ValueSourceParameters> is not annotated with @ServiceScope in (ValueSourceParameters.java:0)
 Class <org.gradle.api.services.BuildServiceParameters> is not annotated with @ServiceScope in (BuildServiceParameters.java:0)
 Class <org.gradle.api.services.BuildServiceRegistry> is not annotated with @ServiceScope in (BuildServiceRegistry.java:0)

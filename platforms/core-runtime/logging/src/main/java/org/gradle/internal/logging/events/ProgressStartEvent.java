@@ -39,7 +39,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     private final BuildOperationCategory buildOperationCategory;
 
     public ProgressStartEvent(
-        OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier progressOperationId,
         @Nullable OperationIdentifier parentProgressOperationId,
         long timestamp,
         String category,

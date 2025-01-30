@@ -31,7 +31,7 @@ import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
 class DirectoryBuildCacheEntryRetentionTest extends Specification {
-    def clock = new FixedClock()
+    def clock = FixedClock.create()
     def directoryBuildCache = Mock(DirectoryBuildCache)
     def cacheConfigurations = TestUtil.objectFactory().newInstance(DefaultCacheConfigurations.class, Mock(LegacyCacheCleanupEnablement), clock)
 

@@ -22,23 +22,24 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
         settingsFile << """
-rootProject.name = 'test'
-"""
-        buildFile << """
-def usage = Attribute.of('usage', String)
-allprojects {
-    dependencies {
-        attributesSchema {
-           attribute(usage)
-        }
+            rootProject.name = 'test'
+        """
     }
-    configurations {
-        compile {
-            attributes.attribute(usage, 'compile')
-        }
-    }
-}
-"""
+
+    String getHeader() {
+        """
+            def usage = Attribute.of('usage', String)
+            dependencies {
+                attributesSchema {
+                   attribute(usage)
+                }
+            }
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'compile')
+                }
+            }
+        """
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -46,59 +47,67 @@ allprojects {
         mavenRepo.module("org", "test", "1.0").publish()
         mavenRepo.module("org", "test2", "1.0").publish()
 
-        createDirs("a", "b")
         settingsFile << """
-include 'a', 'b'
-"""
-        buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenRepo.uri' } }
-}
-dependencies {
-    compile files('test-lib.jar')
-    compile project(':a')
-    compile 'org:test:1.0'
-    artifacts {
-        compile file('test.jar')
-    }
-}
-project(':a') {
-    dependencies {
-        compile files('a-lib.jar')
-        compile project(':b')
-        compile 'org:test:1.0'
-    }
-    artifacts {
-        compile file('a.jar')
-    }
-}
-project(':b') {
-    dependencies {
-        compile files('b-lib.jar')
-        compile 'org:test2:1.0'
-    }
-    artifacts {
-        compile file('b.jar')
-    }
-}
+            include 'a', 'b'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
 
-task show {
-    doLast {
-        println "files 1: " + configurations.compile.collect { it.name }
-        println "files 2: " + configurations.compile.incoming.files.collect { it.name }
-        println "files 3: " + configurations.compile.files.collect { it.name }
-        println "files 4: " + configurations.compile.resolve().collect { it.name }
-        println "files 5: " + configurations.compile.incoming.artifactView({}).files.collect { it.name }
-        println "files 6: " + configurations.compile.incoming.artifactView({componentFilter { true }}).files.collect { it.name }
-        println "files 7: " + configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles.collect { it.name }
-        println "files 8: " + configurations.compile.files { true }.collect { it.name }
-        println "files 9: " + configurations.compile.fileCollection { true }.collect { it.name }
-        println "files 10: " + configurations.compile.fileCollection { true }.files.collect { it.name }
-        println "files 11: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
-        println "files 12: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
-    }
-}
-"""
+        buildFile << """
+            $header
+
+            dependencies {
+                compile files('test-lib.jar')
+                compile project(':a')
+                compile 'org:test:1.0'
+                artifacts {
+                    compile file('test.jar')
+                }
+            }
+
+            task show {
+                doLast {
+                    println "files 1: " + configurations.compile.collect { it.name }
+                    println "files 2: " + configurations.compile.incoming.files.collect { it.name }
+                    println "files 3: " + configurations.compile.files.collect { it.name }
+                    println "files 4: " + configurations.compile.resolve().collect { it.name }
+                    println "files 5: " + configurations.compile.incoming.artifactView({}).files.collect { it.name }
+                    println "files 6: " + configurations.compile.incoming.artifactView({componentFilter { true }}).files.collect { it.name }
+                    println "files 7: " + configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles.collect { it.name }
+                    println "files 8: " + configurations.compile.files { true }.collect { it.name }
+                    println "files 9: " + configurations.compile.fileCollection { true }.collect { it.name }
+                    println "files 10: " + configurations.compile.fileCollection { true }.files.collect { it.name }
+                    println "files 11: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
+                    println "files 12: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            dependencies {
+                compile files('a-lib.jar')
+                compile project(':b')
+                compile 'org:test:1.0'
+            }
+            artifacts {
+                compile file('a.jar')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile files('b-lib.jar')
+                compile 'org:test2:1.0'
+            }
+            artifacts {
+                compile file('b.jar')
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
@@ -126,68 +135,76 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies compatibility rules to select variant"() {
-        createDirs("a", "b")
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+        """
+
+        def common = """
+            $header
+
+            def flavor = Attribute.of('flavor', String)
+
+            dependencies {
+                attributesSchema.attribute(flavor)
+            }
+        """
+
         buildFile << """
-class FreeRule implements AttributeCompatibilityRule<String> {
-    void execute(CompatibilityCheckDetails<String> details) {
-        if (details.consumerValue == 'preview' && details.producerValue == 'free') {
-            details.compatible()
-        }
-    }
-}
+            $common
 
-class PaidRule implements AttributeCompatibilityRule<String> {
-    void execute(CompatibilityCheckDetails<String> details) {
-        if (details.consumerValue == 'preview' && details.producerValue == 'paid') {
-            details.compatible()
-        }
-    }
-}
+            configurations {
+                compile.attributes.attribute(flavor, 'preview')
+            }
 
-def flavor = Attribute.of('flavor', String)
+            dependencies {
+                compile project(':a')
+            }
 
-allprojects {
-    dependencies {
-        attributesSchema.attribute(flavor)
-    }
-}
+            task show {
+                inputs.files ${expression}
+                doLast {
+                    println "files: " + ${expression}.collect { it.name }
+                }
+            }
+        """
 
-configurations {
-    compile.attributes.attribute(flavor, 'preview')
-}
+        file("a/build.gradle") << """
+            $common
 
-dependencies {
-    compile project(':a')
-}
+            class FreeRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue == 'preview' && details.producerValue == 'free') {
+                        details.compatible()
+                    }
+                }
+            }
+            dependencies {
+                attributesSchema.attribute(flavor) {
+                    compatibilityRules.add(FreeRule)
+                }
+                compile project(':b')
+            }
+            ${freeAndPaidFlavoredJars('a')}
+        """
 
-project(':a') {
-    dependencies {
-        attributesSchema.attribute(flavor) {
-            compatibilityRules.add(FreeRule)
-        }
-        compile project(':b')
-    }
-    ${freeAndPaidFlavoredJars('a')}
-}
-project(':b') {
-    dependencies {
-        attributesSchema.attribute(flavor) {
-            compatibilityRules.add(PaidRule)
-        }
-    }
-    ${freeAndPaidFlavoredJars('b')}
-}
+        file("b/build.gradle") << """
+            $common
 
-task show {
-    inputs.files ${expression}
-    doLast {
-        println "files: " + ${expression}.collect { it.name }
-    }
-}
-"""
+            class PaidRule implements AttributeCompatibilityRule<String> {
+                void execute(CompatibilityCheckDetails<String> details) {
+                    if (details.consumerValue == 'preview' && details.producerValue == 'paid') {
+                        details.compatible()
+                    }
+                }
+            }
+            dependencies {
+                attributesSchema.attribute(flavor) {
+                    compatibilityRules.add(PaidRule)
+                }
+            }
+            ${freeAndPaidFlavoredJars('b')}
+        """
+
         expect:
         2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
@@ -206,53 +223,63 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "applies disambiguation rules to select variant"() {
-        createDirs("a", "b")
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+        """
         buildFile << """
-class SelectFreeRule implements AttributeDisambiguationRule<String> {
-    void execute(MultipleCandidatesDetails<String> details) {
-        details.closestMatch('free')
-    }
-}
-class SelectPaidRule implements AttributeDisambiguationRule<String> {
-    void execute(MultipleCandidatesDetails<String> details) {
-        details.closestMatch('paid')
-    }
-}
+            $header
 
-def flavor = Attribute.of('flavor', String)
+            def flavor = Attribute.of('flavor', String)
 
-dependencies {
-    compile project(':a')
-}
+            dependencies {
+                compile project(':a')
+            }
 
-project(':a') {
-    dependencies {
-        attributesSchema.attribute(flavor) {
-            disambiguationRules.add(SelectFreeRule)
-        }
-        compile project(':b')
-    }
-    ${freeAndPaidFlavoredJars('a')}
-}
-project(':b') {
-    dependencies {
-            attributesSchema.attribute(flavor) {
-            disambiguationRules.add(SelectPaidRule)
-        }
-    }
-    ${freeAndPaidFlavoredJars('b')}
-}
+            task show {
+                inputs.files ${expression}
+                doLast {
+                    println "files: " + ${expression}.collect { it.name }
+                }
+            }
+        """
 
-task show {
-    inputs.files ${expression}
-    doLast {
-        println "files: " + ${expression}.collect { it.name }
-    }
-}
-"""
+        file("a/build.gradle") << """
+            $header
+
+            def flavor = Attribute.of('flavor', String)
+
+            class SelectFreeRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch('free')
+                }
+            }
+            dependencies {
+                attributesSchema.attribute(flavor) {
+                    disambiguationRules.add(SelectFreeRule)
+                }
+                compile project(':b')
+            }
+            ${freeAndPaidFlavoredJars('a')}
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            def flavor = Attribute.of('flavor', String)
+
+            class SelectPaidRule implements AttributeDisambiguationRule<String> {
+                void execute(MultipleCandidatesDetails<String> details) {
+                    details.closestMatch('paid')
+                }
+            }
+            dependencies {
+                    attributesSchema.attribute(flavor) {
+                    disambiguationRules.add(SelectPaidRule)
+                }
+            }
+            ${freeAndPaidFlavoredJars('b')}
+        """
+
         expect:
         2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
@@ -271,37 +298,49 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure when there is more than one compatible variant"() {
-        createDirs("a", "b")
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+        """
+
         buildFile << """
-def flavor = Attribute.of('flavor', String)
+            $header
 
-dependencies {
-    compile project(':a')
-}
+            def flavor = Attribute.of('flavor', String)
 
-project(':a') {
-    dependencies {
-        attributesSchema.attribute(flavor)
-        compile project(':b')
-    }
-    ${freeAndPaidFlavoredJars('a')}
-}
-project(':b') {
-    dependencies {
-        attributesSchema.attribute(flavor)
-    }
-    ${freeAndPaidFlavoredJars('b')}
-}
+            dependencies {
+                compile project(':a')
+            }
 
-task show {
-    doLast {
-        println "files: " + ${expression}.collect { it.name }
-    }
-}
-"""
+            task show {
+                doLast {
+                    println "files: " + ${expression}.collect { it.name }
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            def flavor = Attribute.of('flavor', String)
+
+            dependencies {
+                attributesSchema.attribute(flavor)
+                compile project(':b')
+            }
+            ${freeAndPaidFlavoredJars('a')}
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            def flavor = Attribute.of('flavor', String)
+
+            dependencies {
+                attributesSchema.attribute(flavor)
+            }
+            ${freeAndPaidFlavoredJars('b')}
+        """
+
         expect:
         maybeExpectDeprecation(expression)
         fails("show")
@@ -333,47 +372,55 @@ task show {
     def "reports failure when there is no compatible variant"() {
         mavenRepo.module("test", "test", "1.2").publish()
 
-        createDirs("a", "b")
         settingsFile << """
-include 'a', 'b'
-"""
+            include 'a', 'b'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
+        def common = """
+            $header
+            def flavor = Attribute.of('flavor', String)
+
+            dependencies.attributesSchema.attribute(flavor)
+        """
+
         buildFile << """
-def flavor = Attribute.of('flavor', String)
+            $common
 
-dependencies {
-    compile project(':a')
-}
+            dependencies {
+                compile project(':a')
+            }
 
-allprojects {
-    dependencies.attributesSchema.attribute(flavor)
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-}
+            configurations.compile {
+                attributes.attribute(flavor, 'preview')
+                attributes.attribute(Attribute.of('artifactType', String), 'dll')
+            }
 
-configurations.compile {
-    attributes.attribute(flavor, 'preview')
-    attributes.attribute(Attribute.of('artifactType', String), 'dll')
-}
+            task show {
+                doLast {
+                    println "files: " + ${expression}.collect { it.name }
+                }
+            }
+        """
 
-project(':a') {
-    dependencies {
-        compile project(':b')
-        compile 'test:test:1.2'
-        compile files('things.jar')
-    }
-    ${freeAndPaidFlavoredJars('a')}
-}
-project(':b') {
-    ${freeAndPaidFlavoredJars('b')}
-}
+        file("a/build.gradle") << """
+            $common
 
-task show {
-    doLast {
-        println "files: " + ${expression}.collect { it.name }
-    }
-}
-"""
+            dependencies {
+                compile project(':b')
+                compile 'test:test:1.2'
+                compile files('things.jar')
+            }
+            ${freeAndPaidFlavoredJars('a')}
+        """
+
+        file("b/build.gradle") << """
+            $common
+
+            ${freeAndPaidFlavoredJars('b')}
+        """
 
         expect:
         maybeExpectDeprecation(expression)
@@ -414,21 +461,26 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to resolve component when files are queried using #expression"() {
-        buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-}
-dependencies {
-    compile 'org:test:1.0+'
-    compile 'org:test2:2.0'
-}
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
 
-task show {
-    doLast {
-        ${expression}.collect { it.name }
-    }
-}
-"""
+        buildFile << """
+            $header
+
+            dependencies {
+                compile 'org:test:1.0+'
+                compile 'org:test2:2.0'
+            }
+
+            task show {
+                doLast {
+                    ${expression}.collect { it.name }
+                }
+            }
+        """
 
         given:
         mavenHttpRepo.getModuleMetaData('org', 'test').expectGetMissing()
@@ -460,21 +512,26 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to download artifact when files are queried using #expression"() {
-        buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-}
-dependencies {
-    compile 'org:test:1.0'
-    compile 'org:test2:2.0'
-}
+        settingsFile << """
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
 
-task show {
-    doLast {
-        ${expression}.collect { it.name }
-    }
-}
-"""
+        buildFile << """
+            $header
+
+            dependencies {
+                compile 'org:test:1.0'
+                compile 'org:test2:2.0'
+            }
+
+            task show {
+                doLast {
+                    ${expression}.collect { it.name }
+                }
+            }
+        """
 
         given:
         def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
@@ -509,17 +566,20 @@ task show {
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports failure to query file dependency when files are queried using #expression"() {
         buildFile << """
-dependencies {
-    compile files { throw new RuntimeException('broken') }
-    compile files('lib.jar')
-}
+            $header
 
-task show {
-    doLast {
-        ${expression}.collect { it.name }
-    }
-}
-"""
+            dependencies {
+                compile files { throw new RuntimeException('broken') }
+                compile files('lib.jar')
+            }
+
+            task show {
+                doLast {
+                    ${expression}.collect { it.name }
+                }
+            }
+        """
+
         when:
         maybeExpectDeprecation(expression)
         fails 'show'
@@ -544,33 +604,38 @@ task show {
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
     def "reports multiple failures to resolve artifacts when files are queried using #expression"() {
-        createDirs("a")
-        settingsFile << "include 'a'"
+        settingsFile << """
+            include 'a'
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenHttpRepo.uri' } }
+            }
+        """
         buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenHttpRepo.uri' } }
-}
-dependencies {
-    compile 'org:test:1.0'
-    compile 'org:test2:2.0'
-    compile files { throw new RuntimeException('broken 1') }
-    compile files { throw new RuntimeException('broken 2') }
-    compile project(':a')
-}
+            $header
 
-project(':a') {
-    configurations.compile.outgoing.variants {
-        v1 { }
-        v2 { }
-    }
-}
+            dependencies {
+                compile 'org:test:1.0'
+                compile 'org:test2:2.0'
+                compile files { throw new RuntimeException('broken 1') }
+                compile files { throw new RuntimeException('broken 2') }
+                compile project(':a')
+            }
 
-task show {
-    doLast {
-        ${expression}.collect { it.name }
-    }
-}
-"""
+            task show {
+                doLast {
+                    ${expression}.collect { it.name }
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            configurations.compile.outgoing.variants {
+                v1 { }
+                v2 { }
+            }
+        """
 
         given:
         def m1 = mavenHttpRepo.module('org', 'test', '1.0').publish()
@@ -609,6 +674,8 @@ task show {
     def "filtered file and fileCollection methods are deprecated"() {
         given:
         buildFile << """
+            $header
+
             configurations {
                 conf
             }

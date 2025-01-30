@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * A {@link DynamicObject} implementation that provides extensibility.
  *
- * This is the dynamic object implementation that “enhanced” objects expose.
+ * This is the dynamic object implementation that "enhanced" objects expose.
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
