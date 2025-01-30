@@ -168,7 +168,7 @@ Nested events are reflected in the HTML test reports, providing clear traceabili
 
 #### Scala version can be declared explicitly
 
-Starting in this version of Gradle, when applying the `scala-base` or `scala` plugins, you can now explicitly declare the Scala version on the `scala` extension.
+Starting in this version of Gradle, when applying the [scala-base or scala](userguide/scala_plugin.html) plugins, you can now explicitly declare the Scala version on the `scala` extension.
 This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
 It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
 
