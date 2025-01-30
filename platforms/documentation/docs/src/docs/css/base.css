@@ -276,6 +276,17 @@ blockquote p:last-child {
 /* code */
 code {
     font-size: 90%;
+    background-color: #f7f7f8;
+    border-radius: 4px;
+}
+
+*:not(pre) > code {
+    letter-spacing: 0;
+    padding: 0.1em 0.5ex;
+}
+
+.hljs {
+    background: #f7f7f8 !important;
 }
 
 /* util classes */
