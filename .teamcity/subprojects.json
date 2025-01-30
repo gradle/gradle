@@ -1099,6 +1099,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "request-handler-worker",
+    "path": "platforms/core-execution/request-handler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "resources",
     "path": "platforms/software/resources",
     "unitTests": true,

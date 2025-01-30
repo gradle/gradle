@@ -17,7 +17,6 @@
 package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.TaskExecutionRequest;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -35,12 +34,8 @@ import java.util.List;
 public class ModelClassLoaderFactory implements PayloadClassLoaderFactory {
     private final ClassLoader rootClassLoader;
 
-    public ModelClassLoaderFactory() {
-        ClassLoader parent = getClass().getClassLoader();
-        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
-        filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
-        filterSpec.allowClass(TaskExecutionRequest.class);
-        rootClassLoader = new FilteringClassLoader(parent, filterSpec);
+    public ModelClassLoaderFactory(ClassLoader rootClassLoader) {
+        this.rootClassLoader = rootClassLoader;
     }
 
     @Override
