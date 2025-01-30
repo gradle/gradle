@@ -31,6 +31,7 @@ import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.fileevents.FileEvents;
+import org.gradle.fileevents.internal.AbstractFileEventFunctions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
@@ -87,6 +88,9 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     private boolean initialized;
     private boolean useNativeIntegrations;
+    private Native nativeIntegration;
+    private static FileEvents fileEvents;
+
     private File userHomeDir;
     private File nativeBaseDir;
     private final EnumSet<NativeFeatures> initializedFeatures = EnumSet.noneOf(NativeFeatures.class);
@@ -108,7 +112,7 @@ public class NativeServices implements ServiceRegistrationProvider {
                         }
                     }
                     try {
-                        FileEvents.init(nativeBaseDir);
+                        fileEvents = FileEvents.init(nativeBaseDir);
                         LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
                         return true;
                     } catch (NativeIntegrationUnavailableException ex) {
@@ -239,7 +243,7 @@ public class NativeServices implements ServiceRegistrationProvider {
         nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
-                net.rubygrapefruit.platform.Native.init(nativeBaseDir);
+                nativeIntegration = net.rubygrapefruit.platform.Native.init(nativeBaseDir);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
@@ -337,7 +341,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
+                net.rubygrapefruit.platform.Process process = nativeIntegration.get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
@@ -355,7 +359,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
+                Terminals terminals = nativeIntegration.get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform terminal integration is not available. Continuing with fallback.");
@@ -379,7 +383,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     @Provides
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
         if (useNativeIntegrations && operatingSystem.isWindows()) {
-            return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
+            return nativeIntegration.get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class, operatingSystem);
     }
@@ -388,7 +392,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
+                return nativeIntegration.get(SystemInfo.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
@@ -400,7 +404,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(Memory.class);
+                return nativeIntegration.get(Memory.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
@@ -412,7 +416,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected ProcessLauncher createProcessLauncher() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+                return nativeIntegration.get(ProcessLauncher.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
             }
@@ -424,7 +428,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+                return nativeIntegration.get(PosixFiles.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
@@ -436,7 +440,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected HostnameLookup createHostnameLookup() {
         if (useNativeIntegrations) {
             try {
-                String hostname = Native.get(SystemInfo.class).getHostname();
+                String hostname = nativeIntegration.get(SystemInfo.class).getHostname();
                 return new FixedHostname(hostname);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
@@ -460,7 +464,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
         if (useNativeIntegrations) {
             try {
-                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
+                return new NativePlatformBackedFileMetadataAccessor(nativeIntegration.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
@@ -492,7 +496,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(FileSystems.class);
+                return nativeIntegration.get(FileSystems.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }
@@ -543,5 +547,23 @@ public class NativeServices implements ServiceRegistrationProvider {
         public String getHostname() {
             return hostname;
         }
+    }
+
+    public interface FileEventFunctionsProvider {
+        <T extends AbstractFileEventFunctions<?>> T getFunctions(Class<T> type);
+    }
+
+    @Provides
+    FileEventFunctionsProvider createFileEventFunctionsProvider() {
+        return new FileEventFunctionsProvider() {
+            @Override
+            public <T extends AbstractFileEventFunctions<?>> T getFunctions(Class<T> type) {
+                if (fileEvents != null) {
+                    return fileEvents.get(type);
+                } else {
+                    throw new NativeIntegrationUnavailableException("File events are not available.");
+                }
+            }
+        };
     }
 }

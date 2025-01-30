@@ -27,7 +27,7 @@ val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
 val mavenResolverVersion = "1.9.16" // Should remain in-sync with `mavenVersion`
-val nativePlatformVersion = "0.22-milestone-27"
+val nativePlatformVersion = "0.22-milestone-28"
 val slf4jVersion = "1.7.36"
 val spockVersion = if (isBundleGroovy4) "2.3-groovy-4.0" else "2.3-groovy-3.0"
 val tomljVersion = "1.0.0"
@@ -73,7 +73,7 @@ dependencies {
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
         api(libs.fastutil)              { version { strictly("8.5.2") }}
-        api(libs.gradleFileEvents)      { version { strictly("0.2.6") }}
+        api(libs.gradleFileEvents)      { version { strictly("0.2.7") }}
         api(libs.gradleProfiler)        { version { strictly("0.21.0-alpha-4") }}
         api(libs.develocityTestAnnotation) { version { strictly("2.0.1") }}
         api(libs.gcs)                   { version { strictly("v1-rev20220705-1.32.1") }}
