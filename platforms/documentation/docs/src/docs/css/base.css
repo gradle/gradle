@@ -41,7 +41,7 @@ a {
 }
 
 a:hover, a:focus {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 a strong {
@@ -81,6 +81,10 @@ th {
 }
 
 /* typography */
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    color: #02303A
+}
+
 h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
     margin-bottom: 1rem;
@@ -267,6 +271,11 @@ blockquote p:last-child {
         margin-top: 0;
         margin-bottom: 0;
     }
+}
+
+/* code */
+code {
+    font-size: 90%;
 }
 
 /* util classes */
