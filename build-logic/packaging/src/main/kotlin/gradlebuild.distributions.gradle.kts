@@ -20,6 +20,8 @@ import gradlebuild.basics.buildVersionQualifier
 import gradlebuild.basics.kotlindsl.configureKotlinCompilerForGradleBuild
 import gradlebuild.basics.tasks.ClasspathManifest
 import gradlebuild.basics.tasks.PackageListGenerator
+import gradlebuild.configureAsApiElements
+import gradlebuild.configureAsRuntimeElements
 import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
@@ -227,7 +229,14 @@ val gradleApiKotlinExtensionsJar by tasks.registering(Jar::class) {
 }
 
 // A standard Java runtime variant for embedded integration testing
-consumableVariant("runtime", LibraryElements.JAR, Bundling.EXTERNAL, listOf(coreRuntimeOnly, pluginsRuntimeOnly), runtimeApiInfoJar, gradleApiKotlinExtensionsJar)
+consumableVariant("runtime", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
+    configureAsRuntimeElements(objects)
+}
+
+consumableVariant("api", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
+    configureAsApiElements(objects)
+}
+
 // To make all source code of a distribution accessible transitively
 consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly), gradleApiKotlinExtensions.map { it.destinationDirectory })
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
@@ -290,9 +299,21 @@ fun configureDistribution(name: String, distributionSpec: CopySpec, buildDistLif
     }
 
     // A 'installation' variant providing a folder where the distribution is present in the final format for forked integration testing
-    consumableVariant("${name}Installation", "gradle-$name-installation", Bundling.EMBEDDED, emptyList(), installation)
+    consumableVariant("${name}Installation", emptyList(), listOf(installation)) {
+        configureAsRuntimeElements(objects)
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-$name-installation"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        }
+    }
     // A variant providing the zipped distribution as additional input for tests that test the final distribution or require a distribution as test data
-    consumableVariant("${name}DistributionZip", "gradle-$name-distribution-zip", Bundling.EMBEDDED, emptyList(), distributionZip)
+    consumableVariant("${name}DistributionZip", emptyList(), listOf(distributionZip)) {
+        configureAsRuntimeElements(objects)
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("gradle-$name-distribution-zip"))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EMBEDDED))
+        }
+    }
 }
 
 fun generatedBinFileFor(name: String) =
@@ -368,19 +389,14 @@ fun docsResolver(defaultDependency: String) =
         })
     }
 
-fun consumableVariant(name: String, elements: String, bundling: String, extends: List<Configuration>, vararg artifacts: Any) =
+fun consumableVariant(name: String, extends: List<Configuration>, artifacts: List<Any>, configure: Action<Configuration> = Action {}) =
     configurations.create("${name}Elements") {
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(elements))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(bundling))
-        }
         isCanBeResolved = false
         isCanBeConsumed = true
         isVisible = false
         extends.forEach { extendsFrom(it) }
         artifacts.forEach { outgoing.artifact(it) }
+        configure(this)
     }
 
 fun consumableSourcesVariant(name: String, extends: List<Configuration>, vararg artifacts: Any) =

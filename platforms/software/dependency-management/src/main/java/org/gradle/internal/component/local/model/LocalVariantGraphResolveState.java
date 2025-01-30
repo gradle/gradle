@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 
 import java.util.Set;
@@ -37,12 +37,12 @@ public interface LocalVariantGraphResolveState extends VariantGraphResolveState 
     Set<LocalFileDependencyMetadata> getFiles();
 
     /**
-     * Returns a copy of this variant, except with all artifacts transformed by the given transformer.
+     * Returns a copy of this variant, except with the given component identifier.
      *
-     * @param artifactTransformer A transformer applied to all artifacts and sub-variant artifacts.
+     * @param overrideComponentId The new owning component identifier.
      *
-     * @return A copy of this variant, with the given transformer applied to all artifacts.
+     * @return A copy of this variant, with the given owning component identifier.
      */
-    LocalVariantGraphResolveState copyWithTransformedArtifacts(Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> artifactTransformer);
+    LocalVariantGraphResolveState copyWithComponentId(ComponentIdentifier overrideComponentId);
 
 }

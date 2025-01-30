@@ -83,12 +83,14 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
             .allowAll()
         mavenHttpRepo.module("org.external", "external-tool").publish().allowAll()
         file('lib/file-lib.jar') << 'content'
-        buildFile << """
-            project(':project-lib') {
-                apply plugin: 'java-library'
-                ${variantDeclaration('projectLibAttrValue')}
-                ${unselectedVariantDeclaration('projectUnselectedLibAttrValue')}
+        file("project-lib/build.gradle") << """
+            plugins {
+                id("java-library")
             }
+            ${variantDeclaration('projectLibAttrValue')}
+            ${unselectedVariantDeclaration('projectUnselectedLibAttrValue')}
+        """
+        buildFile << """
             apply plugin: 'java-library'
             repositories { maven { url = "${mavenHttpRepo.uri}" } }
             dependencies {

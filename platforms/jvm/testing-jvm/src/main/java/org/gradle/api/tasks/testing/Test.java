@@ -30,6 +30,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecutableUtils;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -205,26 +206,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     }
 
     private Provider<JavaLauncher> createJavaLauncherConvention() {
-        final ObjectFactory objectFactory = getObjectFactory();
         final JavaToolchainService javaToolchainService = getJavaToolchainService();
-        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(new Callable<JavaToolchainSpec>() {
-            @Override
-            public JavaToolchainSpec call() {
-                return TestExecutableUtils.getExecutableToolchainSpec(Test.this, objectFactory);
-            }
-        });
+        PropertyFactory propertyFactory = getPropertyFactory();
+        Provider<JavaToolchainSpec> executableOverrideToolchainSpec = getProviderFactory().provider(() -> TestExecutableUtils.getExecutableToolchainSpec(Test.this, propertyFactory));
 
         return executableOverrideToolchainSpec
-            .flatMap(new Transformer<Provider<JavaLauncher>, JavaToolchainSpec>() {
-                @Override
-                public Provider<JavaLauncher> transform(JavaToolchainSpec spec) {
-                    return javaToolchainService.launcherFor(spec);
-                }
-            })
-            .orElse(javaToolchainService.launcherFor(new Action<JavaToolchainSpec>() {
-                @Override
-                public void execute(JavaToolchainSpec javaToolchainSpec) {}
-            }));
+            .flatMap((Transformer<Provider<JavaLauncher>, JavaToolchainSpec>) javaToolchainService::launcherFor)
+            .orElse(javaToolchainService.launcherFor(javaToolchainSpec -> {}));
     }
 
     /**
@@ -1330,6 +1318,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 

@@ -151,7 +151,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         "3.18",
         "3.18.1",
         "3.18.2",
-        "3.19"
+        "3.19",
+        "3.19.1"
     ]
 
     // Current injection scripts support Develocity plugin 3.3 and above

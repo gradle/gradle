@@ -20,5 +20,5 @@ import java.net.InetAddress;
 
 public interface InetAddressProvider {
     InetAddress getWildcardBindingAddress();
-    Iterable<InetAddress> getCommunicationAddresses();
+    InetAddress getCommunicationAddress();
 }

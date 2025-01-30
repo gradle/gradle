@@ -20,11 +20,11 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
-import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
@@ -56,12 +56,12 @@ class DefaultProblemsReportCreator(
 ) : ProblemReportCreator {
 
     private val report = CommonReport(executorFactory, temporaryFileProvider, internalOptions, "problems report", "problems-report", false)
-    private val taskNames: List<String> = startParameter.taskNames
+    private val taskNames = startParameter.taskNames
     private val problemCount = AtomicInteger(0)
 
     private val failureDecorator = FailureDecorator()
 
-    override fun createReportFile(reportDir: File, problemSummaries: MutableList<ProblemSummaryData>) {
+    override fun createReportFile(reportDir: File, problemSummaries: List<ProblemSummaryData>) {
         report.writeReportFileTo(reportDir.resolve("reports/problems"), object : JsonSource {
             override fun writeToJson(jsonWriter: JsonWriter) {
                 with(jsonWriter) {
@@ -90,7 +90,7 @@ class DefaultProblemsReportCreator(
         }
     }
 
-    override fun addProblem(problem: Problem) {
+    override fun addProblem(problem: InternalProblem) {
         problemCount.incrementAndGet()
         report.onProblem(JsonProblemWriter(problem, failureDecorator, failureFactory))
     }
@@ -106,11 +106,11 @@ fun JsonWriter.problemId(id: ProblemId) {
     }
 }
 
-class JsonProblemWriter(private val problem: Problem, private val failureDecorator: FailureDecorator, private val failureFactory: FailureFactory) : JsonSource {
+class JsonProblemWriter(private val problem: InternalProblem, private val failureDecorator: FailureDecorator, private val failureFactory: FailureFactory) : JsonSource {
     override fun writeToJson(jsonWriter: JsonWriter) {
         with(jsonWriter) {
             jsonObject {
-                val fileLocations = problem.originLocations
+                val fileLocations = problem.originLocations + problem.contextualLocations
                 if (fileLocations.isNotEmpty()) {
                     property("locations") {
                         jsonObjectList(fileLocations) { location ->

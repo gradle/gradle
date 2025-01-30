@@ -517,7 +517,7 @@ public class ExtensibleDynamicObjectTest {
     public void canInvokeMethodsOnJavaSubClassOfGroovyObjectFromGroovy() {
         // This doesn't work.
         // It used to because at the bottom of the hierarchy chain the object implemented methodMissing().
-        // However, our normal “decorated” classes do not do this so it is not realistic.
+        // However, our normal "decorated" classes do not do this so it is not realistic.
 
         // Groovy does something very strange here.
         // For some reason (probably because the class is Java), it won't employ any dynamism.

@@ -17,10 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.reflect.Instantiator;
 
-@ServiceScope(Scope.BuildTree.class)
 public interface InternalProblems extends Problems {
 
     /**
@@ -31,4 +29,8 @@ public interface InternalProblems extends Problems {
     InternalProblemReporter getInternalReporter();
 
     AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
+
+    Instantiator getInstantiator();
+
+    InternalProblemBuilder getProblemBuilder();
 }

@@ -32,6 +32,8 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -90,7 +92,7 @@ class ReceivedProblem implements InternalProblem {
         result.first()
     }
 
-    private <T> List<T> allLocations(Class<T> type) {
+    <T> List<T> allLocations(Class<T> type) {
         allLocations.findAll { type.isInstance(it) } as List<T>
     }
 
@@ -150,13 +152,14 @@ class ReceivedProblem implements InternalProblem {
        additionalData
     }
 
+
     @Override
     ReceivedException getException() {
         exception
     }
 
     @Override
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
         throw new UnsupportedOperationException("Not implemented")
     }
 

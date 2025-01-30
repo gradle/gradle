@@ -23,6 +23,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
@@ -43,6 +44,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
@@ -83,7 +86,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
-            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems(), diagnosticCounts);
+            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems().stream().map(InternalProblem.class::cast).collect(toList()), diagnosticCounts);
             throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getReportedProblems());
         } else {
             problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());

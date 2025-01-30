@@ -69,6 +69,9 @@ class ProjectDependencyMetadataConverterTest extends AbstractDependencyDescripto
         if (dependencyConfiguration != null) {
             dependencyProject.configurations.create(dependencyConfiguration)
         }
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, true, DefaultTaskDependencyFactory.withNoAssociatedProject())
+
+        def dependency = new DefaultProjectDependency(dependencyProject, true, DefaultTaskDependencyFactory.withNoAssociatedProject())
+        dependency.setTargetConfiguration(dependencyConfiguration)
+        return dependency
     }
 }

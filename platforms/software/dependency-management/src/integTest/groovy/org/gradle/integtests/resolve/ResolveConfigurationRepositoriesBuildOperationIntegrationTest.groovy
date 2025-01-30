@@ -183,20 +183,25 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
 
     def "repositories shared across projects are stable"() {
         setup:
-        createDirs("child")
         settingsFile << """
             include 'child'
-        """
-        buildFile << """
-            allprojects {
-                apply plugin: 'java'
-                ${mavenCentralRepoBlock()}
-                task resolve {
-                    def files = configurations.compileClasspath
-                    doLast { files.files }
-                }
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
             }
         """
+
+        def common = """
+            plugins {
+                id("java-library")
+            }
+            task resolve {
+                def files = configurations.compileClasspath
+                doLast { files.files }
+            }
+        """
+
+        buildFile << common
+        file("child/build.gradle") << common
 
         when:
         succeeds 'resolve'

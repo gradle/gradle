@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.execution.plan.DefaultPlanExecutor;
-import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 
 public class ExecutionServices extends AbstractGradleModuleServices {
@@ -28,7 +27,7 @@ public class ExecutionServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
-        registration.add(PlanExecutor.class, DefaultPlanExecutor.class);
+        registration.add(DefaultPlanExecutor.class);
     }
 
     @Override

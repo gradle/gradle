@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.HoldsProjectState;
@@ -49,7 +48,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildTreeScopeServices());
-        registration.add(BuildTreeLocalComponentProvider.class, HoldsProjectState.class, DefaultBuildTreeLocalComponentProvider.class);
+        registration.add(DefaultBuildTreeLocalComponentProvider.class);
     }
 
     @Override
@@ -68,8 +67,8 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
         @Provides
         public void configure(ServiceRegistration serviceRegistration) {
             serviceRegistration.add(BuildStateFactory.class);
-            serviceRegistration.add(IncludedBuildFactory.class, DefaultIncludedBuildFactory.class);
-            serviceRegistration.add(BuildTreeWorkGraphController.class, DefaultIncludedBuildTaskGraph.class);
+            serviceRegistration.add(DefaultIncludedBuildFactory.class);
+            serviceRegistration.add(DefaultIncludedBuildTaskGraph.class);
         }
 
         @Provides

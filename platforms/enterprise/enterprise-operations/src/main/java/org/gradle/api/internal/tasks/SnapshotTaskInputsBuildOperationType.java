@@ -160,7 +160,7 @@ public final class SnapshotTaskInputsBuildOperationType implements BuildOperatio
         interface VisitState extends FilePropertyVisitor.VisitState {
 
             /**
-             * The “primary” attribute of the current property.
+             * The "primary" attribute of the current property.
              * <p>
              * Used by Develocity plugin &lt; 3.8, retained for backwards compatibility.
              * <p>

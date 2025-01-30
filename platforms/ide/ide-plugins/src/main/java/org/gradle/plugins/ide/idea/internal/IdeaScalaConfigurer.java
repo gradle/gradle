@@ -49,6 +49,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildNamed;
 import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildWithAttributeValue;
@@ -59,9 +60,11 @@ public class IdeaScalaConfigurer {
     private static final VersionNumber IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED = VersionNumber.version(14);
     public static final String DEFAULT_SCALA_PLATFORM_VERSION = "2.10.7";
     private final Project rootProject;
+    private final Consumer<Collection<Project>> onScalaProjects;
 
-    public IdeaScalaConfigurer(Project rootProject) {
+    public IdeaScalaConfigurer(Project rootProject, Consumer<Collection<Project>> onScalaProjects) {
         this.rootProject = rootProject;
+        this.onScalaProjects = onScalaProjects;
     }
 
     public void configure() {
@@ -71,6 +74,9 @@ public class IdeaScalaConfigurer {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();
+
+                onScalaProjects.accept(scalaProjects);
+
                 final Map<String, ProjectLibrary> scalaCompilerLibraries = new LinkedHashMap<>();
                 rootProject.getTasks().named("ideaProject", new Action<Task>() {
                     @Override
@@ -210,8 +216,8 @@ public class IdeaScalaConfigurer {
         return Collections2.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
-                final boolean hasIdeaPlugin = project.getPlugins().hasPlugin(IdeaPlugin.class);
-                final boolean hasScalaPlugin = project.getPlugins().hasPlugin(ScalaBasePlugin.class);
+                final boolean hasIdeaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, IdeaPlugin.class);
+                final boolean hasScalaPlugin = IdeaIsolatedProjectsWorkarounds.hasPlugin(project, ScalaBasePlugin.class);
                 return hasIdeaPlugin && hasScalaPlugin;
             }
         });

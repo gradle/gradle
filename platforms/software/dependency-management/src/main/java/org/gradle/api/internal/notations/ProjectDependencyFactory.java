@@ -52,7 +52,11 @@ public class ProjectDependencyFactory {
             @MapKey("path") String path,
             @MapKey("configuration") @Nullable String configuration
         ) {
-            return factory.create(projectFinder.getProject(path), configuration);
+            ProjectDependency defaultProjectDependency = factory.create(projectFinder.getProject(path));
+            if (configuration != null) {
+                defaultProjectDependency.setTargetConfiguration(configuration);
+            }
+            return defaultProjectDependency;
         }
 
         @Override

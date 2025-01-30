@@ -38,12 +38,18 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
     def "resolved configurations are exposed via build operation"() {
         setup:
-        buildFile << """
-            allprojects {
-                apply plugin: "java"
+        settingsFile << """
+            include 'child'
+            dependencyResolutionManagement {
                 repositories {
                     maven { url = '${mavenHttpRepo.uri}' }
                 }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
             }
             dependencies {
                 implementation 'org.foo:hiphop:1.0'
@@ -52,9 +58,15 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 implementation 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
         """
+
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
         failedResolve.prepare("compileClasspath")
-        createDirs("child")
-        settingsFile << "include 'child'"
+
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown')
         def m3 = mavenHttpRepo.module('org.foo', 'broken')
@@ -123,12 +135,14 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         setupComposite()
         buildFile << """
-            allprojects {
-                apply plugin: "java"
-                repositories {
-                    maven { url = '${mavenHttpRepo.uri}' }
-                }
+            plugins {
+                id("java-library")
             }
+
+            repositories {
+                maven { url = '${mavenHttpRepo.uri}' }
+            }
+
             dependencies {
                 implementation 'org.foo:root-dep:1.0'
                 implementation 'org.foo:my-composite-app:1.0'
@@ -284,27 +298,36 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'some-dep').publish()
 
-        createDirs("projectB", "projectB/sub1")
         file("projectB/settings.gradle") << """
-        rootProject.name = 'project-b'
-        include "sub1"
+            rootProject.name = 'project-b'
+            include "sub1"
         """
 
         file("projectB/build.gradle") << """
-                buildscript {
-                    repositories {
-                        maven { url = '${mavenHttpRepo.uri}' }
-                    }
-                    dependencies {
-                        classpath "org.foo:some-dep:1.0"
-                    }
+            buildscript {
+                repositories {
+                    maven { url = '${mavenHttpRepo.uri}' }
                 }
-                allprojects {
-                    apply plugin: 'java'
-                    group = "org.sample"
-                    version = "1.0"
+                dependencies {
+                    classpath "org.foo:some-dep:1.0"
                 }
+            }
 
+            plugins {
+                id("java-library")
+            }
+
+            group = "org.sample"
+            version = "1.0"
+        """
+
+        file("projectB/sub1/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            group = "org.sample"
+            version = "1.0"
         """
 
         settingsFile << """
@@ -314,7 +337,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         buildFile << """
             buildscript {
                 dependencies {
-
                     classpath 'org.sample:sub1:1.0'
                 }
             }
@@ -468,7 +490,10 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         secondMavenHttpRepo.module('org.foo', 'child-transitive2').publish().allowAll()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
+
             repositories {
                 maven {
                     name = 'maven1'
@@ -479,6 +504,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                     url = "${secondMavenHttpRepo.uri}"
                 }
             }
+
             dependencies {
                 implementation 'org.foo:direct1:1.0'
                 implementation 'org.foo:direct2:1.0'
@@ -489,17 +515,20 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 from configurations.runtimeClasspath
                 into "build/resolved"
             }
+        """
 
-            project(':child') {
-                apply plugin: "java"
-                dependencies {
-                    implementation 'org.foo:child-transitive1:1.0'
-                    implementation 'org.foo:child-transitive2:1.0'
-                }
+        settingsFile << "include 'child'"
+
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation 'org.foo:child-transitive1:1.0'
+                implementation 'org.foo:child-transitive2:1.0'
             }
         """
-        createDirs("child")
-        settingsFile << "include 'child'"
+
 
         def verifyExpectedOperation = {
             def ops = operations.all(ResolveConfigurationDependenciesBuildOperationType)
@@ -543,7 +572,9 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             .publish().allowAll()
 
         buildFile << """
-            apply plugin: "java"
+            plugins {
+                id("java-library")
+            }
             repositories {
                 maven {
                     name = 'maven1'
@@ -555,17 +586,21 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                 implementation 'org.foo:missing-direct:1.0' // does not exist
                 implementation project(':child')
             }
+        """
 
-            project(':child') {
-                apply plugin: "java"
-                dependencies {
-                    implementation 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
-                }
+        settingsFile << "include 'child'"
+
+        file("child/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation 'org.foo:broken-transitive:1.0' // throws exception trying to resolve
             }
         """
+
         failedResolve.prepare("runtimeClasspath")
-        createDirs("child")
-        settingsFile << "include 'child'"
 
         when:
         mavenHttpRepo.module('org.foo', 'missing-direct').allowAll()
@@ -726,7 +761,6 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         setup:
         mavenHttpRepo.module('org.foo', 'stuff').publish().allowAll()
 
-        createDirs("fixtures")
         settingsFile << "include 'fixtures'"
         buildFile << """
             plugins {

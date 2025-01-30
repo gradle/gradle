@@ -24,8 +24,7 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.File;
-
+@SuppressWarnings("deprecation")
 public class CompositeProjectComponentArtifactMetadataSerializer implements Serializer<CompositeProjectComponentArtifactMetadata> {
 
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
@@ -35,14 +34,12 @@ public class CompositeProjectComponentArtifactMetadataSerializer implements Seri
     public CompositeProjectComponentArtifactMetadata read(Decoder decoder) throws Exception {
         ProjectComponentIdentifier componentIdentifier = (ProjectComponentIdentifier) componentIdentifierSerializer.read(decoder);
         PublishArtifactLocalArtifactMetadata delegate = publishArtifactLocalArtifactMetadataSerializer.read(decoder);
-        File file = new File(decoder.readString());
-        return new CompositeProjectComponentArtifactMetadata(componentIdentifier, delegate, file);
+        return new CompositeProjectComponentArtifactMetadata(componentIdentifier, delegate);
     }
 
     @Override
     public void write(Encoder encoder, CompositeProjectComponentArtifactMetadata value) throws Exception {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
         publishArtifactLocalArtifactMetadataSerializer.write(encoder, (PublishArtifactLocalArtifactMetadata) value.getDelegate());
-        encoder.writeString(value.getFile().getCanonicalPath());
     }
 }

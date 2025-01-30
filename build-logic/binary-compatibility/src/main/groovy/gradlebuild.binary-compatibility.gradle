@@ -32,7 +32,7 @@ plugins {
 repositories {
     ['distributions', 'distributions-snapshots'].each { distUrl ->
         ivy {
-            name 'Gradle distributions'
+            name = 'Gradle distributions'
             url = 'https://services.gradle.org'
             patternLayout {
                 artifact "/${distUrl}/[module]-[revision]-bin(.[ext])"

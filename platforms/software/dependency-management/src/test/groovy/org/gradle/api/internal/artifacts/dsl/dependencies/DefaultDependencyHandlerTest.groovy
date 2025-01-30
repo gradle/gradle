@@ -363,9 +363,9 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependencies are endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
+        ModuleDependency dep1 = new DefaultProjectDependency(null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
-        ModuleDependency dep2 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
+        ModuleDependency dep2 = new DefaultProjectDependency(null, false, TestFiles.taskDependencyFactory())
         dep2.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
@@ -399,7 +399,7 @@ class DefaultDependencyHandlerTest extends Specification {
     }
 
     void "local platform dependency can be made non-endorsing"() {
-        ModuleDependency dep1 = new DefaultProjectDependency(null, null, false, TestFiles.taskDependencyFactory())
+        ModuleDependency dep1 = new DefaultProjectDependency(null, false, TestFiles.taskDependencyFactory())
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:

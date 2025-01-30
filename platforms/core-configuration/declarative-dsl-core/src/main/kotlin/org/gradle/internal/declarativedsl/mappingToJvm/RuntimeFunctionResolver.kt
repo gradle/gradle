@@ -20,11 +20,15 @@ import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.memberFunctions
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.javaType
 
 
@@ -44,8 +48,27 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
         val parameterBindingStub = schemaFunction.parameters.associateWith { Any() }
         val hasConfigureLambda = (schemaFunction.semantics as? FunctionSemantics.ConfigureSemantics)?.configureBlockRequirement?.allows ?: false
 
+        fun signature(function: KFunction<*>): String {
+            return function::class.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }.call(function) as String
+            // It is not very nice that we rely on this internal signature, but we don't have much of a choice...
+            // We have also tried using the "descriptor" field and the "overriddenDescriptors" and/or "overriddenFunctions" from that,
+            // but it's even uglier with a lot of weird lazy types involved and the code for doing so becomes very brittle.
+        }
+
+        fun matchesAnnotationsRecursively(function: KFunction<*>, receiverClass: KClass<*>, predicate: (Annotation) -> Boolean): Boolean =
+            if (function.annotations.any(predicate)) {
+                true
+            } else {
+                val functionSignature = signature(function)
+                receiverClass.allSuperclasses.any { parentClass ->
+                    val parentFunction = parentClass.memberFunctions.firstOrNull { signature(it) == functionSignature }
+                    parentFunction?.annotations?.any(predicate) ?: false
+                }
+            }
+
         val resolutions = receiverClass.memberFunctions
             .filter { function -> function.name == schemaFunction.simpleName && FunctionBinding.convertBinding(function, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null }
+            .filter { f -> matchesAnnotationsRecursively(f, receiverClass, hasDeclarativeAnnotation) }
             .toList()
 
         return when {
@@ -54,7 +77,7 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
             else -> {
                 val refinedResolutions = resolutions.filter { function -> parametersMatch(function, schemaFunction) }
                 val finalResolution = if (refinedResolutions.size == 1) refinedResolutions[0] else
-                    error("Failed disambiguating between following functions: ${resolutions.joinToString(prefix = "\n\t", separator = "\n\t") { f -> f.toString() }}")
+                    error("Failed disambiguating between following functions (matches ${refinedResolutions.size}): ${resolutions.joinToString(prefix = "\n\t", separator = "\n\t") { f -> f.toString() }}")
                 return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(finalResolution, configureLambdaHandler))
             }
         }

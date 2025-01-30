@@ -345,7 +345,7 @@ object EmptyVariantTransformRegistry : VariantTransformRegistry {
         throw UnsupportedOperationException("Should not be called")
     }
 
-    override fun getRegistrations(): MutableList<TransformRegistration> {
-        throw UnsupportedOperationException("Should not be called")
+    override fun getRegistrations(): Set<TransformRegistration> {
+        return emptySet()
     }
 }

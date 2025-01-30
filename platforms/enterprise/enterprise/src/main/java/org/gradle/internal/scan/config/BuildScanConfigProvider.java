@@ -26,7 +26,7 @@ package org.gradle.internal.scan.config;
 public interface BuildScanConfigProvider {
 
     /**
-     * Invoked by the scan plugin to “collect” the configuration.
+     * Invoked by the scan plugin to "collect" the configuration.
      *
      * Will only be called once per build.
      */

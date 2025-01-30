@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption
 import org.gradle.initialization.layout.BuildLayout
 import org.gradle.internal.Factory
+import org.gradle.internal.buildoption.InternalFlag
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.ConfigurationCacheLoggingParameters
@@ -44,6 +45,26 @@ class ConfigurationCacheStartParameter internal constructor(
     private val loggingParameters: ConfigurationCacheLoggingParameters,
 ) {
 
+    companion object {
+
+        private
+        val loadAfterStoreFlag = InternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
+
+        private
+        fun InternalOptions.loadAfterStoreRequested(): Boolean {
+            val value = getOption(loadAfterStoreFlag)
+            if (value.isExplicit) {
+                DeprecationLogger.deprecateSystemProperty(loadAfterStoreFlag.systemPropertyName)
+                    .withContext("The behavior is enabled by default.")
+                    .withAdvice("Avoid using the internal flag.")
+                    .startingWithGradle9("it will not be possible to disable load-after-store behavior of Configuration Cache")
+                    .undocumented()
+                    .nagUser()
+            }
+            return value.get()
+        }
+    }
+
     /**
      * On a CC miss, should we load the newly stored state in the same invocation?
      *
@@ -57,7 +78,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * Doing load-after-store would have discarded the project state and isolated the task state,
      * providing the builders with an incomplete view of the build.
      */
-    val loadAfterStore: Boolean = !modelParameters.isRequiresToolingModels && options.getInternalFlag("org.gradle.configuration-cache.internal.load-after-store", true)
+    val loadAfterStore: Boolean by lazy { options.loadAfterStoreRequested() && !modelParameters.isRequiresToolingModels }
 
     val taskExecutionAccessPreStable: Boolean = options.getInternalFlag("org.gradle.configuration-cache.internal.task-execution-access-pre-stable")
 
@@ -91,7 +112,7 @@ class ConfigurationCacheStartParameter internal constructor(
      * @see StartParameterInternal.configurationCacheParallel
      */
     val isParallelCache: Boolean by lazy {
-        startParameter.isConfigurationCacheParallel.also { enabled ->
+        isIsolatedProjects || startParameter.isConfigurationCacheParallel.also { enabled ->
             if (enabled) {
                 IncubationLogger.incubatingFeatureUsed("Parallel Configuration Cache")
             }

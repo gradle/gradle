@@ -30,6 +30,7 @@ dependencies {
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.native)
+    api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.processMemoryServices)
     api(projects.serialization)

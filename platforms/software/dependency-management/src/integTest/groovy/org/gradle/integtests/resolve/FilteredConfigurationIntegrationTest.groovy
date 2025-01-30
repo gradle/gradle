@@ -27,56 +27,64 @@ class FilteredConfigurationIntegrationTest extends AbstractDependencyResolutionT
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
 
-        createDirs("child1", "child2")
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2"
-"""
+            rootProject.name = "main"
+            include "child1", "child2"
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+
         buildFile << """
-allprojects {
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-}
-artifacts {
-    compile file("main.jar")
-}
-dependencies {
-    compile files("lib.jar")
-    compile "group:test1:1.0"
-    compile project(':child1')
-    compile project(':child2')
-}
-project(':child1') {
-    artifacts {
-        compile file("child1.jar")
-    }
-    dependencies {
-        compile files("child1-lib.jar")
-        compile "group:test2:1.0"
-    }
-}
-project(':child2') {
-    artifacts {
-        compile file("child2.jar")
-    }
-}
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            artifacts {
+                compile file("main.jar")
+            }
+            dependencies {
+                compile files("lib.jar")
+                compile "group:test1:1.0"
+                compile project(':child1')
+                compile project(':child2')
+            }
 
-task verify {
-    doLast {
-        println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
-        println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
+            task verify {
+                doLast {
+                    println "file-dependencies: " + configurations.compile.files { it instanceof FileCollectionDependency }.collect { it.name }
+                    println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
+                    println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
 
-        assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
-        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
-    }
-}
-"""
+                    assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
+                    assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
+                }
+            }
+        """
+
+        file("child1/build.gradle") << """
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            artifacts {
+                compile file("child1.jar")
+            }
+            dependencies {
+                compile files("child1-lib.jar")
+                compile "group:test2:1.0"
+            }
+        """
+
+        file("child2/build.gradle") << """
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            artifacts {
+                compile file("child2.jar")
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
@@ -84,7 +92,7 @@ task verify {
         executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
         executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
-        run "verify"
+        succeeds("verify")
 
         then:
         outputContains("file-dependencies: [lib.jar]")
@@ -97,57 +105,59 @@ task verify {
         mavenRepo.module("group", "test1", "1.0").publish()
         mavenRepo.module("group", "test2", "1.0").publish()
 
-        createDirs("child1", "child2")
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2"
-"""
+            rootProject.name = "main"
+            include "child1"
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
         buildFile << """
-allprojects {
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-}
-dependencies {
-    compile files("lib.jar")
-    compile "group:test1:1.0"
-    compile project(':child1')
-}
-artifacts {
-    compile file("main.jar")
-}
-project(':child1') {
-    artifacts {
-        compile file("child1.jar")
-    }
-    dependencies {
-        compile files("child1-lib.jar")
-        compile "group:test2:1.0"
-        compile project(":")
-    }
-}
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            dependencies {
+                compile files("lib.jar")
+                compile "group:test1:1.0"
+                compile project(':child1')
+            }
+            artifacts {
+                compile file("main.jar")
+            }
 
-task verify {
-    doLast {
-        println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
-        println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
+            task verify {
+                doLast {
+                    println "external-dependencies: " + configurations.compile.files { it instanceof ExternalDependency }.collect { it.name }
+                    println "child1-dependencies: " + configurations.compile.files { it instanceof ProjectDependency && it.path == ':child1' }.collect { it.name }
 
-        assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
-        assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
-    }
-}
-"""
+                    assert configurations.compile.resolvedConfiguration.files == configurations.compile.files
+                    assert configurations.compile.resolvedConfiguration.lenientConfiguration.files == configurations.compile.files
+                }
+            }
+        """
+
+        file("child1/build.gradle") << """
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            artifacts {
+                compile file("child1.jar")
+            }
+            dependencies {
+                compile files("child1-lib.jar")
+                compile "group:test2:1.0"
+                compile project(":")
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
         executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
-        run "verify"
+        succeeds("verify")
 
         then:
         outputContains("external-dependencies: [test1-1.0.jar]")
@@ -156,48 +166,56 @@ task verify {
 
     // Note: this captures existing behaviour (all files are built) rather than desired behaviour (only those files reachable from selected deps are built)
     def "can use filtered configuration as task input"() {
-        createDirs("child1", "child2")
         settingsFile << """
-rootProject.name = "main"
-include "child1", "child2"
-"""
+            rootProject.name = "main"
+            include "child1"
+        """
         buildFile << """
-allprojects {
-    configurations {
-        compile
-        create('default') { extendsFrom compile }
-    }
-    task jar {
-        outputs.file file("\${project.name}.jar")
-    }
-    task lib {
-        outputs.file file("\${project.name}-lib.jar")
-    }
-}
-artifacts {
-    compile file: jar.outputs.files.singleFile, builtBy: jar
-}
-dependencies {
-    compile lib.outputs.files
-    compile project(':child1')
-}
-project(':child1') {
-    artifacts {
-        compile file: jar.outputs.files.singleFile, builtBy: jar
-    }
-    dependencies {
-        compile lib.outputs.files
-    }
-}
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            task jar {
+                outputs.file file("\${project.name}.jar")
+            }
+            task lib {
+                outputs.file file("\${project.name}-lib.jar")
+            }
+            artifacts {
+                compile file: jar.outputs.files.singleFile, builtBy: jar
+            }
+            dependencies {
+                compile lib.outputs.files
+                compile project(':child1')
+            }
 
-task verify {
-    inputs.files configurations.compile.fileCollection { it instanceof ProjectDependency }
-}
-"""
+            task verify {
+                inputs.files configurations.compile.fileCollection { it instanceof ProjectDependency }
+            }
+        """
+
+        file("child1/build.gradle") << """
+            configurations {
+                compile
+                create('default') { extendsFrom compile }
+            }
+            task jar {
+                outputs.file file("\${project.name}.jar")
+            }
+            task lib {
+                outputs.file file("\${project.name}-lib.jar")
+            }
+            artifacts {
+                compile file: jar.outputs.files.singleFile, builtBy: jar
+            }
+            dependencies {
+                compile lib.outputs.files
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        run "verify"
+        succeeds("verify")
 
         then:
         // Should not be including ':lib' as it's not required

@@ -75,7 +75,8 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter) {
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter
+    ) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,

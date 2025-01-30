@@ -59,7 +59,7 @@ Each new version of these tools includes many performance improvements, not leas
 
 == Java and Kotlin compilation
 
-The <<caching_java_projects.adoc#java_compilation,discussion>> above in “Caching Java projects” is equally relevant here, with the caveat that, for projects that include Kotlin source code, the Kotlin compiler does not currently support <<java_plugin.adoc#sec:java_compile_avoidance,compile avoidance>> in the way that the Java compiler does.
+The <<caching_java_projects.adoc#java_compilation,discussion>> above in "Caching Java projects" is equally relevant here, with the caveat that, for projects that include Kotlin source code, the Kotlin compiler does not currently support <<java_plugin.adoc#sec:java_compile_avoidance,compile avoidance>> in the way that the Java compiler does.
 
 == Annotation processors and Kotlin
 
@@ -79,7 +79,7 @@ Like unit tests in a pure Java project, the equivalent test task in an Android p
 
 == Instrumented test execution (i.e., Espresso tests)
 
-Android instrumented tests (`DeviceProviderInstrumentTestTask`), often referred to as “Espresso” tests, are also not cacheable.
+Android instrumented tests (`DeviceProviderInstrumentTestTask`), often referred to as "Espresso" tests, are also not cacheable.
 The Google Android team is also working to make such tests cacheable.
 Please see https://issuetracker.google.com/issues/115873051[this issue].
 
@@ -94,10 +94,10 @@ This is another reason to always use the latest version of the Android plugin!
 
 The https://docs.fabric.io/android/fabric/overview.html[Fabric] plugin, which is used to integrate the Crashlytics crash-reporting tool (among others), is very popular, yet imposes some hefty performance penalties during the build process.
 This is due to the need for each version of your app to have a unique identifier so that it can be identified in the Crashlytics dashboard.
-In practice, the default behavior of Crashlytics is to treat “each version” as synonymous with “each build”.
+In practice, the default behavior of Crashlytics is to treat "each version" as synonymous with "each build".
 This defeats <<incremental_build.adoc#incremental_build,incremental build>>, because each build will be unique.
 It also breaks the cacheability of certain tasks in the build, and for the same reason.
-This can be fixed by simply disabling Crashlytics in “debug” builds.
+This can be fixed by simply disabling Crashlytics in "debug" builds.
 You may find instructions for that in the https://docs.fabric.io/android/crashlytics/build-tools.html[Crashlytics documentation].
 
 NOTE: The fix described in the referenced documentation does not work directly if you are using the Kotlin DSL; see below for the workaround.

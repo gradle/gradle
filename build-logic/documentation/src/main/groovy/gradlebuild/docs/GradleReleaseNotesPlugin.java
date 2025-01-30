@@ -29,6 +29,9 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.util.GradleVersion;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 import java.nio.charset.Charset;
 
 /**
@@ -70,7 +73,14 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getJquery().from(extension.getReleaseNotes().getJquery());
 
             ModuleIdentityExtension moduleIdentity = project.getExtensions().getByType(ModuleIdentityExtension.class);
+
             MapProperty<String, String> replacementTokens = task.getReplacementTokens();
+            String timestamp = moduleIdentity.getBuildTimestamp().get();
+            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssZ");
+            ZonedDateTime dateTime = ZonedDateTime.parse(timestamp, inputFormatter);
+            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            replacementTokens.put("releaseDate", dateTime.format(outputFormatter));
             replacementTokens.put("version", moduleIdentity.getVersion().map(GradleVersion::getVersion));
             replacementTokens.put("baseVersion", moduleIdentity.getVersion().map(v -> v.getBaseVersion().getVersion()));
 
@@ -94,8 +104,9 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             releaseNotes.getRenderedDocumentation().convention(releaseNotesPostProcess.flatMap(DecorateReleaseNotes::getDestinationFile));
             releaseNotes.getBaseCssFile().convention(extension.getSourceRoot().file("css/base.css"));
             releaseNotes.getReleaseNotesCssFile().convention(extension.getSourceRoot().file("css/release-notes.css"));
-            releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("release/content/script.js"));
+            releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("release/content/releaseIssues.js"));
             releaseNotes.getJquery().from(jquery);
+            releaseNotes.getReleaseNotesAssets().convention(extension.getSourceRoot().dir("release/release-notes-assets"));
         });
     }
 }
