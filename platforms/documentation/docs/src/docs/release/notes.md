@@ -164,6 +164,30 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
 
+#### Distribution base plugin introduced
+
+Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the [Distribution Plugin](userguide/distribution_plugin.html) but does not add a default distribution.
+The existing `distribution` plugin now acts as a wrapper for the `distribution-base` plugin, adding a default `main` distribution.
+
+The `distribution-base` plugin is particularly useful for plugin developers who want the capabilities of the Distribution Plugin without a `main` distribution.
+
+```kotlin
+plugins {
+    id("distribution-base")
+}
+
+distributions {
+    create("custom") {
+        distributionBaseName = "customName"
+        contents {
+            from("src/customLocation")
+        }
+    }
+}
+
+assert(distributions.findByName("main") == null)
+```
+
 <a name="error-warning"></a>
 ### Error and warning reporting improvements
 
