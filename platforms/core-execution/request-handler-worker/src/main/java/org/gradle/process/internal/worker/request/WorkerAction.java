@@ -18,24 +18,26 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
-import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.state.ModelObject;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
@@ -46,10 +48,18 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Worker-side implementation of {@link RequestProtocol} executing actions.
@@ -70,11 +80,19 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Nonnull
     private static PayloadSerializer createPayloadSerializer() {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+
+        ClassLoader parent = WorkerAction.class.getClassLoader();
+        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        FilteringClassLoader modelClassLoader = new FilteringClassLoader(parent, filterSpec);
+
         return new PayloadSerializer(
             new WellKnownClassLoaderRegistry(
                 new DefaultPayloadClassLoaderRegistry(
                     classLoaderCache,
-                    new ModelClassLoaderFactory())));
+                    new ModelClassLoaderFactory(modelClassLoader)
+                )
+            )
+        );
     }
 
     @Override
@@ -90,7 +108,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Global.class)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new BasicCrossBuildInMemoryCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler());
             }
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
@@ -196,4 +214,86 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void handleStreamFailure(Throwable t) {
         responder.failed(t);
     }
+
+    /**
+     * A {@link CrossBuildInMemoryCacheFactory} that does not retain values across builds.
+     * <p>
+     * This class does not really satisfy the contract of {@link CrossBuildInMemoryCacheFactory}, as it
+     * does not retain _any_ state between builds, even if the worker lives across builds.
+     * <p>
+     * The default implementation of this interface, which is used in the Gradle daemon, relies on listener
+     * events to know when builds have started and stopped. In the worker daemon, these events are never emitted
+     * in the worker -- effectively making this implementation equivalent to the default implementation in the
+     * worker daemon context.
+     */
+    private static class BasicCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
+
+        @Override
+        public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
+            return new BasicCrossBuildInMemoryCache<>();
+        }
+
+        @Override
+        public <V> CrossBuildInMemoryCache<Class<?>, V> newClassMap() {
+            return new BasicCrossBuildInMemoryCache<>();
+        }
+
+        @Override
+        public <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
+            return new BasicCrossBuildInMemoryCache<>();
+        }
+
+        private static class BasicCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V> {
+
+            private final Map<K, V> state = new ConcurrentHashMap<>();
+
+            @Override
+            public V get(K key, Function<? super K, ? extends V> factory) {
+                return state.computeIfAbsent(key, factory);
+            }
+
+            @Override
+            public void clear() {
+                state.clear();
+            }
+
+            @Nullable
+            @Override
+            public V getIfPresent(K key) {
+                return state.get(key);
+            }
+
+            @Override
+            public void put(K key, V value) {
+                state.put(key, value);
+            }
+
+        }
+
+    }
+
+    private static class BasicPropertyRoleAnnotationHandler implements PropertyRoleAnnotationHandler {
+        @Override
+        public Set<Class<? extends Annotation>> getAnnotationTypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void applyRoleTo(ModelObject owner, Object target) {
+            if (target instanceof PropertyInternal) {
+                ((PropertyInternal<?>) target).attachProducer(owner);
+            }
+        }
+    }
+
 }
