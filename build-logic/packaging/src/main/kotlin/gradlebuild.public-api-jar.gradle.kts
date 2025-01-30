@@ -18,9 +18,6 @@ import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.packaging.GradleDistributionSpecs.srcDistributionSpec
-import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration
-import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact
 
 plugins {
     id("gradlebuild.dependency-modules")
@@ -48,6 +45,15 @@ val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspa
     extendsFrom(externalRuntimeOnly.get())
     configureAsRuntimeJarClasspath(objects)
 }
+val javadocs = configurations.dependencyScope("javadocs") {
+    description = "Javadocs of the published Gradle API"
+}
+val resolvedJavadocs = configurations.resolvable("resolvedJavadocs") {
+    extendsFrom(javadocs.get());
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+    attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, DocsType.JAVADOC))
+}
 
 // Defines configurations used to resolve the public Gradle API.
 val distribution = configurations.dependencyScope("distribution") {
@@ -59,7 +65,6 @@ val distributionClasspath = configurations.resolvable("distributionClasspath") {
         attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
     }
 }
-
 val jarGradleApi = tasks.register("jarGradleApi", Jar::class) {
     from(distributionClasspath.map { configuration ->
         configuration.incoming.artifactView {
@@ -88,12 +93,20 @@ val gradleApiElements = configurations.consumable("gradleApiElements") {
     configureAsApiElements(objects)
 }
 
-val gradleApiSources = configurations.resolvable("gradleApiSources") {
+val gradleApiSources = configurations.consumable("gradleApiSources") {
+    // TODO Collect source files from the distribution
     outgoing.artifact(jarGradleSources)
     attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
     attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
     attributes.attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling::class.java, Bundling.EXTERNAL))
     attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, DocsType.SOURCES))
+}
+
+val gradleApiJavadocs = configurations.consumable("gradleApiJavadocs") {
+    outgoing.artifact(resolvedJavadocs.get().elements.map { it.single() })
+    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage::class.java, Usage.JAVA_RUNTIME))
+    attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class.java, Category.DOCUMENTATION))
+    attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType::class.java, DocsType.JAVADOC))
 }
 
 open class SoftwareComponentFactoryProvider @Inject constructor(val factory: SoftwareComponentFactory)
@@ -106,4 +119,6 @@ gradleApiComponent.addVariantsFromConfiguration(gradleApiElements.get()) {
     mapToMavenScope("compile")
 }
 gradleApiComponent.addVariantsFromConfiguration(gradleApiSources.get()) {
+}
+gradleApiComponent.addVariantsFromConfiguration(gradleApiJavadocs.get()) {
 }

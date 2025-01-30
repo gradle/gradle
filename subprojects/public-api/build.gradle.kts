@@ -37,6 +37,9 @@ dependencies {
     externalApi(libs.slf4jApi)
     // We only need this because of AntTarget :o
     externalApi(libs.ant)
+
+    // We consume Javadocs built in the :docs project
+    javadocs(projects.docs)
 }
 
 val testRepoLocation = layout.buildDirectory.dir("repos/test")

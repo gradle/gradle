@@ -32,6 +32,14 @@ configurations {
         }
         isVisible = false
     }
+    consumable("gradleJavadocElements") {
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType.JAVADOC))
+        }
+        isVisible = false
+    }
 }
 
 configurations {
@@ -850,6 +858,11 @@ tasks.named<Test>("docsTest") {
     }
 }
 
+val jarJavadocs = tasks.register("jarJavadocs", Jar::class) {
+    archiveBaseName.set("gradle-javadocs")
+    from(project.gradleDocumentation.javadocs.renderedDocumentation)
+}
+
 // Publications for the docs subproject:
 
 configurations {
@@ -858,6 +871,10 @@ configurations {
         outgoing.artifact(project.gradleDocumentation.documentationRenderedRoot.get().asFile) {
             builtBy(tasks.named("docs"))
         }
+    }
+
+    named("gradleJavadocElements") {
+        outgoing.artifact(jarJavadocs)
     }
 }
 
