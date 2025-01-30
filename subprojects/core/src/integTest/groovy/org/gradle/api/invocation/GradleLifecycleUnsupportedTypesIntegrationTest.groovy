@@ -65,7 +65,7 @@ class GradleLifecycleUnsupportedTypesIntegrationTest extends AbstractIntegration
         fails "help"
 
         then:
-        failureCauseContains("cannot serialize object of type '$concreteTypeName'")
+        failureDescriptionContains("cannot serialize object of type '$concreteTypeName'")
 
         where:
         concreteType                      | baseType         | reference
