@@ -12,30 +12,19 @@ dependencies {
 }
 
 tasks.register('checkResolvedVariant') {
-    def configurationsToCheck = project.configurations.findAll { configuration ->
-        // Skip `test*` configurations and `annotationProcessor` during configuration
-        !(configuration.name.startsWith('test') || configuration.name == 'annotationProcessor')
+    println "RuntimeClasspath Configuration:"
+    def resolvedArtifacts = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts
+    resolvedArtifacts.get().each { artifact ->
+        println "- Artifact: ${artifact.file}"
     }
-
-    doLast {
-        configurationsToCheck.each { configuration ->
-            if (configuration.canBeResolved) {
-                println "Configuration: ${configuration.name}"
-                def resolvedArtifacts = configuration.incoming.artifacts.resolvedArtifacts
-                resolvedArtifacts.get().each { artifact ->
-                    println "- Artifact: ${artifact.file}"
-                }
-                def resolvedComponents = configuration.incoming.resolutionResult.allComponents
-                resolvedComponents.each { component ->
-                    if (component.id.displayName == 'project :producer') {
-                        println "- Component: ${component.id}"
-                        component.variants.each { variant ->
-                            println "    - Variant: ${variant}"
-                            variant.attributes.keySet().each { key ->
-                                println "       - ${key.name} -> ${variant.attributes.getAttribute(key)}"
-                            }
-                        }
-                    }
+    def resolvedComponents = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+    resolvedComponents.each { component ->
+        if (component.id.displayName == 'project :producer') {
+            println "- Component: ${component.id}"
+            component.variants.each { variant ->
+                println "    - Variant: ${variant}"
+                variant.attributes.keySet().each { key ->
+                    println "       - ${key.name} -> ${variant.attributes.getAttribute(key)}"
                 }
             }
         }
@@ -43,56 +32,52 @@ tasks.register('checkResolvedVariant') {
 }
 
 tasks.register('artifactWithAttributeAndView') {
-    doLast {
-        def configuration = configurations.runtimeClasspath
-        println "Attributes used to resolve '${configuration.name}':"
-        configuration.attributes.keySet().each { attribute ->
-            def value = configuration.attributes.getAttribute(attribute)
-            println "  - ${attribute.name} = ${value}"
-        }
+    def configuration = configurations.runtimeClasspath
+    println "Attributes used to resolve '${configuration.name}':"
+    configuration.attributes.keySet().each { attribute ->
+        def value = configuration.attributes.getAttribute(attribute)
+        println "  - ${attribute.name} = ${value}"
+    }
 
-        println "\nAttributes in ArtifactView for 'LibraryElements = classes:'"
-        def artifactView = configuration.incoming.artifactView {
-            attributes {
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'classes'))
-            }
+    println "\nAttributes in ArtifactView for 'LibraryElements = classes:'"
+    def artifactView = configuration.incoming.artifactView {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'classes'))
         }
+    }
 
-        artifactView.artifacts.artifactFiles.files.each { file ->
-            println "- Artifact: ${file.name}"
-        }
+    artifactView.artifacts.artifactFiles.files.each { file ->
+        println "- Artifact: ${file.name}"
+    }
 
-        artifactView.attributes.keySet().each { attribute ->
-            def value = artifactView.attributes.getAttribute(attribute)
-            println "  - ${attribute.name} = ${value}"
-        }
+    artifactView.attributes.keySet().each { attribute ->
+        def value = artifactView.attributes.getAttribute(attribute)
+        println "  - ${attribute.name} = ${value}"
     }
 }
 
 tasks.register('artifactWithAttributeAndVariantReselectionView') {
-    doLast {
-        def configuration = configurations.runtimeClasspath
-        println "Attributes used to resolve '${configuration.name}':"
-        configuration.attributes.keySet().each { attribute ->
-            def value = configuration.attributes.getAttribute(attribute)
-            println "  - ${attribute.name} = ${value}"
-        }
+    def configuration = configurations.runtimeClasspath
+    println "Attributes used to resolve '${configuration.name}':"
+    configuration.attributes.keySet().each { attribute ->
+        def value = configuration.attributes.getAttribute(attribute)
+        println "  - ${attribute.name} = ${value}"
+    }
 
-        println "\nAttributes in ArtifactView for 'Category = production:'"
-        def artifactView = configuration.incoming.artifactView {
-            withVariantReselection()
-            attributes {
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category,'production'))
-            }
+    println "\nAttributes in ArtifactView for 'Category = production:'"
+    def artifactView = configuration.incoming.artifactView {
+        withVariantReselection()
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category,'production'))
         }
+    }
 
-        artifactView.artifacts.artifactFiles.files.each { file ->
-            println "- Artifact: ${file.name}"
-        }
+    artifactView.artifacts.artifactFiles.files.each { file ->
+        println "- Artifact: ${file.name}"
+    }
 
-        artifactView.attributes.keySet().each { attribute ->
-            def value = artifactView.attributes.getAttribute(attribute)
-            println "  - ${attribute.name} = ${value}"
-        }
+    artifactView.attributes.keySet().each { attribute ->
+        def value = artifactView.attributes.getAttribute(attribute)
+        println "  - ${attribute.name} = ${value}"
     }
 }

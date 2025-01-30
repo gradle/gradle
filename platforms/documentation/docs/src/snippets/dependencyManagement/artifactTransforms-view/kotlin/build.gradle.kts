@@ -40,15 +40,13 @@ tasks.register("testArtifact") {
         }
     }.artifacts.resolvedArtifacts
 
-    doLast {
-        resolvedArtifacts.get().forEach  {
-            println("Resolved artifact variant:")
-            println("- ${it.variant}")
-            println("Resolved artifact attributes:")
-            println("- ${it.variant.attributes}")
-            println("Resolved artifact type:")
-            println("- ${it.variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)}")
-        }
+    resolvedArtifacts.get().forEach {
+        println("Resolved artifact variant:")
+        println("- ${it.variant}")
+        println("Resolved artifact attributes:")
+        println("- ${it.variant.attributes}")
+        println("Resolved artifact type:")
+        println("- ${it.variant.attributes.getAttribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE)}")
     }
 }
 // end::artifact-views-with-custom-attribute[]

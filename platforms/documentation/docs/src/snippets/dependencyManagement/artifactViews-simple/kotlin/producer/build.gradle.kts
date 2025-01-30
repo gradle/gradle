@@ -31,32 +31,28 @@ configurations {
 }
 
 tasks.register("checkProducerVariants") {
-    doLast {
-        val producerProject = project(":producer")
+    val producerProject = project(":producer")
 
-        // Check the outgoing variants for the producer
-        producerProject.configurations.forEach { config ->
-            println("Configuration: ${config.name}")
-            config.outgoing.artifacts.forEach {
-                println("  - Artifact: ${it.file}")
-            }
+    // Check the outgoing variants for the producer
+    producerProject.configurations.forEach { config ->
+        println("Configuration: ${config.name}")
+        config.outgoing.artifacts.forEach {
+            println("  - Artifact: ${it.file}")
         }
     }
 }
 
 tasks.register("checkProducerAttributes") {
-    doLast {
-        configurations.forEach { config ->
-            println("")
-            println("Configuration: ${config.name}")
-            println("Attributes:")
-            config.attributes.keySet().forEach { key ->
-                println("  - ${key.name} -> ${config.attributes.getAttribute(key)}")
-            }
-            println("Artifacts:")
-            config.artifacts.forEach {
-                println("${it.file}")
-            }
+    configurations.forEach { config ->
+        println("")
+        println("Configuration: ${config.name}")
+        println("Attributes:")
+        config.attributes.keySet().forEach { key ->
+            println("  - ${key.name} -> ${config.attributes.getAttribute(key)}")
+        }
+        println("Artifacts:")
+        config.artifacts.forEach {
+            println("${it.file}")
         }
     }
 }
