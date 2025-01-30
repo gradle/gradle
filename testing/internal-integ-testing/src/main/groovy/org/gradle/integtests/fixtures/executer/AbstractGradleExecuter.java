@@ -1234,9 +1234,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             properties.put("user.variant", locale.getVariant());
         }
 
-        if (eagerClassLoaderCreationChecksOn) {
-            properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
-        }
+        properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, Boolean.toString(eagerClassLoaderCreationChecksOn));
 
         if (interactive) {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
