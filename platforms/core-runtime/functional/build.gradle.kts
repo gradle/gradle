@@ -12,6 +12,3 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.fastutil)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

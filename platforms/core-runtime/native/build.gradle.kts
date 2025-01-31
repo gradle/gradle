@@ -48,9 +48,6 @@ jmh {
     warmupIterations = 10
     synchronizeIterations = false
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
 
 packageCycles {
     // Cycle between public interface, Factory and implementation class in internal package

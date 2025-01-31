@@ -26,6 +26,3 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

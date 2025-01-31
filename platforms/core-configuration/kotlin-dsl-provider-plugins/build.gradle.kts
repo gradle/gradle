@@ -51,6 +51,3 @@ dependencies {
 packageCycles {
     excludePatterns.add("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**")
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

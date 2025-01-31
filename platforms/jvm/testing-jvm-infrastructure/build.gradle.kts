@@ -82,6 +82,3 @@ dependencyAnalysis {
         }
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

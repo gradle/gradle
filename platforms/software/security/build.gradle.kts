@@ -17,6 +17,3 @@ dependencies {
     implementation(libs.bouncycastleProvider)
     implementation(libs.guava)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

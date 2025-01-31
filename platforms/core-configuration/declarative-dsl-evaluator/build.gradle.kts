@@ -41,6 +41,3 @@ dependencies {
 
     api(libs.futureKotlin("stdlib"))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
