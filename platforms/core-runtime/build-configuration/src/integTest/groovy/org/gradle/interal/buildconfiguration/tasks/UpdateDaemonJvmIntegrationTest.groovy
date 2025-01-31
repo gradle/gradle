@@ -54,7 +54,6 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         fails(":sub:updateDaemonJvm") // should not exist
     }
 
-    @NotYetImplemented
     def "When execute updateDaemonJvm without toolchain download repositories configured Then fails with expected exception message"() {
         when:
         fails "updateDaemonJvm"
