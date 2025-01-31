@@ -34,9 +34,9 @@ public class ToolchainDownloadException extends GradleException implements Resol
 
     private final List<String> resolutions;
 
-    public ToolchainDownloadException(JavaToolchainSpec spec, String url, @Nullable String cause, String... resolutions) {
+    public ToolchainDownloadException(JavaToolchainSpec spec, String url, @Nullable String cause) {
         super(getMessage(spec, url, cause));
-        this.resolutions = Arrays.asList(resolutions);
+        this.resolutions = Arrays.asList(ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION, ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
     }
 
     public ToolchainDownloadException(JavaToolchainSpec spec, URI uri, Throwable cause) {

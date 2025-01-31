@@ -35,7 +35,7 @@ import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository
 import org.gradle.jvm.toolchain.internal.install.DefaultJavaToolchainProvisioningService
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
-import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import spock.lang.Specification
@@ -136,7 +136,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainProvisioningNotConfiguredException.class)
+        thrown(ToolchainProvisioningException.class)
         0 * downloader.download(_, _, _)
     }
 
@@ -152,7 +152,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainProvisioningNotConfiguredException.class)
+        thrown(ToolchainProvisioningException.class)
         0 * downloader.download(_, _, _)
     }
 
@@ -188,7 +188,7 @@ class DefaultJavaToolchainProvisioningServiceTest extends Specification {
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainProvisioningNotConfiguredException.class)
+        thrown(ToolchainProvisioningException.class)
     }
 
     def "downloads from url"() {

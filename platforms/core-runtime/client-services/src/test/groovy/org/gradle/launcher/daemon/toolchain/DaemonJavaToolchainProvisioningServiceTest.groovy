@@ -25,7 +25,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException
-import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.platform.internal.CurrentBuildPlatform
@@ -109,7 +109,7 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         0 * progressLogger.start("Installing toolchain", null)
-        thrown(ToolchainProvisioningNotConfiguredException.class)
+        thrown(ToolchainProvisioningException.class)
     }
 
     def "fails downloading from not provided platform toolchain url"() {

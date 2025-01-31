@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal.install.exceptions;
 
 import org.gradle.api.GradleException;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
@@ -26,11 +27,14 @@ import java.util.Arrays;
 import java.util.List;
 
 @Contextual
-public class ToolchainProvisioningNotConfiguredException extends GradleException implements ResolutionProvider {
+public class ToolchainProvisioningException extends GradleException implements ResolutionProvider {
+
+    public static final String AUTO_DETECTION_RESOLUTION = "Learn more about toolchain auto-detection and auto-provisioning at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".";
+    public static final String DOWNLOAD_REPOSITORIES_RESOLUTION = "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".";
 
     private final List<String> resolutions;
 
-    public ToolchainProvisioningNotConfiguredException(
+    public ToolchainProvisioningException(
         JavaToolchainSpec specification,
         String cause,
         String... resolutions

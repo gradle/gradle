@@ -40,8 +40,8 @@ class PlatformInOutputNormalizer implements OutputNormalizer {
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
         return commandOutput
+            .replaceAll(internalOs.toString() ,"%OS_ARCH%")
             .replaceAll(arch, "%ARCH%")
             .replaceAll(os.name(), "%OS%")
-            .replaceAll(internalOs.toString() ,"%OS_ARCH%")
     }
 }

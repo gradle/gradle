@@ -65,7 +65,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imple
                .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=14, vendor=Eclipse Temurin, implementation=J9}. " +
                     "No matching toolchain could be found in the configured toolchain download repositories.")
                .assertHasResolutions(
-                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                    DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
                    STACKTRACE_MESSAGE,
                    INFO_DEBUG,
@@ -104,7 +104,7 @@ class JavaToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imple
                .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=14, vendor=any vendor, implementation=vendor-specific}. " +
                    "Toolchain auto-provisioning is not enabled.")
                .assertHasResolutions(
-                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                   DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                    STACKTRACE_MESSAGE,
                    INFO_DEBUG,
                    SCAN,

@@ -20,7 +20,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.FileLock;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -36,7 +35,7 @@ import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.RealizedJavaToolchainRepository;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
-import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,15 +94,15 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain auto-provisioning is not enabled.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
+            throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
+                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
         }
 
         List<? extends RealizedJavaToolchainRepository> repositories = toolchainResolverRegistry.requestedRepositories();
         if (repositories.isEmpty()) {
-            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain download repositories have not been configured.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+            throw new ToolchainProvisioningException(spec, "Toolchain download repositories have not been configured.",
+                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
+                ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION);
         }
 
         // TODO: This should be refactored to leverage the new JavaToolchainResolverService but the current error handling makes it hard
@@ -202,18 +201,17 @@ public class DefaultJavaToolchainProvisioningService implements JavaToolchainPro
             provisioningFailures.put(repositoryName, failure);
         }
 
-        public ToolchainProvisioningNotConfiguredException buildFailureException(JavaToolchainSpec spec) {
+        public ToolchainProvisioningException buildFailureException(JavaToolchainSpec spec) {
             String cause = "No matching toolchain could be found in the configured toolchain download repositories.";
             if (hasFailures()) {
                 cause = failureMessage();
             }
 
             String[] resolutions = {
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + "."
+                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION,
+                ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION
             };
-
-            ToolchainProvisioningNotConfiguredException exception = new ToolchainProvisioningNotConfiguredException(spec, cause, resolutions);
+            ToolchainProvisioningException exception = new ToolchainProvisioningException(spec, cause, resolutions);
 
             return addFailuresAsSuppressed(exception);
         }

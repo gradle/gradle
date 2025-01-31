@@ -17,7 +17,6 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.cache.FileLock;
-import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.ExternalResource;
@@ -27,7 +26,7 @@ import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
-import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningNotConfiguredException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
 import org.gradle.platform.internal.CurrentBuildPlatform;
 
 import java.io.File;
@@ -63,8 +62,8 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     @Override
     public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainProvisioningNotConfiguredException(spec, "Toolchain auto-provisioning is not enabled.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
+            throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
+                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
         }
 
         synchronized (PROVISIONING_PROCESS_LOCK) {
@@ -101,14 +100,10 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
             return new URI(stringUri);
         } catch (NullPointerException e) {
             String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
-            throw new ToolchainDownloadException(spec, stringUri, cause,
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+            throw new ToolchainDownloadException(spec, stringUri, cause);
         } catch (URISyntaxException e) {
             String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
-            throw new ToolchainDownloadException(spec, stringUri, cause,
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+            throw new ToolchainDownloadException(spec, stringUri, cause);
         }
     }
 }
