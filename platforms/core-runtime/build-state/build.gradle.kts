@@ -40,6 +40,3 @@ dependencies {
     implementation(projects.serialization)
 
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

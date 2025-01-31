@@ -29,6 +29,3 @@ dependencies {
     implementation(libs.groovy)
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

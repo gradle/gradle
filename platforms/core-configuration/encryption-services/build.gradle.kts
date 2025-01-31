@@ -35,6 +35,3 @@ dependencies {
     implementation(projects.persistentCache)
     implementation(projects.stdlibKotlinExtensions)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

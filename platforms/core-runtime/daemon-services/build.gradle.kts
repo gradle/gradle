@@ -40,6 +40,3 @@ dependencies {
 
     testImplementation(testFixtures(projects.time))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

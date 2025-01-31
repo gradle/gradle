@@ -6,6 +6,3 @@ description = "Utilities for parsing command line arguments"
 
 gradlebuildJava.usedInWorkers()
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
