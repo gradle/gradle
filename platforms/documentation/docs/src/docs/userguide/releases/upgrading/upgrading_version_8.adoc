@@ -113,7 +113,8 @@ container.attributeProvider(firstAttribute, project.getProviders().provider(() -
 There is no good public use case for this exception, and it is not intended to be thrown by users.
 It will be replaced by `org.gradle.api.internal.artifacts.transform.VariantTransformConfigurationException` for internal use only in Gradle 9.0.
 
-[[deprecated_string_value_to_enum_rich_property_assignment]]
+[[deprecated_string_to_enum_coercion_for_rich_properties]]
+==== Groovy String to Enum coercion for Property types is deprecated
 
 Assigning a string value to an enum rich property e.g. `Property<T extends Enum>` is deprecated and will become an error with Gradle 10.0.
 This behaviour was implemented only as a compatibility feature for Groovy DSL for easier migration of core Gradle APIs to rich properties.

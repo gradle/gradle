@@ -35,7 +35,7 @@ public class Providers {
     public static final Provider<Boolean> FALSE = of(false);
 
     public static <T> ProviderInternal<T> fixedValue(DisplayName owner, T value, Class<T> targetType, ValueSanitizer<T> sanitizer) {
-        value = sanitizer.sanitize(targetType, value);
+        value = sanitizer.sanitize(value);
         if (!targetType.isInstance(value)) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using an instance of type %s.", owner.getDisplayName(), targetType.getName(), value.getClass().getName()));
         }

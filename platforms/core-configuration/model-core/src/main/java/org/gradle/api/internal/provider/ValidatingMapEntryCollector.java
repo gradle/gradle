@@ -45,14 +45,14 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
             "Cannot get the value of a property of type %s with value type %s as the source contains a null value for key \"%s\".",
             Map.class.getName(), valueType.getName(), key);
 
-        K sanitizedKey = keySanitizer.sanitize(keyType, key);
+        K sanitizedKey = keySanitizer.sanitize(key);
         if (!keyType.isInstance(sanitizedKey)) {
             throw new IllegalArgumentException(String.format(
                 "Cannot get the value of a property of type %s with key type %s as the source contains a key of type %s.",
                 Map.class.getName(), keyType.getName(), key.getClass().getName()));
         }
 
-        V sanitizedValue = valueSanitizer.sanitize(valueType, value);
+        V sanitizedValue = valueSanitizer.sanitize(value);
         if (!valueType.isInstance(sanitizedValue)) {
             throw new IllegalArgumentException(String.format(
                 "Cannot get the value of a property of type %s with value type %s as the source contains a value of type %s.",

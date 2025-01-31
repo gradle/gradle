@@ -28,7 +28,7 @@ public class ValueSanitizers {
     private static final ValueSanitizer<Object> STRING_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         @Nullable
-        public Object sanitize(Class<?> valueType, @Nullable Object value) {
+        public Object sanitize(@Nullable Object value) {
             if (value instanceof GString) {
                 return value.toString();
             } else {
@@ -37,24 +37,10 @@ public class ValueSanitizers {
         }
     };
 
-    private static final ValueSanitizer<Object> ENUM_VALUE_SANITIZER = new ValueSanitizer<Object>() {
-        @Override
-        @Nullable
-        public Object sanitize(Class<?> valueType, @Nullable Object value) {
-            if (value instanceof CharSequence) {
-                DeprecationLogger.deprecateBehaviour("Assigning String value to Enum rich property.")
-                    .willBecomeAnErrorInGradle10()
-                    .withUpgradeGuideSection(8, "deprecated_string_value_to_enum_rich_property_assignment")
-                    .nagUser();
-            }
-            return GUtil.toEnum(Cast.uncheckedCast(valueType), value);
-        }
-    };
-
     private static final ValueSanitizer<Object> LONG_VALUE_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         @Nullable
-        public Object sanitize(Class<?> valueType, @Nullable Object value) {
+        public Object sanitize(@Nullable Object value) {
             if (value instanceof Integer) {
                 return ((Integer) value).longValue();
             } else {
@@ -66,44 +52,65 @@ public class ValueSanitizers {
     private static final ValueSanitizer<Object> IDENTITY_SANITIZER = new ValueSanitizer<Object>() {
         @Override
         @Nullable
-        public Object sanitize(Class<?> valueType, @Nullable Object value) {
+        public Object sanitize(@Nullable Object value) {
             return value;
         }
     };
 
-    private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(Object.class, IDENTITY_SANITIZER);
-    private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(String.class, STRING_VALUE_SANITIZER);
-    private static final ValueCollector<Object> LONG_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(Long.class, LONG_VALUE_SANITIZER);
+    private static final ValueCollector<Object> IDENTITY_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(IDENTITY_SANITIZER);
+    private static final ValueCollector<Object> STRING_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(STRING_VALUE_SANITIZER);
+    private static final ValueCollector<Object> LONG_VALUE_COLLECTOR = valueCollectorWithValueSanitizer(LONG_VALUE_SANITIZER);
+
+    private static <T extends Enum<T>> ValueSanitizer<Object> getEnumValueSanitizer(Class<T> enumType) {
+        return new ValueSanitizer<Object>() {
+            @Override
+            @Nullable
+            public Object sanitize(@Nullable Object value) {
+                if (value instanceof CharSequence) {
+                    DeprecationLogger.deprecateBehaviour(String.format("Assigning String value '%s' to property of enum type '%s'.", value, enumType))
+                        .willBecomeAnErrorInGradle10()
+                        .withUpgradeGuideSection(8, "deprecated_string_to_enum_coercion_for_rich_properties")
+                        .nagUser();
+                }
+                return GUtil.toEnum(enumType, value);
+            }
+        };
+    }
 
     public static <T> ValueSanitizer<T> forType(@Nullable Class<? extends T> targetType) {
+        ValueSanitizer<Object> valueSanitizer;
         if (String.class.equals(targetType)) {
-            return Cast.uncheckedCast(STRING_VALUE_SANITIZER);
+            valueSanitizer = STRING_VALUE_SANITIZER;
         } else if (Long.class.equals(targetType)) {
-            return Cast.uncheckedCast(LONG_VALUE_SANITIZER);
+            valueSanitizer = LONG_VALUE_SANITIZER;
         } else if (targetType != null && targetType.isEnum()) {
-            return Cast.uncheckedCast(ENUM_VALUE_SANITIZER);
+            valueSanitizer = getEnumValueSanitizer(Cast.uncheckedCast(targetType));
         } else {
-            return Cast.uncheckedCast(IDENTITY_SANITIZER);
+            valueSanitizer = IDENTITY_SANITIZER;
         }
+        return Cast.uncheckedCast(valueSanitizer);
     }
 
     public static <T> ValueCollector<T> collectorFor(@Nullable Class<? extends T> elementType) {
+        ValueCollector<Object> valueCollector;
         if (String.class.equals(elementType)) {
-            return Cast.uncheckedCast(STRING_VALUE_COLLECTOR);
+            valueCollector = STRING_VALUE_COLLECTOR;
         } else if (Long.class.equals(elementType)) {
-            return Cast.uncheckedCast(LONG_VALUE_COLLECTOR);
+            valueCollector = LONG_VALUE_COLLECTOR;
         } else if (elementType != null && elementType.isEnum()) {
-            return Cast.uncheckedCast(valueCollectorWithValueSanitizer(elementType, ENUM_VALUE_SANITIZER));
+            ValueSanitizer<Object> valueSanitizer = getEnumValueSanitizer(Cast.uncheckedCast(elementType));
+            valueCollector = valueCollectorWithValueSanitizer(valueSanitizer);
         } else {
-            return Cast.uncheckedCast(IDENTITY_VALUE_COLLECTOR);
+            valueCollector = IDENTITY_VALUE_COLLECTOR;
         }
+        return Cast.uncheckedCast(valueCollector);
     }
 
-    private static ValueCollector<Object> valueCollectorWithValueSanitizer(Class<?> elementType, ValueSanitizer<Object> sanitizer) {
+    private static ValueCollector<Object> valueCollectorWithValueSanitizer(ValueSanitizer<Object> sanitizer) {
         return new ValueCollector<Object>() {
             @Override
             public void add(@Nullable Object value, ImmutableCollection.Builder<Object> dest) {
-                dest.add(sanitizer.sanitize(Cast.uncheckedCast(elementType), value));
+                dest.add(sanitizer.sanitize(value));
             }
 
             @Override

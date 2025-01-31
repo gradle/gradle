@@ -38,7 +38,7 @@ class TypeSanitizingTransformer<T> implements Transformer<T, T> {
 
     @Override
     public T transform(T t) {
-        T v = Cast.uncheckedCast(sanitizer.sanitize(targetType, t));
+        T v = Cast.uncheckedCast(sanitizer.sanitize(t));
         if (targetType.isInstance(v)) {
             return v;
         }
