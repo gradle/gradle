@@ -80,25 +80,72 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  * Provides various native platform integration services.
  */
 public class NativeServices implements ServiceRegistrationProvider {
-    private static NativeServices INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
+    private static NativeServices INSTANCE;
+    // TODO All this should be static
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
 
     public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
     private final boolean useNativeIntegrations;
-    private final Native nativeIntegration;
-
     private final File userHomeDir;
-    private final File nativeBaseDir;
+
+    private final Native nativeIntegration;
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
 
     private final ServiceRegistry services;
 
     public enum NativeFeatures {
-        FILE_SYSTEM_WATCHING,
-        JANSI
+        FILE_SYSTEM_WATCHING {
+            @Override
+            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+                if (!useNativeIntegrations) {
+                    return false;
+                }
+                OperatingSystem operatingSystem = OperatingSystem.current();
+                if (operatingSystem.isMacOsX()) {
+                    String version = operatingSystem.getVersion();
+                    if (VersionNumber.parse(version).getMajor() < 12) {
+                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                        return false;
+                    }
+                }
+                try {
+                    final FileEvents fileEvents = FileEvents.init(nativeBaseDir);
+                    LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+                    builder.provider(new ServiceRegistrationProvider() {
+                        @Provides
+                        FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                            return new FileEventFunctionsProvider() {
+                                @Override
+                                public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                                    if (fileEvents != null) {
+                                        return fileEvents.get(type);
+                                    } else {
+                                        throw new NativeIntegrationUnavailableException("File events are not available.");
+                                    }
+                                }
+                            };
+                        }
+                    });
+                    return true;
+                } catch (NativeIntegrationUnavailableException ex) {
+                    logFileSystemWatchingUnavailable(ex);
+                }
+                return false;
+            }
+        },
+        JANSI {
+            @Override
+            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
+                return true;
+            }
+        };
+
+        public abstract boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
     }
 
     public enum NativeServicesMode {
@@ -199,34 +246,12 @@ public class NativeServices implements ServiceRegistrationProvider {
         }
     }
 
-    private boolean isFeatureEnabled(NativeFeatures feature) {
-        return enabledFeatures.contains(feature);
-    }
-
-    private static File getNativeServicesDir(File userHomeDir) {
-        String overrideProperty = getNativeDirOverride();
-        if (overrideProperty == null) {
-            return new File(userHomeDir, "native");
-        } else {
-            return new File(overrideProperty);
-        }
-    }
-
-    @Nullable
-    private static String getNativeDirOverride() {
-        return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
-    }
-
-    public static synchronized ServiceRegistry getInstance() {
-        return INSTANCE.services;
-    }
-
     private NativeServices(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         this.userHomeDir = userHomeDir;
-        this.nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
 
         boolean useNativeIntegrations = mode.isEnabled();
         Native nativeIntegration = null;
+        File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
                 nativeIntegration = Native.init(nativeBaseDir);
@@ -262,53 +287,35 @@ public class NativeServices implements ServiceRegistrationProvider {
                 }
             });
 
-        if (requestedFeatures.contains(NativeFeatures.FILE_SYSTEM_WATCHING)) {
-            if (initFileEvents(builder, nativeBaseDir)) {
-                enabledFeatures.add(NativeFeatures.FILE_SYSTEM_WATCHING);
+        for (NativeFeatures requestedFeature : requestedFeatures) {
+            if (requestedFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
+                enabledFeatures.add(requestedFeature);
             }
-        }
-
-        if (requestedFeatures.contains(NativeFeatures.JANSI)) {
-            JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-            LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
-            enabledFeatures.add(NativeFeatures.JANSI);
         }
 
         this.services = builder.build();
     }
 
-    private static boolean initFileEvents(ServiceRegistryBuilder servicesBuilder, File nativeBaseDir) {
-        OperatingSystem operatingSystem = OperatingSystem.current();
-        if (operatingSystem.isMacOsX()) {
-            String version = operatingSystem.getVersion();
-            if (VersionNumber.parse(version).getMajor() < 12) {
-                LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                return false;
-            }
+    private boolean isFeatureEnabled(NativeFeatures feature) {
+        return enabledFeatures.contains(feature);
+    }
+
+    private static File getNativeServicesDir(File userHomeDir) {
+        String overrideProperty = getNativeDirOverride();
+        if (overrideProperty == null) {
+            return new File(userHomeDir, "native");
+        } else {
+            return new File(overrideProperty);
         }
-        try {
-            final FileEvents fileEvents = FileEvents.init(nativeBaseDir);
-            LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
-            servicesBuilder.provider(new ServiceRegistrationProvider() {
-                @Provides
-                FileEventFunctionsProvider createFileEventFunctionsProvider() {
-                    return new FileEventFunctionsProvider() {
-                        @Override
-                        public <T extends NativeIntegration> T getFunctions(Class<T> type) {
-                            if (fileEvents != null) {
-                                return fileEvents.get(type);
-                            } else {
-                                throw new NativeIntegrationUnavailableException("File events are not available.");
-                            }
-                        }
-                    };
-                }
-            });
-            return true;
-        } catch (NativeIntegrationUnavailableException ex) {
-            logFileSystemWatchingUnavailable(ex);
-        }
-        return false;
+    }
+
+    @Nullable
+    private static String getNativeDirOverride() {
+        return System.getProperty(NATIVE_DIR_OVERRIDE, System.getenv(NATIVE_DIR_OVERRIDE));
+    }
+
+    public static synchronized ServiceRegistry getInstance() {
+        return INSTANCE.services;
     }
 
     @Provides
