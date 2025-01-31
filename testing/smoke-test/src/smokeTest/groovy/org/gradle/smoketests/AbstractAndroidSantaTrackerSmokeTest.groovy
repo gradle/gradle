@@ -60,13 +60,11 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-        }.build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildCachedLocation(File projectDir, String agpVersion) {
-        return runnerForLocation(projectDir, agpVersion, "assembleDebug").deprecations(SantaTrackerDeprecations) {
-        }.build()
+        return runnerForLocation(projectDir, agpVersion, "assembleDebug").build()
     }
 
     static class SantaTrackerDeprecations extends BaseDeprecations implements WithAndroidDeprecations {
@@ -105,6 +103,9 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements 
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
                 "--add-opens", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
             )
+        }
+        runner.deprecations(SantaTrackerDeprecations) {
+            maybeExpectIsPropertyDeprecationWarnings()
         }
         1.times {
             runner.maybeExpectLegacyDeprecationWarning(
