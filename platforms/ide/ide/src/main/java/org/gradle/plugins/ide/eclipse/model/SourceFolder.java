@@ -144,7 +144,7 @@ public class SourceFolder extends AbstractClasspathEntry {
             return false;
         }
         SourceFolder that = (SourceFolder) o;
-        return Objects.equal(exported, that.exported)
+        return exported == that.exported
             && Objects.equal(accessRules, that.accessRules)
             && Objects.equal(excludes, that.excludes)
             && Objects.equal(includes, that.includes)

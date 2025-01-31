@@ -4,13 +4,6 @@ plugins {
 
 description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
 
-errorprone {
-    disabledChecks.addAll(
-        "LoopOverCharArray", // 1 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
