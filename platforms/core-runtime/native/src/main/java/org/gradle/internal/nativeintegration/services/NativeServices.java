@@ -17,6 +17,7 @@ package org.gradle.internal.nativeintegration.services;
 
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.NativeIntegration;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.ProcessLauncher;
@@ -31,7 +32,6 @@ import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.fileevents.FileEvents;
-import org.gradle.fileevents.internal.AbstractFileEventFunctions;
 import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
@@ -80,20 +80,18 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  * Provides various native platform integration services.
  */
 public class NativeServices implements ServiceRegistrationProvider {
+    private static NativeServices INSTANCE;
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static final NativeServices INSTANCE = new NativeServices();
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
 
     public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
-    private boolean initialized;
-    private boolean useNativeIntegrations;
-    private Native nativeIntegration;
-    private FileEvents fileEvents;
+    private final boolean useNativeIntegrations;
+    private final Native nativeIntegration;
 
-    private File userHomeDir;
-    private File nativeBaseDir;
+    private final File userHomeDir;
+    private final File nativeBaseDir;
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
 
     private final ServiceRegistry services;
@@ -150,7 +148,7 @@ public class NativeServices implements ServiceRegistrationProvider {
      * Initializes all the services needed for the Gradle daemon.
      */
     public static void initializeOnDaemon(File userHomeDir, NativeServicesMode mode) {
-        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), mode);
+        initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), mode);
     }
 
     /**
@@ -159,7 +157,7 @@ public class NativeServices implements ServiceRegistrationProvider {
      * Initializes all the services needed for the CLI or the Tooling API.
      */
     public static void initializeOnClient(File userHomeDir, NativeServicesMode mode) {
-        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), mode);
+        initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), mode);
     }
 
     /**
@@ -168,7 +166,7 @@ public class NativeServices implements ServiceRegistrationProvider {
      * Initializes all the services needed for the CLI or the Tooling API.
      */
     public static void initializeOnWorker(File userHomeDir, NativeServicesMode mode) {
-        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), mode);
+        initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), mode);
     }
 
     public static void logFileSystemWatchingUnavailable(NativeIntegrationUnavailableException ex) {
@@ -184,13 +182,11 @@ public class NativeServices implements ServiceRegistrationProvider {
      *
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
-    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+    private static void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         checkNativeServicesMode(mode);
-        if (!initialized) {
+        if (INSTANCE == null) {
             try {
-                initializeNativeIntegrations(userHomeDir, mode);
-                initialized = true;
-                initializeFeatures(requestedFeatures);
+                INSTANCE = new NativeServices(userHomeDir, requestedFeatures, mode);
             } catch (RuntimeException e) {
                 throw new ServiceCreationException("Could not initialize native services.", e);
             }
@@ -200,69 +196,6 @@ public class NativeServices implements ServiceRegistrationProvider {
     private static void checkNativeServicesMode(NativeServicesMode mode) {
         if (mode != NativeServicesMode.ENABLED && mode != NativeServicesMode.DISABLED) {
             throw new IllegalArgumentException("Only explicit ENABLED or DISABLED mode is allowed for the NativeServices initialization, but was: " + mode);
-        }
-    }
-
-    private void initializeNativeIntegrations(File userHomeDir, NativeServicesMode nativeServicesMode) {
-        this.userHomeDir = userHomeDir;
-        useNativeIntegrations = nativeServicesMode.isEnabled();
-        nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
-        if (useNativeIntegrations) {
-            try {
-                nativeIntegration = net.rubygrapefruit.platform.Native.init(nativeBaseDir);
-            } catch (NativeIntegrationUnavailableException ex) {
-                LOGGER.debug("Native-platform is not available.", ex);
-                useNativeIntegrations = false;
-            } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
-                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                    useNativeIntegrations = false;
-                } else if (ex.getMessage().equals("Could not extract native JNI library.")
-                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
-                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
-                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                    useNativeIntegrations = false;
-                } else {
-                    throw ex;
-                }
-            }
-            LOGGER.info("Initialized native services in: {}", nativeBaseDir);
-        }
-    }
-
-    private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
-        if (useNativeIntegrations) {
-            if (requestedFeatures.contains(NativeFeatures.FILE_SYSTEM_WATCHING)) {
-                fileEvents = initFileEvents();
-                if (fileEvents != null) {
-                    enabledFeatures.add(NativeFeatures.FILE_SYSTEM_WATCHING);
-                }
-            }
-            if (requestedFeatures.contains(NativeFeatures.JANSI)) {
-                JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
-                LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
-                enabledFeatures.add(NativeFeatures.JANSI);
-            }
-        }
-    }
-
-    @Nullable
-    private FileEvents initFileEvents() {
-        OperatingSystem operatingSystem = OperatingSystem.current();
-        if (operatingSystem.isMacOsX()) {
-            String version = operatingSystem.getVersion();
-            if (VersionNumber.parse(version).getMajor() < 12) {
-                LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                return null;
-            }
-        }
-        try {
-            FileEvents fileEvents = FileEvents.init(nativeBaseDir);
-            LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
-            return fileEvents;
-        } catch (NativeIntegrationUnavailableException ex) {
-            logFileSystemWatchingUnavailable(ex);
-            return null;
         }
     }
 
@@ -285,16 +218,40 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     public static synchronized ServiceRegistry getInstance() {
-        if (!INSTANCE.initialized) {
-            // If this occurs while running gradle or running integration tests, it is indicative of a problem.
-            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
-            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
-        }
         return INSTANCE.services;
     }
 
-    private NativeServices() {
-        services = ServiceRegistryBuilder.builder()
+    private NativeServices(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+        this.userHomeDir = userHomeDir;
+        this.nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
+
+        boolean useNativeIntegrations = mode.isEnabled();
+        Native nativeIntegration = null;
+        if (useNativeIntegrations) {
+            try {
+                nativeIntegration = Native.init(nativeBaseDir);
+            } catch (NativeIntegrationUnavailableException ex) {
+                LOGGER.debug("Native-platform is not available.", ex);
+                useNativeIntegrations = false;
+            } catch (NativeException ex) {
+                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativeIntegrations = false;
+                } else if (ex.getMessage().equals("Could not extract native JNI library.")
+                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
+                    //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
+                    LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                    useNativeIntegrations = false;
+                } else {
+                    throw ex;
+                }
+            }
+            LOGGER.info("Initialized native services in: {}", nativeBaseDir);
+        }
+        this.useNativeIntegrations = useNativeIntegrations;
+        this.nativeIntegration = nativeIntegration;
+
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
             .displayName("native services")
             .provider(new FileSystemServices())
             .provider(this)
@@ -303,8 +260,55 @@ public class NativeServices implements ServiceRegistrationProvider {
                 public void configure(ServiceRegistration registration) {
                     registration.add(GradleUserHomeTemporaryFileProvider.class);
                 }
-            })
-            .build();
+            });
+
+        if (requestedFeatures.contains(NativeFeatures.FILE_SYSTEM_WATCHING)) {
+            if (initFileEvents(builder, nativeBaseDir)) {
+                enabledFeatures.add(NativeFeatures.FILE_SYSTEM_WATCHING);
+            }
+        }
+
+        if (requestedFeatures.contains(NativeFeatures.JANSI)) {
+            JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
+            LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
+            enabledFeatures.add(NativeFeatures.JANSI);
+        }
+
+        this.services = builder.build();
+    }
+
+    private static boolean initFileEvents(ServiceRegistryBuilder servicesBuilder, File nativeBaseDir) {
+        OperatingSystem operatingSystem = OperatingSystem.current();
+        if (operatingSystem.isMacOsX()) {
+            String version = operatingSystem.getVersion();
+            if (VersionNumber.parse(version).getMajor() < 12) {
+                LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
+                return false;
+            }
+        }
+        try {
+            final FileEvents fileEvents = FileEvents.init(nativeBaseDir);
+            LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+            servicesBuilder.provider(new ServiceRegistrationProvider() {
+                @Provides
+                FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                    return new FileEventFunctionsProvider() {
+                        @Override
+                        public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                            if (fileEvents != null) {
+                                return fileEvents.get(type);
+                            } else {
+                                throw new NativeIntegrationUnavailableException("File events are not available.");
+                            }
+                        }
+                    };
+                }
+            });
+            return true;
+        } catch (NativeIntegrationUnavailableException ex) {
+            logFileSystemWatchingUnavailable(ex);
+        }
+        return false;
     }
 
     @Provides
@@ -541,20 +545,6 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     public interface FileEventFunctionsProvider {
-        <T extends AbstractFileEventFunctions<?>> T getFunctions(Class<T> type);
-    }
-
-    @Provides
-    FileEventFunctionsProvider createFileEventFunctionsProvider() {
-        return new FileEventFunctionsProvider() {
-            @Override
-            public <T extends AbstractFileEventFunctions<?>> T getFunctions(Class<T> type) {
-                if (fileEvents != null) {
-                    return fileEvents.get(type);
-                } else {
-                    throw new NativeIntegrationUnavailableException("File events are not available.");
-                }
-            }
-        };
+        <T extends NativeIntegration> T getFunctions(Class<T> type);
     }
 }
