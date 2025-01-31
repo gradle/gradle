@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal;
+package org.gradle.api.plugins.internal.ant;
 
-import org.gradle.api.Action;
-import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
-import org.gradle.api.plugins.internal.ant.AntWorkAction;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.workers.WorkParameters;
 
-public abstract class CheckstyleAction extends AntWorkAction<CheckstyleActionParameters> {
-
-    @Override
-    protected String getActionName() {
-        return "checkstyle";
-    }
-
-    @Override
-    protected Action<AntBuilderDelegate> getAntAction() {
-        return new CheckstyleInvoker(getParameters());
-    }
+public interface AntWorkParameters extends WorkParameters {
+    ConfigurableFileCollection getAntLibraryClasspath();
 }
