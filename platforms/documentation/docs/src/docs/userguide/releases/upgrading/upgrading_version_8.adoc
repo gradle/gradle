@@ -116,9 +116,11 @@ It will be replaced by `org.gradle.api.internal.artifacts.transform.VariantTrans
 [[deprecated_string_to_enum_coercion_for_rich_properties]]
 ==== Groovy String to Enum coercion for Property types is deprecated
 
-Assigning a string value to an enum rich property e.g. `Property<T extends Enum>` is deprecated and will become an error with Gradle 10.0.
-This behaviour was implemented only as a compatibility feature for Groovy DSL for easier migration of core Gradle APIs to rich properties.
+Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[String to enum coercion].
+Assigning a string to a property of type `Property<T>` where `T` is an enum is deprecated.
+This will become an error in Gradle 10.0.
 
+This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
 
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
