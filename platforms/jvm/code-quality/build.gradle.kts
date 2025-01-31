@@ -22,7 +22,7 @@ description = "Plugins and integration with code quality (Checkstyle, PMD, CodeN
 
 errorprone {
     disabledChecks.addAll(
-        "HidingField", // 3 occurrences
+//        "HidingField", // 3 occurrences
     )
 }
 
