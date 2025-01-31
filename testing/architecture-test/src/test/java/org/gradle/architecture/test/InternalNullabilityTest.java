@@ -19,7 +19,7 @@ package org.gradle.architecture.test;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import static com.tngtech.archunit.lang.conditions.ArchPredicates.are;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
@@ -33,7 +33,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.not_synthetic_classes
 public class InternalNullabilityTest {
 
     /**
-     * This test validates that all internal classes are annotated with {@link NonNullApi}.
+     * This test validates that all internal classes are annotated with {@link NullMarked}.
      * <p>
      * The annotation can be applied on the class directly, but the preferred way is to annotate the package by adding or updating the {@code package-info.java} file.
      * See {@code subprojects/core-api/src/main/java/org/gradle/package-info.java} for an example.
@@ -47,5 +47,5 @@ public class InternalNullabilityTest {
         .that(are(inGradleInternalApiPackages()))
         .and(classes_not_written_in_kotlin)
         .and(not_synthetic_classes)
-        .should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class)));
+        .should(beAnnotatedOrInPackageAnnotatedWith(NullMarked.class)));
 }

@@ -26,7 +26,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.gradle.internal.reflect.PropertyAccessorType;
 
-import javax.annotation.Nullable;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +78,7 @@ public class KotlinCompatibilityTest {
         private final JavaMethod method;
         private final boolean isGetter;
 
-        @Nullable
+        @javax.annotation.Nullable
         public static Accessor from(JavaMethod method) {
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(method.getName());
             if (propertyAccessorType != null && (KotlinCompatibilityTest.isGetter(method, propertyAccessorType) || KotlinCompatibilityTest.isSetter(method, propertyAccessorType))) {
@@ -116,7 +116,7 @@ public class KotlinCompatibilityTest {
         private final Set<JavaMethod> getters;
         private final Set<JavaMethod> setters;
 
-        @Nullable
+        @javax.annotation.Nullable
         public static Accessors from(String propertyName, List<Accessor> accessors) {
             Map<Boolean, List<Accessor>> gettersAndSetters = accessors.stream().collect(partitioningBy(Accessor::isGetter));
             JavaClass owningClass = accessors.iterator().next().getMethod().getOwner();
@@ -151,8 +151,8 @@ public class KotlinCompatibilityTest {
         }
 
         public boolean nullableIsSymmetric() {
-            long nullableGetterCount = getters.stream().filter(this::getterAnnotatedWithNullable).count();
-            long nullableSetterCount = setters.stream().filter(this::setterAnnotatedWithNullable).count();
+            long nullableGetterCount = getters.stream().filter(Accessors::getterAnnotatedWithNullable).count();
+            long nullableSetterCount = setters.stream().filter(Accessors::setterAnnotatedWithNullable).count();
 
             boolean gettersArePartiallyNull = 0 < nullableGetterCount && nullableGetterCount < getters.size();
             boolean settersArePartiallyNull = 0 < nullableSetterCount && nullableSetterCount < setters.size();
@@ -166,12 +166,19 @@ public class KotlinCompatibilityTest {
             return nonNullGetters == nonNullSetters;
         }
 
-        private boolean getterAnnotatedWithNullable(JavaMethod getter) {
-            return getter.isAnnotatedWith(Nullable.class);
+        private static boolean getterAnnotatedWithNullable(JavaMethod getter) {
+            try {
+                Method method = getter.reflect();
+                return method.getAnnotatedReturnType().getAnnotation(org.jspecify.annotations.Nullable.class) != null;
+            } catch (NoClassDefFoundError e) {
+                return getter.isAnnotatedWith(org.jspecify.annotations.Nullable.class);
+            }
         }
 
-        private boolean setterAnnotatedWithNullable(JavaMethod setter) {
-            return Arrays.stream(setter.reflect().getParameterAnnotations()[0]).anyMatch(a -> a instanceof Nullable);
+        private static boolean setterAnnotatedWithNullable(JavaMethod setter) {
+            return Arrays.stream(setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations()).anyMatch(a ->
+                a instanceof org.jspecify.annotations.Nullable
+            );
         }
 
         @Override
@@ -184,7 +191,7 @@ public class KotlinCompatibilityTest {
         // We avoid using reflect, since that leads to class loading exceptions
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
-            && m.getRawParameterTypes().size() == 0
+            && m.getRawParameterTypes().isEmpty()
             && (accessorType != PropertyAccessorType.IS_GETTER || m.getRawReturnType().isEquivalentTo(Boolean.TYPE) || m.getRawReturnType().isEquivalentTo(Boolean.class));
     }
 
