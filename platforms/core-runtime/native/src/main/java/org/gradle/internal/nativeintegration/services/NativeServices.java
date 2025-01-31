@@ -81,7 +81,8 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  */
 public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static NativeServices INSTANCE;
+    private static NativeServices instance;
+
     // TODO All this should be static
     private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
 
@@ -231,9 +232,9 @@ public class NativeServices implements ServiceRegistrationProvider {
      */
     private static void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         checkNativeServicesMode(mode);
-        if (INSTANCE == null) {
+        if (instance == null) {
             try {
-                INSTANCE = new NativeServices(userHomeDir, requestedFeatures, mode);
+                instance = new NativeServices(userHomeDir, requestedFeatures, mode);
             } catch (RuntimeException e) {
                 throw new ServiceCreationException("Could not initialize native services.", e);
             }
@@ -315,12 +316,12 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     public static synchronized ServiceRegistry getInstance() {
-        if (INSTANCE == null) {
+        if (instance == null) {
             // If this occurs while running gradle or running integration tests, it is indicative of a problem.
             // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
             throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
         }
-        return INSTANCE.services;
+        return instance.services;
     }
 
     @Provides
