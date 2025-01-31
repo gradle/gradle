@@ -16,6 +16,7 @@
 
 package org.gradle.buildconfiguration.tasks;
 
+import com.google.errorprone.annotations.InlineMe;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
@@ -82,7 +83,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
         }
         daemonJvmPropertiesModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
-            getJvmVersion().get(),
+            getLanguageVersion().get(),
             jvmVendor,
             getToolchainDownloadUrls().get()
         );
@@ -100,17 +101,31 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public abstract RegularFileProperty getPropertiesFile();
 
     /**
+     * Deprecated
+     *
+     * @since 8.8
+     * @see #getLanguageVersion()
+     * @deprecated Use getLanguageVersion instead
+     */
+    @Internal
+    @Deprecated
+    @InlineMe(replacement = "this.getLanguageVersion()")
+    public final Property<JavaLanguageVersion> getJvmVersion() {
+        return getLanguageVersion();
+    }
+
+    /**
      * The version of the JVM required to run the Gradle Daemon.
      * <p>
      * By convention, for the task created on the root project, Gradle will use the JVM version of the current JVM.
      *
-     * @since 8.8
+     * @since 8.13
      */
     @Input
     @Optional
     @Option(option = "jvm-version", description = "The version of the JVM required to run the Gradle Daemon.")
     @Incubating
-    public abstract Property<JavaLanguageVersion> getJvmVersion();
+    public abstract Property<JavaLanguageVersion> getLanguageVersion();
 
     /**
      * The vendor of Java required to run the Gradle Daemon.
