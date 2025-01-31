@@ -22,6 +22,7 @@ import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
 import japicmp.model.JApiMethod
 import javassist.CtBehavior
+import javassist.CtClass
 import javassist.CtConstructor
 import javassist.CtField
 import javassist.CtMethod
@@ -130,7 +131,7 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
 
     private static boolean hasNullableAnnotation(CtField field) {
         NullableFieldVisitor visitor = new NullableFieldVisitor(field.getName())
-        new ClassReader(field.getDeclaringClass().toBytecode()).accept(visitor, 0)
+        new ClassReader(byteCodeFrom(field.getDeclaringClass())).accept(visitor, 0)
         return visitor.nullable
     }
 
@@ -171,106 +172,112 @@ class NullabilityBreakingChangesRule extends AbstractGradleViolationRule {
     }
 
     private static boolean hasNullableAnnotation(CtBehavior behavior) {
-        NullableMethodVisitor visitor = new NullableMethodVisitor(behavior);
-        new ClassReader(behavior.getDeclaringClass().toBytecode()).accept(visitor, 0);
-        return visitor.nullable;
+        NullableMethodVisitor visitor = new NullableMethodVisitor(behavior)
+        new ClassReader(byteCodeFrom(behavior.getDeclaringClass())).accept(visitor, 0)
+        return visitor.nullable
     }
 
     static class NullableMethodVisitor extends ClassVisitor {
-        boolean nullable = false;
-        private final CtBehavior behavior;
-        private final String behaviorName;
+        boolean nullable = false
+        private final CtBehavior behavior
+        private final String behaviorName
 
         NullableMethodVisitor(CtBehavior behavior) {
-            super(AsmConstants.ASM_LEVEL);
-            this.behavior = behavior;
-            this.behaviorName = behavior instanceof CtConstructor ? "<init>" : behavior.getName();
+            super(AsmConstants.ASM_LEVEL)
+            this.behavior = behavior
+            this.behaviorName = behavior instanceof CtConstructor ? "<init>" : behavior.getName()
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, String name, String methodDescriptor, String signature, String[] exceptions) {
-            if (behaviorName.equals(name) && methodDescriptor.equals(behavior.getSignature())) {
+        MethodVisitor visitMethod(int access, String name, String methodDescriptor, String signature, String[] exceptions) {
+            if (behaviorName == name && methodDescriptor == behavior.getSignature()) {
                 return new MethodVisitor(AsmConstants.ASM_LEVEL) {
 
                     @Override
-                    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+                    AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
                         if (NULLABLE_ANNOTATIONS.contains(Type.getType(descriptor).getClassName())) {
-                            nullable = true;
+                            nullable = true
                         }
-                        return null;
+                        return null
                     }
 
                     @Override
-                    public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                    AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
                         if (new TypeReference(typeRef).getSort() == TypeReference.METHOD_RETURN &&
                             NULLABLE_ANNOTATIONS.contains(Type.getType(descriptor).getClassName())) {
-                            nullable = true;
+                            nullable = true
                         }
-                        return null;
+                        return null
                     }
-                };
+                }
             }
-            return null;
+            return null
         }
     }
 
 
     private static List<Boolean> parametersNullabilityOf(CtBehavior behavior) {
-        NullableParametersVisitor visitor = new NullableParametersVisitor(behavior);
-        new ClassReader(behavior.getDeclaringClass().toBytecode()).accept(visitor, 0);
-        return visitor.parametersNullability;
+        NullableParametersVisitor visitor = new NullableParametersVisitor(behavior)
+        new ClassReader(byteCodeFrom(behavior.getDeclaringClass())).accept(visitor, 0)
+        return visitor.parametersNullability
     }
 
     static class NullableParametersVisitor extends ClassVisitor {
 
-        private final CtBehavior behavior;
-        private final String behaviorName;
-        private Integer parametersOffset = 0;
-        List<Boolean> parametersNullability = null;
+        private final CtBehavior behavior
+        private final String behaviorName
+        private Integer parametersOffset = 0
+        List<Boolean> parametersNullability = null
 
         NullableParametersVisitor(CtBehavior behavior) {
-            super(AsmConstants.ASM_LEVEL);
-            this.behavior = behavior;
-            this.behaviorName = behavior instanceof CtConstructor ? "<init>" : behavior.getName();
+            super(AsmConstants.ASM_LEVEL)
+            this.behavior = behavior
+            this.behaviorName = behavior instanceof CtConstructor ? "<init>" : behavior.getName()
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, String name, String methodDescriptor, String signature, String[] exceptions) {
-            if (name.equals(behaviorName) && methodDescriptor.equals(behavior.getSignature())) {
-                Type[] argumentTypes = Type.getArgumentTypes(methodDescriptor);
-                parametersNullability = new ArrayList<>(argumentTypes.length);
+        MethodVisitor visitMethod(int access, String name, String methodDescriptor, String signature, String[] exceptions) {
+            if (name == behaviorName && methodDescriptor == behavior.getSignature()) {
+                Type[] argumentTypes = Type.getArgumentTypes(methodDescriptor)
+                parametersNullability = new ArrayList<>(argumentTypes.length)
                 for (Type ignored : argumentTypes) {
-                    parametersNullability.add(false);
+                    parametersNullability.add(false)
                 }
                 return new MethodVisitor(AsmConstants.ASM_LEVEL) {
 
                     @Override
-                    public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
-                        parametersOffset = argumentTypes.length - parameterCount;
+                    void visitAnnotableParameterCount(int parameterCount, boolean visible) {
+                        parametersOffset = argumentTypes.length - parameterCount
                     }
 
                     @Override
-                    public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
-                        int parameterIndex = parameter + parametersOffset;
+                    AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+                        int parameterIndex = parameter + parametersOffset
                         if (NULLABLE_ANNOTATIONS.contains(Type.getType(descriptor).getClassName())) {
-                            parametersNullability.set(parameterIndex, true);
+                            parametersNullability.set(parameterIndex, true)
                         }
-                        return null;
+                        return null
                     }
 
                     @Override
-                    public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-                        TypeReference typeReference = new TypeReference(typeRef);
+                    AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+                        TypeReference typeReference = new TypeReference(typeRef)
                         if (typeReference.getSort() == TypeReference.METHOD_FORMAL_PARAMETER &&
                             NULLABLE_ANNOTATIONS.contains(Type.getType(descriptor).getClassName())) {
-                            int parameterIndex = typeReference.getFormalParameterIndex() + parametersOffset;
-                            parametersNullability.set(parameterIndex, true);
+                            int parameterIndex = typeReference.getFormalParameterIndex() + parametersOffset
+                            parametersNullability.set(parameterIndex, true)
                         }
-                        return null;
+                        return null
                     }
-                };
+                }
             }
-            return null;
+            return null
         }
+    }
+
+    private static byte[] byteCodeFrom(CtClass ctClass) {
+        def bos = new ByteArrayOutputStream()
+        ctClass.classFile2.write(new DataOutputStream(bos))
+        return bos.toByteArray()
     }
 }
