@@ -355,10 +355,10 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
             }
             ContentSpec that = (ContentSpec) o;
             return matcherKind == that.matcherKind &&
-                    hashCode == that.hashCode &&
-                    Objects.equal(group, that.group) &&
-                    Objects.equal(module, that.module) &&
-                    Objects.equal(version, that.version) &&
+                hashCode == that.hashCode &&
+                Objects.equal(group, that.group) &&
+                Objects.equal(module, that.module) &&
+                Objects.equal(version, that.version) &&
                 inclusive == that.inclusive;
         }
 
