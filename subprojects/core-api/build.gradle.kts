@@ -12,7 +12,7 @@ errorprone {
         "NonApiType", // 1 occurrences
         "ReferenceEquality", // 2 occurrences
         "StringCharset", // 1 occurrences
-        "UnusedMethod", // 1 occurrences
+//        "UnusedMethod", // 1 occurrences
     )
 }
 

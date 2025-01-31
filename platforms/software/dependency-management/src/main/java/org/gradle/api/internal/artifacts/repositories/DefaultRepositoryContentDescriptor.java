@@ -359,7 +359,7 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
                     Objects.equal(group, that.group) &&
                     Objects.equal(module, that.module) &&
                     Objects.equal(version, that.version) &&
-                    Objects.equal(inclusive, that.inclusive);
+                inclusive == that.inclusive;
         }
 
         @Override
