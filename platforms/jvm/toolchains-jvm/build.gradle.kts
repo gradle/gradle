@@ -31,10 +31,8 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.enterpriseOperations)
     api(projects.enterpriseLogging)
-//    api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.jvmServices)
-//    api(projects.modelCore)
     api(projects.native)
     api(projects.persistentCache)
     api(projects.platformBase)
@@ -47,7 +45,6 @@ dependencies {
 
     implementation(projects.baseDiagnostics)
     implementation(projects.fileTemp)
-    implementation(projects.logging)
     implementation(projects.modelCore)
 
     implementation(libs.guava)
@@ -58,8 +55,6 @@ dependencies {
     testImplementation(testFixtures(projects.toolchainsJvmShared))
 
     testFixturesImplementation(projects.native)
-    testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(libs.commonsCompress)
 
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")

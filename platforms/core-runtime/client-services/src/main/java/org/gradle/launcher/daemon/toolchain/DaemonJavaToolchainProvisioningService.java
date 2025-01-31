@@ -17,20 +17,22 @@
 package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.cache.FileLock;
-import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.resource.ExternalResource;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException;
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader;
-import org.gradle.jvm.toolchain.internal.install.exceptions.MissingToolchainException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException;
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException;
 import org.gradle.platform.internal.CurrentBuildPlatform;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
 
 public class DaemonJavaToolchainProvisioningService implements JavaToolchainProvisioningService {
 
@@ -41,13 +43,15 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     private final CurrentBuildPlatform buildPlatform;
     private final ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
     private final boolean isAutoDownloadEnabled;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, CurrentBuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled) {
+    public DaemonJavaToolchainProvisioningService(SecureFileDownloader downloader, JdkCacheDirectory cacheDirProvider, CurrentBuildPlatform buildPlatform, ToolchainDownloadUrlProvider toolchainDownloadUrlProvider, Boolean isAutoDownloadEnabled, ProgressLoggerFactory progressLoggerFactory) {
         this.downloader = downloader;
         this.cacheDirProvider = (DefaultJdkCacheDirectory) cacheDirProvider;
         this.buildPlatform = buildPlatform;
         this.toolchainDownloadUrlProvider = toolchainDownloadUrlProvider;
         this.isAutoDownloadEnabled = isAutoDownloadEnabled;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     @Override
@@ -56,14 +60,17 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
     }
 
     @Override
-    public File tryInstall(JavaToolchainSpec spec) throws ToolchainDownloadFailedException {
+    public File tryInstall(JavaToolchainSpec spec) {
         if (!isAutoDownloadEnabled()) {
-            throw new ToolchainDownloadFailedException("No locally installed toolchains match and toolchain auto-provisioning is not enabled.",
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".");
+            throw new ToolchainProvisioningException(spec, "Toolchain auto-provisioning is not enabled.",
+                ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION);
         }
 
         synchronized (PROVISIONING_PROCESS_LOCK) {
-            URI uri = getBuildPlatformToolchainUrl();
+            URI uri = getBuildPlatformToolchainUrl(spec);
+            // TODO: Would there be a way to have this progress logger be the parent of the one used for download progress logging
+            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DaemonJavaToolchainProvisioningService.class);
+            progressLogger.start("Installing toolchain", null);
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
                 ExternalResource resource = downloader.getResourceFor(uri);
@@ -73,28 +80,30 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
                     if (!archiveFile.exists()) {
                         downloader.download(uri, archiveFile, resource);
                     }
-                    return cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                    progressLogger.progress("Unpacking toolchain archive " + archiveFile.getName());
+                    File installedToolchainFile = cacheDirProvider.provisionFromArchive(spec, archiveFile, uri);
+                    progressLogger.completed("Installed toolchain", false);
+                    return installedToolchainFile;
                 } finally {
                     fileLock.close();
                 }
             } catch (Exception e) {
-                throw new MissingToolchainException(spec, uri, e);
+                progressLogger.completed("Failed to installed toolchain", true);
+                throw new ToolchainDownloadException(spec, uri, e);
             }
         }
     }
 
-    private URI getBuildPlatformToolchainUrl() {
+    private URI getBuildPlatformToolchainUrl(JavaToolchainSpec spec) {
         String stringUri = toolchainDownloadUrlProvider.getToolchainDownloadUrlByPlatform().get(buildPlatform.toBuildPlatform());
         try {
             return new URI(stringUri);
         } catch (NullPointerException e) {
-            throw new ToolchainDownloadFailedException(String.format("No defined toolchain download url for %s %s", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+            String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            throw new ToolchainDownloadException(spec, stringUri, cause);
         } catch (URISyntaxException e) {
-            throw new ToolchainDownloadFailedException(String.format("Invalid toolchain download url %s for %s %s", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture()),
-                "Learn more about toolchain auto-detection at " + Documentation.userManual("toolchains", "sec:auto_detection").getUrl() + ".",
-                "Learn more about toolchain repositories at " + Documentation.userManual("toolchains", "sub:download_repositories").getUrl() + ".");
+            String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
+            throw new ToolchainDownloadException(spec, stringUri, cause);
         }
     }
 }

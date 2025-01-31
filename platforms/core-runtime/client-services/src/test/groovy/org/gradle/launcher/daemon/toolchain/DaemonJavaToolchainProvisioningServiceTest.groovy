@@ -17,12 +17,17 @@
 package org.gradle.launcher.daemon.toolchain
 
 import org.gradle.cache.FileLock
+import org.gradle.internal.logging.progress.ProgressLogger
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.jvm.toolchain.JavaToolchainSpec
-import org.gradle.jvm.toolchain.internal.ToolchainDownloadFailedException
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException
+import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisioningException
+import org.gradle.platform.Architecture
+import org.gradle.platform.OperatingSystem
 import org.gradle.platform.internal.CurrentBuildPlatform
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -40,6 +45,8 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
     def archiveFileLock = Mock(FileLock)
     def buildPlatform = Mock(CurrentBuildPlatform)
     def spec = Mock(JavaToolchainSpec)
+    def progressLogger = Mock(ProgressLogger)
+    def progressLoggerFactory = Mock(ProgressLoggerFactory)
 
     def setup() {
         ExternalResourceMetaData downloadResourceMetadata = Mock(ExternalResourceMetaData)
@@ -53,12 +60,18 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
         cache.acquireWriteLock(_ as File, _ as String) >> archiveFileLock
         cache.getDownloadLocation() >> temporaryFolder
         cache.provisionFromArchive(_ as JavaToolchainSpec, _ as File, _ as URI) >> new File(temporaryFolder, "install_dir")
+
+        progressLogger.start(_ as String, null) >> progressLogger
+        progressLoggerFactory.newOperation(_ as Class<DaemonJavaToolchainProvisioningService>) >> progressLogger
+
+        buildPlatform.operatingSystem >> OperatingSystem.LINUX
+        buildPlatform.architecture >> Architecture.AARCH64
     }
 
     def "cache is properly locked around provisioning a jdk"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
-        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
 
         when:
         provisioningService.tryInstall(spec)
@@ -72,61 +85,72 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
     def "skips downloading if already downloaded"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
-        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
         new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
+        1 * progressLogger.start("Installing toolchain", null)
+        1 * progressLogger.progress("Unpacking toolchain archive $ARCHIVE_NAME")
+        1 * progressLogger.completed("Installed toolchain", false)
+        0 * progressLogger._
         0 * downloader.download(_, _, _)
     }
 
     def "auto download can be disabled"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
-        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, false)
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, false, progressLoggerFactory)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        0 * progressLogger.start("Installing toolchain", null)
+        thrown(ToolchainProvisioningException.class)
     }
 
     def "fails downloading from not provided platform toolchain url"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([:])
-        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        0 * progressLogger.start("Installing toolchain", null)
+        thrown(ToolchainDownloadException.class)
     }
 
     def "fails downloading from invalid provided platform toolchain url"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : "invalid url"])
-        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
-        thrown(ToolchainDownloadFailedException.class)
+        0 * progressLogger.start("Installing toolchain", null)
+        thrown(ToolchainDownloadException.class)
     }
 
     def "downloads from url"() {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
-        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true)
+        def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
+        1 * progressLogger.start("Installing toolchain", null)
+        1 * progressLogger.progress("Unpacking toolchain archive $ARCHIVE_NAME")
+        1 * progressLogger.completed("Installed toolchain", false)
+        0 * progressLogger._
         1 * downloader.download(DOWNLOAD_URL, new File(temporaryFolder, ARCHIVE_NAME), _)
     }
 }

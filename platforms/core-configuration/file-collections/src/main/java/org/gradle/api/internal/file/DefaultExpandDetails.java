@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal.install.exceptions;
+package org.gradle.api.internal.file;
 
-import org.gradle.api.GradleException;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.gradle.api.file.ExpandDetails;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Property;
 
-import javax.annotation.Nullable;
-import java.net.URI;
+public class DefaultExpandDetails implements ExpandDetails {
 
-@Contextual
-public class MissingToolchainException extends GradleException {
+    private final Property<Boolean> escapeBackslash;
 
-    public MissingToolchainException(JavaToolchainSpec spec, URI uri, @Nullable Throwable cause) {
-        super("Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + uri + "'" + (cause != null ? ", due to: " + cause.getMessage() : "."), cause);
+    public DefaultExpandDetails(PropertyFactory propertyFactory) {
+        this.escapeBackslash = propertyFactory.property(Boolean.class).convention(false);
+    }
+
+    @Override
+    public Property<Boolean> getEscapeBackslash() {
+        return escapeBackslash;
     }
 }

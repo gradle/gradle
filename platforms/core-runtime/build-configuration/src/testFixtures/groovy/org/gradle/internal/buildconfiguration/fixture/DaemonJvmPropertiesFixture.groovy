@@ -22,12 +22,25 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults
 import org.gradle.internal.jvm.Jvm
+import org.gradle.platform.Architecture
+import org.gradle.platform.BuildPlatformFactory
+import org.gradle.platform.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.GUtil
+
+import java.util.stream.Collectors
+import java.util.stream.Stream
+
+import static org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform
 
 @SelfType(AbstractIntegrationSpec)
 trait DaemonJvmPropertiesFixture {
     void assertDaemonUsedJvm(Jvm expectedJvm) {
-        assert file("javaHome.txt").text == expectedJvm.javaHome.canonicalPath
+        assertDaemonUsedJvm(expectedJvm.javaHome)
+    }
+
+    void assertDaemonUsedJvm(File expectedJavaHome) {
+        assert file("javaHome.txt").text == expectedJavaHome.canonicalPath
     }
 
     void captureJavaHome() {
@@ -65,7 +78,7 @@ trait DaemonJvmPropertiesFixture {
     }
 
     void writeJvmCriteria(JavaVersion version, String vendor = null, String implementation = null) {
-        Properties properties = new Properties()
+        Properties properties = daemonJvmPropertiesFile.exists() ? GUtil.loadProperties(daemonJvmPropertiesFile) : new Properties()
         properties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VERSION_PROPERTY, version.majorVersion)
         if (vendor) {
             properties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_VENDOR_PROPERTY, vendor)
@@ -75,5 +88,15 @@ trait DaemonJvmPropertiesFixture {
         }
         daemonJvmPropertiesFile.writeProperties(properties)
         assertJvmCriteria(version, vendor, implementation)
+    }
+
+    void writeToolchainDownloadUrls(String url) {
+        Properties properties = daemonJvmPropertiesFile.exists() ? GUtil.loadProperties(daemonJvmPropertiesFile) : new Properties()
+        Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
+            Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os))).collect(Collectors.toSet()).forEach { buildPlatform ->
+            String buildPlatformUrlProperty = getToolchainUrlPropertyForPlatform(buildPlatform)
+            properties.put(buildPlatformUrlProperty, url)
+        }
+        daemonJvmPropertiesFile.writeProperties(properties)
     }
 }
