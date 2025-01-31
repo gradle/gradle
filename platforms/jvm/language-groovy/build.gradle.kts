@@ -4,13 +4,6 @@ plugins {
 
 description = "Adds support for building Groovy projects"
 
-errorprone {
-    disabledChecks.addAll(
-        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
-    )
-}
-
 dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)

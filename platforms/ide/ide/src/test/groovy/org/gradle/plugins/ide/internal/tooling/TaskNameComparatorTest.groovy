@@ -18,11 +18,10 @@ package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.plugins.ide.internal.tooling.model.TaskNameComparator
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TaskNameComparatorTest extends Specification {
-    @Unroll('compares task names #first and #second')
-    def compare() {
+
+    def 'compares task names #first and #second'() {
         def comparator = new TaskNameComparator()
 
         expect:

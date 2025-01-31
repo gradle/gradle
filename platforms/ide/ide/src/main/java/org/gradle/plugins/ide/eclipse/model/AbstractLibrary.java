@@ -106,7 +106,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
             return false;
         }
         AbstractLibrary that = (AbstractLibrary) o;
-        return Objects.equal(isExported(), that.isExported())
+        return isExported() == that.isExported()
             && Objects.equal(getAccessRules(), that.getAccessRules())
             && Objects.equal(getJavadocPath(), that.getJavadocPath())
             && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation())

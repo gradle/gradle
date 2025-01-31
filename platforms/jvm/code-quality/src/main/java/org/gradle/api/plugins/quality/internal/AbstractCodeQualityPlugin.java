@@ -50,7 +50,7 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
     }
 
     protected ProjectInternal project;
-    protected CodeQualityExtension extension;
+    private CodeQualityExtension extension;
 
     @Override
     public final void apply(ProjectInternal project) {

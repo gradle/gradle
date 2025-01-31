@@ -15,14 +15,12 @@ errorprone {
         "ClassCanBeStatic",
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
-        "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
         "InlineMeSuggester", // 2 occurrences
         "InvalidParam", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
         "MathAbsoluteNegative",
         "MissingCasesInEnumSwitch", // 7 occurrences
         "MixedMutabilityReturnType", // 5 occurrences
@@ -30,7 +28,6 @@ errorprone {
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
