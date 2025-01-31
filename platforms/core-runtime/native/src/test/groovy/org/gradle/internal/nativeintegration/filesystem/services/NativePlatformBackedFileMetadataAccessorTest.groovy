@@ -20,7 +20,7 @@ import net.rubygrapefruit.platform.file.Files
 import org.gradle.internal.file.AbstractFileMetadataAccessorTest
 import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileMetadataAccessor
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.util.UsesNativeServices
 
 import java.nio.file.LinkOption
@@ -32,7 +32,7 @@ import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastMod
 class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     @Override
     FileMetadataAccessor getAccessor() {
-        return new NativePlatformBackedFileMetadataAccessor(NativeServicesTestFixture.instance.get(Files.class))
+        return new NativePlatformBackedFileMetadataAccessor(NativeServices.instance.get(Files.class))
     }
 
     @Override

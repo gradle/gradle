@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.platform
 
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -29,7 +30,6 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import spock.lang.Issue
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
@@ -56,7 +56,7 @@ model {
 
     def currentArch() {
         // On windows we currently target i386 by default, even on amd64
-        if (OperatingSystem.current().windows || NativeServicesTestFixture.instance.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
+        if (OperatingSystem.current().windows || NativeServices.instance.get(SystemInfo).architecture == SystemInfo.Architecture.i386) {
             return [name: "x86", altName: "i386"]
         }
         if (DefaultNativePlatform.getCurrentArchitecture().arm64) {
