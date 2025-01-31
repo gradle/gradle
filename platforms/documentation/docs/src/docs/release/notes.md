@@ -166,6 +166,47 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
 
+#### Scala version can be declared explicitly
+
+Starting in this version of Gradle, when applying the [scala-base or scala](userguide/scala_plugin.html) plugins, you can now explicitly declare the Scala version on the `scala` extension.
+This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
+It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
+
+Previously, you had to declare a `scala-library` dependency, like this:
+
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.scala-lang:scala-library:2.13.12")
+    // OR
+    implementation("org.scala-lang:scala3-library_3:3.6.3")
+}
+```
+
+Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+scala {
+    scalaVersion = "2.13.12"
+    // OR 
+    scalaVersion = "3.6.3"
+}
+```
+
 #### Distribution base plugin introduced
 
 Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the [Distribution Plugin](userguide/distribution_plugin.html) but does not add a default distribution.
