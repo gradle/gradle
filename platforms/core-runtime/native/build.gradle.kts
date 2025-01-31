@@ -22,13 +22,13 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.gradleFileEvents)
     api(libs.inject)
     api(libs.jsr305)
     api(libs.nativePlatform)
 
     implementation(projects.serviceRegistryBuilder)
 
-    implementation(libs.gradleFileEvents)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)
