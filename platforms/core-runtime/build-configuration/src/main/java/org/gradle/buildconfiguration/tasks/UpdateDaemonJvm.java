@@ -84,7 +84,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             getPropertiesFile().get().getAsFile(),
             getJvmVersion().get(),
             jvmVendor,
-            // TODO fail if empty
             getToolchainDownloadUrls().get()
         );
     }
