@@ -315,6 +315,11 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     public static synchronized ServiceRegistry getInstance() {
+        if (INSTANCE == null) {
+            // If this occurs while running gradle or running integration tests, it is indicative of a problem.
+            // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
+            throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
+        }
         return INSTANCE.services;
     }
 
