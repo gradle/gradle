@@ -47,8 +47,8 @@ import org.gradle.util.TestClassLoader;
 import org.gradle.util.UsesNativeServices;
 import org.gradle.util.UsesNativeServicesExtension;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -228,8 +228,14 @@ public interface ArchUnitFixture {
         return new ArchCondition<JavaMethod>("use javax.annotation.Nullable") {
             @Override
             public void check(JavaMethod method, ConditionEvents events) {
+                Method reflected = safeReflect(method);
+
                 // Check if method return type is annotated with the wrong Nullable
-                if (!method.isAnnotatedWith(Nullable.class)) {
+                if (
+                    !method.isAnnotatedWith(javax.annotation.Nullable.class) &&
+                        !method.isAnnotatedWith(org.jspecify.annotations.Nullable.class) &&
+                        (reflected == null || reflected.getAnnotatedReturnType().getAnnotation(org.jspecify.annotations.Nullable.class) == null)
+                ) {
                     Set<JavaAnnotation<JavaMethod>> annotations = method.getAnnotations();
                     Set<JavaAnnotation<JavaMethod>> nullableAnnotations = extractPossibleNullable(annotations);
                     if (!nullableAnnotations.isEmpty()) {
@@ -240,8 +246,13 @@ public interface ArchUnitFixture {
                 }
 
                 // Check if the method's parameters are annotated with the wrong Nullable
-                for (JavaParameter parameter : method.getParameters()) {
-                    if (!parameter.isAnnotatedWith(Nullable.class)) {
+                for (int idx = 0; idx < method.getParameters().size(); idx++) {
+                    JavaParameter parameter = method.getParameters().get(idx);
+                    if (
+                        !parameter.isAnnotatedWith(javax.annotation.Nullable.class) &&
+                            !parameter.isAnnotatedWith(org.jspecify.annotations.Nullable.class) &&
+                            (reflected == null || reflected.getAnnotatedParameterTypes()[idx].getAnnotation(org.jspecify.annotations.Nullable.class) == null)
+                    ) {
                         Set<JavaAnnotation<JavaParameter>> annotations = parameter.getAnnotations();
                         Set<JavaAnnotation<JavaParameter>> nullableAnnotations = extractPossibleNullable(annotations);
                         if (!nullableAnnotations.isEmpty()) {
@@ -272,15 +283,15 @@ public interface ArchUnitFixture {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
     }
 
-    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationType));
+    static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation>... annotationTypes) {
+        return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationTypes));
     }
 
     /**
      * Either the class is directly annotated with the given annotation type or the class is in a package that is annotated with the given annotation type.
      */
-    static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation> annotationType) {
-        return new AnnotatedOrInPackageAnnotatedPredicate(annotationType);
+    static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation>... annotationTypes) {
+        return new AnnotatedOrInPackageAnnotatedPredicate(annotationTypes);
     }
 
     class HaveOnlyArgumentsOrReturnTypesThatAre extends ArchCondition<JavaMethod> {
@@ -452,16 +463,37 @@ public interface ArchUnitFixture {
     }
 
     class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
-        private final Class<? extends Annotation> annotationType;
+        private final Class<? extends Annotation>[] annotationTypes;
 
-        AnnotatedOrInPackageAnnotatedPredicate(Class<? extends Annotation> annotationType) {
-            super("annotated (directly or via its package) with @" + annotationType.getName());
-            this.annotationType = annotationType;
+        AnnotatedOrInPackageAnnotatedPredicate(Class<? extends Annotation>... annotationTypes) {
+            super("annotated (directly or via its package) with @" + annotationTypes[0].getName());
+            this.annotationTypes = annotationTypes;
         }
 
         @Override
         public boolean test(JavaClass input) {
-            return input.isAnnotatedWith(annotationType) || input.getPackage().isAnnotatedWith(annotationType);
+            try {
+                // Try to use reflection in order to find `TYPE_USE` annotations
+                // See https://github.com/TNG/ArchUnit/issues/1382
+                Class<?> clazz = input.reflect();
+                return Arrays.stream(annotationTypes).anyMatch(annotation ->
+                    clazz.getAnnotation(annotation) != null || clazz.getPackage().getAnnotation(annotation) != null
+                );
+            } catch (NoClassDefFoundError e) {
+                // Fall back to ArchUnit query
+                return Arrays.stream(annotationTypes).anyMatch(annotation ->
+                    input.isAnnotatedWith(annotation) || input.getPackage().isAnnotatedWith(annotation)
+                );
+            }
+        }
+    }
+
+    @javax.annotation.Nullable
+    static Method safeReflect(JavaMethod method) {
+        try {
+            return method.reflect();
+        } catch (NoClassDefFoundError | Exception e) {
+            return null;
         }
     }
 }
