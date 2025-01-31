@@ -44,6 +44,15 @@ a:hover, a:focus {
     text-decoration: underline;
 }
 
+h1 a:hover, h1 a:focus,
+h2 a:hover, h2 a:focus,
+h3 a:hover, h3 a:focus,
+h4 a:hover, h4 a:focus,
+h5 a:hover, h5 a:focus,
+h6 a:hover, h6 a:focus {
+    text-decoration: none;
+}
+
 a strong {
     color: inherit;
 }
@@ -81,6 +90,10 @@ th {
 }
 
 /* typography */
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+    color: inherit;
+}
+
 h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
     margin-bottom: 1rem;
@@ -267,6 +280,22 @@ blockquote p:last-child {
         margin-top: 0;
         margin-bottom: 0;
     }
+}
+
+/* code */
+code {
+    font-size: 90%;
+    background-color: #f7f7f8;
+    border-radius: 4px;
+}
+
+*:not(pre) > code {
+    letter-spacing: 0;
+    padding: 0.1em 0.5ex;
+}
+
+.hljs {
+    background: #f7f7f8 !important;
 }
 
 /* util classes */
