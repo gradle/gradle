@@ -35,7 +35,7 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
-    implementation(libs.commonsLang)
+    implementation(libs.commonsLang3)
 
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)
