@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
@@ -44,6 +45,11 @@ public class NormalizedIvyArtifact implements IvyArtifactInternal, Serializable 
         this.extension = artifact.getExtension();
         this.classifier = artifact.getClassifier();
         this.shouldBePublished = new DefaultProvider<>(artifact::shouldBePublished);
+    }
+
+    @Override
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        throw new IllegalStateException();
     }
 
     @Override

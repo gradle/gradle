@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.publish
 import org.gradle.api.artifacts.PublishArtifact
 import spock.lang.Specification
 
-public abstract class AbstractPublishArtifactTest extends Specification {
+abstract class AbstractConfigurablePublishArtifactTest extends Specification {
     private static final File TEST_FILE = new File("artifactFile");
     private static final String TEST_NAME = "myfile-1";
     private static final String TEST_EXT = "ext";

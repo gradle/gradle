@@ -249,7 +249,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             resourcesTask.from(resourceSet);
         });
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-        output.setResourcesContributor(processResources.map(Copy::getDestinationDir), processResources);
+        output.setResourcesContributor(processResources.map(Copy::getDestinationDir));
     }
 
     private void createClassesTask(final SourceSet sourceSet, Project target) {

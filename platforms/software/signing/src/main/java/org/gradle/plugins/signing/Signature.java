@@ -20,7 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.AbstractConfigurablePublishArtifact;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -45,7 +45,7 @@ import static org.gradle.internal.UncheckedException.uncheckedCall;
  *
  * <p>A signature file is always generated from another file, which may be a {@link PublishArtifact}.</p>
  */
-public class Signature extends AbstractPublishArtifact {
+public class Signature extends AbstractConfigurablePublishArtifact {
 
     /**
      * The specification of how to generate the signature.
@@ -200,6 +200,7 @@ public class Signature extends AbstractPublishArtifact {
         return uncheckedCall(toSignGenerator);
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
@@ -231,6 +232,7 @@ public class Signature extends AbstractPublishArtifact {
         return file != null ? file.getName() : null;
     }
 
+    @Override
     public void setExtension(String extension) {
         this.extension = extension;
     }
@@ -257,6 +259,7 @@ public class Signature extends AbstractPublishArtifact {
         return signatureType != null ? signatureType.getExtension() : null;
     }
 
+    @Override
     public void setType(String type) {
         this.type = type;
     }
@@ -287,6 +290,7 @@ public class Signature extends AbstractPublishArtifact {
             : null;
     }
 
+    @Override
     public void setClassifier(String classifier) {
         this.classifier = classifier;
     }

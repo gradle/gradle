@@ -16,19 +16,35 @@
 package org.gradle.api.internal.artifacts.publish;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 
-public abstract class AbstractPublishArtifact implements PublishArtifactInternal {
-    private final DefaultTaskDependency taskDependency;
+import java.io.File;
 
-    public AbstractPublishArtifact(
+/**
+ * A {@link org.gradle.api.artifacts.PublishArtifact} where all build dependencies
+ * are derived from a backing provider.
+ */
+public abstract class AbstractProviderBackedPublishArtifact implements PublishArtifactInternal {
+
+    private final DefaultTaskDependency taskDependency;
+    private final Provider<? extends FileSystemLocation> fileProvider;
+
+    public AbstractProviderBackedPublishArtifact(
         TaskDependencyFactory taskDependencyFactory,
-        Object... dependencies
+        Provider<? extends FileSystemLocation> fileProvider
     ) {
-        taskDependency = taskDependencyFactory.configurableDependency(ImmutableSet.copyOf(dependencies));
+        this.fileProvider = fileProvider;
+        this.taskDependency = taskDependencyFactory.configurableDependency(ImmutableSet.of(fileProvider));
+    }
+
+    @Override
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return fileProvider;
     }
 
     @Override
@@ -36,13 +52,14 @@ public abstract class AbstractPublishArtifact implements PublishArtifactInternal
         return taskDependency;
     }
 
-    public AbstractPublishArtifact builtBy(Object... tasks) {
-        taskDependency.add(tasks);
-        return this;
+    @Override
+    public File getFile() {
+        return fileProvider.get().getAsFile();
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" +getExtension()  + ":" + getClassifier();
+        return getClass().getSimpleName() + " " + getName() + ":" + getType() + ":" + getExtension()  + ":" + getClassifier();
     }
+
 }

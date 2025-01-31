@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
@@ -37,6 +39,11 @@ public class FileSystemPublishArtifact implements PublishArtifactInternal {
     }
 
     @Override
+    public Provider<FileSystemLocation> getFileProvider() {
+        return Providers.of(fileSystemLocation);
+    }
+
+    @Override
     public String getName() {
         return getValue().getName();
     }
@@ -48,7 +55,7 @@ public class FileSystemPublishArtifact implements PublishArtifactInternal {
 
     @Override
     public String getType() {
-        return "";
+        return getValue().getExtension();
     }
 
     @Override
@@ -63,7 +70,7 @@ public class FileSystemPublishArtifact implements PublishArtifactInternal {
 
     @Override
     public Date getDate() {
-        return new Date();
+        return null;
     }
 
     @Override

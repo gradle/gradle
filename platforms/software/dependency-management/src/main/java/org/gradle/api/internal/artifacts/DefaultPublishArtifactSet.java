@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts;
 
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -22,15 +24,11 @@ import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.provider.MergeProvider;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Describables;
-
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<PublishArtifact> implements PublishArtifactSet {
     private final TaskDependencyInternal builtBy;
@@ -54,12 +52,10 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
     ) {
         super(backingSet);
         this.displayName = displayName;
-        this.builtBy = taskDependencyFactory.visitingDependencies(context -> {
-            for (PublishArtifact publishArtifact : DefaultPublishArtifactSet.this) {
-                context.add(publishArtifact);
-            }
-        });
-        this.files = fileCollectionFactory.create(builtBy, new ArtifactsFileCollection());
+        this.files = fileCollectionFactory.fromProvider(MergeProvider.of(
+            Collections2.transform(this, artifact -> ((PublishArtifactInternal) artifact).getFileProvider())
+        ));
+        this.builtBy = taskDependencyFactory.configurableDependency(ImmutableSet.of(files));
     }
 
     @Override
@@ -77,19 +73,4 @@ public class DefaultPublishArtifactSet extends DelegatingDomainObjectSet<Publish
         return builtBy;
     }
 
-    private class ArtifactsFileCollection implements MinimalFileSet {
-        @Override
-        public String getDisplayName() {
-            return displayName.getDisplayName();
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<>();
-            for (PublishArtifact artifact : DefaultPublishArtifactSet.this) {
-                files.add(artifact.getFile());
-            }
-            return files;
-        }
-    }
 }

@@ -17,15 +17,16 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
+import java.io.File;
 
 public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
-    private final TaskDependency allBuildDependencies;
-    private final DefaultTaskDependency additionalBuildDependencies;
+    private final DefaultTaskDependency buildDependencies;
 
     private String name;
     private String type;
@@ -33,12 +34,13 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
     private String classifier;
     private String conf;
 
-    protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory) {
-        this.additionalBuildDependencies = new DefaultTaskDependency();
-        this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {
-            context.add(getDefaultBuildDependencies());
-            additionalBuildDependencies.visitDependencies(context);
-        });
+    protected AbstractIvyArtifact(TaskDependencyFactory taskDependencyFactory, Object... dependencies) {
+        this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.copyOf(dependencies));
+    }
+
+    @Override
+    public final File getFile() {
+        return getFileProvider().get().getAsFile();
     }
 
     @Override
@@ -107,15 +109,13 @@ public abstract class AbstractIvyArtifact implements IvyArtifactInternal {
 
     @Override
     public void builtBy(Object... tasks) {
-        additionalBuildDependencies.add(tasks);
+        buildDependencies.add(tasks);
     }
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return allBuildDependencies;
+        return buildDependencies;
     }
-
-    protected abstract TaskDependency getDefaultBuildDependencies();
 
     @Override
     public String toString() {

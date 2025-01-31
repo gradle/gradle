@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSetOutput;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
@@ -44,7 +43,7 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
     private final ConfigurableFileCollection generatedSourcesDirs;
     private final FileResolver fileResolver;
 
-    private DirectoryContribution resourcesContributor;
+    private Provider<File> resourcesContributor;
 
     @Inject
     public DefaultSourceSetOutput(String sourceSetDisplayName, TaskDependencyFactory taskDependencyFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
@@ -86,14 +85,13 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
     }
 
     /**
-     * Set the task contributor to the provided resources directory. The provided resources
+     * Set the contributor to the provided resources directory. The provided resources
      * directory provider should resolve to the same directory set by {@link #setResourcesDir}.
      *
      * @param directory The resources directory provider.
-     * @param task The task which generates {@code directory}.
      */
-    public void setResourcesContributor(Provider<File> directory, TaskProvider<?> task) {
-        this.resourcesContributor = new DirectoryContribution(directory, task);
+    public void setResourcesContributor(Provider<File> directory) {
+        this.resourcesContributor = directory;
     }
 
     @Override
@@ -147,28 +145,8 @@ public abstract class DefaultSourceSetOutput extends CompositeFileCollection imp
     }
 
     @Nullable
-    public DirectoryContribution getResourcesContribution() {
+    public Provider<File> getResourcesContribution() {
         return resourcesContributor;
     }
 
-    /**
-     * A mapping from a directory to the task which provides that directory.
-     */
-    public static class DirectoryContribution {
-        private final Provider<File> directory;
-        private final TaskProvider<?> task;
-
-        public DirectoryContribution(Provider<File> directory, TaskProvider<?> task) {
-            this.directory = directory;
-            this.task = task;
-        }
-
-        public Provider<File> getDirectory() {
-            return directory;
-        }
-
-        public TaskProvider<?> getTask() {
-            return task;
-        }
-    }
 }

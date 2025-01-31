@@ -66,26 +66,6 @@ class DefaultFileCollectionFactoryTest extends Specification {
         0 * contents._
     }
 
-    def "lazily queries dependencies of collection created from MinimalFileSet"() {
-        def contents = Mock(MinimalFileSet)
-        def builtBy = Mock(TaskDependencyInternal)
-        def task = Stub(Task)
-
-        when:
-        def collection = factory.create(builtBy, contents)
-
-        then:
-        0 * builtBy._
-
-        when:
-        def tasks = collection.buildDependencies.getDependencies(null)
-
-        then:
-        tasks == [task] as Set
-        1 * builtBy.getDependenciesForInternalUse(_) >> [task]
-        0 * _
-    }
-
     def "constructs a configurable collection"() {
         expect:
         def collection = factory.configurableFiles("some collection")

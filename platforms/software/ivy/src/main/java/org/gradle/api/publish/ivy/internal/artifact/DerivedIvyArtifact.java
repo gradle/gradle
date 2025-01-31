@@ -16,12 +16,13 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.file.DefaultFileSystemLocation;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.api.tasks.TaskDependency;
-
-import java.io.File;
 
 import static com.google.common.io.Files.getFileExtension;
 
@@ -30,7 +31,7 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
     private final PublicationInternal.DerivedArtifact derived;
 
     public DerivedIvyArtifact(IvyArtifact original, PublicationInternal.DerivedArtifact derived, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+        super(taskDependencyFactory, original);
         this.original = original;
         this.derived = derived;
     }
@@ -61,13 +62,8 @@ public class DerivedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected TaskDependency getDefaultBuildDependencies() {
-        return original.getBuildDependencies();
-    }
-
-    @Override
-    public File getFile() {
-        return derived.create();
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return Providers.of(new DefaultFileSystemLocation(derived.create()));
     }
 
     @Override
