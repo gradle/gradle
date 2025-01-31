@@ -54,13 +54,13 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                 task.setGroup("Build Setup");
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
                 task.getPropertiesFile().convention(project.getLayout().getProjectDirectory().file(DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE));
-                task.getJvmVersion().convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
+                task.getLanguageVersion().convention(JavaLanguageVersion.of(Jvm.current().getJavaVersionMajor()));
                 task.getToolchainPlatforms().convention(
                     Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
                             Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
                         .collect(Collectors.toSet()));
                 task.getToolchainDownloadUrls().convention(task.getToolchainPlatforms()
-                    .zip(task.getJvmVersion().zip(task.getJvmVendor().orElse("any"), Pair::of),
+                    .zip(task.getLanguageVersion().zip(task.getJvmVendor().orElse("any"), Pair::of),
                         (platforms, versionVendor) -> {
                             String vendor = versionVendor.getRight();
                             JavaToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
