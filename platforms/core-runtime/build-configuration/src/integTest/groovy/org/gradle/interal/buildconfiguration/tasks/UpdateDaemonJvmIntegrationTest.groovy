@@ -24,10 +24,16 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.buildconfiguration.fixture.DaemonJvmPropertiesFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.platform.Architecture
+import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
+import java.util.stream.Stream
+
+import static java.util.stream.Collectors.toMap
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.applyToolchainResolverPlugin
+import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.constantUrlResolverCode
 import static org.gradle.jvm.toolchain.JavaToolchainDownloadUtil.noUrlResolverCode
 
 class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
@@ -66,25 +72,43 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm without options Then daemon jvm properties are populated with default values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm"
 
         then:
         assertJvmCriteria(Jvm.current().javaVersion)
+        assertToolchainDownloadUrlsProperties(fromConstantUrl())
         outputContains("Daemon JVM criteria is an incubating feature.")
+    }
+
+    def "can configure updateDaemonJvm to not generate download URLs"() {
+        given:
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    toolchainPlatforms = []
+}
+""")
+
+        when:
+        run "updateDaemonJvm"
+
+        then:
+        assertJvmCriteria(Jvm.current().javaVersion)
+        assertToolchainDownloadUrlsProperties([:])
     }
 
     def "When execute updateDaemonJvm for valid version Then daemon jvm properties are populated with expected values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm", "--jvm-version=${version.majorVersion}"
 
         then:
         assertJvmCriteria(version)
+        assertToolchainDownloadUrlsProperties(fromConstantUrl())
 
         where:
         version << [JavaVersion.VERSION_11, JavaVersion.VERSION_15, JavaVersion.VERSION_HIGHER]
@@ -92,18 +116,19 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm for valid Java 8 versions Then daemon jvm properties are populated with expected values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm", "--jvm-version=8"
 
         then:
         assertJvmCriteria(JavaVersion.VERSION_1_8)
+        assertToolchainDownloadUrlsProperties(fromConstantUrl())
     }
 
     def "When execute updateDaemonJvm with invalid argument --jvm-version option Then fails with expected exception message"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         fails "updateDaemonJvm", "--jvm-version=$invalidVersion"
@@ -118,7 +143,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm with unsupported Java version Then fails with expected exception message"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         fails "updateDaemonJvm", "--jvm-version=7"
@@ -130,7 +155,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm with unsupported future Java version"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         // Captures current, but maybe not desired behavior
         expect:
@@ -139,7 +164,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm for valid vendor option Then daemon jvm properties are populated with expected values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm", "--jvm-vendor=$vendor"
@@ -154,7 +179,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
     @NotYetImplemented
     def "When execute updateDaemonJvm for valid implementation option Then daemon jvm properties are populated with expected values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm", "--toolchain-implementation=$implementation"
@@ -168,7 +193,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm specifying different options Then daemon jvm properties are populated with expected values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm", "--jvm-version=17", "--jvm-vendor=IBM"
@@ -179,7 +204,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "When execute updateDaemonJvm specifying different options in lower case Then daemon jvm properties are populated with expected values"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         run "updateDaemonJvm", "--jvm-version=17", "--jvm-vendor=ibm", "-S"
@@ -201,7 +226,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
     @NotYetImplemented
     def "When execute updateDaemonJvm with unexpected --toolchain-implementation option Then fails with expected exception message"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         when:
         fails "updateDaemonJvm", "--toolchain-implementation=unknown-implementation"
@@ -214,7 +239,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
 
     def "Given already existing daemon jvm properties When execute updateDaemonJvm with different criteria Then criteria get modified"() {
         given:
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
         def otherJvm = AvailableJavaHomes.differentVersion
         writeJvmCriteria(Jvm.current())
 
@@ -233,7 +258,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         writeJvmCriteria(otherJvm.javaVersion, otherMetadata.vendor.knownVendor.name())
 
         captureJavaHome()
-        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
 
         expect:
         withInstallations(otherJvm).succeeds("updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=AZUL")
@@ -284,5 +309,60 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
             ["WINDOWS", "X86_64"]: "https://server?platform=WINDOWS.X86_64&toolchain=20.FOO",
             ["WINDOWS", "AARCH64"]: "https://server?platform=WINDOWS.AARCH64&toolchain=20.FOO",
         ])
+    }
+
+    def "resolvers failing to return any download URLs is considered an error"() {
+        given:
+        writeJvmCriteria(Jvm.current())
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+
+        when:
+        fails "updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=FOO"
+
+        then:
+        // TODO The description is different with CC on
+//        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureHasCause("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific} for any of the requested platforms")
+
+    }
+
+    def "can hardcode download URLs in task configuration for generation and then it does not require a toolchain provider configured"() {
+        given:
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    toolchainDownloadUrls = [(BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.MAC_OS)) : uri("https://server?platform=MAC_OS.AARCH64"),
+                            (BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.WINDOWS)) : uri("https://server?platform=WINDOWS.AARCH64")]
+}
+""")
+
+        when:
+        run "updateDaemonJvm"
+
+        then:
+        assertJvmCriteria(Jvm.current().javaVersion)
+        assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"] : "https://server?platform=MAC_OS.AARCH64", ["WINDOWS", "AARCH64"] : "https://server?platform=WINDOWS.AARCH64"])
+    }
+
+    def "can limit platforms for which to generate URLs"() {
+        settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", constantUrlResolverCode())
+
+        given:
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    toolchainPlatforms = [BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.MAC_OS), BuildPlatformFactory.of(org.gradle.platform.Architecture.AARCH64, org.gradle.platform.OperatingSystem.WINDOWS)]
+}
+""")
+
+        when:
+        run "updateDaemonJvm"
+
+        then:
+        assertToolchainDownloadUrlsProperties([["MAC_OS", "AARCH64"] : "https://example.xyz/content", ["WINDOWS", "AARCH64"] : "https://example.xyz/content"])
+    }
+
+    Map<List<String>, String> fromConstantUrl() {
+        Stream.of(Architecture.X86_64, Architecture.AARCH64).flatMap(arch ->
+            Stream.of(OperatingSystem.values()).map(os -> [os, arch]))
+            .collect(toMap(platform -> platform, platform -> "https://example.xyz/content"))
     }
 }

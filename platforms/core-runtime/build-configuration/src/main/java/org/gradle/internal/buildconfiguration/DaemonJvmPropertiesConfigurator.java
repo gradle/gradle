@@ -40,6 +40,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyMap;
+
 public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
     public static final String TASK_NAME = "updateDaemonJvm";
@@ -66,6 +68,10 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                             if (!vendor.equals("any")) {
                                 toolchainSpec.getVendor().set(JvmVendorSpec.of(vendor));
                             }
+                            if (platforms.isEmpty()) {
+                                return emptyMap();
+                            }
+
                             JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
                             if (!resolverService.hasConfiguredToolchainRepositories()) {
                                 throw new UnconfiguredToolchainRepositoriesResolver();
@@ -73,9 +79,13 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
                                 .collect(Collectors.toMap(platform -> platform,
                                     platform -> resolverService.tryResolve(new DefaultJavaToolchainRequest(toolchainSpec, platform)).map(JavaToolchainDownload::getUri)));
-                            return buildPlatformOptionalUriMap.entrySet().stream()
+                            Map<BuildPlatform, URI> platformToDownloadUri = buildPlatformOptionalUriMap.entrySet().stream()
                                 .filter(e -> e.getValue().isPresent())
                                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+                            if (platformToDownloadUri.isEmpty()) {
+                                throw new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms);
+                            }
+                            return platformToDownloadUri;
                         }));
             });
         }
