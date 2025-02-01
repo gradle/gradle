@@ -71,6 +71,26 @@ The new capability addresses a common scenario: resolving files shared across al
 
 Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
 
+#### Configurations are initialized lazily
+
+Similar to [tasks](userguide/lazy_configuration.html), [configurations](userguide/declaring_configurations.html) are now realized only when necessary.
+
+Starting with this release, applying the `base` plugin (or any plugin that applies it, such as JVM plugins) no longer realizes all configurations declared using `register` or the incubating role-based factory methods.
+
+This change can reduce configuration time and memory usage in some builds.
+
+To leverage these improvements, declare configurations using the `register` method instead of the `create` method:
+
+```kotlin
+configurations {
+    // Instead of using `create`
+    create("myEagerConfiguration")
+    
+    // Use `register` to avoid realizing the configuration
+    register("myLazyConfiguration")
+}
+```
+
 #### New Artifact Transforms report task
 
 A new `artifactTransforms` report is available by default, providing information about all the registered [Artifact Transforms](userguide/artifact_transforms.html) in a project.
@@ -139,7 +159,7 @@ Custom tests can include metadata to provide supplementary information about tes
 The metadata is displayed in the HTML test report for better visibility:
 
 ```java
-test.metadata(Instant.now(),"Parent class:", String.valueOf(result.getTestIdentifier().getParentId().get()));
+test.metadata(Instant.now(), "Parent class:", String.valueOf(result.getTestIdentifier().getParentId().get()));
 ```
 
 ![Test API Metadata Example](release-notes-assets/TEST_API_metadata.png)

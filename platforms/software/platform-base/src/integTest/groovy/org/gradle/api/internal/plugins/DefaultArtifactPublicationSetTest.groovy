@@ -15,21 +15,28 @@
  */
 package org.gradle.api.internal.plugins
 
-import org.gradle.util.TestUtil
-import spock.lang.Specification
-import org.gradle.api.artifacts.PublishArtifactSet
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
-class DefaultArtifactPublicationSetTest extends Specification {
-    final PublishArtifactSet publications = Mock()
-    final DefaultArtifactPublicationSet publication = TestUtil.newInstance(DefaultArtifactPublicationSet, publications)
+class DefaultArtifactPublicationSetTest extends AbstractProjectBuilderSpec {
+
+    Configuration aggregateConf
+    DefaultArtifactPublicationSet publication
+
+    def setup() {
+        aggregateConf = project.configurations.create(Dependency.ARCHIVES_CONFIGURATION)
+        publication = TestUtil.newInstance(DefaultArtifactPublicationSet, project.configurations, aggregateConf.name)
+    }
 
     def "adds provider to artifact set"() {
         when:
         publication.addCandidate(artifact(artifactType))
 
         then:
-        1 * publications.addAllLater(_)
+        aggregateConf.artifacts.size() == 1
 
         where:
         artifactType << ["jar", "war", "ear", "other"]

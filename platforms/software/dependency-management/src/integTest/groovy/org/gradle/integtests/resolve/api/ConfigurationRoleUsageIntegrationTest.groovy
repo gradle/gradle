@@ -614,17 +614,17 @@ class ConfigurationRoleUsageIntegrationTest extends AbstractIntegrationSpec impl
             configurations {
                 additionalRuntimeClasspath
             }
-        """                                                                             | ConfigurationRoles.LEGACY     | true      | "legacy configuration with implicit allowed usage"
+        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with implicit allowed usage"
         """
             configurations {
                 additionalRuntimeClasspath {
                     canBeConsumed = true
                 }
             }
-        """                                                                             | ConfigurationRoles.LEGACY     | true      | "legacy configuration with explicit set consumed = true"
-        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | false     | "role-based configuration"
-        "configurations.consumableUnlocked('additionalRuntimeClasspath')"               | ConfigurationRoles.CONSUMABLE | true      | "internal unlocked role-based configuration"
-        "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true      | "internal unlocked role-based configuration, if it doesn't already exist"
+        """                                                                             | ConfigurationRoles.ALL        | true  | "legacy configuration with explicit set consumed = true"
+        "configurations.consumable('additionalRuntimeClasspath')"                       | ConfigurationRoles.CONSUMABLE | false | "role-based configuration"
+        "configurations.consumableUnlocked('additionalRuntimeClasspath')"               | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration"
+        "configurations.maybeCreateConsumableUnlocked('additionalRuntimeClasspath')"    | ConfigurationRoles.CONSUMABLE | true  | "internal unlocked role-based configuration, if it doesn't already exist"
     }
 
     def "changing usage on detached configurations does not warn"() {

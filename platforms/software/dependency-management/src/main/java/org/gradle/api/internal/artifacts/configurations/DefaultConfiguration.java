@@ -1567,8 +1567,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
-            // Don't print role message for legacy role - users might not have actively chosen this role
-            if (roleAtCreation != ConfigurationRoles.LEGACY) {
+            // Don't print role message for configurations with all usages - users might not have actively chosen this role
+            if (roleAtCreation != ConfigurationRoles.ALL) {
                 throw new GradleException(
                     String.format("Cannot change the allowed usage of %s, as it was locked upon creation to the role: '%s'.\n" +
                             "This role permits the following usage:\n" +
@@ -1599,7 +1599,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * thereafter.
      */
     private void maybeWarnOnChangingUsage(String methodName, boolean current, boolean newValue) {
-        if (isInLegacyRole()) {
+        if (hasAllUsages()) {
+            // We currently allow configurations with all usages -- those that are created with
+            // `create` and `register` -- to have mutable roles. This is likely to change in the future
+            // when we deprecate any configuration with mutable roles.
             return;
         }
 
@@ -1634,8 +1637,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @SuppressWarnings("deprecation")
-    private boolean isInLegacyRole() {
-        return roleAtCreation == ConfigurationRoles.LEGACY;
+    private boolean hasAllUsages() {
+        return roleAtCreation == ConfigurationRoles.ALL;
     }
 
     @Override
