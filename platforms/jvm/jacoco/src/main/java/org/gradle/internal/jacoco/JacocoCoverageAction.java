@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.quality.internal;
+package org.gradle.internal.jacoco;
 
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.workers.WorkParameters;
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 
-public interface AntWorkParameters extends WorkParameters {
-    ConfigurableFileCollection getAntLibraryClasspath();
+public abstract class JacocoCoverageAction extends AntWorkAction<JacocoCoverageParameters> {
+
+    @Override
+    protected String getActionName() {
+        return "jacoco-coverage";
+    }
+
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new AntJacocoCheck(getParameters());
+    }
 }
