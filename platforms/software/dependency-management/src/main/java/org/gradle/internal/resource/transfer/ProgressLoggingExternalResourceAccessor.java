@@ -58,7 +58,7 @@ public class ProgressLoggingExternalResourceAccessor extends AbstractProgressLog
     private BuildOperationDescriptor.Builder createBuildOperationDetails(ExternalResourceName resourceName) {
         ExternalResourceReadBuildOperationType.Details operationDetails = new ReadOperationDetails(resourceName.getUri());
         return BuildOperationDescriptor
-            .displayName("Download " + resourceName.getUri())
+            .displayName("Downloading " + resourceName.getUri())
             .progressDisplayName(resourceName.getShortDisplayName())
             .details(operationDetails);
     }
