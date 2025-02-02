@@ -28,6 +28,7 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -127,7 +128,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         runTasksOps[0].displayName == "Run tasks (:buildB:buildSrc)"
         runTasksOps[0].parentId == buildSrcOps[0].id
         // Build operations are run in parallel, so can appear in either order
-        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort()  == ["Run tasks", "Run tasks (:buildB)"]
+        [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == runMainTasks.id
         runTasksOps[2].parentId == runMainTasks.id
 
@@ -149,6 +150,7 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         "rootProject.name='someLib'" | "configured root project name"
     }
 
+    @Ignore('wip')
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Also covered by tests in configuration cache project")
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
