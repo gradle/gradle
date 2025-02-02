@@ -68,6 +68,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
+import org.gradle.api.isolated.models.ProjectModelScope;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.util.PatternSet;
@@ -80,6 +81,8 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.models.DefaultProjectModelScope;
+import org.gradle.internal.isolated.models.ProjectModelController;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -389,5 +392,10 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         File settingsDir = buildLayout.getSettingsDir();
         File projectDir = project.getProjectDir();
         return new DefaultProjectLayout(settingsDir, projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
+    }
+
+    @Provides
+    protected ProjectModelScope createProjectModelScope(ProjectModelController projectModelController) {
+        return new DefaultProjectModelScope(project, projectModelController);
     }
 }
