@@ -494,7 +494,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/4566")
     def "inputs become empty for task"() {
         given:
         def sourceFile1 = file('source/source1.txt')
