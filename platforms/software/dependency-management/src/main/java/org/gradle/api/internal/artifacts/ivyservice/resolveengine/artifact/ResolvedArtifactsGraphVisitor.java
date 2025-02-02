@@ -120,14 +120,14 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
      * @return true if this edge modifies the artifacts, meaning it is adhoc, and should
      * not also contribute to the implicit artifact set.
      */
-    private boolean maybeVisitAdhocEdge(DependencyGraphNode node, DependencyGraphEdge dependency) {
+    private boolean maybeVisitAdhocEdge(DependencyGraphNode node, DependencyGraphEdge edge) {
         ComponentGraphResolveState component = node.getOwner().getResolveState();
         VariantGraphResolveState variant = node.getResolveState();
 
-        ImmutableAttributes attributes = dependency.getAttributes();
-        List<IvyArtifactName> artifacts = dependency.getDependencyMetadata().getArtifacts();
-        ExcludeSpec exclusions = dependency.getExclusions();
-        Set<CapabilitySelector> capabilitySelectors = dependency.getDependencyMetadata().getSelector().getCapabilitySelectors();
+        ImmutableAttributes attributes = edge.getAttributes();
+        List<IvyArtifactName> artifacts = edge.getDependencyMetadata().getArtifacts();
+        ExcludeSpec exclusions = edge.getExclusions();
+        Set<CapabilitySelector> capabilitySelectors = edge.getSelector().getComponentSelector().getCapabilitySelectors();
 
         // If all dependency modifiers are empty, this edge does not produce an adhoc artifact set.
         if (artifacts.isEmpty() &&
@@ -140,7 +140,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
         int id = nextId++;
         VariantResolvingArtifactSet artifactSet = new VariantResolvingArtifactSet(component, variant, attributes, artifacts, exclusions, capabilitySelectors);
-        artifactResults.visitArtifacts(dependency.getFrom(), node, id, artifactSet);
+        artifactResults.visitArtifacts(edge.getFrom(), node, id, artifactSet);
 
         return true;
     }
