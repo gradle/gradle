@@ -72,7 +72,6 @@ public class UnpackingVisitor {
             return;
         }
         if (element instanceof ProviderInternal) {
-            // ProviderInternal is-a TaskDependencyContainer, so check first
             ProviderInternal<?> provider = (ProviderInternal<?>) element;
             visitor.accept(new ProviderBackedFileCollection(provider, resolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy));
             return;

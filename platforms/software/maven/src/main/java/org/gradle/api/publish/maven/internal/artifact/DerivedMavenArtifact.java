@@ -16,11 +16,12 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.file.DefaultFileSystemLocation;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.internal.PublicationInternal;
-
-import java.io.File;
 
 import static com.google.common.io.Files.getFileExtension;
 
@@ -35,8 +36,8 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     }
 
     @Override
-    public File getFile() {
-        return derivedFile.create();
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return Providers.of(new DefaultFileSystemLocation(derivedFile.create()));
     }
 
     @Override
@@ -47,11 +48,6 @@ public class DerivedMavenArtifact extends AbstractMavenArtifact {
     @Override
     protected String getDefaultClassifier() {
         return original.getClassifier();
-    }
-
-    @Override
-    protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
     }
 
     @Override

@@ -16,23 +16,17 @@
 
 package org.gradle.api.publish.tasks;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
-import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.component.SoftwareComponentVariant;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.provider.MergeProvider;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
@@ -52,7 +46,6 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.hash.ChecksumService;
@@ -61,7 +54,6 @@ import org.gradle.internal.serialization.Cached;
 import org.gradle.internal.serialization.Transient;
 import org.gradle.work.DisableCachingByDefault;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -71,9 +63,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
@@ -104,7 +95,16 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
         outputFile = objectFactory.fileProperty();
 
-        variantFiles = getFileCollectionFactory().create(new VariantFiles(((ProjectInternal) getProject()).getTaskDependencyFactory()));
+        variantFiles = getFileCollectionFactory().fromProvider(
+            publication.get().flatMap(p -> ((PublicationInternal<?>) p).getComponent()).flatMap(component ->
+                MergeProvider.of(
+                    component.getUsages().stream()
+                        .flatMap(v -> v.getArtifacts().stream())
+                        .map(artifact -> ((PublishArtifactInternal) artifact).getFileProvider())
+                        .collect(Collectors.toList())
+                )
+            )
+        );
 
         suppressedValidationErrors = objectFactory.setProperty(String.class).convention(Collections.emptySet());
 
@@ -276,53 +276,6 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
             public ComponentMissing(String publicationName) {
                 this.publicationName = publicationName;
-            }
-        }
-    }
-
-    private class VariantFiles implements MinimalFileSet, Buildable {
-        private final TaskDependencyFactory taskDependencyFactory;
-
-        private VariantFiles(TaskDependencyFactory taskDependencyFactory) {
-            this.taskDependencyFactory = taskDependencyFactory;
-        }
-
-        @Override
-        @Nonnull
-        public String getDisplayName() {
-            return "files of " + GenerateModuleMetadata.this.getPath();
-        }
-
-        @Override
-        @Nonnull
-        public TaskDependency getBuildDependencies() {
-            DefaultTaskDependency dependency = taskDependencyFactory.configurableDependency();
-            SoftwareComponentInternal component = component();
-            if (component != null) {
-                forEachArtifactOf(component, dependency::add);
-            }
-            return dependency;
-        }
-
-        @Override
-        @Nonnull
-        public Set<File> getFiles() {
-            SoftwareComponentInternal component = component();
-            return component == null ? ImmutableSet.of() : filesOf(component);
-        }
-
-        private Set<File> filesOf(SoftwareComponentInternal component) {
-            Set<File> files = new LinkedHashSet<>();
-            forEachArtifactOf(component, artifact -> files.add(artifact.getFile()));
-            return files;
-
-        }
-
-        private void forEachArtifactOf(SoftwareComponentInternal component, Action<PublishArtifact> action) {
-            for (SoftwareComponentVariant variant : component.getUsages()) {
-                for (PublishArtifact publishArtifact : variant.getArtifacts()) {
-                    action.execute(publishArtifact);
-                }
             }
         }
     }

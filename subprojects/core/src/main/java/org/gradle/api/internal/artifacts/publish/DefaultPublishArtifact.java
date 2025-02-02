@@ -16,14 +16,26 @@
 
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
 
 import java.io.File;
 import java.util.Date;
 
-public class DefaultPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
+/**
+ * This is only used for testing. Prefer:
+ * <ui>
+ *     <li>{@link org.gradle.api.internal.artifacts.dsl.FileSystemPublishArtifact} for fixed files</li>
+ *     <li>{@link org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact} for providers of unknown type</li>
+ *     <li>{@link org.gradle.api.internal.artifacts.publish.AbstractProviderBackedPublishArtifact} for providers of known types</li>
+ * </ui>
+ *
+ * If necessary, any of the above implementations can be wrapped in
+ * {@link DecoratingPublishArtifact} to provide mutability.
+ */
+@VisibleForTesting
+public class DefaultPublishArtifact extends AbstractConfigurablePublishArtifact {
+
     private String name;
     private String extension;
     private String type;
@@ -32,20 +44,14 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     private File file;
 
     public DefaultPublishArtifact(
-        TaskDependencyFactory taskDependencyFactory,
-        String name, String extension, String type,
-        String classifier, Date date, File file, Object... tasks) {
-        super(taskDependencyFactory, tasks);
-        this.name = name;
-        this.extension = extension;
-        this.type = type;
-        this.date = date;
-        this.classifier = classifier;
-        this.file = file;
-    }
-
-    public DefaultPublishArtifact(String name, String extension, String type,
-                                  String classifier, Date date, File file, Object... tasks) {
+        String name,
+        String extension,
+        String type,
+        String classifier,
+        Date date,
+        File file,
+        Object... tasks
+    ) {
         super(DefaultTaskDependencyFactory.withNoAssociatedProject(), tasks);
         this.name = name;
         this.extension = extension;
@@ -53,12 +59,6 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
         this.date = date;
         this.classifier = classifier;
         this.file = file;
-    }
-
-    @Override
-    public DefaultPublishArtifact builtBy(Object... tasks) {
-        super.builtBy(tasks);
-        return this;
     }
 
     @Override

@@ -16,19 +16,19 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.apache.tools.ant.Task;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DecoratingPublishArtifact;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.Instantiator;
@@ -74,7 +74,10 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(PublishArtifact notation) {
-            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, notation);
+            if (notation instanceof ConfigurablePublishArtifact) {
+                return (ConfigurablePublishArtifact) notation;
+            }
+            return asConfigurablePublishArtifact(Cast.uncheckedCast(notation));
         }
     }
 
@@ -90,7 +93,8 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(AbstractArchiveTask notation) {
-            return instantiator.newInstance(ArchivePublishArtifact.class, taskDependencyFactory, notation);
+            ArchivePublishArtifact archivePublishArtifact = new ArchivePublishArtifact(taskDependencyFactory, notation);
+            return asConfigurablePublishArtifact(archivePublishArtifact);
         }
     }
 
@@ -126,8 +130,9 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(Provider<?> notation) {
-            Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new LazyPublishArtifact(notation, module.getVersion(), fileResolver, taskDependencyFactory));
+            String version = metaDataProvider.getModule().getVersion();
+            LazyPublishArtifact lazyPublishArtifact = new LazyPublishArtifact(notation, version, fileResolver, taskDependencyFactory);
+            return asConfigurablePublishArtifact(lazyPublishArtifact);
         }
     }
 
@@ -144,8 +149,9 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(FileSystemLocation notation) {
-            Module module = metaDataProvider.getModule();
-            return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, new FileSystemPublishArtifact(notation, module.getVersion()));
+            String version = metaDataProvider.getModule().getVersion();
+            FileSystemPublishArtifact fileSystemPublishArtifact = new FileSystemPublishArtifact(notation, version);
+            return asConfigurablePublishArtifact(fileSystemPublishArtifact);
         }
     }
 
@@ -156,9 +162,13 @@ public class PublishArtifactNotationParserFactory implements Factory<NotationPar
 
         @Override
         protected ConfigurablePublishArtifact parseType(File file) {
-            Module module = metaDataProvider.getModule();
-            ArtifactFile artifactFile = new ArtifactFile(file, module.getVersion());
-            return instantiator.newInstance(DefaultPublishArtifact.class, taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file, new Task[0]);
+            String version = metaDataProvider.getModule().getVersion();
+            FileSystemPublishArtifact fileSystemPublishArtifact = new FileSystemPublishArtifact(new DefaultFileSystemLocation(file), version);
+            return asConfigurablePublishArtifact(fileSystemPublishArtifact);
         }
+    }
+
+    private ConfigurablePublishArtifact asConfigurablePublishArtifact(PublishArtifactInternal publishArtifact) {
+        return instantiator.newInstance(DecoratingPublishArtifact.class, taskDependencyFactory, publishArtifact);
     }
 }

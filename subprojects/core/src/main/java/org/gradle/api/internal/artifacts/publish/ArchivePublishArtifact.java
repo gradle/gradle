@@ -15,40 +15,48 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
+import com.google.common.collect.ImmutableSet;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.util.Date;
 
-public class ArchivePublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
-    private String name;
-    private String extension;
-    private String type;
-    private String classifier;
-    private Date date;
-    private File file;
+/**
+ * Wraps an {@link AbstractArchiveTask} as a {@link PublishArtifactInternal}.
+ */
+public class ArchivePublishArtifact implements PublishArtifactInternal {
 
-    private AbstractArchiveTask archiveTask;
+    private final TaskDependency taskDependency;
+    private final AbstractArchiveTask archiveTask;
 
     public ArchivePublishArtifact(TaskDependencyFactory taskDependencyFactory, AbstractArchiveTask archiveTask) {
-        super(taskDependencyFactory, archiveTask);
         this.archiveTask = archiveTask;
+        this.taskDependency = taskDependencyFactory.configurableDependency(ImmutableSet.of(archiveTask));
     }
 
     @Override
-    public ArchivePublishArtifact builtBy(Object... tasks) {
-        super.builtBy(tasks);
-        return this;
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return archiveTask.getArchiveFile();
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return taskDependency;
+    }
+
+    @Override
+    public File getFile() {
+        return archiveTask.getArchiveFile().get().getAsFile();
     }
 
     @Override
     public String getName() {
-        if (name != null) {
-            return name;
-        }
         String baseName = archiveTask.getArchiveBaseName().getOrNull();
         if (baseName != null) {
             return withAppendix(baseName);
@@ -63,59 +71,22 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
 
     @Override
     public String getExtension() {
-        return GUtil.getOrDefault(extension, () -> archiveTask.getArchiveExtension().getOrNull());
+        return archiveTask.getArchiveExtension().getOrNull();
     }
 
     @Override
     public String getType() {
-        return GUtil.getOrDefault(type, () -> archiveTask.getArchiveExtension().getOrNull());
+        return archiveTask.getArchiveExtension().getOrNull();
     }
 
     @Override
     public String getClassifier() {
-        return GUtil.getOrDefault(classifier, () -> archiveTask.getArchiveClassifier().getOrNull());
-    }
-
-    @Override
-    public File getFile() {
-        return GUtil.getOrDefault(file, () -> archiveTask.getArchiveFile().get().getAsFile());
+        return archiveTask.getArchiveClassifier().getOrNull();
     }
 
     @Override
     public Date getDate() {
-        return GUtil.getOrDefault(date, () -> new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
-    }
-
-    public AbstractArchiveTask getArchiveTask() {
-        return archiveTask;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public void setExtension(String extension) {
-        this.extension = extension;
-    }
-
-    @Override
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    @Override
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
+        return new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified());
     }
 
     @Override
