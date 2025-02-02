@@ -31,6 +31,10 @@ dependencies {
     api(projects.fileOperations)
     api(projects.jvmServices)
     api(projects.persistentCache)
+    api(projects.core)
+    api(projects.native)
+    api(projects.resources)
+    api(projects.modelCore)
 
     implementation(projects.functional)
 
@@ -41,10 +45,14 @@ dependencies {
     implementation(libs.commonsLang)
 
     testImplementation(testFixtures(projects.core))
+    testImplementation(projects.dependencyManagement)
 
     testRuntimeOnly(projects.distributionsJvm) {
         because("ProjectBuilder tests load services from a Gradle distribution.  Toolchain usage requires JVM distribution.")
     }
+
+    testFixturesImplementation(projects.internalIntegTesting)
+    testFixturesImplementation(libs.commonsCompress)
 }
 
 packageCycles {
@@ -52,6 +60,3 @@ packageCycles {
 }
 
 integTest.usesJavadocCodeSnippets.set(true)
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

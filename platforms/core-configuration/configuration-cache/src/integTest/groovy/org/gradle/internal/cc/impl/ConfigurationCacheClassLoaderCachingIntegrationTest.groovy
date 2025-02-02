@@ -20,10 +20,10 @@ import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegratio
 
 class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
-    def "reuses cached ClassLoaders"() {
+    File staticDataLib
 
-        given: 'a Task that holds some static data'
-        File staticDataLib = file("lib/StaticData.jar").tap {
+    def setup() {
+        staticDataLib = file("lib/StaticData.jar").tap {
             parentFile.mkdirs()
         }
         jarWithClasses(
@@ -50,29 +50,34 @@ class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuil
                 }
             """
         )
+    }
 
-        and: "multiple sub-projects"
-        settingsFile << """
-            include 'foo:foo'
-            include 'bar:bar'
-        """
+    def "reuses cached ClassLoaders"() {
+
+        given: "multiple sub-projects"
+        kotlinFile "settings.$scriptExtension", '''
+            include("foo:foo")
+            include("bar:bar")
+        '''
+        kotlinFile "build.$scriptExtension", '''
+            tasks.register("unused") {}
+        '''
 
         // Make the classpath of :foo differ from :bar's
         // thus causing :foo:foo and :bar:bar to have separate ClassLoaders.
-        File someLib = file('lib/someLib.jar')
-        jarWithClasses(someLib, SomeClass: 'class SomeClass {}')
-
-        file("foo/build.gradle") << """
-            buildscript { dependencies { classpath(files('${someLib.toURI()}')) } }
-        """
+        buildscriptWithCustomClasspath "foo/build.$scriptExtension"
 
         // Load the StaticData class in the different sub-sub-projects
         // for a more interesting ClassLoader hierarchy.
         for (projectDir in ['foo/foo', 'bar/bar']) {
-            file("$projectDir/build.gradle") << """
-                buildscript { dependencies { classpath(files('${staticDataLib.toURI()}')) } }
+            file("$projectDir/build.$scriptExtension") << """
+                buildscript {
+                    dependencies {
+                        classpath(files("${staticDataLib.toURI()}"))
+                    }
+                }
 
-                task ok(type: StaticData) {
+                tasks.register("ok", $classRef) {
                 }
             """
         }
@@ -90,6 +95,95 @@ class ConfigurationCacheClassLoaderCachingIntegrationTest extends PersistentBuil
         then:
         outputContains("foo.value = 2")
         outputContains("bar.value = 2")
+
+        when: 'one of the scripts change'
+        file("foo/foo/build.$scriptExtension") << """
+            tasks.register("unused") {}
+        """
+
+        and:
+        configurationCacheRun ":foo:foo:ok", ":bar:bar:ok"
+
+        then: 'classloaders are still reused since the classpath remains the same'
+        outputContains("foo.value = 3")
+        outputContains("bar.value = 3")
+
+        and: 'configuration cache is retrieved successfully after reuse'
+        configurationCacheRun ":foo:foo:ok", ":bar:bar:ok"
+
+        then:
+        outputContains("foo.value = 4")
+        outputContains("bar.value = 4")
+
+        where:
+        scriptExtension | classRef
+        'gradle'        | 'StaticData'
+        'gradle.kts'    | 'StaticData::class'
+    }
+
+    def "reuses strict ClassLoaders but discards scripts with non-strict ones"() {
+        given:
+        settingsFile '''
+            rootProject.name = "test"
+            include("foo:foo")
+            include("bar:bar")
+        '''
+
+        // Make the classpath of :foo differ from :bar's
+        // thus causing :foo:foo and :bar:bar to have separate ClassLoaders.
+        buildscriptWithCustomClasspath 'foo/build.gradle.kts'
+
+        for (projectDir in ['foo/foo', 'bar/bar']) {
+            kotlinFile "$projectDir/build.gradle.kts", """
+                buildscript {
+                    // make bar/bar classLoader non-strict by accessing classLoader
+                    // this should cause the compiled script class to be discarded
+                    ${projectDir.endsWith('bar') ? 'require(classLoader != null)' : ''}
+                    dependencies {
+                        classpath(files("${staticDataLib.toURI()}"))
+                    }
+                }
+
+                class StaticScriptData {
+                    companion object {
+                        var script = 1
+                    }
+                }
+
+                tasks.register("ok", StaticData::class) {
+                    val id = "\${project.name}.script"
+                    doLast { println("\$id = \${StaticScriptData.script++}") }
+                }
+            """
+        }
+        and: 'non-strict classloaders must be allowed'
+        executer.withEagerClassLoaderCreationCheckDisabled()
+
+        when:
+        run "ok"
+
+        then:
+        outputContains("foo.value = 1")
+        outputContains("foo.script = 1")
+        outputContains("bar.value = 1")
+        outputContains("bar.script = 1")
+
+        when:
+        configurationCacheRun "ok"
+
+        then: 'strict foo/foo is fully reused but non-strict script bar/bar is discarded'
+        outputContains("foo.value = 2")
+        outputContains("foo.script = 2")
+        outputContains("bar.value = 2")
+        outputContains("bar.script = 1")
+    }
+
+    private void buildscriptWithCustomClasspath(String scriptFileName) {
+        File someLib = file('lib/someLib.jar')
+        jarWithClasses(someLib, SomeClass: 'class SomeClass {}')
+        file(scriptFileName) << """
+            buildscript { dependencies { classpath(files("${someLib.toURI()}")) } }
+        """
     }
 
     private void configurationCacheRun(String... args) {

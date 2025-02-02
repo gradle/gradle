@@ -17,10 +17,13 @@
 package org.gradle.api.publish.ivy.internal.publisher;
 
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Used by the `ivy-publish` plugin to publish Ivy modules.
  */
+@ServiceScope(Scope.Build.class)
 public interface IvyPublisher {
     void publish(IvyNormalizedPublication publication, IvyArtifactRepository repository);
 }

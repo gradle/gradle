@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class CopySpecMatchingTest extends Specification {
 
-    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
+    DefaultCopySpec copySpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.propertyFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
 
     def canMatchFiles() {
         given:
@@ -137,7 +137,7 @@ class CopySpecMatchingTest extends Specification {
 
     def matchingSpecInherited() {
         given:
-        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
+        DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.fileCollectionFactory(), TestUtil.propertyFactory(), TestUtil.instantiatorFactory().decorateLenient(), TestFiles.patternSetFactory)
         CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
 
         when:

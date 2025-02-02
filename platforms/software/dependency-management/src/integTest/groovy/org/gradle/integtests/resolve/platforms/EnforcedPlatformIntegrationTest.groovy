@@ -75,14 +75,15 @@ class EnforcedPlatformIntegrationTest extends AbstractHttpDependencyResolutionTe
         settingsFile << """
             include 'platform'
             include 'lib'
+            dependencyResolutionManagement {
+                ${mavenCentralRepository()}
+            }
         """
 
         buildFile << """
-            allprojects {
-                ${mavenCentralRepository()}
+            plugins {
+                id("java-library")
             }
-
-            apply plugin: 'java-library'
 
             dependencies {
                 implementation enforcedPlatform(project(":platform"))

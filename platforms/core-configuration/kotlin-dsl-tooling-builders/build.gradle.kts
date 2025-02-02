@@ -43,6 +43,3 @@ dependencies {
 }
 
 testFilesCleanup.reportOnly = true
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

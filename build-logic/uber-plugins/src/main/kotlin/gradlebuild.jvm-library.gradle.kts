@@ -33,6 +33,7 @@ plugins {
     id("gradlebuild.ci-lifecycle")
     id("gradlebuild.ci-reporting") // CI: Prepare reports to be uploaded to TeamCity
     id("gradlebuild.configure-ci-artifacts") // CI: Prepare reports to be uploaded to TeamCity
+    id("com.autonomousapps.dependency-analysis") // Auditing dependencies to find unused libraries
 }
 
 configure<DependencyAnalysisSubExtension> {
@@ -40,5 +41,13 @@ configure<DependencyAnalysisSubExtension> {
         onAny {
             severity("fail")
         }
+
+        onUnusedAnnotationProcessors {
+            // Ignore check for internal-instrumentation-processor, since we apply
+            // it to all distribution.api-java projects but projects might not have any upgrade
+            exclude(":internal-instrumentation-processor")
+        }
+
+        ignoreSourceSet("archTest", "crossVersionTest", "docsTest", "integTest", "jmh", "peformanceTest", "smokeTest", "testInterceptors", "testFixtures", "smokeIdeTest")
     }
 }

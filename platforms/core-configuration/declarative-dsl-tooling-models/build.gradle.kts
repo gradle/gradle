@@ -41,6 +41,3 @@ tasks.withType<KotlinCompile>().configureEach {
         languageVersion.set(KotlinVersion.KOTLIN_1_9)
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

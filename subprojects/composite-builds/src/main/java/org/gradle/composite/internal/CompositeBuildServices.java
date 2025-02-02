@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.composite.internal.plugins.CompositeBuildPluginResolverContributor;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -35,6 +36,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.plugin.use.resolve.internal.PluginResolverContributor;
 
 public class CompositeBuildServices extends AbstractGradleModuleServices {
 
@@ -51,7 +53,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
-        registration.add(CompositeBuildPluginResolverContributor.class);
+        registration.add(PluginResolverContributor.class, HoldsProjectState.class, CompositeBuildPluginResolverContributor.class);
     }
 
     private static class CompositeBuildSessionScopeServices implements ServiceRegistrationProvider {

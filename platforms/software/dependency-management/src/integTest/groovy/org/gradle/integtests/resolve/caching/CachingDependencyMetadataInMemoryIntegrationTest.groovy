@@ -70,21 +70,25 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         given:
         def lib = ivyHttpRepo.module("org", "lib").publish()
 
-        createDirs("impl")
         file("settings.gradle") << "include 'impl'"
 
-        file("build.gradle") << """
-            allprojects {
-                configurations { conf }
-                repositories { ivy { url = "${ivyHttpRepo.uri}" } }
-                dependencies { conf 'org:lib:1.0' }
-                task resolveConf {
-                    def files = configurations.conf
-                    doLast { println path + " " + files*.name }
-                }
+        def common = """
+            configurations { conf }
+            repositories { ivy { url = "${ivyHttpRepo.uri}" } }
+            dependencies { conf 'org:lib:1.0' }
+            task resolveConf {
+                def files = configurations.conf
+                doLast { println path + " " + files*.name }
             }
+        """
+
+        file("build.gradle") << """
+            $common
+
             resolveConf.dependsOn(':impl:resolveConf')
         """
+
+        file("impl/build.gradle") << common
 
         when:
         lib.ivy.expectGet()
@@ -102,29 +106,34 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         def ivyRepo2 = new IvyFileRepository(file("ivy-repo2"))
         ivyRepo2.module("org", "lib", "2.0").publish() //different version of lib
 
-        createDirs("impl")
         file("settings.gradle") << "include 'impl'"
 
-        file("build.gradle") << """
-            allprojects {
-                configurations {
-                    conf {
-                        incoming.afterResolve { deps ->
-                            println "\${project.path} " + deps.files*.name
-                        }
+        def common = """
+            configurations {
+                conf {
+                    incoming.afterResolve { deps ->
+                        println "\${project.path} " + deps.files*.name
                     }
                 }
-                dependencies { conf 'org:lib:1.0' }
-                task resolveConf {
-                    def files = configurations.conf
-                    doLast { files.files }
-                }
             }
+            dependencies { conf 'org:lib:1.0' }
+            task resolveConf {
+                def files = configurations.conf
+                doLast { files.files }
+            }
+        """
+
+        buildFile << """
+            $common
+
             repositories { ivy { url = "${ivyRepo.uri}" } }
-            project(":impl") {
-                repositories { ivy { url = "${ivyRepo2.uri}" } }
-                tasks.resolveConf.dependsOn(":resolveConf")
-            }
+        """
+
+        file('impl/build.gradle') << """
+            $common
+
+            repositories { ivy { url = "${ivyRepo2.uri}" } }
+            tasks.resolveConf.dependsOn(":resolveConf")
         """
 
         when:

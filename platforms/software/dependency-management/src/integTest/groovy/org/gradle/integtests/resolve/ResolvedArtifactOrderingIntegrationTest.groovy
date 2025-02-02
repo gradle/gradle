@@ -26,26 +26,39 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
     def setup() {
         settingsFile << """
             rootProject.name = 'root'
-"""
-        buildFile << """
-            allprojects {
+            dependencyResolutionManagement {
                 repositories {
-                    maven { url = '$mavenRepo.uri' }
+                    maven {
+                        url = "${mavenRepo.uri}"
+                    }
                 }
-                configurations {
-                    common
-                    create("default") { extendsFrom common }
-                    unordered { extendsFrom common }
-                    consumerFirst { extendsFrom common }
-                    dependencyFirst { extendsFrom common }
-                }
+            }
+        """
+        buildFile << """
+            $header
+            configurations {
+                unordered { extendsFrom common }
+                consumerFirst { extendsFrom common }
+                dependencyFirst { extendsFrom common }
             }
             dependencies {
                 common "org.test:A:1.0"
             }
             configurations.consumerFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.CONSUMER_FIRST)
             configurations.dependencyFirst.resolutionStrategy.sortArtifacts(ResolutionStrategy.SortOrder.DEPENDENCY_FIRST)
-"""
+        """
+    }
+
+    String getHeader() {
+        """
+            configurations {
+                common
+                create("default") { extendsFrom common }
+            }
+            artifacts {
+                common file("\${project.name}.jar")
+            }
+        """
     }
 
     private void checkOrdered(List<?> ordered) {
@@ -208,38 +221,39 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         def modB = mavenRepo.module("org.test", "B").dependsOn(modC).publish()
         def modA = mavenRepo.module("org.test", "A").dependsOn(modC).publish()
 
-        createDirs("a", "b", "c")
         settingsFile << "include 'a', 'b', 'c'"
         buildFile << """
-            allprojects {
-                artifacts {
-                    common file("\${project.name}.jar")
-                }
-            }
             dependencies {
                 common files("root-lib.jar")
                 common project(":a")
             }
-            project(":a") {
-                dependencies {
-                    common files("a-lib.jar")
-                    common project(":b")
-                    common "org.test:B:1.0"
-                }
+        """
+
+        file("a/build.gradle") << """
+            $header
+            dependencies {
+                common files("a-lib.jar")
+                common project(":b")
+                common "org.test:B:1.0"
             }
-            project(":b") {
-                dependencies {
-                    common project(":c")
-                    common files("b-lib.jar")
-                }
+        """
+
+        file("b/build.gradle") << """
+            $header
+            dependencies {
+                common project(":c")
+                common files("b-lib.jar")
             }
-            project(":c") {
-                dependencies {
-                    common "org.test:C:1.0"
-                    common files("c-lib.jar")
-                }
+        """
+
+        file("c/build.gradle") << """
+            $header
+            dependencies {
+                common "org.test:C:1.0"
+                common files("c-lib.jar")
             }
-"""
+        """
+
 
         then:
         checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])

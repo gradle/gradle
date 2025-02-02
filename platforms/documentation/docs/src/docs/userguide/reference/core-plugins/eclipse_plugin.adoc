@@ -186,9 +186,9 @@ Sections of existing Eclipse files that are also the target of generated content
 [[sec:complete_rewrite_of_eclipse_files]]
 ==== Disabling merging with a complete rewrite
 
-To completely rewrite existing Eclipse files, execute a clean task together with its corresponding generation task, like “`gradle cleanEclipse eclipse`” (in that order). If you want to make this the default behavior, add “`tasks.eclipse.dependsOn(cleanEclipse)`” to your build script. This makes it unnecessary to execute the clean task explicitly.
+To completely rewrite existing Eclipse files, execute a clean task together with its corresponding generation task, like "`gradle cleanEclipse eclipse`" (in that order). If you want to make this the default behavior, add "`tasks.eclipse.dependsOn(cleanEclipse)`" to your build script. This makes it unnecessary to execute the clean task explicitly.
 
-This strategy can also be used for individual files that the plugins would generate. For instance, this can be done for the “`.classpath`” file with “`gradle cleanEclipseClasspath eclipseClasspath`”.
+This strategy can also be used for individual files that the plugins would generate. For instance, this can be done for the "`.classpath`" file with "`gradle cleanEclipseClasspath eclipseClasspath`".
 
 [[sec:hooking_into_the_eclipse_generation_lifecycle]]
 === Hooking into the generation lifecycle

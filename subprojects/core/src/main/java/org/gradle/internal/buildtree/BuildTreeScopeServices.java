@@ -66,7 +66,6 @@ import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCol
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
-import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
@@ -106,7 +105,6 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(DeprecationsReporter.class);
         registration.add(TaskPathProjectEvaluator.class);
         registration.add(DefaultFeatureFlags.class);
-        registration.add(DefaultProblemLocationAnalyzer.class);
         registration.add(DefaultProblemDiagnosticsFactory.class);
         registration.add(DefaultExceptionAnalyser.class);
         registration.add(ConfigurationCacheableIdFactory.class);

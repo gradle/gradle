@@ -228,7 +228,7 @@ include::{snippetsPath}/tasks/mustRunAfter/tests/mustRunAfterSingleTask.out[]
 ----
 ====
 
-The “should run after” ordering rule will be ignored if it introduces an ordering cycle:
+The "should run after" ordering rule will be ignored if it introduces an ordering cycle:
 
 ====
 include::sample[dir="snippets/tasks/shouldRunAfterWithCycle/kotlin",files="build.gradle.kts[]"]

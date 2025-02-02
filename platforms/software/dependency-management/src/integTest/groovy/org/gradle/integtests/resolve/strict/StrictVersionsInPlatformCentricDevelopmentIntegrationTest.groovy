@@ -405,31 +405,36 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
     void "(5) if two libraries are combined without agreeing on an override, the original platform constraint is brought back [#platformType]"() {
         updatedRepository(platformType)
-        createDirs("recklessLibrary", "secondLibrary")
-        settingsFile << "\ninclude 'recklessLibrary', 'secondLibrary'"
+        settingsFile << """
+            include 'recklessLibrary'
+            include 'secondLibrary'
+        """
+
         buildFile << """
-            project(':recklessLibrary') {
-                configurations { conf }
-                dependencies {
-                    ${platformDependency(platformType, 'org:platform:1.+')}
-                    conf('org:bar')
-                    constraints {
-                        conf('org:foo') {
-                            version { strictly '3.2' } // ignoring platform's reject
-                        }
-                    }
-                }
-            }
-            project(':secondLibrary') {
-                configurations { conf }
-                dependencies {
-                    ${platformDependency(platformType, 'org:platform:1.+')}
-                    conf('org:bar')
-                }
-            }
             dependencies {
                 conf(project(path: ':recklessLibrary', configuration: 'conf'))
                 conf(project(path: ':secondLibrary', configuration: 'conf'))
+            }
+        """
+
+        file("recklessLibrary/build.gradle") << """
+            configurations { conf }
+            dependencies {
+                ${platformDependency(platformType, 'org:platform:1.+')}
+                conf('org:bar')
+                constraints {
+                    conf('org:foo') {
+                        version { strictly '3.2' } // ignoring platform's reject
+                    }
+                }
+            }
+        """
+
+        file("secondLibrary/build.gradle") << """
+            configurations { conf }
+            dependencies {
+                ${platformDependency(platformType, 'org:platform:1.+')}
+                conf('org:bar')
             }
         """
 

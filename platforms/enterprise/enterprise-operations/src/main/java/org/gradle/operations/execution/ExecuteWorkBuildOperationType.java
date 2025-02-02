@@ -130,7 +130,7 @@ public final class ExecuteWorkBuildOperationType implements BuildOperationType<E
          * Opaque messages describing why the work was executed.
          * <p>
          * In the order emitted by Gradle.
-         * Null if execution did not get so far as to test “up-to-date-ness”.
+         * Null if execution did not get so far as to test "up-to-date-ness".
          * Empty if tested, but work was considered up to date.
          */
         List<String> getExecutionReasons();

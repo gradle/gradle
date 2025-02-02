@@ -22,23 +22,24 @@ import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 class ResolvedFileOrderingIntegrationTest extends AbstractDependencyResolutionTest {
     def setup() {
         settingsFile << """
-rootProject.name = 'test'
-"""
-        buildFile << """
-allprojects {
-    dependencies {
-        attributesSchema {
-           attribute(Attribute.of('usage', String))
-        }
+            rootProject.name = 'test'
+        """
     }
-    configurations {
-        compile
-        "default" {
-            extendsFrom compile
-        }
-    }
-}
-"""
+
+    String getHeader() {
+        """
+            dependencies {
+                attributesSchema {
+                   attribute(Attribute.of('usage', String))
+                }
+            }
+            configurations {
+                compile
+                "default" {
+                    extendsFrom compile
+                }
+            }
+        """
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -51,108 +52,119 @@ allprojects {
         mavenRepo.module("org", "test2", "1.0").publish()
         mavenRepo.module("org", "test3", "1.0").publish()
 
-        createDirs("a", "b", "c")
         settingsFile << """
-include 'a', 'b', 'c'
-"""
+            include 'a'
+            include 'b'
+            include 'c'
+            dependencyResolutionManagement {
+                repositories { maven { url = '$mavenRepo.uri' } }
+            }
+        """
         buildFile << """
-allprojects {
-    repositories { maven { url = '$mavenRepo.uri' } }
-}
-dependencies {
-    compile files('test-lib.jar')
-    compile project(':a')
-    compile 'org:test:1.0'
-    compile('org:test:1.0') {
-        artifact {
-            name = 'test'
-            classifier = 'from-main'
-            type = 'jar'
-        }
-    }
-    artifacts {
-        compile file('test.jar')
-    }
-}
-project(':a') {
-    dependencies {
-        compile files('a-lib.jar')
-        compile project(':b')
-        compile project(':c')
-        compile 'org:test:1.0'
-        compile('org:test:1.0') {
-            artifact {
-                name = 'test'
-                classifier = 'from-a'
-                type = 'jar'
+            $header
+            dependencies {
+                compile files('test-lib.jar')
+                compile project(':a')
+                compile 'org:test:1.0'
+                compile('org:test:1.0') {
+                    artifact {
+                        name = 'test'
+                        classifier = 'from-main'
+                        type = 'jar'
+                    }
+                }
+                artifacts {
+                    compile file('test.jar')
+                }
             }
-        }
-        compile('org:test:1.0') {
-            artifact {
-                name = 'test'
-                classifier = 'from-a'
-                type = 'jar'
-            }
-        }
-    }
-    artifacts {
-        compile file('a.jar')
-        compile file('a.jar')
-    }
-}
-project(':b') {
-    dependencies {
-        compile files('b-lib.jar')
-        compile files('b-lib.jar')
-        compile 'org:test2:1.0'
-        compile project(':c')
-    }
-    artifacts {
-        compile file('b.jar')
-    }
-}
-project(':c') {
-    dependencies {
-        compile files('c-lib.jar')
-        compile 'org:test3:1.0'
-        compile('org:test:1.0') {
-            artifact {
-                name = 'test'
-                classifier = 'from-c'
-                type = 'jar'
-            }
-            artifact {
-                // this is the default artifact
-                name = 'test'
-                type = 'jar'
-            }
-        }
-    }
-    artifacts {
-        compile file('c.jar')
-    }
-}
 
-task show {
-    doLast {
-        println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.file.name }
-        println "artifacts 2: " + configurations.compile.incoming.artifactView { }.artifacts.collect { it.file.name }
-        println "artifacts 3: " + configurations.compile.incoming.artifactView { lenient = true }.artifacts.collect { it.file.name }
+            task show {
+                doLast {
+                    println "artifacts 1: " + configurations.compile.incoming.artifacts.collect { it.file.name }
+                    println "artifacts 2: " + configurations.compile.incoming.artifactView { }.artifacts.collect { it.file.name }
+                    println "artifacts 3: " + configurations.compile.incoming.artifactView { lenient = true }.artifacts.collect { it.file.name }
 
-        println "files 1: " + configurations.compile.incoming.files.collect { it.name }
-        println "files 2: " + configurations.compile.files.collect { it.name }
-        println "files 3: " + configurations.compile.resolve().collect { it.name }
-        println "files 4: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
-        println "files 5: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
+                    println "files 1: " + configurations.compile.incoming.files.collect { it.name }
+                    println "files 2: " + configurations.compile.files.collect { it.name }
+                    println "files 3: " + configurations.compile.resolve().collect { it.name }
+                    println "files 4: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
+                    println "files 5: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
 
-        println "files 6: " + configurations.compile.files { true }.collect { it.name }
-        println "files 7: " + configurations.compile.fileCollection { true }.collect { it.name }
-        println "files 8: " + configurations.compile.fileCollection { true }.files.collect { it.name }
-        println "files 9: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
-        println "files 10: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
-    }
-}
-"""
+                    println "files 6: " + configurations.compile.files { true }.collect { it.name }
+                    println "files 7: " + configurations.compile.fileCollection { true }.collect { it.name }
+                    println "files 8: " + configurations.compile.fileCollection { true }.files.collect { it.name }
+                    println "files 9: " + configurations.compile.incoming.artifactView { }.files.collect { it.name }
+                    println "files 10: " + configurations.compile.incoming.artifactView { lenient = true }.files.collect { it.name }
+                }
+            }
+        """
+
+        file("a/build.gradle") << """
+            $header
+
+            dependencies {
+                compile files('a-lib.jar')
+                compile project(':b')
+                compile project(':c')
+                compile 'org:test:1.0'
+                compile('org:test:1.0') {
+                    artifact {
+                        name = 'test'
+                        classifier = 'from-a'
+                        type = 'jar'
+                    }
+                }
+                compile('org:test:1.0') {
+                    artifact {
+                        name = 'test'
+                        classifier = 'from-a'
+                        type = 'jar'
+                    }
+                }
+            }
+            artifacts {
+                compile file('a.jar')
+                compile file('a.jar')
+            }
+        """
+
+        file("b/build.gradle") << """
+            $header
+
+            dependencies {
+                compile files('b-lib.jar')
+                compile files('b-lib.jar')
+                compile 'org:test2:1.0'
+                compile project(':c')
+            }
+            artifacts {
+                compile file('b.jar')
+            }
+        """
+
+        file("c/build.gradle") << """
+            $header
+
+            dependencies {
+                compile files('c-lib.jar')
+                compile 'org:test3:1.0'
+                compile('org:test:1.0') {
+                    artifact {
+                        name = 'test'
+                        classifier = 'from-c'
+                        type = 'jar'
+                    }
+                    artifact {
+                        // this is the default artifact
+                        name = 'test'
+                        type = 'jar'
+                    }
+                }
+            }
+            artifacts {
+                compile file('c.jar')
+            }
+        """
 
         when:
         executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")

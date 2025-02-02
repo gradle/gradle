@@ -20,8 +20,11 @@ import org.gradle.cache.FileLock
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.FileLockReleasedSignal
 import org.gradle.cache.internal.filelock.DefaultLockOptions
+import org.gradle.cache.internal.locklistener.DefaultFileLockCommunicator
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.cache.internal.locklistener.FileLockPacketPayload
+import org.gradle.cache.internal.locklistener.FileLockPacketType
 import org.gradle.cache.internal.locklistener.InetAddressProvider
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -29,9 +32,6 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.internal.time.Time
 
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
 import java.util.function.Consumer
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -41,9 +41,8 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def addressFactory = new InetAddressFactory()
 
     FileLockContentionHandler receivingFileLockContentionHandler
-    DatagramSocket receivingSocket
+    TestableFileLockCommunicator communicator
     FileLock receivingLock
-    Thread socketReceiverThread
 
     def setup() {
         executer.withArguments("-d")
@@ -74,30 +73,36 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         """
     }
 
-    def cleanup() {
-        socketReceiverThread?.terminate = true
-    }
-
     def "the lock holder is not hammered with ping requests for the shared lock"() {
         given:
-        setupLockOwner()
-        def pingRequestCount = 0
-        //do not handle requests: this simulates the situation were pings do not arrive
-        replaceSocketReceiver { pingRequestCount++ }
+        setupLockOwner({
+            it.trigger()
+        })
 
         when:
+        // for the lock holder, do not respond to messages for a bit
+        communicator.allowCommunication = false
+
+        // spin up a client to request the same lock
         def build = executer.withTasks("lock").start()
         def timer = Time.startTimer()
 
+        // once we've seen a few pings, allow the lock holder to respond
         def pingCountInOutput = 0
         poll(120) {
             pingCountInOutput = (build.standardOutput =~ 'Pinged owner at port').count
             assert pingCountInOutput >= 3
         }
+        // lock holder will respond and release the lock
+        communicator.allowCommunication = true
         receivingLock.close()
         then:
         build.waitForFinish()
-        pingRequestCount in [pingCountInOutput, pingCountInOutput + 1]
+        // If the lock requestor went wild, we would see lots of ping counts or lots of total messages
+        communicator.totalMessages == pingCountInOutput
+        communicator.totalMessages < 50 // sanity check that we didn't send too many pings
+        // Sanity check that we waited at least some time before releasing the lock
+        // IOW, we don't want to see 3 pings in ~milliseconds and call this test valid
         timer.elapsedMillis > 3000 // See: DefaultFileLockContentionHandler.PING_DELAY
     }
 
@@ -117,16 +122,14 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         // simulate additional requests
         def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
         (1..500).each {
-            addressFactory.communicationAddresses.each { address ->
-                byte[] bytes = [1, 0, 0, 0, 0, 0, 0, 0, 0]
-                DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, address, receivingSocket.localPort)
-                socket.send(confirmPacket)
-            }
+            def address = addressFactory.localBindingAddress
+            byte[] bytes = FileLockPacketPayload.encode(0, FileLockPacketType.UNKNOWN)
+            DatagramPacket confirmPacket = new DatagramPacket(bytes, bytes.length, address, communicator.port)
+            socket.send(confirmPacket)
         }
 
         then:
         waitCloseAndFinish(build)
-        assertReceivingSocketEmpty()
 
         cleanup:
         terminate = true
@@ -135,7 +138,6 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
     def "if the lock holder confirmed the request, it is not pinged again"() {
         given:
         def requestReceived = false
-        def additionalRequests = 0
         setupLockOwner() { requestReceived = true }
 
         when:
@@ -143,20 +145,16 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         poll(120) {
             assert requestReceived
         }
-        replaceSocketReceiver {
-            additionalRequests++
-        }
 
         then:
         waitCloseAndFinish(build)
         countPingsSent(build) == 1
-        additionalRequests == 0
+        communicator.totalMessages == 1
     }
 
     def "the lock holder confirms that a request is in process to multiple requesters"() {
         given:
         def requestReceived = false
-        def additionalRequests = 0
         setupLockOwner() { requestReceived = true }
 
         when:
@@ -170,7 +168,6 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             assertConfirmationCount(build2)
             assertConfirmationCount(build3)
         }
-        replaceSocketReceiver { additionalRequests++ }
 
         then:
         waitCloseAndFinish(build1)
@@ -179,7 +176,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         assertConfirmationCount(build1)
         assertConfirmationCount(build2)
         assertConfirmationCount(build3)
-        additionalRequests == 0
+        communicator.totalMessages == 3
     }
 
     def "the lock holder confirms lock releases to multiple requesters"() {
@@ -315,28 +312,16 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         succeeds "doWorkInWorker"
     }
 
-    void assertConfirmationCount(GradleHandle build, DatagramSocket socket = receivingSocket, FileLock lock = receivingLock) {
-        assert (build.standardOutput =~ "Gradle process at port ${socket.localPort} confirmed unlock request for lock with id ${lock.lockId}.").count == addressFactory.communicationAddresses.size()
+    void assertConfirmationCount(GradleHandle build, FileLock lock = receivingLock) {
+        assert (build.standardOutput =~ "Gradle process at port ${communicator.port} confirmed unlock request for lock with id ${lock.lockId}.").count == 1
     }
 
     void assertReleaseSignalTriggered(GradleHandle build, FileLock lock = receivingLock) {
         assert (build.standardOutput =~ "Triggering lock release signal for lock with id ${lock.lockId}.").count > 0
     }
 
-    def assertReceivingSocketEmpty() {
-        try {
-            Executors.newSingleThreadExecutor().submit {
-                DatagramPacket packet = new DatagramPacket(new byte[9], 9)
-                receivingSocket.receive(packet)
-            }.get(1, TimeUnit.SECONDS)
-        } catch (TimeoutException e) {
-            return true
-        }
-        return false
-    }
-
-    def countPingsSent(GradleHandle build, DatagramSocket socket = receivingSocket) {
-        (build.standardOutput =~ "Pinged owner at port ${socket.localPort}").count
+    def countPingsSent(GradleHandle build) {
+        (build.standardOutput =~ "Pinged owner at port ${communicator.port}").count
     }
 
     def waitCloseAndFinish(GradleHandle build) {
@@ -345,46 +330,27 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         build.waitForFinish()
     }
 
-    def replaceSocketReceiver(Runnable reactOnRequest) {
-        receivingFileLockContentionHandler.fileLockRequestListener?.shutdownNow()
-        socketReceiverThread = new Thread() {
-            def terminate = false
-            void run() {
-                InetAddress selectedAddress = null
-                while (!terminate) {
-                    byte[] bytes = new byte[9]
-                    DatagramPacket packet = new DatagramPacket(bytes, bytes.length)
-                    receivingSocket.receive(packet)
-                    if (selectedAddress == null) {
-                        selectedAddress = packet.address
-                    }
-                    if (selectedAddress == packet.address) {
-                        reactOnRequest.run()
-                    }
-                }
-            }
-        }
-        socketReceiverThread.start()
-    }
-
     def setupLockOwner(Consumer<FileLockReleasedSignal> whenContended = null) {
-        receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(new DefaultExecutorFactory(), new InetAddressProvider() {
+        def inetAddressProvider = new InetAddressProvider() {
             @Override
             InetAddress getWildcardBindingAddress() {
                 return addressFactory.wildcardBindingAddress
             }
 
             @Override
-            Iterable<InetAddress> getCommunicationAddresses() {
-                return addressFactory.communicationAddresses
+            InetAddress getCommunicationAddress() {
+                return addressFactory.localBindingAddress
             }
-        })
+        }
+
+        communicator = new TestableFileLockCommunicator(new DefaultFileLockCommunicator(inetAddressProvider))
+
+        receivingFileLockContentionHandler = new DefaultFileLockContentionHandler(communicator, inetAddressProvider, new DefaultExecutorFactory())
         def fileLockManager = new DefaultFileLockManager(new ProcessMetaDataProvider() {
             String getProcessIdentifier() { return "pid" }
             String getProcessDisplayName() { return "process" }
         }, receivingFileLockContentionHandler)
-        receivingSocket = receivingFileLockContentionHandler.communicator.socket
+
         receivingLock = fileLockManager.lock(file("locks/testlock"), DefaultLockOptions.mode(FileLockManager.LockMode.Exclusive), "testlock", "test holding lock", whenContended)
     }
-
 }

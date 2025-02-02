@@ -87,8 +87,8 @@ public class BasicGlobalScopeServices implements ServiceRegistrationProvider {
                 }
 
                 @Override
-                public Iterable<InetAddress> getCommunicationAddresses() {
-                    return inetAddressFactory.getCommunicationAddresses();
+                public InetAddress getCommunicationAddress() {
+                    return inetAddressFactory.getLocalBindingAddress();
                 }
             });
     }

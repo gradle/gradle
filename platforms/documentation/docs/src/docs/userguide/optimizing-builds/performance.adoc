@@ -395,7 +395,7 @@ project.tasks.register('copyFiles', Copy) { Task t ->
 ----
 ====
 
-This example uses the `register()` and `getByName()` methods available on all Gradle “domain object containers”.
+This example uses the `register()` and `getByName()` methods available on all Gradle "domain object containers".
 Domain object containers include tasks, configurations, dependencies, extensions, and more.
 Some collections, such as `TaskContainer`, have dedicated types with extra methods like link:{groovyDslPath}/org.gradle.api.tasks.TaskContainer.html#org.gradle.api.tasks.TaskContainer:create(java.lang.String,%20java.lang.Class)[create],
 which accepts a task type.
@@ -443,7 +443,7 @@ several repositories together. Then, add only that repository to your build file
 
 === Minimize dynamic and snapshot versions
 
-Dynamic versions (e.g. “2.+”), and changing versions (snapshots) force Gradle to contact remote
+Dynamic versions (e.g. "2.+"), and changing versions (snapshots) force Gradle to contact remote
 repositories to find new releases. By default, Gradle only checks once every 24 hours.
 But you can change this programmatically with the following settings:
 

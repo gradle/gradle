@@ -123,7 +123,7 @@ include::{snippetsPath}/dependencyManagement/inspectingDependencies-dependencies
 [[sec:identifying-reason-dependency-selection]]
 == Identify the selected version using the `dependencyInsight` task
 
-A project may request two different versions of the same dependency either directly or transitively that may result in a <<variant_model.adoc#sec:version-conflict,version conflict>>.
+A project may request two different versions of the same dependency either directly or transitively that may result in a <<dependency_resolution_model.adoc#sec:version-conflict,version conflict>>.
 
 The following example introduces a conflict with `commons-codec:commons-codec`, added both as a direct dependency and a transitive dependency of JGit:
 
@@ -182,7 +182,7 @@ May be followed by a `because` text.
 
 | By conflict resolution : between versions <version>
 | The dependency appeared multiple times, with different version requests.
-This resulted in <<variant_model.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
+This resulted in <<dependency_resolution_model.adoc#sec:version-conflict, conflict resolution>> to select the most appropriate version.
 
 | By constraint
 | A <<dependency_constraints#sec:adding-constraints-transitive-deps, dependency constraint>> participated in the version selection.

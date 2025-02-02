@@ -20,12 +20,6 @@ plugins {
 
 description = "Plugins and integration with code quality (Checkstyle, PMD, CodeNarc)"
 
-errorprone {
-    disabledChecks.addAll(
-        "HidingField", // 3 occurrences
-    )
-}
-
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)

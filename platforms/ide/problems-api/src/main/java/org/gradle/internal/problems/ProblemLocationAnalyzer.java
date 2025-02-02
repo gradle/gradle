@@ -23,10 +23,11 @@ import org.gradle.problems.Location;
 
 import javax.annotation.Nullable;
 
-@ServiceScope(Scope.BuildTree.class)
+@ServiceScope(Scope.BuildSession.class)
 public interface ProblemLocationAnalyzer {
     /**
      * Calculates the location for a problem with the given stack.
+     *
      * @return A display name for the location or null for an unknown location.
      */
     @Nullable

@@ -22,6 +22,8 @@ import groovy.xml.slurpersupport.NodeChild
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 
+import java.time.format.DateTimeFormatter
+
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 import static org.gradle.integtests.fixtures.TestExecutionResult.EXECUTION_FAILURE
 import static org.hamcrest.MatcherAssert.assertThat
@@ -242,7 +244,11 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
             assertThat(testClassNode.@failures.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             assertThat(testClassNode.@errors.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             assertThat(testClassNode.@time.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+
             assertThat(testClassNode.@timestamp.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
+            // check that it can be parsed as an ISO_INSTANT
+            DateTimeFormatter.ISO_INSTANT.parse(testClassNode.@timestamp.text())
+
             assertThat(testClassNode.@hostname.text(), CoreMatchers.not(CoreMatchers.equalTo('')))
             assertThat(testClassNode.properties.size(), CoreMatchers.equalTo(1))
             testClassNode.testcase.each { node ->

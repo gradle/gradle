@@ -37,4 +37,9 @@ public class NoOpFileLockContentionHandler implements FileLockContentionHandler 
     public boolean maybePingOwner(int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal) {
         return false;
     }
+
+    @Override
+    public boolean isRunning() {
+        return true;
+    }
 }

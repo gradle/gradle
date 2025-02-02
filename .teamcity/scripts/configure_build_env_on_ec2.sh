@@ -31,10 +31,11 @@ fi
 
 # TAG
 EC2_INSTANCE_TYPE=$(curl -s "http://169.254.169.254/latest/meta-data/instance-type")
-echo "##teamcity[addBuildTag '$EC2_INSTANCE_TYPE']"
+echo "##teamcity[addBuildTag 'ec2-instance-type=$EC2_INSTANCE_TYPE']"
 
 # READ-ONLY DEPENDENCY CACHE
 if [ -d "/opt/gradle-cache" ]; then
   echo "##teamcity[setParameter name='env.GRADLE_RO_DEP_CACHE' value='/opt/gradle-cache']"
   echo "Setting READ_ONLY Gradle cache via env.GRADLE_RO_DEP_CACHE to use /opt/gradle-cache"
 fi
+

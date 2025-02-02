@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 
 class SuiteTestClassProcessorTest extends Specification {
@@ -25,7 +26,7 @@ class SuiteTestClassProcessorTest extends Specification {
     private final TestClassProcessor targetProcessor = Mock()
     private final TestDescriptorInternal suiteDescriptor = Mock()
     private final TestClassRunInfo testClass = Mock()
-    private final Clock timeProvider = Mock()
+    private final Clock timeProvider = FixedClock.create()
     private final SuiteTestClassProcessor processor = new SuiteTestClassProcessor(suiteDescriptor, targetProcessor, timeProvider)
 
     def setup() {

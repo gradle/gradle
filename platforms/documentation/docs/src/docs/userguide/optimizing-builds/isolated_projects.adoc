@@ -22,7 +22,7 @@ When Isolated Projects is enabled, the configuration model of Gradle projects ar
 This means that build logic, such as build scripts or plugins, applied to a project cannot directly access the mutable state of another project.
 This allows configuration and tooling model creation for each project to safely run in parallel, with the result cached and invalidated independently for each project.
 
-== Status as of Gradle 8.9
+== Status as of Gradle 8.11
 
 When Isolated Projects is enabled, Gradle applies two levels of caching during IDE sync:
 
@@ -47,7 +47,7 @@ Isolated Projects is a pre-alpha feature, and as such, the current implementatio
 These will be addressed in future Gradle releases:
 
 * Gradle, IntelliJ IDEA, Android Studio, and Kotlin plugins are not yet 100% compatible with Isolated Projects, so you should expect to see some violations reported. The teams are actively working on fixing these incompatibilities.
-* Parallel configuration and fine-grained caching are not applied to task execution. They are only applied to IDE sync.
+* Parallel configuration does not support <<multi_project_configuration_and_execution.adoc#sec:configuration_on_demand, Configuration on Demand>>. All projects will be configured, even if they aren't running tasks.
 * Changes to included builds invalidate all cached results, even when the change would not affect the cached results.
 * The implementation does not exploit the isolation to limit peak memory consumption. Currently, peak memory consumption is a function of how many projects must be configured.
 * All caching, including the configuration cache, is done on the local machine. Remote caching is not supported yet.
@@ -99,6 +99,16 @@ Note that Isolated Projects is a pre-alpha feature.
 These constraints are not final and can change at any time.
 
 == ChangeLog
+
+=== Gradle 8.11
+
+==== Projects configured in parallel
+
+When building from the command line (i.e. for task execution) with Isolated Projects enabled, projects are now configured in parallel.
+
+Parallel configuration does not yet support Configuration on Demand. All projects will be configured, even those which have no tasks to run.
+If this tradeoff is undesirable and you want projects to configure serially with Configure on Demand, set the
+`org.gradle.internal.isolated-projects.configure-on-demand.tasks` system property to `true`.
 
 === Gradle 8.9
 

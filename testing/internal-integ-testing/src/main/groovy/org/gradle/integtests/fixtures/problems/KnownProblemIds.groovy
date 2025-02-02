@@ -102,6 +102,7 @@ class KnownProblemIds {
         'deprecation:plugin-script' : 'Plugin script has been deprecated.',
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption' : 'The detachedConfiguration1 configuration has been deprecated for consumption.',
         'deprecation:configurations-acting-as-both-root-and-variant' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
+        'deprecation:space-assignment-syntax-in-groovy-dsl': 'Space-assignment syntax in Groovy DSL has been deprecated.',
         'deprecation:repository-jcenter' : 'The RepositoryHandler.jcenter() method has been deprecated.',
         'task-selection:no-matches' : 'cannot locate task',
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported' : 'registration of listener on \'Gradle.buildFinished\' is unsupported',

@@ -152,7 +152,7 @@ public class JvmOptions {
         }
 
         // These are implemented as a system property, but don't really function like one
-        // So we include it in this “no system property” set.
+        // So we include it in this "no system property" set.
         formatSystemProperties(immutableSystemProperties, args);
 
         if (assertionsEnabled) {

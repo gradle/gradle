@@ -225,7 +225,7 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 
 | [[skip-when-empty]]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
 | `File` or `Iterable&lt;File&gt;`+++*+++
-| Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
+| Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct "no source" outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 Implies `<<#incremental,@Incremental>>`.
 

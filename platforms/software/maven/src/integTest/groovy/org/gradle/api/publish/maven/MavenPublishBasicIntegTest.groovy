@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 /**
- * Tests “simple” maven publishing scenarios
+ * Tests "simple" maven publishing scenarios
  */
 class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
 

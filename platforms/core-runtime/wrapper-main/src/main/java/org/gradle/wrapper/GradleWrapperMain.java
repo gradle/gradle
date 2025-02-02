@@ -71,8 +71,8 @@ public class GradleWrapperMain {
 
     private static void addSystemProperties(Properties systemProperties, File gradleUserHome, File rootDir) {
         // The location with highest priority needs to come last here, as it overwrites any previous entries.
-        systemProperties.putAll(SystemPropertiesHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
-        systemProperties.putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
+        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(rootDir, "gradle.properties")));
+        systemProperties.putAll(PropertiesFileHandler.getSystemProperties(new File(gradleUserHome, "gradle.properties")));
     }
 
     private static File rootDir(File wrapperJar) {

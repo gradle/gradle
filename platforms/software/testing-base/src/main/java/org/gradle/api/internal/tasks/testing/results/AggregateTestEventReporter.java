@@ -33,6 +33,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -106,7 +109,10 @@ public class AggregateTestEventReporter implements ProblemReporter, TestExecutio
      * @return The path to the index file that should be reported to the user.
      */
     private Path generateTestReport(Path reportDirectory) {
-        new GenericTestReportGenerator(results.values(), metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
+        // Generate a consistent ordering by sorting the Paths
+        List<Path> sortedResults = new ArrayList<>(results.values());
+        sortedResults.sort(Comparator.naturalOrder());
+        new GenericTestReportGenerator(sortedResults, metadataRendererRegistry).generateReport(buildOperationRunner, buildOperationExecutor, reportDirectory);
         return reportDirectory.resolve("index.html");
     }
 

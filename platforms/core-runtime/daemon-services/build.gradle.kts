@@ -22,20 +22,21 @@ description = "Services used by the Gradle daemon to interact with the client"
 
 dependencies {
     api(projects.baseServices)
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
-    api(libs.jsr305)
-    api(projects.time)
-    api(projects.logging)
-    api(projects.daemonProtocol)
-    api(projects.coreApi)
     api(projects.core)
+    api(projects.coreApi)
+    api(projects.daemonProtocol)
+    api(projects.logging)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.time)
+
+    api(libs.jsr305)
 
     implementation(libs.commonsLang)
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+
+    testImplementation(testFixtures(projects.time))
 }

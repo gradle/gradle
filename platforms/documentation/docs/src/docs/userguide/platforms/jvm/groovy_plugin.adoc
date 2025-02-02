@@ -111,7 +111,7 @@ include::sample[dir="snippets/groovy/customizedLayout/groovy",files="build.gradl
 [[sec:groovy_dependency_management]]
 == Dependency management
 
-Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
+Because Gradle's build language is based on Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
 
 If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
 
@@ -148,7 +148,7 @@ Unless a task's `groovyClasspath` is configured explicitly, the Groovy (base) pl
 * If a `groovy(-indy)` jar is found on `classpath`, and the project has at least one repository declared, a corresponding `groovy(-indy)` repository dependency will be added to `groovyClasspath`.
 * Otherwise, execution of the task will fail with a message saying that `groovyClasspath` could not be inferred.
 
-Note that the “`-indy`” variation of each jar refers to the version with `invokedynamic` support.
+Note that the "`-indy`" variation of each jar refers to the version with `invokedynamic` support.
 
 [[sec:groovy_convention_properties]]
 == Convention properties

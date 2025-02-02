@@ -34,6 +34,7 @@ import org.gradle.configuration.project.LifecycleProjectEvaluator
 import org.gradle.configuration.project.PluginsProjectConfigureActions
 import org.gradle.configuration.project.ProjectEvaluator
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.initialization.Environment
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.initialization.VintageBuildModelController
@@ -82,7 +83,7 @@ class DefaultBuildModelControllerServices(
                 registration.add(ProjectRefResolver::class.java)
             } else {
                 registration.addProvider(VintageBuildControllerProvider())
-                registration.add(DefaultEnvironment::class.java)
+                registration.add(Environment::class.java, DefaultEnvironment::class.java)
             }
             if (buildModelParameters.isIsolatedProjects) {
                 registration.addProvider(ConfigurationCacheIsolatedProjectsProvider())

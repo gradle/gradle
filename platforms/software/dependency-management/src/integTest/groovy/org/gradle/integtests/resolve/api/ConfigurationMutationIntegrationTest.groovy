@@ -227,44 +227,46 @@ configurations.compile.withDependencies {
     def "can use withDependencies to alter configuration resolved in a multi-project build"() {
         mavenRepo.module("org", "explicit-dependency", "3.4").publish()
         mavenRepo.module("org", "added-dependency", "3.4").publish()
-        buildFile.text = """
-subprojects {
-    apply plugin: 'java'
+        settingsFile << """
+            include 'consumer'
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+        buildFile.text = ""
 
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-}
-
-project(":producer") {
-    configurations {
-        implementation {
-            withDependencies { deps ->
-                deps.each {
-                    it.version {
-                       require '3.4'
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations {
+                implementation {
+                    withDependencies { deps ->
+                        deps.each {
+                            it.version {
+                               require '3.4'
+                            }
+                        }
+                        deps.add(project.dependencies.create("org:added-dependency:3.4"))
                     }
                 }
-                deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
-        }
-    }
-    dependencies {
-        implementation "org:explicit-dependency"
-    }
-}
+            dependencies {
+                implementation "org:explicit-dependency"
+            }
+        """
 
-project(":consumer") {
-    dependencies {
-        implementation project(":producer")
-    }
-}
-"""
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation project(":producer")
+            }
+        """
+
         resolve.prepare("runtimeClasspath")
-        createDirs("consumer", "producer")
-        settingsFile << """
-include 'consumer', 'producer'
-"""
         expect:
         // relying on default dependency
         succeeds(":consumer:checkDeps")

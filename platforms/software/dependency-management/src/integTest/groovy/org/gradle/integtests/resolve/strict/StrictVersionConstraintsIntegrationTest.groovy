@@ -473,14 +473,11 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             }
         }
 
-        createDirs("foo")
-        settingsFile << "\ninclude 'foo'"
+        settingsFile << """
+            include 'foo'
+        """
+
         buildFile << """
-            project(':foo') {
-                configurations.create('default')
-                group = 'org'
-                version = '1.0'
-            }
             dependencies {
                 constraints {
                     conf('org:foo') {
@@ -490,6 +487,12 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 conf('org:bar:1.0')
                 conf(project(':foo'))
             }
+        """
+
+        file("foo/build.gradle") << """
+            configurations.create('default')
+            group = 'org'
+            version = '1.0'
         """
 
         when:
@@ -519,14 +522,11 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
     def "incompatible strict constraint and local project fail to resolve"() {
         given:
 
-        createDirs("foo")
-        settingsFile << "\ninclude 'foo'"
+        settingsFile << """
+            include 'foo'
+        """
+
         buildFile << """
-            project(':foo') {
-                configurations.create('default')
-                group = 'org'
-                version = '1.2'
-            }
             dependencies {
                 constraints {
                     conf('org:foo') {
@@ -535,6 +535,12 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 }
                 conf(project(':foo'))
             }
+        """
+
+        file("foo/build.gradle") << """
+            configurations.create('default')
+            group = 'org'
+            version = '1.2'
         """
 
         when:

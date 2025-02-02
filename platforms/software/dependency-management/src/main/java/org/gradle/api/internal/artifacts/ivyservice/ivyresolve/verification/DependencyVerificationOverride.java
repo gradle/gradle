@@ -19,9 +19,12 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+@ServiceScope(Scope.Build.class)
 public interface DependencyVerificationOverride {
     DependencyVerificationOverride NO_VERIFICATION = original -> original;
     String VERIFICATION_METADATA_XML = "verification-metadata.xml";

@@ -190,6 +190,7 @@ include::dependency_caching.adoc[leveloffset=+2]
 
 == UNDERSTANDING DEPENDENCY RESOLUTION
 
+include::dependency_resolution_model.adoc[leveloffset=+2]
 include::variant_model.adoc[leveloffset=+2]
 include::component_capabilities.adoc[leveloffset=+2]
 include::variant_attributes.adoc[leveloffset=+2]
@@ -199,6 +200,7 @@ include::variant_attributes.adoc[leveloffset=+2]
 include::dependency_resolution_basics.adoc[leveloffset=+2]
 include::dependency_graph_resolution.adoc[leveloffset=+2]
 include::artifact_resolution.adoc[leveloffset=+2]
+include::artifact_views.adoc[leveloffset=+2]
 include::artifact_transforms.adoc[leveloffset=+2]
 
 == PUBLISHING LIBRARIES
@@ -243,6 +245,8 @@ include::scala_plugin.adoc[leveloffset=+2]
 == **INTEGRATION**
 
 include::third_party_integration.adoc[leveloffset=2]
+include::tooling_api.adoc[leveloffset=2]
+include::test_reporting_api.adoc[leveloffset=2]
 
 [[part:reference]]
 == **REFERENCE**

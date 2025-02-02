@@ -15,8 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.Build.class)
 public interface LocalMavenRepositoryLocator {
     File getLocalMavenRepository();
 }

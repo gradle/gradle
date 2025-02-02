@@ -188,9 +188,9 @@ The previous behavior was problematic as it caused different names to be used at
 
 ==== buildSrc is now reserved as a project and subproject build name
 
-Previously, Gradle did not prevent using the name “buildSrc” for a subproject of a multi-project build or as the name of an included build.
+Previously, Gradle did not prevent using the name "buildSrc" for a subproject of a multi-project build or as the name of an included build.
 Now, this is not allowed.
-The name “buildSrc” is now reserved for the conventional buildSrc project that builds extra build logic.
+The name "buildSrc" is now reserved for the conventional buildSrc project that builds extra build logic.
 
 Typical use of buildSrc is unaffected by this change.
 You will only be affected if your settings file specifies `include("buildSrc")` or `includeBuild("buildSrc")`.

@@ -1,8 +1,16 @@
-<meta property="og:image" content="" />
-<meta property="og:type"  content="website" />
-<meta property="og:title" content="" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-@version@.png" />
+<meta property="og:type"  content="article" />
+<meta property="og:title" content="Gradle @version@ Release Notes" />
+<meta property="og:site_name" content="Gradle Release Notes">
+<meta property="og:description" content="TO DO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@gradle">
+<meta name="twitter:creator" content="@gradle">
+<meta name="twitter:title" content="Gradle @version@ Release Notes">
+<meta name="twitter:description" content="TO DO">
+<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
-The Gradle team is excited to announce Gradle @version@.
+We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 This release features [1](), [2](), ... [n](), and more.
 
@@ -21,7 +29,9 @@ Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announ
 
 Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
-`./gradlew wrapper --gradle-version=@version@`
+```
+./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
+```
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
@@ -50,7 +60,9 @@ Example:
 > PROVIDE a screenshot or snippet illustrating the new feature, if applicable
 > LINK to the full documentation for more details
 
-<!-- To embed videos, use the macros below. You can extract the URL from YouTube by clicking the "Share" button. For Wistia, contact Gradle's Video Team -->
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button. 
+For Wistia, contact Gradle's Video Team.
 @youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 @wistia(Summary,a5izazvgit)@
 
@@ -70,8 +82,9 @@ ADD RELEASE FEATURES ABOVE
 -->
 
 ## Promoted features
+
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
 
 The following are the features that have been promoted in this Gradle release.
 

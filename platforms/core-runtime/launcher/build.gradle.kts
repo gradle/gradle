@@ -30,6 +30,7 @@ dependencies {
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.native)
+    api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.processMemoryServices)
     api(projects.serialization)
@@ -79,6 +80,7 @@ dependencies {
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(projects.buildConfiguration))
+    integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("built-in options are required to be present at runtime for 'TaskOptionsSpec'")

@@ -106,7 +106,7 @@ class DefaultListenerManagerTest extends ConcurrentSpec {
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == "Listener type ${TestListenerWithWrongScope.name} with scope Global cannot be used to generate events in scope BuildTree."
+        e.message == "Listener type ${TestListenerWithWrongScope.name} with service scope 'Global' cannot be used to generate events in scope 'BuildTree'."
     }
 
     def canAddLoggerAfterObtainingBroadcaster() {

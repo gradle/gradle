@@ -30,7 +30,7 @@ include::sample[dir="snippets/base/buildDashboard/groovy",files="build.gradle[ta
 
 Applying the plugin adds the `buildDashboard` task to your project. The task aggregates the reports for all tasks that implement the link:{groovyDslPath}/org.gradle.api.reporting.Reporting.html[Reporting] interface from _all projects_ in the build. It is typically only applied to the root project.
 
-The `buildDashboard` task does not depend on any other tasks. It will only aggregate the reporting tasks that are independently being executed as part of the build run. To generate the build dashboard, simply include this task in the list of tasks to execute. For example, “`gradle buildDashboard build`” will generate a dashboard for all of the reporting tasks that are dependents of the `build` task.
+The `buildDashboard` task does not depend on any other tasks. It will only aggregate the reporting tasks that are independently being executed as part of the build run. To generate the build dashboard, simply include this task in the list of tasks to execute. For example, "`gradle buildDashboard build`" will generate a dashboard for all of the reporting tasks that are dependents of the `build` task.
 
 [[sec:build_dashboard_tasks]]
 == Tasks

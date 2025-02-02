@@ -42,21 +42,25 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     private final DefaultMutableVersionConstraint versionConstraint;
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, String version, @Nullable String configuration) {
-        super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
         }
         this.moduleIdentifier = module;
         this.versionConstraint = new DefaultMutableVersionConstraint(version);
+        if (configuration != null) {
+            setTargetConfiguration(configuration);
+        }
     }
 
     public AbstractExternalModuleDependency(ModuleIdentifier module, MutableVersionConstraint version, @Nullable String configuration) {
-        super(configuration);
         if (module == null) {
             throw new InvalidUserDataException("Module must not be null!");
         }
         this.moduleIdentifier = module;
         this.versionConstraint = (DefaultMutableVersionConstraint) version;
+        if (configuration != null) {
+            setTargetConfiguration(configuration);
+        }
     }
 
     protected void copyTo(AbstractExternalModuleDependency target) {

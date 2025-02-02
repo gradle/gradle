@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Gradle plugin development plugins"
@@ -8,7 +7,6 @@ description = "Gradle plugin development plugins"
 errorprone {
     disabledChecks.addAll(
         "DefaultCharset", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
     )
 }
 

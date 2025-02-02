@@ -118,7 +118,9 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
         withDefaultSettings().appendText("""includeBuild("producer")""")
         withBuildScript("""plugins { id("some") }""")
 
-        executer.expectDeprecationWarning("w: Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
+        repeat(2) {
+            executer.expectDeprecationWarning("w: Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin")
+        }
 
         build("help").apply {
             assertThat(output, containsString("some!"))

@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
-import org.apache.tools.ant.util.DateUtils;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableFailure;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
@@ -28,11 +27,14 @@ import org.gradle.internal.xml.SimpleXmlWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class JUnitXmlResultWriter {
 
@@ -54,13 +56,13 @@ public class JUnitXmlResultWriter {
             writer.startElement("testsuite")
                 .attribute("name", result.getXmlTestSuiteName())
 
-                // NOTE: these totals are unaffected by “merge reruns” with Surefire, so we do the same
+                // NOTE: these totals are unaffected by "merge reruns" with Surefire, so we do the same
                 .attribute("tests", String.valueOf(result.getTestsCount()))
                 .attribute("skipped", String.valueOf(result.getSkippedCount()))
                 .attribute("failures", String.valueOf(result.getFailuresCount()))
                 .attribute("errors", "0")
 
-                .attribute("timestamp", DateUtils.format(result.getStartTime(), DateUtils.ISO8601_DATETIME_PATTERN))
+                .attribute("timestamp", ISO_INSTANT.format(Instant.ofEpochMilli(result.getStartTime())))
                 .attribute("hostname", hostName)
                 .attribute("time", String.valueOf(result.getDuration() / 1000.0));
 
@@ -112,9 +114,9 @@ public class JUnitXmlResultWriter {
      * - https://plugins.jenkins.io/flaky-test-handler/
      *
      * We deviate from Maven's behaviour when there are any skipped executions, or when there are multiple successful executions.
-     * The “standard” does not specify the behaviour in this circumstance.
+     * The "standard" does not specify the behaviour in this circumstance.
      *
-     * There's no way to convey multiple successful “executions” of a test case in the XML structure.
+     * There's no way to convey multiple successful "executions" of a test case in the XML structure.
      * If this happens, Maven just omits any information about successful executions if they were not the last.
      * We break the executions up into multiple testcases, which each successful execution being the last execution
      * of the test case, so as to not drop information.

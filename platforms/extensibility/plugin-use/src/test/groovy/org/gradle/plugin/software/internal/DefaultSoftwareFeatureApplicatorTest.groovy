@@ -17,28 +17,29 @@
 package org.gradle.plugin.software.internal
 
 import org.gradle.api.Plugin
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.plugins.software.SoftwareType
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.PluginContainer
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
-import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.properties.bean.PropertyWalker
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultSoftwareFeatureApplicatorTest extends Specification {
     def target = Mock(ProjectInternal)
     def modelDefaultsApplicator = Mock(ModelDefaultsApplicator)
     def inspectionScheme = Mock(InspectionScheme)
-    def problems = Mock(InternalProblems) {
-        getAdditionalDataBuilderFactory() >> new AdditionalDataBuilderFactory()
-    }
+    def problems = TestUtil.problemsService()
     def pluginManager = Mock(PluginManagerInternal)
-    def applicator = new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, inspectionScheme, problems, pluginManager)
+    def classLoaderScope = Mock(ClassLoaderScope) {
+        _ * it.getLocalClassLoader() >> getClass().classLoader
+    }
+    def applicator = new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, inspectionScheme, problems, pluginManager, classLoaderScope)
     def plugin = Mock(Plugin)
     def plugins = Mock(PluginContainer)
     def propertyWalker = Mock(PropertyWalker)
@@ -63,7 +64,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -86,7 +87,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         1 * softwareType.name() >> "foo"
         1 * propertyValue.call() >> foo
         1 * extensions.add(Foo.class, "foo", foo)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope, plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 
@@ -127,7 +128,7 @@ class DefaultSoftwareFeatureApplicatorTest extends Specification {
         _ * target.getExtensions() >> extensions
         _ * softwareType.name() >> "foo"
         0 * extensions.add(_, _, _)
-        1 * modelDefaultsApplicator.applyDefaultsTo(target, plugin, softwareTypeImplementation)
+        1 * modelDefaultsApplicator.applyDefaultsTo(target, classLoaderScope , plugin, softwareTypeImplementation)
         _ * softwareTypeImplementation.softwareType >> "foo"
         1 * extensions.getByName("foo") >> foo
 

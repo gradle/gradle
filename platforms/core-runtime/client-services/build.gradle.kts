@@ -26,35 +26,44 @@ dependencies {
     api(projects.logging)
     api(projects.daemonProtocol)
     api(projects.baseServices)
+    api(projects.buildOperations)
+    api(projects.functional)
     api(projects.jvmServices)
+    api(projects.modelCore)
     api(projects.native)
     api(projects.enterpriseLogging)
     api(projects.processServices)
+    api(projects.resources)
+    api(projects.resourcesHttp)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
+    api(projects.time)
+    api(projects.toolingApi)
+    api(projects.toolchainsJvmShared)
 
     // The client should not depend on core or core-api or projects that depend on these.
     // However, these project still contains some types that are shared between the client and daemon.
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileCollections)
+    api(projects.fileTemp)
 
     api(libs.jsr305)
+    api(libs.nativePlatform)
 
     implementation(projects.baseAsm)
-    implementation(projects.fileTemp)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.buildOperations)
+    implementation(projects.buildConfiguration)
+    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
+    implementation(projects.files)
     implementation(projects.fileOperations)
-    implementation(projects.fileTemp)
+    implementation(projects.hashing)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
-    implementation(projects.time)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.io)
 
     implementation(libs.guava)
@@ -68,7 +77,4 @@ dependencies {
         because("Unit tests verify serialization works with TAPI types")
     }
     testImplementation(testFixtures(projects.daemonProtocol))
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

@@ -15,14 +15,14 @@
  */
 package org.gradle.api.internal.notations;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.internal.GUtil;
 
 import java.util.List;
 
 public abstract class ModuleNotationValidation {
-    private final static List<Character> INVALID_SPEC_CHARS = Lists.newArrayList('*', '[', ']', '(', ')', ',');
+    private final static List<Character> INVALID_SPEC_CHARS = ImmutableList.of('*', '[', ']', '(', ')', ',');
 
     public static String validate(String part, String notation) {
         if (!GUtil.isTrue(part)) {

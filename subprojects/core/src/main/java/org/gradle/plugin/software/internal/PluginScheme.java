@@ -20,10 +20,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.tasks.properties.AbstractTypeScheme;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Scheme for instantiating and inspecting plugin classes.
  */
+@ServiceScope(Scope.Build.class)
 public class PluginScheme extends AbstractTypeScheme {
 
     public PluginScheme(InstantiationScheme instantiationScheme, InspectionScheme inspectionScheme) {

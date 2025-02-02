@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Shared classes for projects requiring GPG support"
@@ -17,7 +16,4 @@ dependencies {
 
     implementation(libs.bouncycastleProvider)
     implementation(libs.guava)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

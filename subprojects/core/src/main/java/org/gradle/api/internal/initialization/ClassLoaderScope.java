@@ -116,8 +116,8 @@ public interface ClassLoaderScope {
     boolean isLocked();
 
     /**
-     * Notifies this scope that it is about to be reused in a new build invocation, so that the scope can recreate or otherwise prepare its classloaders for this, as certain state may have
-     * been discarded to reduce memory pressure.
+     * Notifies this scope that it is about to be reused in a new build invocation, so that the scope can recreate or
+     * otherwise prepare its classloaders for this, as certain state may have been discarded to reduce memory pressure.
      */
     void onReuse();
 

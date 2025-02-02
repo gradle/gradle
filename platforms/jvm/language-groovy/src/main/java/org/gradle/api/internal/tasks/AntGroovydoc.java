@@ -118,7 +118,7 @@ public final class AntGroovydoc {
         }
 
         ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
+            @SuppressWarnings("unused")
             public Object doCall(Object it) {
                 final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
 
@@ -141,7 +141,7 @@ public final class AntGroovydoc {
 
     private void invokeGroovydoc(final Set<Groovydoc.Link> links, List<File> combinedClasspath, final Map<String, Object> args) {
         ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
+            @SuppressWarnings("Unused")
             public Object doCall(Object it) {
                 final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
 

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.os.OperatingSystem
 
 class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture {
 
@@ -192,7 +193,8 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9}. " +
+                "Toolchain auto-provisioning is not enabled.")
     }
 
     def "does not nag user when toolchain spec is IBM"() {
@@ -213,6 +215,7 @@ class JavaToolchainIntegrationTest extends AbstractIntegrationSpec implements Ja
         fails ':build'
         failure.assertHasDescription("Could not determine the dependencies of task ':compileJava'.")
             .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
-            .assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+            .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=IBM, implementation=J9}. " +
+                "Toolchain auto-provisioning is not enabled.")
     }
 }

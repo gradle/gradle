@@ -19,6 +19,7 @@ package org.gradle.api.problems
 import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import spock.lang.Issue
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
 
@@ -54,6 +55,48 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             }
             with(oneLocation(TaskPathLocation)) {
                 buildTreePath == ':reportProblem'
+            }
+        }
+    }
+
+    // This test will fail when the deprecated space-assignment syntax is removed.
+    // Once this happens we need to find another test to validate the behavior.
+    @Issue("https://github.com/gradle/gradle/issues/31980")
+    def "correct location for space-assignment deprecation"() {
+        buildFile '''
+            class GroovyTask extends DefaultTask {
+                @Input
+                def String prop
+                void doStuff(Action<Task> action) { action.execute(this) }
+            }
+            tasks.withType(GroovyTask) { conventionMapping.prop = { '[default]' } }
+            task test(type: GroovyTask)
+            test {
+                description 'does something'
+            }
+'''
+
+        executer.expectDocumentedDeprecationWarning(
+            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+                "This is scheduled to be removed in Gradle 10.0. Use assignment ('description = <value>') instead. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
+        )
+
+        expect:
+        succeeds("test")
+        verifyAll(receivedProblem(0)) {
+            definition.id.fqid == 'deprecation:space-assignment-syntax-in-groovy-dsl'
+            definition.id.displayName == 'Space-assignment syntax in Groovy DSL has been deprecated.'
+            def locations = allLocations(LineInFileLocation)
+            //guarantee no duplicate locations
+            locations.size() == 1
+            with(locations) {
+                with(get(0)) {
+                    length == -1
+                    column == -1
+                    line == 10
+                    path == "build file '$buildFile.absolutePath'"
+                }
             }
         }
     }
@@ -219,7 +262,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.additionalData(org.gradle.api.problems.internal.GeneralDataSpec) {
+                it.additionalDataInternal(org.gradle.api.problems.internal.GeneralDataSpec) {
                     it.put('key','value')
                 }
             }
@@ -259,7 +302,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         withReportProblemTask """
             ${problemIdScript()}
             problems.getReporter().report(problemId) {
-                it.additionalData(InvalidData) {}
+                it.additionalDataInternal(InvalidData) {}
             }
         """
 

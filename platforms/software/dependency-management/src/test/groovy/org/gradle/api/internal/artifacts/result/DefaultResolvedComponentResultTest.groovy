@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.artifacts.result
 
+import com.google.common.collect.ImmutableSet
+import com.google.common.collect.ImmutableSetMultimap
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.*
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newDependency
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newModule
+import static org.gradle.api.internal.artifacts.result.ResolutionResultDataBuilder.newUnresolvedDependency
 
 class DefaultResolvedComponentResultTest extends Specification {
 
@@ -29,7 +33,7 @@ class DefaultResolvedComponentResultTest extends Specification {
         def dependent   = newDependency("a", "x2", "1")
 
         when:
-        module.addDependency(dependency)
+        module.addDependencies(ImmutableSet.of(dependency))
         module.addDependent(dependent)
 
         then:
@@ -54,8 +58,7 @@ class DefaultResolvedComponentResultTest extends Specification {
         def unresolved = newUnresolvedDependency()
 
         when:
-        module.addDependency(dependency)
-        module.addDependency(unresolved)
+        module.addDependencies(ImmutableSet.of(dependency, unresolved))
 
         then:
         module.dependencies == [dependency, unresolved] as Set
@@ -68,10 +71,10 @@ class DefaultResolvedComponentResultTest extends Specification {
         def variant = module.getVariant(1)
 
         when:
-        module.addDependency(dependency)
+        module.addDependencies(ImmutableSet.of(dependency))
 
-        module.associateDependencyToVariant(dependency, variant)
-        module.associateDependencyToVariant(dependency, variant)
+        module.addVariantDependencies(ImmutableSetMultimap.of(variant, dependency))
+        module.addVariantDependencies(ImmutableSetMultimap.of(variant, dependency))
 
         then:
         module.getDependenciesForVariant(variant) == [dependency]

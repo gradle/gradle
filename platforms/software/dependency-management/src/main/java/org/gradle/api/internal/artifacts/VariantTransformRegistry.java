@@ -21,16 +21,26 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
 
-import java.util.List;
+import java.util.Set;
 
+/**
+ * A registry for artifact transforms.
+ */
 public interface VariantTransformRegistry {
-
     /**
      * Register an artifact transform.
+     *
+     * @param actionType the type of the transform action
+     * @param registrationAction an action used to configure the transform
      *
      * @see TransformAction
      */
     <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction);
 
-    List<TransformRegistration> getRegistrations();
+    /**
+     * Returns a set of all the registered transforms.
+     *
+     * @return the set of registered transforms
+     */
+    Set<TransformRegistration> getRegistrations();
 }

@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.testing.testng
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.id.IdGenerator
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.testng.ITestClass
 import spock.lang.Issue
 import spock.lang.Specification
@@ -36,7 +36,7 @@ class TestNGTestResultProcessorAdapterTest extends Specification {
 
     @Subject
     private TestNGTestResultProcessorAdapter resultProcessorAdapter = new TestNGTestResultProcessorAdapter(
-        resultProcessor, idGenerator, Mock(Clock))
+        resultProcessor, idGenerator, FixedClock.create())
 
     @Issue("https://github.com/gradle/gradle/issues/3545")
     def "runs onAfterClass hook only once per test class"() {

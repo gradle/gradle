@@ -184,7 +184,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
         spec.contextualLabel(message);
         spec.severity(Severity.ERROR);
-        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
+        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(requestedPath)));
     }
 
     private TaskSelector.SelectionContext sanityCheckPath(String name, String type) {
