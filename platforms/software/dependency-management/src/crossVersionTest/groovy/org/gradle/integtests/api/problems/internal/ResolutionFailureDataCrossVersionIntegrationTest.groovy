@@ -26,7 +26,6 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.AdditionalData
 import org.gradle.tooling.events.problems.ProblemEvent
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 import org.gradle.util.GradleVersion
 
 /**
@@ -36,6 +35,7 @@ import org.gradle.util.GradleVersion
 @TargetGradleVersion(">=8.11")
 @ToolingApiVersion(">=8.11")
 class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecification {
+
     @ToolingApiVersion(">=8.11 <8.12")
     def "can supply ResolutionFailureData  (Tooling API client [8.11,8.12)"() {
         given:
@@ -43,14 +43,14 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
             TestResolutionFailure failure = new TestResolutionFailure()
             getProblems().${report(targetVersion)} {
                 it.${id(targetVersion)}
-                .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(failure))
+                .additionalData${targetVersion < GradleVersion.version("8.13") ? "" : "Internal"}(ResolutionFailureDataSpec.class, data -> data.from(failure))
             }
         """
 
         when:
-        List<DefaultAdditionalData> failureData = runAndGetProblems()
+        List<AdditionalData> failureData = runAndGetProblems()
             .findAll { it instanceof SingleProblemEvent }
-            .collect { ProblemEvent problem -> problem.additionalData as DefaultAdditionalData }
+            .collect { ProblemEvent problem -> problem.additionalData }
 
         then:
         failureData.size() >= 1 // Depending on Java version, we might get a Java version test execution failure first, so just check the last one

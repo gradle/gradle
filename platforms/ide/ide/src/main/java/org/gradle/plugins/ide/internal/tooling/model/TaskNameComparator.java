@@ -16,6 +16,8 @@
 
 package org.gradle.plugins.ide.internal.tooling.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.Serializable;
 import java.util.Comparator;
 
@@ -44,13 +46,7 @@ public class TaskNameComparator implements Comparator<String>, Serializable {
         return colon1 == -1 ? taskName1.compareTo(taskName2) : compareSegments(taskName1.substring(colon1 + 1), taskName2.substring(colon2 + 1));
     }
 
-    private int getDepth(String taskName) {
-        int counter = 0;
-        for (char c : taskName.toCharArray()) {
-            if (c == ':') {
-                counter++;
-            }
-        }
-        return counter;
+    static int getDepth(String taskName) {
+        return StringUtils.countMatches(taskName, ":");
     }
 }

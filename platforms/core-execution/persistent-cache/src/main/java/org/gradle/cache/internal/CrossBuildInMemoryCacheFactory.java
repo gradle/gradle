@@ -20,6 +20,7 @@ import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -43,6 +44,13 @@ public interface CrossBuildInMemoryCacheFactory {
      * <p>Note: this should be used to create _only_ global scoped instances.
      */
     <K, V> CrossBuildInMemoryCache<K, V> newCache();
+
+    /**
+     * See {@link #newCache()}.
+     *
+     * @param onReuse callback triggered when a cached value is reused in a new session after being retained. The callback will be invoked under the cache lock so make it swift.
+     */
+    <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse);
 
     /**
      * Creates a new cache instance. Keys and values are always referenced using strong references.

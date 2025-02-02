@@ -23,20 +23,20 @@ import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Actions;
+import org.gradle.internal.reflect.Instantiator;
 
 
 public class DefaultFileSystemOperations implements FileSystemOperations {
 
-    private final ObjectFactory objectFactory;
+    private final Instantiator instantiator;
 
     private final FileOperations fileOperations;
 
-    public DefaultFileSystemOperations(ObjectFactory objectFactory, FileOperations fileOperations) {
-        this.objectFactory = objectFactory;
+    public DefaultFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+        this.instantiator = instantiator;
         this.fileOperations = fileOperations;
     }
 
@@ -91,7 +91,7 @@ public class DefaultFileSystemOperations implements FileSystemOperations {
     }
 
     private ConfigurableFilePermissions permissions(boolean directory, Action<? super ConfigurableFilePermissions> configureAction) {
-        ConfigurableFilePermissions permissions = objectFactory.newInstance(DefaultConfigurableFilePermissions.class, objectFactory, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(directory));
+        ConfigurableFilePermissions permissions = instantiator.newInstance(DefaultConfigurableFilePermissions.class, DefaultConfigurableFilePermissions.getDefaultUnixNumeric(directory));
         configureAction.execute(permissions);
         return permissions;
     }

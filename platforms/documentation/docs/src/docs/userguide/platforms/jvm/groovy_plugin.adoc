@@ -111,7 +111,7 @@ include::sample[dir="snippets/groovy/customizedLayout/groovy",files="build.gradl
 [[sec:groovy_dependency_management]]
 == Dependency management
 
-Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
+Because Gradle's build language is based on Groovy, Gradle already ships with a Groovy library. Nevertheless, Groovy projects need to explicitly declare a Groovy dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler and Groovydoc tool, respectively.
 
 If Groovy is used for production code, the Groovy dependency should be added to the `implementation` configuration:
 

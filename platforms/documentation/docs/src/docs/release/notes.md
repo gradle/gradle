@@ -1,16 +1,16 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-8.13.png" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-@version@.png" />
 <meta property="og:type"  content="article" />
-<meta property="og:title" content="Gradle 8.13 Release Notes" />
+<meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="TBD">
+<meta property="og:description" content="TO DO">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
-<meta name="twitter:title" content="Gradle 8.13 Release Notes">
-<meta name="twitter:description" content="TBD">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-8.13.png">
+<meta name="twitter:title" content="Gradle @version@ Release Notes">
+<meta name="twitter:description" content="TO DO">
+<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
-The Gradle team is excited to announce Gradle @version@.
+We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
 This release features [1](), [2](), ... [n](), and more.
 
@@ -42,7 +42,9 @@ Be sure to check out the [public roadmap](https://roadmap.gradle.org/) for insig
 
 Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
 
-`./gradlew wrapper --gradle-version=@version@`
+```
+./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
+```
 
 See the [Gradle 8.x upgrade guide](userguide/upgrading_version_8.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
@@ -163,6 +165,71 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 ```
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
+
+#### Scala version can be declared explicitly
+
+Starting in this version of Gradle, when applying the [scala-base or scala](userguide/scala_plugin.html) plugins, you can now explicitly declare the Scala version on the `scala` extension.
+This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
+It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
+
+Previously, you had to declare a `scala-library` dependency, like this:
+
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.scala-lang:scala-library:2.13.12")
+    // OR
+    implementation("org.scala-lang:scala3-library_3:3.6.3")
+}
+```
+
+Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+scala {
+    scalaVersion = "2.13.12"
+    // OR 
+    scalaVersion = "3.6.3"
+}
+```
+
+#### Distribution base plugin introduced
+
+Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the [Distribution Plugin](userguide/distribution_plugin.html) but does not add a default distribution.
+The existing `distribution` plugin now acts as a wrapper for the `distribution-base` plugin, adding a default `main` distribution.
+
+The `distribution-base` plugin is particularly useful for plugin developers who want the capabilities of the Distribution Plugin without a `main` distribution.
+
+```kotlin
+plugins {
+    id("distribution-base")
+}
+
+distributions {
+    create("custom") {
+        distributionBaseName = "customName"
+        contents {
+            from("src/customLocation")
+        }
+    }
+}
+
+assert(distributions.findByName("main") == null)
+```
 
 <a name="error-warning"></a>
 ### Error and warning reporting improvements

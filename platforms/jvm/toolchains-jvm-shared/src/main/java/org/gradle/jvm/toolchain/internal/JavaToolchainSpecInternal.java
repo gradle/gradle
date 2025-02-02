@@ -33,7 +33,9 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
      * <p>
      * A spec that is not configured always directly matches the toolchain of the current JVM.
      */
-    boolean isConfigured();
+    default boolean isConfigured() {
+        return true;
+    }
 
     /**
      * A spec is valid when {@link #getLanguageVersion() language version} is set (along with any other properties)
@@ -41,11 +43,16 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
      * <p>
      * A {@link #isConfigured() non-configured} spec is always valid.
      */
-    boolean isValid();
+    default boolean isValid() {
+        return true;
+    }
 
     /**
      * Finalizes values of all spec properties, disallowing any further changes.
      */
-    void finalizeProperties();
-
+   default void finalizeProperties() {
+        getLanguageVersion().finalizeValue();
+        getVendor().finalizeValue();
+        getImplementation().finalizeValue();
+    }
 }

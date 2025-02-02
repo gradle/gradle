@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 
@@ -81,11 +82,6 @@ public class DefaultProblemId extends ProblemId implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = id.hashCode();
-        result = 31 * result + parent.hashCode();
-        if (displayName != null) {
-            result = 31 * result + displayName.hashCode();
-        }
-        return result;
+        return Objects.hashCode(id, parent);
     }
 }

@@ -89,14 +89,14 @@ Version ordering is used to:
 
 * Determine if a particular *version is included in a range*.
 * Determine which *version is newest* when performing conflict resolution (using
-<<variant_model.adoc#sec:base-version-comparison,"base versions">>).
+<<dependency_resolution_model.adoc#sec:base-version-comparison,"base versions">>).
 
 Versions are ordered based on the following rules:
 
 * **Splitting Versions into Parts:**
 ** Versions are divided into parts using the characters `[. - _ +]`.
 ** Parts containing both digits and letters are split further, e.g., `1a1` becomes `1.a.1`.
-** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<variant_model.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
+** Only the parts are compared, not the separators, so `1.a.1`, `1-a+1`, `1.a-1`, and `1a1` are equivalent. (Note: There are <<dependency_resolution_model.adoc#sec:base-version-comparison,exceptions>> during conflict resolution).
 * **Comparing Equivalent Parts:**
 ** **Numeric vs. Numeric:** Higher numeric value is considered higher: `1.1 < 1.2`.
 ** **Numeric vs. Non-numeric:** Numeric parts are higher than non-numeric parts: `1.a < 1.1`.

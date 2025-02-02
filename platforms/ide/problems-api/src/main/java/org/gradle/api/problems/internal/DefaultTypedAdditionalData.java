@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import java.util.Map;
@@ -37,5 +38,19 @@ public class DefaultTypedAdditionalData implements TypedAdditionalData {
     @Override
     public Object getSerializedType() {
         return type;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultTypedAdditionalData)) {
+            return false;
+        }
+        DefaultTypedAdditionalData that = (DefaultTypedAdditionalData) o;
+        return Objects.equal(data, that.data) && Objects.equal(type, that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(data, type);
     }
 }

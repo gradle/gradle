@@ -17,6 +17,8 @@
 
 The output of the _graph resolution_ phase is a fully resolved *dependency graph*, which is used as the input to the _artifact resolution_ phase.
 
+You can learn about how the graph is constructed in <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,Understanding the Dependency Resolution Model>>.
+
 The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] API provides access to the resolved dependency graph without triggering artifact resolution.
 This API presents the resolved dependency graph, where each node in the graph is a variant of a component.
 
@@ -70,3 +72,6 @@ include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResu
 ----
 
 Notice how the graph is the same for both representations.
+
+[.text-right]
+**Next Step:** <<artifact_resolution.adoc#artifact-resolution,Learn about Artifact Resolution>> >>

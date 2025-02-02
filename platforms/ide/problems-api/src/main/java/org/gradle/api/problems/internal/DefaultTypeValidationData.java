@@ -16,8 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.Nullable;
 import java.io.Serializable;
+
+import static com.google.common.base.Objects.equal;
 
 public class DefaultTypeValidationData implements TypeValidationData, Serializable {
 
@@ -58,6 +62,24 @@ public class DefaultTypeValidationData implements TypeValidationData, Serializab
     @Override
     public String getTypeName() {
         return typeName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultTypeValidationData)) {
+            return false;
+        }
+        DefaultTypeValidationData that = (DefaultTypeValidationData) o;
+        return equal(pluginId, that.pluginId) &&
+            equal(propertyName, that.propertyName) &&
+            equal(functionName, that.functionName) &&
+            equal(parentPropertyName, that.parentPropertyName) &&
+            equal(typeName, that.typeName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(pluginId, propertyName, functionName, parentPropertyName, typeName);
     }
 
     public static AdditionalDataBuilder<TypeValidationData> builder(@Nullable TypeValidationData from) {

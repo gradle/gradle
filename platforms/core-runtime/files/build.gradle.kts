@@ -21,6 +21,3 @@ dependencies {
     }
     testImplementation(testFixtures(projects.native))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

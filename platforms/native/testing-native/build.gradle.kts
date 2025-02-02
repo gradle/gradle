@@ -11,12 +11,10 @@ errorprone {
 }
 
 dependencies {
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
+    api(projects.baseDiagnostics)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.diagnostics)
     api(projects.stdlibJavaExtensions)
     api(projects.languageNative)
     api(projects.modelCore)
@@ -24,6 +22,8 @@ dependencies {
     api(projects.platformBase)
     api(projects.platformNative)
     api(projects.processServices)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.testSuitesBase)
     api(projects.testingBase)
     api(projects.testingBaseInfrastructure)
@@ -32,9 +32,10 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.io)
     implementation(projects.logging)
     implementation(projects.loggingApi)
+    implementation(projects.io)
+    implementation(projects.softwareDiagnostics)
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -43,7 +44,6 @@ dependencies {
     testImplementation(projects.fileCollections)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformNative))
-    testImplementation(testFixtures(projects.diagnostics))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.testingBase))
     testImplementation(testFixtures(projects.languageNative))

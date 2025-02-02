@@ -27,7 +27,7 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.plugins.internal.JavaPluginHelper;
@@ -46,6 +46,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
@@ -161,9 +162,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
-            ObjectFactory objectFactory = project.getObjects();
+            PropertyFactory propertyFactory = getPropertyFactory();
+
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, objectFactory));
+                JavaExecExecutableUtils.getExecutableOverrideToolchainSpec(run, propertyFactory));
             run.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
         });
     }
@@ -237,5 +239,10 @@ public abstract class ApplicationPlugin implements Plugin<Project> {
 
         distSpec.with(pluginExtension.getApplicationDistribution());
         return distSpec;
+    }
+
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
+        throw new UnsupportedOperationException();
     }
 }
