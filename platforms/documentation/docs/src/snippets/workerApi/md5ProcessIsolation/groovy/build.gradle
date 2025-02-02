@@ -4,11 +4,10 @@ repositories {
     mavenCentral()
 }
 
-configurations.create('codec') {
+configurations.register('codec') {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
     }
-    visible = false
     canBeConsumed = false
 }
 
