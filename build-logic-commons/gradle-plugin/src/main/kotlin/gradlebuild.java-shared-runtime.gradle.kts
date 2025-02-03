@@ -1,5 +1,3 @@
-import gradlebuild.commons.configureJavaToolChain
-
 plugins {
     `java-library`
     groovy
@@ -15,7 +13,6 @@ plugins {
 description = "A plugin that sets up a Java code that is shared between build-logic and runtime"
 
 java {
-    configureJavaToolChain()
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
