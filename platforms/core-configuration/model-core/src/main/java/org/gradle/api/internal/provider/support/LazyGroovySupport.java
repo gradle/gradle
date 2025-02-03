@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider.support;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.instantiation.generator.AsmBackedClassGenerator;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An interface used to support lazy assignment for types like {@link Property} and {@link ConfigurableFileCollection} in Groovy DSL.
@@ -29,5 +30,5 @@ public interface LazyGroovySupport {
     /**
      * Sets the value from some arbitrary object. Used from the Groovy DSL.
      */
-    void setFromAnyValue(Object object);
+    void setFromAnyValue(@Nullable Object object);
 }
