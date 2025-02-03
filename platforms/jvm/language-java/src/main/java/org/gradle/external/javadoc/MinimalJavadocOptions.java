@@ -16,6 +16,11 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -25,10 +30,9 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.process.ExecSpec;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -37,19 +41,17 @@ import java.util.List;
  * Provides the core Javadoc options.
  */
 public interface MinimalJavadocOptions {
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getOverview();
-
-    void setOverview(@Nullable String overview);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getOverview();
 
     MinimalJavadocOptions overview(String overview);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    JavadocMemberLevel getMemberLevel();
-
-    void setMemberLevel(@Nullable JavadocMemberLevel memberLevel);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<JavadocMemberLevel> getMemberLevel();
 
     MinimalJavadocOptions showFromPublic();
 
@@ -61,35 +63,29 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions showAll();
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getDoclet();
-
-    void setDoclet(@Nullable String docletClass);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getDoclet();
 
     MinimalJavadocOptions doclet(String docletClass);
 
     @Classpath
-    @ToBeReplacedByLazyProperty
-    List<File> getDocletpath();
-
-    void setDocletpath(List<File> docletpath);
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.DocletpathAdapter.class)
+    ConfigurableFileCollection getDocletpath();
 
     MinimalJavadocOptions docletpath(File... docletpath);
 
-    @Nullable @Optional @Input
-    @ToBeReplacedByLazyProperty
-    String getSource();
-
-    void setSource(@Nullable String source);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getSource();
 
     MinimalJavadocOptions source(String source);
 
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<File> getClasspath();
-
-    void setClasspath(List<File> classpath);
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ClasspathAdapter.class)
+    ConfigurableFileCollection getClasspath();
 
     /**
      * The --module-path.
@@ -97,15 +93,8 @@ public interface MinimalJavadocOptions {
      * @since 6.4
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<File> getModulePath();
-
-    /**
-     * The --module-path.
-     *
-     * @since 6.4
-     */
-    void setModulePath(List<File> modulePath);
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ModulePath.class)
+    ConfigurableFileCollection getModulePath();
 
     /**
      * The --module-path.
@@ -119,109 +108,108 @@ public interface MinimalJavadocOptions {
     MinimalJavadocOptions classpath(File... classpath);
 
     @Classpath
-    @ToBeReplacedByLazyProperty
-    List<File> getBootClasspath();
-
-    void setBootClasspath(List<File> bootClasspath);
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.BootclasspathAdapter.class)
+    ConfigurableFileCollection getBootClasspath();
 
     MinimalJavadocOptions bootClasspath(File... bootClasspath);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @IgnoreEmptyDirectories @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
-    List<File> getExtDirs();
-
-    void setExtDirs(@Nullable List<File> extDirs);
+    @InputFiles
+    @Optional
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ExtDirsAdapter.class)
+    ConfigurableFileCollection getExtDirs();
 
     MinimalJavadocOptions extDirs(File... extDirs);
 
     @Console
-    @ToBeReplacedByLazyProperty
-    JavadocOutputLevel getOutputLevel();
-
-    void setOutputLevel(JavadocOutputLevel outputLevel);
+    @ReplacesEagerProperty
+    Property<JavadocOutputLevel> getOutputLevel();
 
     MinimalJavadocOptions verbose();
 
     @Internal
-    @ToBeReplacedByLazyProperty
-    boolean isVerbose();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Provider<Boolean> getVerbose();
+
+    /**
+     * This method exists only for Kotlin source backward compatibility.
+     */
+    @Internal
+    @Deprecated
+    Provider<Boolean> getIsVerbose();
 
     MinimalJavadocOptions quiet();
 
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isBreakIterator();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getBreakIterator();
 
-    void setBreakIterator(boolean breakIterator);
+    /**
+     * This method exists only for Kotlin source backward compatibility.
+     */
+    @Internal
+    @Deprecated
+    Property<Boolean> getIsBreakIterator();
 
     MinimalJavadocOptions breakIterator(boolean breakIterator);
 
     MinimalJavadocOptions breakIterator();
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getLocale();
-
-    void setLocale(@Nullable String locale);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getLocale();
 
     MinimalJavadocOptions locale(String locale);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getEncoding();
-
-    void setEncoding(@Nullable String encoding);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getEncoding();
 
     MinimalJavadocOptions encoding(String encoding);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    List<String> getJFlags();
-
-    void setJFlags(@Nullable List<String> jFlags);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    ListProperty<String> getJFlags();
 
     MinimalJavadocOptions jFlags(String... jFlags);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @PathSensitive(PathSensitivity.NONE) @InputFiles
-    List<File> getOptionFiles();
-
-    void setOptionFiles(@Nullable List<File> optionFiles);
+    @InputFiles
+    @Optional
+    @PathSensitive(PathSensitivity.NONE)
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.OptionFilesAdapter.class)
+    ConfigurableFileCollection getOptionFiles();
 
     MinimalJavadocOptions optionFiles(File... argumentFiles);
 
     @Internal
-    @ToBeReplacedByLazyProperty
-    File getDestinationDirectory();
-
-    void setDestinationDirectory(@Nullable File directory);
+    @ReplacesEagerProperty
+    DirectoryProperty getDestinationDirectory();
 
     MinimalJavadocOptions destinationDirectory(File directory);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getWindowTitle();
-
-    void setWindowTitle(@Nullable String windowTitle);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getWindowTitle();
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getHeader();
-
-    void setHeader(@Nullable String header);
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getHeader();
 
     StandardJavadocDocletOptions header(String header);
 
     void write(File outputFile) throws IOException;
 
-    @Nullable
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<String> getSourceNames();
-
-    void setSourceNames(@Nullable List<String> sourceNames);
+    @ReplacesEagerProperty
+    ListProperty<String> getSourceNames();
 
     MinimalJavadocOptions sourceNames(String... sourceNames);
 
