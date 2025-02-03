@@ -122,6 +122,7 @@ val core = platform("core") {
         subproject("flow-services")
         subproject("graph-isolation")
         subproject("graph-serialization")
+        subproject("groovy-support")
         subproject("guava-serialization-codecs")
         subproject("input-tracking")
         subproject("isolated-action-services")
