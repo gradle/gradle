@@ -17,7 +17,9 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 
 @SuppressWarnings("unused") // registered as Groovy extension in ExtensionModule
 public final class CollectionPropertyExtensions {
@@ -50,5 +52,19 @@ public final class CollectionPropertyExtensions {
     public static <T> HasMultipleValues<T> leftShift(HasMultipleValues<T> self, Provider<? extends T> provider) {
         self.add(provider);
         return self;
+    }
+
+    /**
+     * Creates a stand-in for {@link ListProperty} or {@link SetProperty} to be used as a left-hand side operand of {@code +=}.
+     * <p>
+     * The AST transformer knows the name of this method.
+     *
+     * @param lhs the property
+     * @param <T> the type of property elements, to help the static type checker
+     * @return the stand-in object to call {@code plus} on
+     * @see org.gradle.api.internal.groovy.support.CompoundAssignmentTransformer
+     */
+    public static <T> CollectionPropertyCompoundAssignmentStandIn<T> forCompoundAssignment(HasMultipleValues<T> lhs) {
+        return ((AbstractCollectionProperty<T, ?>) lhs).forCompoundAssignment();
     }
 }
