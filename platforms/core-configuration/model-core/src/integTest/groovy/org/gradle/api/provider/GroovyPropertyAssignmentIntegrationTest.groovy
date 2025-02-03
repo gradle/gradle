@@ -202,6 +202,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expectedResult)
+        }
 
         where:
         description                        | operation | inputType        | inputValue        | expectedResult
@@ -223,6 +226,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expectedResult)
+        }
 
         where:
         description                        | operation | inputType                    | inputValue              | expectedResult
@@ -246,6 +252,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expectedResult)
+        }
 
         where:
         description                        | operation | inputType                    | inputValue              | expectedType                 | expectedResult
