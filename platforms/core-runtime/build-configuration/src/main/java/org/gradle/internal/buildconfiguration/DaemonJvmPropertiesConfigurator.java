@@ -20,6 +20,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.Pair;
+import org.gradle.internal.buildconfiguration.resolvers.UnconfiguredToolchainRepositoriesResolver;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
@@ -67,18 +68,24 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                             if (!vendor.equals("any")) {
                                 toolchainSpec.getVendor().set(JvmVendorSpec.of(vendor));
                             }
-                            JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
-                            if (!platforms.isEmpty() && !resolverService.hasConfiguredToolchainRepositories()) {
-                                // TODO revisit failure condition, but don't require generation as long as its results are not used
-//                                throw new UnconfiguredToolchainRepositoriesResolver();
+                            if (platforms.isEmpty()) {
                                 return emptyMap();
+                            }
+
+                            JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
+                            if (!resolverService.hasConfiguredToolchainRepositories()) {
+                                throw new UnconfiguredToolchainRepositoriesResolver();
                             }
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
                                 .collect(Collectors.toMap(platform -> platform,
                                     platform -> resolverService.tryResolve(new DefaultJavaToolchainRequest(toolchainSpec, platform)).map(JavaToolchainDownload::getUri)));
-                            return buildPlatformOptionalUriMap.entrySet().stream()
+                            Map<BuildPlatform, URI> platformToDownloadUri = buildPlatformOptionalUriMap.entrySet().stream()
                                 .filter(e -> e.getValue().isPresent())
                                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
+                            if (platformToDownloadUri.isEmpty()) {
+                                throw new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms);
+                            }
+                            return platformToDownloadUri;
                         }));
             });
         }
