@@ -22,6 +22,8 @@ import org.gradle.util.internal.ToBeImplemented
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
 class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
+    protected static final String EXPRESSION_PREFIX = "Expression value: "
+
     def "eager object properties assignment for #description"() {
         def inputDeclaration = "$inputType input"
         groovyBuildFile(inputDeclaration, inputValue, "=")
@@ -204,6 +206,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expectedResult)
+        }
 
         where:
         description                        | operation | inputType        | inputValue        | expectedResult
@@ -225,6 +230,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expectedResult)
+        }
 
         where:
         description                        | operation | inputType                    | inputValue              | expectedResult
@@ -261,6 +269,9 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         expect:
         runAndAssert("myTask", expectedResult)
+        if (expectedResult !instanceof Failure) {
+            assertExpression(expectedResult)
+        }
 
         where:
         description                        | operation | inputType                    | inputValue              | expectedType                 | expectedResult
@@ -347,12 +358,16 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
                 @TaskAction
                 void run() {
-                    ${groovyInputPrintRoutine()}
+                    ${groovyInputPrintRoutine(RESULT_PREFIX, "input")}
                 }
             }
 
             tasks.register("myTask", MyTask) {
-                input $operation $inputValue
+                def result = (input $operation $inputValue)
+
+                doLast {
+                    ${groovyInputPrintRoutine(EXPRESSION_PREFIX, "result")}
+                }
             }
         """
     }
@@ -363,10 +378,11 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
             tasks.register("myTask") {
                 def input = $inputInitializer
-                input $operation $inputValue
+                def result = (input $operation $inputValue)
                 ${expectedType ? "assert input instanceof $expectedType" : ""}
                 doLast {
-                    ${groovyInputPrintRoutine()}
+                    ${groovyInputPrintRoutine(RESULT_PREFIX, "input")}
+                    ${groovyInputPrintRoutine(EXPRESSION_PREFIX, "result")}
                 }
             }
         """
@@ -390,21 +406,27 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         """
     }
 
-    private String groovyInputPrintRoutine() {
+    private String groovyInputPrintRoutine(String prefix = RESULT_PREFIX, String variable = "input") {
         """
-            if (input instanceof FileSystemLocationProperty) {
-                println("$RESULT_PREFIX" + input.map { it.asFile.name }.getOrElse("undefined"))
-            } else if (input instanceof File) {
-               println("$RESULT_PREFIX" + input.name)
-            } else if (input instanceof Provider) {
-                println("$RESULT_PREFIX" + input.map { it.toString() }.getOrElse("undefined"))
-            } else if (input instanceof FileCollection) {
-                println("$RESULT_PREFIX" + input.files.collect { it.name })
-            } else if (input instanceof Iterable) {
-                println("$RESULT_PREFIX" + input.collect { it instanceof File ? it.name : it })
+            if (${variable} instanceof FileSystemLocationProperty) {
+                println("$prefix" + ${variable}.map { it.asFile.name }.getOrElse("undefined"))
+            } else if (${variable} instanceof File) {
+               println("$prefix" + ${variable}.name)
+            } else if (${variable} instanceof Provider) {
+                println("$prefix" + ${variable}.map { it.toString() }.getOrElse("undefined"))
+            } else if (${variable} instanceof FileCollection) {
+                println("$prefix" + ${variable}.files.collect { it.name })
+            } else if (${variable} instanceof Iterable) {
+                println("$prefix" + ${variable}.collect { it instanceof File ? it.name : it })
+            } else if (${variable}?.getClass()?.isArray()) {
+                println("$prefix" + Arrays.toString(${variable}))
             } else {
-                println("$RESULT_PREFIX" + input.toString())
+                println("$prefix" + ${variable})
             }
         """
+    }
+
+    private void assertExpression(def value) {
+        outputContains(EXPRESSION_PREFIX + value)
     }
 }
