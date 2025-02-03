@@ -86,6 +86,15 @@ Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, th
 Please ensure that you are not relying on this behavior when upgrading to Gradle 8.13.
 If system properties needs to be overridden, `BuildLauncher#setJvmArguments` should be used instead.
 
+==== Source level deprecation of Project.task methods
+
+Eager task creation methods on link:{javadocPath}/org/gradle/api/Project.html#task(java.lang.String)[the `Project` interface] have been marked `@Deprecated` and will generate compiler and IDE warnings when used in build scripts or plugin code.
+There is not yet a Gradle deprecation warning emitted for their use.
+
+However, if the build is configured to fail on warnings during Kotlin script or plugin code compilation, this change may cause the build to fail.
+
+A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider
