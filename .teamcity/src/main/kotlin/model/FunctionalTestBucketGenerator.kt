@@ -68,7 +68,13 @@ data class FunctionalTestBucket(
 
     fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): SmallSubprojectBucket =
         SmallSubprojectBucket(
-            subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
+            subprojects.mapNotNull {
+                val subproject = gradleSubprojectProvider.getSubprojectByName(it)
+                if (subproject == null) {
+                    println("Subproject $it not found in the model, skipping")
+                }
+                subproject
+            },
             parallelizationMethod,
         )
 }
