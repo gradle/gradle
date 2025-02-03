@@ -12,35 +12,41 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+This release introduces several enhancements for [build authors and plugin developers](#build-authoring), including updates to the `ProjectLayout` and `TestEventReporting` APIs, a new `artifactTransforms` task, the `distribution-base` plugin, and support for explicit Scala version declaration in the `scala` extension.
 
-<!--
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
-
- THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
--->
+Finally, [deprecation warning messages](#error-warning) have been corrected to provide accurate guidance on enabling full stack traces.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/adam-enko),
+[Adam](https://github.com/aSemy),
 [Ahmad Al-Masry](https://github.com/AhmadMasry),
+[Ahmed Ehab](https://github.com/ahmedehabb),
 [Aurimas](https://github.com/liutikas),
+[Baptiste Decroix](https://github.com/bdecroix-spiria),
+[Björn Kautler](https://github.com/Vampire),
+[Borewit](https://github.com/Borewit),
 [Jorge Matamoros](https://github.com/YungOkra),
+[Lei Zhu](https://github.com/Korov),
 [Madalin Valceleanu](https://github.com/vmadalin),
+[Mohammed Thavaf](https://github.com/mthavaf),
+[Patrick Brückner](https://github.com/madmuffin1),
+[Philip Wedemann](https://github.com/hfhbd),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Róbert Papp](https://github.com/TWiStErRob),
 [Semyon Gaschenko](https://github.com/gasches),
+[Shi Chen](https://github.com/CsCherrYY),
 [Stefan M.](https://github.com/StefMa),
 [Steven Schoen](https://github.com/DSteve595),
 [tg-freigmbh](https://github.com/tg-freigmbh),
 [TheGoesen](https://github.com/TheGoesen),
+[Tony Robalik](https://github.com/autonomousapps),
 [Zongle Wang](https://github.com/Goooler)
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org/) for insight into what's planned for future releases.
 
 ## Upgrade instructions
 
-Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
+Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
 ```
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper
@@ -57,24 +63,31 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin authors and build engineers to develop custom build logic.
 
-#### ProjectLayout API improvement
+#### `ProjectLayout` API improvement
 
 The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
-
 Starting with this version of Gradle, it can also access the settings directory (the location of the `settings.gradle(.kts)` file).
-While the settings directory is not specific to any project, some use cases require resolving file paths relative to it.
 
+While the settings directory is not specific to any project, some use cases require resolving file paths relative to it:
+
+```kotlin
+val versionFilePath = project.layout.settingsDirectory.file("version.txt").asFile.path
+```
+    
 Previously, accessing the settings directory required using `rootProject.layout.projectDirectory`.
-This approach involved accessing the `rootProject` object, which is discouraged, and then manually resolving paths to the settings directory.
+This approach involved accessing the `rootProject` object, which is discouraged, and then manually resolving paths to the settings directory:
+
+```kotlin
+val versionFilePath = project.rootDir.toString() + "/version.txt"
+```
 
 The new capability addresses a common scenario: resolving files shared across all projects in a build, such as linting configurations or `version.txt` files in the root folder.
 
 Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
 
-#### New Artifact Transforms report task
+#### New `artifactTransforms` report task
 
 A new `artifactTransforms` report is available by default, providing information about all the registered [Artifact Transforms](userguide/artifact_transforms.html) in a project.
-
 This report helps build authors identify the transforms registered by build scripts and plugins in their projects. 
 Viewing the list of registered transforms is particularly useful for debugging [ambiguous transform failures](userguide/variant_model.html#sec:transform-ambiguity).
 
@@ -89,7 +102,7 @@ The report includes the following details:
 
 For more information, refer to the [ArtifactTransformsReportTask](dsl/org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask.html) DSL reference.
 
-#### TestEventReporting API improvements
+#### `TestEventReporting` API improvements
 
 Gradle provides an [HTML test report](userguide/java_testing.html#test_reporting) to help you understand and resolve test failures.
 This report is automatically generated when using the `test` task with supported test frameworks, such as `JUnit`.
@@ -166,11 +179,29 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
 
-#### Scala version can be declared explicitly
+#### Explicit Scala version declaration in the `scala` extension
 
-Starting in this version of Gradle, when applying the [scala-base or scala](userguide/scala_plugin.html) plugins, you can now explicitly declare the Scala version on the `scala` extension.
+Starting in this version of Gradle, when applying the [`scala-base` or `scala`](userguide/scala_plugin.html) plugins, you can now explicitly declare the Scala version on the `scala` extension.
 This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
 It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
+
+Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
+
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+scala {
+    scalaVersion = "2.13.12"
+    // OR 
+    scalaVersion = "3.6.3"
+}
+```
 
 Previously, you had to declare a `scala-library` dependency, like this:
 
@@ -190,29 +221,12 @@ dependencies {
 }
 ```
 
-Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
-```kotlin
-plugins {
-    id("scala")
-}
-
-repositories {
-    mavenCentral()
-}
-
-scala {
-    scalaVersion = "2.13.12"
-    // OR 
-    scalaVersion = "3.6.3"
-}
-```
-
-#### Distribution base plugin introduced
+#### New `distribution-base` plugin for custom distributions
 
 Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the [Distribution Plugin](userguide/distribution_plugin.html) but does not add a default distribution.
-The existing `distribution` plugin now acts as a wrapper for the `distribution-base` plugin, adding a default `main` distribution.
+Instead, the existing `distribution` plugin acts as a wrapper for the `distribution-base` plugin, adding a default `main` distribution.
 
-The `distribution-base` plugin is particularly useful for plugin developers who want the capabilities of the Distribution Plugin without a `main` distribution.
+The `distribution-base` plugin is particularly useful for plugin developers who want the capabilities of the Distribution Plugin without a `main` distribution:
 
 ```kotlin
 plugins {
@@ -236,9 +250,9 @@ assert(distributions.findByName("main") == null)
 
 Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
 
-#### Corrected deprecation warnings that enable the full stack trace flag
+#### Corrected deprecation warnings messages for full stack trace flag
 
-The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces for deprecation warnings.
+The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces.
 
 The console properly prints out:
 
