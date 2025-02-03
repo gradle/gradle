@@ -163,7 +163,6 @@ public class JavadocOptionFile {
     }
 
     public Map<String, String> stringifyExtraOptionsToMap(Set<String> optionsToExclude) {
-        // TODO: Fix this for Gradle 9.0
         return options.entrySet().stream()
                 .filter(entry -> !optionsToExclude.contains(entry.getKey()))
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.valueOf(entry.getValue().getValue())));

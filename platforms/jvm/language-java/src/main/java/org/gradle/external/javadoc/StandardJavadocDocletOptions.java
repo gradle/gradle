@@ -23,6 +23,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableBiFunction;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -52,7 +53,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
@@ -1154,11 +1154,11 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         }
     }
 
-    private void addMultiValuePropertyOption(String option, Provider<? extends Collection<?>> value, BiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
+    private void addMultiValuePropertyOption(String option, Provider<? extends Collection<?>> value, SerializableBiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
         optionFile.addMultiValuePropertyOption(option, value, valueWriter);
     }
 
-    private void addMapPropertyOption(String option, Provider<? extends Map<?, ?>> value, BiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
+    private void addMapPropertyOption(String option, Provider<? extends Map<?, ?>> value, SerializableBiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
         optionFile.addMapPropertyOption(option, value, valueWriter);
     }
 

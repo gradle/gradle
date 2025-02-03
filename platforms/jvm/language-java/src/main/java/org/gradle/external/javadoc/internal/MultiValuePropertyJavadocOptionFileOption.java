@@ -17,6 +17,7 @@
 package org.gradle.external.javadoc.internal;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableBiFunction;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
@@ -26,11 +27,15 @@ import java.util.function.BiFunction;
 
 @NonNullApi
 public class MultiValuePropertyJavadocOptionFileOption extends AbstractJavadocOptionFileOption<Provider<? extends Collection<?>>> {
-    private final BiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter;
+
+    /**
+     * Has to be a serializable function because it is stored in the configuration cache.
+     */
+    private final SerializableBiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter;
 
     public MultiValuePropertyJavadocOptionFileOption(String option, Provider<? extends Collection<?>> value, BiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
         super(option, value);
-        this.valueWriter = valueWriter;
+        this.valueWriter = valueWriter::apply;
     }
 
     @Override
