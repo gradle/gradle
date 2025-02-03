@@ -27,5 +27,7 @@ interface DataParameter : Serializable {
 
     val isDefault: Boolean
 
+    val isVararg: Boolean
+
     val semantics: ParameterSemantics
 }

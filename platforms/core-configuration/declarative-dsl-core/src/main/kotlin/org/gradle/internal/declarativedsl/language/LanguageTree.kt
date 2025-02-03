@@ -9,15 +9,23 @@ sealed interface LanguageTreeElement {
 
 
 sealed interface FunctionArgument : LanguageTreeElement {
-    sealed interface ValueArgument : FunctionArgument {
+    sealed interface ValueLikeArgument : FunctionArgument
+
+    sealed interface SingleValueArgument : ValueLikeArgument {
         val expr: Expr
     }
 
-    data class Positional(override val expr: Expr, override val sourceData: SourceData) : ValueArgument {
+    data class Positional(override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
         override fun toString() = "$expr"
     }
-    data class Named(val name: String, override val expr: Expr, override val sourceData: SourceData) : ValueArgument {
+    data class Named(val name: String, override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
         override fun toString() = "$name: $expr"
+    }
+    data class GroupedVarargs(val elementArgs: List<SingleValueArgument>): ValueLikeArgument {
+        override val sourceData: SourceData
+            get() = elementArgs.firstOrNull()?.sourceData ?: SyntheticallyProduced
+
+        override fun toString(): String = "[${elementArgs.joinToString()}]"
     }
     data class Lambda(val block: Block, override val sourceData: SourceData) : FunctionArgument {
         override fun toString() = "{}"

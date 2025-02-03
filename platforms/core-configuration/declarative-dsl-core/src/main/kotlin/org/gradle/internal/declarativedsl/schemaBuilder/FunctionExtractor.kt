@@ -202,7 +202,7 @@ class DefaultFunctionExtractor(
         preIndex: DataSchemaBuilder.PreIndex
     ): DataParameter {
         val paramSemantics = getParameterSemantics(functionSemantics, function, fnParam, returnClassifier, preIndex)
-        return DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRefOrError(host), fnParam.isOptional, paramSemantics)
+        return DefaultDataParameter(fnParam.name, fnParam.parameterTypeToRefOrError(host), fnParam.isOptional, fnParam.isVararg, paramSemantics)
     }
 
     private

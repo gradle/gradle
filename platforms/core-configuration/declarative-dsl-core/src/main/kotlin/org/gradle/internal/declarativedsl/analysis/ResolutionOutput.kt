@@ -99,10 +99,7 @@ sealed interface ObjectOrigin {
         val entryName: String
             get() = namedReference.name
 
-        val javaTypeName: String
-            get() = type.javaTypeName
-
-        override fun toString(): String = "(enum $javaTypeName.$entryName)"
+        override fun toString(): String = "(enum ${type.javaTypeName}.$entryName)"
     }
 
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
@@ -242,6 +239,13 @@ sealed interface ObjectOrigin {
             return result
         }
     }
+
+    data class GroupedVarargValue(
+        override val originElement: LanguageTreeElement,
+        val elementValues: List<ObjectOrigin>,
+        val elementType: DataType,
+        val varargArrayType: DataType
+    ) : ObjectOrigin
 
     data class External(val key: ExternalObjectProviderKey, override val originElement: NamedReference) : ObjectOrigin {
         override fun toString(): String = "${key.objectType}"

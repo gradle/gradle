@@ -6,8 +6,8 @@ import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.Literal
-import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.NamedReference
+import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.This
 
 

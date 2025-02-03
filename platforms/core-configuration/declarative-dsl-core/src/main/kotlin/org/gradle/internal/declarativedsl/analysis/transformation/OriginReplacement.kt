@@ -43,6 +43,7 @@ object OriginReplacement {
                 is ObjectOrigin.ImplicitThisReceiver -> origin.copy(resolvedTo = replaceInReceiver(origin.resolvedTo))
                 is ObjectOrigin.PropertyDefaultValue -> origin.copy(receiver = replace(origin.receiver))
                 is ObjectOrigin.PropertyReference -> origin.copy(receiver = replace(origin.receiver))
+                is ObjectOrigin.GroupedVarargValue -> origin.copy(elementValues = origin.elementValues.map { replace(it) })
 
                 is ObjectOrigin.ConstantOrigin,
                 is ObjectOrigin.EnumConstantOrigin,

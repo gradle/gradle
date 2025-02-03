@@ -77,6 +77,12 @@ sealed interface ObjectReflection {
     ) : ObjectReflection {
         override val type = DataTypeInternal.DefaultUnitType
     }
+
+    data class GroupedVarargReflection(
+        override val type: DataType,
+        val elementsReflection: List<ObjectReflection>,
+        override val objectOrigin: ObjectOrigin.GroupedVarargValue
+    ) : ObjectReflection
 }
 
 
@@ -150,6 +156,12 @@ fun reflect(
 
         is ObjectOrigin.ImplicitThisReceiver -> reflect(objectOrigin.resolvedTo, context)
         is ObjectOrigin.AddAndConfigureReceiver -> reflect(objectOrigin.receiver, context)
+        is ObjectOrigin.GroupedVarargValue ->
+            ObjectReflection.GroupedVarargReflection(
+                objectOrigin.varargArrayType,
+                objectOrigin.elementValues.map { reflect(it, context) },
+                objectOrigin
+            )
     }
 }
 

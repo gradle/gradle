@@ -261,7 +261,7 @@ private fun elementFactoryFunction(
         receiverTypeRef,
         elementFactoryName,
         listOf(
-            DefaultDataParameter("name", DataTypeInternal.DefaultStringDataType.ref, false, ParameterSemanticsInternal.DefaultIdentityKey(null))
+            DefaultDataParameter("name", DataTypeInternal.DefaultStringDataType.ref, false, false, ParameterSemanticsInternal.DefaultIdentityKey(null))
         ),
         false,
         FunctionSemanticsInternal.DefaultAccessAndConfigure(
