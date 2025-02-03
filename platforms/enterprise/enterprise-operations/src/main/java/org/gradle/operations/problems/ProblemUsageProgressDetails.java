@@ -41,9 +41,14 @@ public interface ProblemUsageProgressDetails {
     String getDetails();
 
     /**
-     * Return the location data associated available for this problem.
+     * Return the origin location data associated available for this problem.
      */
-    List<ProblemLocation> getLocations();
+    List<ProblemLocation> getOriginLocations();
+
+    /**
+     * Return the contextual location data associated available for this problem.
+     */
+    List<ProblemLocation> getContextualLocations();
 
     /**
      * The failure that caused the problem.
