@@ -100,7 +100,7 @@ public class ResolutionFailureHandler {
         this.defaultFailureDescribers = ResolutionFailureDescriberRegistry.standardRegistry(instanceGenerator);
         this.customFailureDescribers = ResolutionFailureDescriberRegistry.emptyRegistry(instanceGenerator);
 
-        configureAdditionalDataBuilder(problemsService.getAdditionalDataBuilderFactory());
+        configureAdditionalDataBuilder(problemsService.getInfrastructure().getAdditionalDataBuilderFactory());
     }
 
     private static void configureAdditionalDataBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory) {

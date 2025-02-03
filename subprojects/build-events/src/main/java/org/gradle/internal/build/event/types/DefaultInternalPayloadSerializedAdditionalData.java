@@ -20,19 +20,26 @@ import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 
 import java.io.Serializable;
-import java.util.Map;
+import java.util.Collections;
 
 @NonNullApi
-public class DefaultInternalPayloadSerializedAdditionalData extends DefaultInternalAdditionalData implements InternalPayloadSerializedAdditionalData, Serializable {
+public class DefaultInternalPayloadSerializedAdditionalData extends DefaultInternalAdditionalData implements Serializable, InternalPayloadSerializedAdditionalData {
+    private final byte[] isolatable;
     private final Object payload;
 
-    public DefaultInternalPayloadSerializedAdditionalData(Map<String, Object> additionalData, Object payload) {
-        super(additionalData);
+    public DefaultInternalPayloadSerializedAdditionalData(byte[] isolatable, Object payload) {
+        super(Collections.emptyMap());
+        this.isolatable = isolatable;
         this.payload = payload;
     }
 
     @Override
     public Object getSerializedType() {
         return payload;
+    }
+
+    @Override
+    public byte[] getBytesForIsolatadObject() {
+        return isolatable;
     }
 }

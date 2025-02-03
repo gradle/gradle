@@ -18,9 +18,9 @@ package org.gradle.api.internal.attributes.immutable
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.attributes.AttributeValueIsolator
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.util.AttributeTestUtil
