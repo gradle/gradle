@@ -23,7 +23,6 @@ import gradlebuild.basics.BuildEnvironment.isTeamCity
 import gradlebuild.basics.buildBranch
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
-import gradlebuild.basics.isRetryBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdoutIgnoringError
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.predictiveTestSelectionEnabled
@@ -144,9 +143,6 @@ fun DevelocityConfiguration.extractCiData() {
             }
             buildFinished {
                 println("##teamcity[setParameter name='env.GRADLE_RUNNER_FINISHED' value='true']")
-                if (failures.isEmpty() && isRetryBuild) {
-                    println("##teamcity[buildStatus status='SUCCESS' text='Retried build succeeds']")
-                }
             }
         }
     }
