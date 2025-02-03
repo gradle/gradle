@@ -40,6 +40,7 @@ dependencyResolutionManagement {
             url = uri("https://repo.gradle.org/gradle/public")
             content {
                 includeModule("org.openmbee.junit", "junit-xml-parser")
+                includeGroup("org.gradle.buildtool.internal")
             }
         }
         mavenCentral()
@@ -79,6 +80,5 @@ include("profiling")
 
 // Components used both at build time and GBT runtime, shipped in the distribution
 include("kotlin-dsl-shared-runtime")
-include("java-api-extractor")
 
 rootProject.name = "build-logic"
