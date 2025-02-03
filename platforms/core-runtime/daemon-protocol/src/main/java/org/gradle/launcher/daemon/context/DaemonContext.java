@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.context;
 
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -23,6 +24,7 @@ import org.gradle.launcher.daemon.configuration.DaemonPriority;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * A value object that describes a daemons environment/context.
@@ -60,6 +62,11 @@ public interface DaemonContext {
      * Vendor string of the JVM used by the daemon.
      */
     String getJavaVendor();
+
+    /**
+     * The java capabilities required by the daemon.
+     */
+    Set<JavaInstallationCapability> getJavaCapabilities();
 
     /**
      * The directory that should be used for daemon storage (not including the gradle version number).

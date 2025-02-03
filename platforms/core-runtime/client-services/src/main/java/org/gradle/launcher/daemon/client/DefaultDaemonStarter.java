@@ -32,6 +32,7 @@ import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.JpmsConfiguration;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.os.OperatingSystem;
@@ -217,6 +218,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         toolchainSpec.getLanguageVersion().value(JavaLanguageVersion.of(daemonJvmCriteria.getJavaVersion().asInt()));
         toolchainSpec.getVendor().value(daemonJvmCriteria.getVendorSpec());
         toolchainSpec.getImplementation().convention(JvmImplementation.VENDOR_SPECIFIC);
+        toolchainSpec.getCapabilities().convention(JavaInstallationCapability.JDK_CAPABILITIES);
         return toolchainSpec;
     }
 

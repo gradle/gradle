@@ -16,6 +16,7 @@
 package org.gradle.launcher.daemon.context;
 
 import com.google.common.base.Joiner;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Keep in mind that this is a serialized value object.
@@ -47,6 +49,7 @@ public class DefaultDaemonContext implements DaemonContext {
     private final NativeServicesMode nativeServicesMode;
     private final JavaLanguageVersion javaVersion;
     private final String javaVendor;
+    private final Set<JavaInstallationCapability> javaCapabilities;
 
     public DefaultDaemonContext(
         String uid,
@@ -72,6 +75,7 @@ public class DefaultDaemonContext implements DaemonContext {
         this.priority = priority;
         this.nativeServicesMode = nativeServicesMode;
         this.javaVendor = javaVendor;
+        this.javaCapabilities = JavaInstallationCapability.gatherJdkCapabilities(javaHome);
     }
 
     @Override
@@ -99,6 +103,11 @@ public class DefaultDaemonContext implements DaemonContext {
     @Override
     public String getJavaVendor() {
         return javaVendor;
+    }
+
+    @Override
+    public Set<JavaInstallationCapability> getJavaCapabilities() {
+        return javaCapabilities;
     }
 
     @Override
@@ -151,12 +160,12 @@ public class DefaultDaemonContext implements DaemonContext {
             return false;
         }
         DefaultDaemonContext that = (DefaultDaemonContext) o;
-        return applyInstrumentationAgent == that.applyInstrumentationAgent && Objects.equals(uid, that.uid) && Objects.equals(javaHome, that.javaHome) && Objects.equals(daemonRegistryDir, that.daemonRegistryDir) && Objects.equals(pid, that.pid) && Objects.equals(idleTimeout, that.idleTimeout) && Objects.equals(daemonOpts, that.daemonOpts) && priority == that.priority && nativeServicesMode == that.nativeServicesMode && Objects.equals(javaVersion, that.javaVersion) && Objects.equals(javaVendor, that.javaVendor);
+        return applyInstrumentationAgent == that.applyInstrumentationAgent && Objects.equals(uid, that.uid) && Objects.equals(javaHome, that.javaHome) && Objects.equals(daemonRegistryDir, that.daemonRegistryDir) && Objects.equals(pid, that.pid) && Objects.equals(idleTimeout, that.idleTimeout) && Objects.equals(daemonOpts, that.daemonOpts) && priority == that.priority && nativeServicesMode == that.nativeServicesMode && Objects.equals(javaVersion, that.javaVersion) && Objects.equals(javaVendor, that.javaVendor) && Objects.equals(javaCapabilities, that.javaCapabilities);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, priority, nativeServicesMode, javaVersion, javaVendor);
+        return Objects.hash(uid, javaHome, daemonRegistryDir, pid, idleTimeout, daemonOpts, applyInstrumentationAgent, priority, nativeServicesMode, javaVersion, javaVendor, javaCapabilities);
     }
 
     static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {

@@ -18,7 +18,6 @@ package org.gradle.internal.jvm.inspection;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.jvm.JavaVersionParser;
-import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialization.Cached;
 
 import javax.annotation.Nullable;
@@ -26,7 +25,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -246,22 +244,7 @@ public interface JvmInstallationMetadata {
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {
-            final Set<JavaInstallationCapability> capabilities = EnumSet.noneOf(JavaInstallationCapability.class);
-            if (getToolByExecutable("javac").exists()) {
-                capabilities.add(JavaInstallationCapability.JAVA_COMPILER);
-            }
-            if (getToolByExecutable("javadoc").exists()) {
-                capabilities.add(JavaInstallationCapability.JAVADOC_TOOL);
-            }
-            boolean isJ9vm = jvmName.contains("J9");
-            if (isJ9vm) {
-                capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
-            }
-            return capabilities;
-        }
-
-        private File getToolByExecutable(String name) {
-            return new File(new File(javaHome.toFile(), "bin"), OperatingSystem.current().getExecutableName(name));
+            return JavaInstallationCapability.gatherCapabilities(javaHome.toFile(), jvmName);
         }
 
         @Override

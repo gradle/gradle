@@ -16,9 +16,13 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 
 public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
+
+    SetProperty<JavaInstallationCapability> getCapabilities();
 
     /**
      * A key corresponding to the spec that is an immutable snapshot of the spec properties
@@ -54,5 +58,6 @@ public interface JavaToolchainSpecInternal extends JavaToolchainSpec {
         getLanguageVersion().finalizeValue();
         getVendor().finalizeValue();
         getImplementation().finalizeValue();
+        getCapabilities().finalizeValue();
     }
 }
