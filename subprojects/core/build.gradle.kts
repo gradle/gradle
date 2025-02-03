@@ -105,6 +105,7 @@ dependencies {
 
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
+    implementation(projects.groovySupport)
     implementation(projects.daemonLogging)
     implementation(projects.groovyLoader)
     implementation(projects.inputTracking)

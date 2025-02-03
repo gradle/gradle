@@ -17,6 +17,7 @@ package org.gradle.groovy.scripts.internal;
 
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationUnit;
+import org.gradle.api.internal.groovy.support.CompoundAssignmentTransformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -53,6 +54,7 @@ public class BuildScriptTransformer implements Transformer, Factory<BuildScriptD
         new StatementLabelsScriptTransformer().register(compilationUnit);
         new ModelBlockTransformer(scriptSource.getDisplayName(), scriptSource.getResource().getLocation().getURI()).register(compilationUnit);
         imperativeStatementDetectingTransformer.register(compilationUnit);
+        new CompoundAssignmentTransformer().register(compilationUnit);
     }
 
     @Override
