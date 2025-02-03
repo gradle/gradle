@@ -138,6 +138,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     }
 
     @Override
+    @Nullable
     public <T> T getAttribute(Attribute<T> key) {
         maybeEmitRecursiveQueryDeprecation();
         Isolatable<?> value = attributes.get(key);
@@ -172,7 +173,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

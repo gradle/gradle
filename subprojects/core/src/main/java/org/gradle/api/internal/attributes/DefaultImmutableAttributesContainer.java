@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,12 +63,10 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     DefaultImmutableAttributesContainer(DefaultImmutableAttributesContainer parent, Attribute<?> key, Isolatable<?> value) {
         this.attribute = key;
         this.value = value;
-        Map<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy = new LinkedHashMap<>();
-        hierarchy.putAll(parent.hierarchy);
+        Map<Attribute<?>, DefaultImmutableAttributesContainer> hierarchy = new LinkedHashMap<>(parent.hierarchy);
         hierarchy.put(attribute, this);
         this.hierarchy = ImmutableMap.copyOf(hierarchy);
-        Map<String, DefaultImmutableAttributesContainer> hierarchyByName = new LinkedHashMap<>();
-        hierarchyByName.putAll(parent.hierarchyByName);
+        Map<String, DefaultImmutableAttributesContainer> hierarchyByName = new LinkedHashMap<>(parent.hierarchyByName);
         hierarchyByName.put(attribute.getName(), this);
         this.hierarchyByName = ImmutableMap.copyOf(hierarchyByName);
         int hashCode = parent.hashCode();
@@ -100,7 +99,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         }
 
         for (Map.Entry<Attribute<?>, DefaultImmutableAttributesContainer> entry : hierarchy.entrySet()) {
-            if (!entry.getValue().value.isolate().equals(that.getAttribute(entry.getKey()))) {
+            if (!Objects.requireNonNull(entry.getValue().value.isolate()).equals(that.getAttribute(entry.getKey()))) {
                 return false;
             }
         }
@@ -128,14 +127,21 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
+    @Nullable
     public <T> T getAttribute(Attribute<T> key) {
         Isolatable<T> isolatable = getIsolatableAttribute(key);
-        return isolatable == null ? null : isolatable.isolate();
+        if (isolatable == null) {
+            return null;
+        } else if (isolatable.getClass() != key.getClass() && isolatable.getClass().getName().equals(key.getClass().getName())) {
+            return isolatable.coerce(key.getType());
+        } else {
+            return isolatable.isolate();
+        }
     }
 
     @Nullable
-    protected <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
-        DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
+    /* package */ <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(key.getName());
         return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
 
@@ -163,10 +169,12 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
+    @Nullable
     public Object get() {
         return value.isolate();
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Nullable
     private String desugar() {
         // We support desugaring for all non-primitive types supported in GradleModuleMetadataWriter.writeAttributes(), which are:
@@ -190,6 +198,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
+    @Nullable
     public <S> S coerce(Attribute<S> otherAttribute) {
         S s = Cast.uncheckedCast(coercionCache.get(otherAttribute));
         if (s == null) {
@@ -199,6 +208,9 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         return s;
     }
 
+
+    @SuppressWarnings("DataFlowIssue")
+    @Nullable
     private <S> S uncachedCoerce(Attribute<S> otherAttribute) {
         Class<S> otherAttributeType = otherAttribute.getType();
         // If attribute types are already compatible, go with it. There are two cases covered here:
@@ -248,6 +260,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         return this;
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public Map<Attribute<?>, ?> asMap() {
         ImmutableMap.Builder<Attribute<?>, ?> builder = ImmutableMap.builder();

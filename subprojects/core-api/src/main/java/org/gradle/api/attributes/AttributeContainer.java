@@ -62,7 +62,7 @@ public interface AttributeContainer extends HasAttributes {
      * Sets an attribute to have the same value as the given provider.
      * This attribute will track the value of the provider and query its value when this container is finalized.
      * <p>
-     * This method can NOT be used to discard the value of an property. Specifying a {@code null} provider will result
+     * This method can NOT be used to discard the value of a property. Specifying a {@code null} provider will result
      * in an {@code IllegalArgumentException} being thrown. When the provider has no value at finalization time,
      * an {@code IllegalStateException} - regardless of whether or not a convention has been set.
      * </p>

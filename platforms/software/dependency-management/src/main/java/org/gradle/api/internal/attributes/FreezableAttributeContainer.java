@@ -27,7 +27,7 @@ import java.util.Set;
 /**
  * An attribute container which can be frozen in order to avoid subsequent mutations.
  */
-public class FreezableAttributeContainer implements AttributeContainerInternal {
+public final class FreezableAttributeContainer extends AbstractAttributeContainer {
 
     private final Describable owner;
 
@@ -95,14 +95,26 @@ public class FreezableAttributeContainer implements AttributeContainerInternal {
         return delegate.contains(key);
     }
 
-    @Override
-    public AttributeContainer getAttributes() {
-        return this;
-    }
-
     private void assertMutable() {
         if (delegate instanceof ImmutableAttributes) {
             throw new IllegalStateException(String.format("Cannot change attributes of %s after it has been locked for mutation", owner.getDisplayName()));
         }
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        FreezableAttributeContainer that = (FreezableAttributeContainer) o;
+        return owner.equals(that.owner) && delegate.equals(that.delegate);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = owner.hashCode();
+        result = 31 * result + delegate.hashCode();
+        return result;
     }
 }
