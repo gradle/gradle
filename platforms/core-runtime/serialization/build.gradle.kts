@@ -25,6 +25,7 @@ gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(projects.hashing)
+    api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
@@ -37,7 +38,4 @@ dependencies {
     implementation(libs.slf4jApi)
 
     compileOnly(libs.errorProneAnnotations)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

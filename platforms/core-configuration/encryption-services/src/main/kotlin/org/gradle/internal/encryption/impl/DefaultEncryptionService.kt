@@ -25,8 +25,6 @@ import org.gradle.internal.extensions.core.getInternalFlag
 import org.gradle.internal.extensions.core.getInternalString
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.internal.EncryptionAlgorithm
 import org.gradle.util.internal.SupportedEncryptionAlgorithm
 import java.io.File
@@ -36,7 +34,6 @@ import java.security.InvalidKeyException
 import javax.crypto.SecretKey
 
 
-@ServiceScope(Scope.BuildTree::class)
 internal
 class DefaultEncryptionService(
     options: InternalOptions,

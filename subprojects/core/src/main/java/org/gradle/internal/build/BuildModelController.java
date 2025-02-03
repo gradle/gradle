@@ -21,6 +21,8 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
@@ -28,6 +30,7 @@ import javax.annotation.Nullable;
  * Transitions the model of an individual build in the build tree through its lifecycle.
  * See also {@link BuildTreeLifecycleController} and {@link BuildLifecycleController}.
  */
+@ServiceScope(Scope.Build.class)
 public interface BuildModelController {
     /**
      * Ensures the build's settings object has been configured.

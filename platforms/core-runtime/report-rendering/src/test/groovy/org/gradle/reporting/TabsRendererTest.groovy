@@ -42,11 +42,12 @@ class TabsRendererTest extends Specification {
 
         def html = html(writer.toString());
         then:
-        html.select("div#tabs > ul > li > a").find { it.text() == "tab 1" }
-        html.select("div#tabs > ul > li > a").find { it.text() == "tab 2" }
+        html.select("div.tab-container > ul > li > a").find { it.text() == "tab 1" }
+        html.select("div.tab-container > ul > li > a").find { it.text() == "tab 2" }
 
-        html.select("div#tabs > div#tab0 > h2").find { it.text() == "tab 1" }
-        html.select("div#tabs > div#tab1 > h2").find { it.text() == "tab 2" }
+        // There is a <ul> for the tabs above, so this starts from 2 and not 1 for the :nth-child selector
+        html.select("div.tab-container > div:nth-child(2) > h2").find { it.text() == "tab 1" }
+        html.select("div.tab-container > div:nth-child(3) > h2").find { it.text() == "tab 2" }
     }
 
     Document html(String renderedString) {

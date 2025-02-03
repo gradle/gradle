@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.GradleVersion

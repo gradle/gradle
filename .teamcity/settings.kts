@@ -3,7 +3,7 @@ import jetbrains.buildServer.configs.kotlin.project
 import jetbrains.buildServer.configs.kotlin.version
 import projects.GradleBuildToolRootProject
 
-version = "2024.03"
+version = "2024.12"
 
 /*
 

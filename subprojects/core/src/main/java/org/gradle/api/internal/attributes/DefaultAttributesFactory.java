@@ -22,26 +22,24 @@ import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-@ServiceScope(Scope.BuildSession.class)
 public class DefaultAttributesFactory implements AttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, ImmutableList<DefaultImmutableAttributesContainer>> children;
-    private final IsolatableFactory isolatableFactory;
+    private final AttributeValueIsolator attributeValueIsolator;
     private final UsageCompatibilityHandler usageCompatibilityHandler;
-    private final NamedObjectInstantiator instantiator;
 
-    public DefaultAttributesFactory(IsolatableFactory isolatableFactory, NamedObjectInstantiator instantiator) {
-        this.isolatableFactory = isolatableFactory;
-        this.instantiator = instantiator;
+    public DefaultAttributesFactory(
+        AttributeValueIsolator attributeValueIsolator,
+        IsolatableFactory isolatableFactory,
+        NamedObjectInstantiator instantiator
+    ) {
+        this.attributeValueIsolator = attributeValueIsolator;
         this.root = ImmutableAttributes.EMPTY;
         this.children = new ConcurrentHashMap<>();
         this.usageCompatibilityHandler = new UsageCompatibilityHandler(isolatableFactory, instantiator);
@@ -53,12 +51,12 @@ public class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public DefaultMutableAttributeContainer mutable() {
-        return new DefaultMutableAttributeContainer(this);
+        return new DefaultMutableAttributeContainer(this, attributeValueIsolator);
     }
 
     @Override
     public HierarchicalMutableAttributeContainer mutable(AttributeContainerInternal fallback) {
-        return join(fallback, new DefaultMutableAttributeContainer(this));
+        return join(fallback, new DefaultMutableAttributeContainer(this, attributeValueIsolator));
     }
 
     @Override
@@ -73,15 +71,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public <T> ImmutableAttributes concat(ImmutableAttributes node, Attribute<T> key, @Nullable T value) {
-        return concat(node, key, isolate(value));
-    }
-
-    public <T> Isolatable<T> isolate(@Nullable T value) {
-        if (value instanceof String) {
-            return Cast.uncheckedNonnullCast(new CoercingStringValueSnapshot((String) value, instantiator));
-        } else {
-            return isolatableFactory.isolate(value);
-        }
+        return concat(node, key, attributeValueIsolator.isolate(value));
     }
 
     @Override

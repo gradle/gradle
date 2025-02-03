@@ -34,23 +34,19 @@ public class TabsRenderer<T> extends ReportRenderer<T, SimpleHtmlWriter> {
 
     @Override
     public void render(T model, SimpleHtmlWriter htmlWriterWriter) throws IOException {
-        htmlWriterWriter.startElement("div").attribute("id", "tabs");
+        htmlWriterWriter.startElement("div").attribute("class", "tab-container");
             htmlWriterWriter.startElement("ul").attribute("class", "tabLinks");
-                for (int i = 0; i < this.tabs.size(); i++) {
-                    TabDefinition tab = this.tabs.get(i);
-                    String tabId = "tab" + i;
+                for (TabDefinition tab : this.tabs) {
                     htmlWriterWriter.startElement("li");
-                        htmlWriterWriter.startElement("a").attribute("href", "#" + tabId).characters(tab.title).endElement();
+                    htmlWriterWriter.startElement("a").attribute("href", "#").characters(tab.title).endElement();
                     htmlWriterWriter.endElement();
                 }
             htmlWriterWriter.endElement();
 
-            for (int i = 0; i < this.tabs.size(); i++) {
-                TabDefinition tab = this.tabs.get(i);
-                String tabId = "tab" + i;
-                htmlWriterWriter.startElement("div").attribute("id", tabId).attribute("class", "tab");
-                    htmlWriterWriter.startElement("h2").characters(tab.title).endElement();
-                    tab.renderer.render(model, htmlWriterWriter);
+            for (TabDefinition tab : this.tabs) {
+                htmlWriterWriter.startElement("div").attribute("class", "tab");
+                htmlWriterWriter.startElement("h2").characters(tab.title).endElement();
+                tab.renderer.render(model, htmlWriterWriter);
                 htmlWriterWriter.endElement();
             }
         htmlWriterWriter.endElement();

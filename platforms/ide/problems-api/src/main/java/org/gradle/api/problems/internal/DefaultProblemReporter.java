@@ -17,11 +17,15 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -34,6 +38,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final ExceptionAnalyser exceptionAnalyser;
+    private final Instantiator instantiator;
+    private final PayloadSerializer payloadSerializer;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
@@ -41,7 +47,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         CurrentBuildOperationRef currentBuildOperationRef,
         AdditionalDataBuilderFactory additionalDataBuilderFactory,
         ExceptionProblemRegistry exceptionProblemRegistry,
-        ExceptionAnalyser exceptionAnalyser
+        ExceptionAnalyser exceptionAnalyser,
+        Instantiator instantiator,
+        PayloadSerializer payloadSerializer
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -49,57 +57,71 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.exceptionAnalyser = exceptionAnalyser;
+        this.instantiator = instantiator;
+        this.payloadSerializer = payloadSerializer;
     }
 
     @Override
-    public void reporting(Action<ProblemSpec> spec) {
+    public void report(ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        problemBuilder.id(problemId);
         spec.execute(problemBuilder);
         report(problemBuilder.build());
     }
 
     @Nonnull
     private DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory);
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
 
     @Override
-    public RuntimeException throwing(Action<ProblemSpec> spec) {
+    public RuntimeException throwing(Throwable exception, ProblemId problemId, Action<? super ProblemSpec> spec) {
         DefaultProblemBuilder problemBuilder = createProblemBuilder();
+        problemBuilder.id(problemId);
         spec.execute(problemBuilder);
+        problemBuilder.withException(exception);
+        report(problemBuilder.build());
+        throw runtimeException(exception);
+    }
 
-        Problem problem = problemBuilder.build();
-        Throwable exception = problem.getException();
-        if (exception == null) {
-            throw new IllegalStateException("Exception must be non-null");
-        } else {
-            throw throwError(exception, problem);
-        }
+    @Override
+    public RuntimeException throwing(Throwable exception, Problem problem) {
+        problem = addExceptionToProblem(exception, problem);
+        report(problem);
+        throw runtimeException(exception);
     }
 
     @Override
     public RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems) {
         for (Problem problem : problems) {
-            report(problem.toBuilder(additionalDataBuilderFactory).withException(transform(exception)).build());
+            report(addExceptionToProblem(exception, problem));
         }
-        if (exception instanceof RuntimeException) {
-            return (RuntimeException) exception;
-        } else {
-            throw new RuntimeException(exception);
-        }
+        throw runtimeException(exception);
     }
 
-    private RuntimeException throwError(Throwable exception, Problem problem) {
-        report(problem);
+    @Nonnull
+    private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
+        return getBuilder(problem).withException(transform(exception)).build();
+    }
+
+    private static RuntimeException runtimeException(Throwable exception) {
         if (exception instanceof RuntimeException) {
             return (RuntimeException) exception;
         } else {
-            throw new RuntimeException(exception);
+            return new RuntimeException(exception);
         }
     }
 
     @Override
-    public Problem create(Action<InternalProblemSpec> action) {
+    public Problem create(ProblemId problemId, Action<? super ProblemSpec> action) {
+        DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
+        defaultProblemBuilder.id(problemId);
+        action.execute(defaultProblemBuilder);
+        return defaultProblemBuilder.build();
+    }
+
+    @Override
+    public InternalProblem internalCreate(Action<? super InternalProblemSpec> action) {
         DefaultProblemBuilder defaultProblemBuilder = createProblemBuilder();
         action.execute(defaultProblemBuilder);
         return defaultProblemBuilder.build();
@@ -140,12 +162,17 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem, OperationIdentifier id) {
         String taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
-        problem = taskPath == null ? problem : problem.toBuilder(additionalDataBuilderFactory).taskPathLocation(taskPath).build();
-        Throwable exception = problem.getException();
+        InternalProblem internalProblem = taskPath == null ? (InternalProblem) problem : getBuilder(problem).taskPathLocation(taskPath).build();
+        Throwable exception = internalProblem.getException();
         if (exception != null) {
-            exceptionProblemRegistry.onProblem(transform(exception), problem);
+            exceptionProblemRegistry.onProblem(transform(exception), internalProblem);
         }
-        problemSummarizer.emit(problem, id);
+        problemSummarizer.emit(internalProblem, id);
+    }
+
+    @Nonnull
+    private InternalProblemBuilder getBuilder(Problem problem) {
+        return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
 
     private Throwable transform(Throwable failure) {

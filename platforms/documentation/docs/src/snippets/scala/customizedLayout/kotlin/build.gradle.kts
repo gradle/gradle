@@ -1,5 +1,5 @@
 plugins {
-    scala
+    id("scala")
 }
 
 version = "1.0"
@@ -8,8 +8,11 @@ repositories {
     mavenCentral()
 }
 
+scala {
+    scalaVersion = "2.13.12"
+}
+
 dependencies {
-    implementation("org.scala-lang:scala-library:2.13.12")
     testImplementation("junit:junit:4.13")
 }
 

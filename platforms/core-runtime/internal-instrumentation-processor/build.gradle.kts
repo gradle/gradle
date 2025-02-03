@@ -58,6 +58,3 @@ tasks.named<Test>("test").configure {
         )
     }
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

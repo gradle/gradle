@@ -30,7 +30,7 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
     }
 
     void cleanup() {
-        jobExecutors.stop()
+        jobExecutors.shutdown()
     }
 
     def "background job is executed"() {
@@ -44,7 +44,7 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
 
     def "background job is rejected if submitted after shutdown"() {
         given:
-        jobExecutors.stop()
+        jobExecutors.shutdown()
 
         when:
         jobExecutors.userJobExecutor.execute {}

@@ -19,9 +19,11 @@ import com.sun.tools.javac.util.Context;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.compile.processing.AnnotationProcessorDeclaration;
 import org.gradle.api.internal.tasks.compile.reflect.GradleStandardJavaFileManager;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.Factory;
@@ -42,6 +44,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
 
 public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(JdkJavaCompiler.class);
@@ -71,7 +75,8 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         try {
             task = createCompileTask(spec, result);
         } catch (RuntimeException ex) {
-            throw problemsService.getInternalReporter().throwing(builder -> {
+            ProblemId id = ProblemId.create("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
+            throw problemsService.getInternalReporter().throwing(ex, id, builder -> {
                 buildProblemFrom(ex, builder);
             });
         }
@@ -81,7 +86,7 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
             System.err.println(diagnosticCounts);
         }
         if (!success) {
-            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems(), diagnosticCounts);
+            CompilationFailedException exception = new CompilationFailedException(result, diagnosticToProblemListener.getReportedProblems().stream().map(InternalProblem.class::cast).collect(toList()), diagnosticCounts);
             throw problemsService.getInternalReporter().throwing(exception, diagnosticToProblemListener.getReportedProblems());
         } else {
             problemsService.getInternalReporter().report(diagnosticToProblemListener.getReportedProblems());
@@ -134,7 +139,6 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
 
     private static void buildProblemFrom(RuntimeException ex, ProblemSpec spec) {
         spec.severity(Severity.ERROR);
-        spec.id("initialization-failed", "Java compilation initialization error", GradleCoreProblemGroup.compilation().java());
         spec.contextualLabel(ex.getLocalizedMessage());
         spec.withException(ex);
     }

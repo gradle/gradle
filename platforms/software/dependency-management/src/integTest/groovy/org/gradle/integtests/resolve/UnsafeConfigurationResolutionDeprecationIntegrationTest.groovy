@@ -24,7 +24,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
     def "configuration in another project produces deprecation warning when resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
-        createDirs("bar")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar"
@@ -39,21 +38,23 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
                     println otherProjectConfiguration.get().files
                 }
             }
-
-            project(':bar') {
-                repositories {
-                    maven { url = '${mavenRepo.uri}' }
-                }
-
-                configurations {
-                    bar
-                }
-
-                dependencies {
-                    bar "test:test-jar:1.0"
-                }
-            }
         """
+
+        file("bar/build.gradle") << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            configurations {
+                bar
+            }
+
+            dependencies {
+                bar "test:test-jar:1.0"
+            }
+
+        """
+
         executer.withArgument("--parallel")
 
         expect:
@@ -275,31 +276,30 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
     def "deprecation warning when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
-        createDirs("bar", "baz")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar", ":baz"
         """
 
-        buildFile << """
-            project(':baz') {
-                repositories {
-                    maven { url = '${mavenRepo.uri}' }
-                }
-
-                configurations {
-                    baz
-                }
-
-                dependencies {
-                    baz "test:test-jar:1.0"
-                }
+        file("baz/build.gradle") << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
             }
 
-            project(':bar') {
-                println project(':baz').configurations.baz.files
+            configurations {
+                baz
+            }
+
+            dependencies {
+                baz "test:test-jar:1.0"
             }
         """
+
+        file("bar/build.gradle") << """
+            evaluationDependsOn(":baz")
+            println project(':baz').configurations.baz.files
+        """
+
         executer.withArgument("--parallel")
 
         expect:
@@ -310,7 +310,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
     def "no deprecation warning when configuration is resolved while evaluating same project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
-        createDirs("bar")
         settingsFile << """
             rootProject.name = "foo"
             include ":bar"
@@ -331,6 +330,8 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
             println configurations.foo.files
         """
+
+        file("bar/build.gradle") << ""
 
         expect:
         executer.withArgument("--parallel")
@@ -395,6 +396,37 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         expect:
+        executer.withArguments("--parallel", "-I", "init-script.gradle")
+        succeeds(":help")
+    }
+
+    def "deprecation warning when configuration is resolved while evaluating lifecycle.beforeProject block"() {
+        mavenRepo.module("test", "test-jar", "1.0").publish()
+
+        settingsFile << """
+            rootProject.name = "foo"
+        """
+
+        file('init-script.gradle') << """
+            gradle.lifecycle.beforeProject {
+                repositories {
+                    maven { url = '${mavenRepo.uri}' }
+                }
+
+                configurations {
+                    create("foo")
+                }
+
+                dependencies {
+                    foo "test:test-jar:1.0"
+                }
+
+                println configurations.foo.files
+            }
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :foo was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         executer.withArguments("--parallel", "-I", "init-script.gradle")
         succeeds(":help")
     }

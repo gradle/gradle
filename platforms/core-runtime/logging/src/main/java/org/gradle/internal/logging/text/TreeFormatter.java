@@ -184,6 +184,10 @@ public class TreeFormatter implements DiagnosticsVisitor {
             }
         }
         append(")");
+        if (!method.getReturnType().equals(Void.TYPE)) {
+            append(": ");
+            appendType(method.getGenericReturnType());
+        }
 
         return this;
     }

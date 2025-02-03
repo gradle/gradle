@@ -24,7 +24,7 @@ import org.gradle.util.internal.DefaultGradleVersion
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
-    private static final String RUN_WITH_STACKTRACE = '(Run with --stacktrace to get the full stack trace of this deprecation warning.)'
+    private static final String RUN_WITH_STACKTRACE = "(Run with -D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=true to print the full stack trace for this deprecation warning.)"
 
     def setup() {
         file('buildSrc/src/main/java/DeprecatedTask.java') << """
@@ -180,7 +180,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
         output.count('\tat') == 1
-        output.count('(Run with --stacktrace to get the full stack trace of this deprecation warning.)') == 1
+        output.count(RUN_WITH_STACKTRACE) == 1
     }
 
     def 'DeprecatedPlugin from applied script - #scenario'() {
@@ -287,6 +287,75 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             outputContains("Build file '${file("buildSrc/build.gradle")}': line 5")
             outputContains("Build file '${buildFile}': line 5")
         }
+    }
+
+    def "prints correct deprecation trace property value to use to display stack traces for deprecation warnings"() {
+        disableProblemsApiCheck()
+
+        given:
+        buildFile << """
+            def myConf = project.configurations.resolvable("myConf")
+            def myDetached = project.configurations.detachedConfiguration()
+            myDetached.extendsFrom(myConf.get())
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'myConf'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
+        succeeds "tasks"
+
+        and: "stack trace suggestion is printed"
+        outputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
+
+        and: "we can verify the stack trace is not printed"
+        String notExpected = """run(${buildFile.absolutePath}:4)
+\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
+        result.assertNotOutput(notExpected)
+    }
+
+    def "does not print stack traces for deprecation warnings if --stacktrace is set"() {
+        disableProblemsApiCheck()
+
+        given:
+        buildFile << """
+            def myConf = project.configurations.resolvable("myConf")
+            def myDetached = project.configurations.detachedConfiguration()
+            myDetached.extendsFrom(myConf.get())
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'myConf'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
+        succeeds "tasks", "--stacktrace"
+
+        and: "stack trace suggestion is printed"
+        outputContains("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
+
+        and: "we can verify the stack trace is not printed"
+        String notExpected = """run($buildFile.absolutePath}:4)
+\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
+        result.assertNotOutput(notExpected)
+    }
+
+    def "prints stack traces for deprecation warnings if deprecation trace property value is set"() {
+        disableProblemsApiCheck()
+
+        given:
+        buildFile << """
+            def myConf = project.configurations.resolvable("myConf")
+            def myDetached = project.configurations.detachedConfiguration()
+            myDetached.extendsFrom(myConf.get())
+        """
+
+        expect:
+        executer.expectDocumentedDeprecationWarning("Calling extendsFrom on configuration ':detachedConfiguration1' has been deprecated. This will fail with an error in Gradle 9.0. Detached configurations should not extend other configurations, this was extending: 'myConf'. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#detached_configurations_cannot_extend")
+        succeeds "tasks", "-Dorg.gradle.deprecation.trace=true"
+
+        and: "stack trace suggestion is not printed"
+        result.assertNotOutput("\t(Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.)")
+
+        and: "we can verify the part of the stack trace that should be unchanged is printed"
+        String expected = """run(${buildFile.absolutePath}:4)
+\tat org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory\$ScriptRunnerImpl.run(DefaultScriptRunnerFactory.java"""
+        outputContains(expected)
     }
 
     String deprecatedMethodUsage() {

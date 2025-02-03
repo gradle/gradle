@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps;
 
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.Problem;
 
 import java.util.List;
 

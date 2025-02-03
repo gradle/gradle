@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.assignment.plugin.CliAssignPluginResolutionAltererEx
 import org.jetbrains.kotlin.cli.common.CompilerSystemProperties.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -67,6 +68,8 @@ import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.resolve.extensions.AssignResolutionAltererExtension
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
+import org.jetbrains.kotlin.scripting.compiler.plugin.impl.ScriptJvmCompilerFromEnvironment
+import org.jetbrains.kotlin.scripting.compiler.plugin.toCompilerMessageSeverity
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
@@ -76,20 +79,30 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 import kotlin.reflect.KClass
+import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.ScriptDiagnostic
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
 import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.api.isError
+import kotlin.script.experimental.api.with
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.configurationDependencies
 import kotlin.script.experimental.host.getScriptingClass
+import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.JvmGetScriptingClass
+import kotlin.script.experimental.jvm.updateClasspath
+import kotlin.script.experimental.jvmhost.BasicJvmScriptClassFilesGenerator
+import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
+import kotlin.script.experimental.jvmhost.JvmScriptCompiler
 
 
 @Suppress("LongParameterList")
-fun compileKotlinScriptModuleTo(
+fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     outputDirectory: File,
     compilerOptions: KotlinCompilerOptions,
     moduleName: String,
@@ -98,7 +111,7 @@ fun compileKotlinScriptModuleTo(
     classPath: Iterable<File>,
     logger: Logger,
     pathTranslation: (String) -> String
-) = compileKotlinScriptModuleTo(
+) = compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
     outputDirectory,
     compilerOptions,
     moduleName,
@@ -107,6 +120,43 @@ fun compileKotlinScriptModuleTo(
     classPath,
     LoggingMessageCollector(logger, onCompilerWarningsFor(compilerOptions.allWarningsAsErrors), pathTranslation)
 )
+
+
+/**
+ * Still uses internal K1 API until the consuming task is replaced with a regular KotlinCompile.
+ */
+private
+fun compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
+    outputDirectory: File,
+    compilerOptions: KotlinCompilerOptions,
+    moduleName: String,
+    scriptFiles: Collection<String>,
+    scriptDef: ScriptDefinition,
+    classPath: Iterable<File>,
+    messageCollector: LoggingMessageCollector
+) {
+    withRootDisposable {
+        withCompilationExceptionHandler(messageCollector) {
+            val configuration = compilerConfigurationFor(messageCollector, compilerOptions).apply {
+                put(RETAIN_OUTPUT_IN_MEMORY, false)
+                put(OUTPUT_DIRECTORY, outputDirectory)
+                setModuleName(moduleName)
+                addScriptingCompilerComponents()
+                addScriptDefinition(scriptDef)
+                scriptFiles.forEach { addKotlinSourceRoot(it) }
+                classPath.forEach { addJvmClasspathRoot(it) }
+            }
+
+            val environment = kotlinCoreEnvironmentFor(configuration).apply {
+                HasImplicitReceiverCompilerPlugin.apply(project)
+                KotlinAssignmentCompilerPlugin.apply(project)
+            }
+
+            compileBunchOfSources(environment)
+                || throw ScriptCompilationException(messageCollector.errors)
+        }
+    }
+}
 
 
 fun scriptDefinitionFromTemplate(
@@ -176,9 +226,6 @@ fun compileKotlinScriptModuleTo(
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
                 addScriptingCompilerComponents()
-                addScriptDefinition(scriptDef)
-                scriptFiles.forEach { addKotlinSourceRoot(it) }
-                classPath.forEach { addJvmClasspathRoot(it) }
             }
 
             val environment = kotlinCoreEnvironmentFor(configuration).apply {
@@ -186,12 +233,50 @@ fun compileKotlinScriptModuleTo(
                 KotlinAssignmentCompilerPlugin.apply(project)
             }
 
-            compileBunchOfSources(environment)
-                || throw ScriptCompilationException(messageCollector.errors)
+            val host = BasicJvmScriptingHost(
+                compiler = JvmScriptCompiler(scriptDef.hostConfiguration, ScriptJvmCompilerFromEnvironment(environment)),
+                evaluator = BasicJvmScriptClassFilesGenerator(outputDirectory)
+            )
+            val compilationConfiguration = scriptDef.compilationConfiguration.with {
+                updateClasspath(classPath.toList())
+            }
+            scriptFiles.forEach {
+                val script = File(it).toScriptSource()
+                host.eval(script, compilationConfiguration, scriptDef.evaluationConfiguration)
+                    .reportToMessageCollectorAndThrowOnErrors(script, messageCollector)
+            }
         }
     }
 }
 
+
+private fun ResultWithDiagnostics<*>.reportToMessageCollectorAndThrowOnErrors(script: SourceCode, messageCollector: MessageCollector): ResultWithDiagnostics<*> = also {
+    val lines = if (it.reports.isEmpty()) null else script.text.lines()
+    val scriptErrors = ArrayList<ScriptCompilationError>()
+    for (report in it.reports) {
+        val location = report.location
+        val sourcePath = report.sourcePath
+        val compilerMessageLocation = if (location != null && sourcePath != null) {
+            CompilerMessageLocation.create(
+                sourcePath,
+                location.start.line, location.start.col,
+                lines?.getOrNull(location.start.line - 1)
+            )
+        } else null
+
+        if (report.isError() || report.severity == ScriptDiagnostic.Severity.WARNING) {
+            scriptErrors.add(ScriptCompilationError(report.message, compilerMessageLocation))
+        }
+        messageCollector.report(
+            report.severity.toCompilerMessageSeverity(),
+            report.render(withSeverity = false, withLocation = location == null || sourcePath == null),
+            compilerMessageLocation
+        )
+    }
+    if (it is ResultWithDiagnostics.Failure || (messageCollector.hasErrors() && scriptErrors.isNotEmpty())) {
+        throw ScriptCompilationException(scriptErrors)
+    }
+}
 
 private
 object KotlinAssignmentCompilerPlugin {

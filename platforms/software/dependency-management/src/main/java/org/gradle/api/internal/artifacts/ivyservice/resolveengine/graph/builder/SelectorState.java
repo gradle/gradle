@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -192,7 +193,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             if (dependencyState.failure != null) {
                 idResolveResult.failed(dependencyState.failure);
             } else {
-                resolver.resolve(dependencyState.getDependency(), selector, rejector, idResolveResult);
+                IvyArtifactName firstArtifact = getFirstDependencyArtifact();
+                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact, clientModule);
+                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult);
             }
 
             if (idResolveResult.getFailure() != null) {
@@ -332,7 +335,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     @Override
     public IvyArtifactName getFirstDependencyArtifact() {
         List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
-        return artifacts == null || artifacts.isEmpty() ? null : artifacts.get(0);
+        return artifacts.isEmpty() ? null : artifacts.get(0);
     }
 
     @Override

@@ -118,7 +118,7 @@ public class DefaultCacheAwareExternalResourceAccessor implements CacheAwareExte
             // Either no cached, or it's changed. See if we can find something local with the same checksum
             boolean hasLocalCandidates = additionalCandidates != null && !additionalCandidates.isNone();
             if (hasLocalCandidates) {
-                // The “remote” may have already given us the checksum
+                // The "remote" may have already given us the checksum
                 HashCode remoteChecksum = remoteMetaData.getSha1();
 
                 if (remoteChecksum == null) {

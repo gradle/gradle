@@ -229,7 +229,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasCause("Could not create an instance of type Thing.")
         failure.assertHasCause("Could not generate a decorated class for type Thing.")
-        failure.assertHasCause("Cannot have abstract method Thing.getProp().")
+        failure.assertHasCause("Cannot have abstract method Thing.getProp(): String.")
     }
 
     def "services are injected into instances using constructor or getter"() {

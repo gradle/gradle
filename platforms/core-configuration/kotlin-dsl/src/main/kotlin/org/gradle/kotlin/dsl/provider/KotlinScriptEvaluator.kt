@@ -55,6 +55,8 @@ import org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation.Outp
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.internal.scripts.ScriptExecutionListener
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.execution.CompiledScript
@@ -75,6 +77,7 @@ import java.io.File
 import java.util.Optional
 
 
+@ServiceScope(Scope.Build::class)
 interface KotlinScriptEvaluator {
 
     fun evaluate(
@@ -158,7 +161,7 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        when(propertyUpgradeReportConfig.isEnabled) {
+        when (propertyUpgradeReportConfig.isEnabled) {
             true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
             false -> Interpreter(InterpreterHost(gradlePropertiesController))
         }

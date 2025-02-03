@@ -32,5 +32,5 @@ public interface ProblemSummarizer extends ProblemReporter {
      *
      * @param problem The problem to emit.
      */
-    void emit(Problem problem, @Nullable OperationIdentifier id);
+    void emit(InternalProblem problem, @Nullable OperationIdentifier id);
 }

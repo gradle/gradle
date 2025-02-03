@@ -34,8 +34,7 @@ The Gradle Daemon reduces build times by:
 == Understanding the Daemon
 
 The Gradle JVM client sends the Daemon build information such as command line arguments, project directories, and environment variables so that it can run the build.
-[[understanding_wrapper]]
-The Wrapper is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
+The Daemon is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
 Communication between the client and the Daemon happens via a local socket connection.
 
 Daemons use the JVM's default minimum heap size.
@@ -251,7 +250,7 @@ This will be added in a future release.
 [[sec:tools_and_ides]]
 == Tools & IDEs
 
-The <<third_party_integration.adoc#embedding,Gradle Tooling API>> used by IDEs and other tools to integrate with Gradle _always_ uses the Gradle Daemon to execute builds.
+The <<tooling_api.adoc#embedding,Gradle Tooling API>> used by IDEs and other tools to integrate with Gradle _always_ uses the Gradle Daemon to execute builds.
 If you execute Gradle builds from within your IDE, you already use the Gradle Daemon.
 There is no need to enable it for your environment.
 

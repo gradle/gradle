@@ -83,7 +83,7 @@ public class SampleIde {
             System.out.println(" - details: " + problem.getDetails().getDetails());
         }
         System.out.println(" - severity: " + toString(problem.getDefinition().getSeverity()));
-        for (Location location : problem.getLocations()) {
+        for (Location location : problem.getOriginLocations()) {
             if (location instanceof PluginIdLocation) {
                 System.out.println(" - plugin ID: " + ((PluginIdLocation) location).getPluginId());
             } else {

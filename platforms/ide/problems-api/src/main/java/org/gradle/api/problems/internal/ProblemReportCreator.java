@@ -23,7 +23,7 @@ public interface ProblemReportCreator {
     /**
      * Stores a new problem in a temporary file that will be added to the final report when #createProblem is called.
      */
-    void addProblem(Problem problem);
+    void addProblem(InternalProblem problem);
 
     /**
      * Renders a new problem report in the target directory. The report will contain the summaries of the omitted problem reports. The report file is only created if there's at least one problem reported.

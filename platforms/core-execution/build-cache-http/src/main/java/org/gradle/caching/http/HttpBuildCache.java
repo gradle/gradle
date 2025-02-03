@@ -66,7 +66,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
      * Returns the URI to the cache.
      */
     @Nullable
-    @Nested
+    @ToBeReplacedByLazyProperty
     public URI getUrl() {
         return url;
     }

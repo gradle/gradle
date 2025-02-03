@@ -10,11 +10,12 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(libs.jsr305)
     api(projects.stdlibJavaExtensions)
+    api(projects.time)
 
     implementation(libs.slf4jApi)
 
     testFixturesImplementation(libs.guava)
+
+    testImplementation(testFixtures(projects.time))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}
+

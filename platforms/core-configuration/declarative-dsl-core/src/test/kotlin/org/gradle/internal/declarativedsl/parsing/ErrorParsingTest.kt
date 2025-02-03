@@ -1193,4 +1193,33 @@ class ErrorParsingTest {
             )""".trimIndent()
         results.assert(removeCommentAndEmptyLines(expected))
     }
+
+    @Test
+    fun `function call on left side of assignment`() {
+        val code = """
+            a(1) = 8
+            e.f.g(1) = 8
+
+            """.trimIndent()
+
+        val results = ParseTestUtil.parse(code)
+
+        val expected = """
+            ErroneousStatement (
+                ParsingError(
+                    message = Parsing failure, unexpected tokenType in property access statement: CALL_EXPRESSION,
+                    potentialElementSource = indexes: 0..4, line/column: 1/1..1/5, file: test,
+                    erroneousSource = indexes: 0..4, line/column: 1/1..1/5, file: test
+                )
+            )
+            ErroneousStatement (
+                UnsupportedConstruct(
+                    languageFeature = UnsupportedAssignmentLeftHandSide,
+                    potentialElementSource = indexes: 9..21, line/column: 2/1..2/13, file: test,
+                    erroneousSource = indexes: 9..21, line/column: 2/1..2/13, file: test
+                )
+            )
+        """.trimIndent()
+        results.assert(removeCommentAndEmptyLines(expected))
+    }
 }

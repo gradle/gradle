@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.Global.class)
+@ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface PropertyFactory {
     <T> DefaultProperty<T> property(Class<T> type);
 

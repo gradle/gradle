@@ -499,15 +499,10 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         fetchModelFails(IdeaProject)
 
         then:
-        fixture.assertModelStoredAndDiscarded {
-            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
-            // TODO:isolated there should be no violation
-            problem("Plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin': Project ':lib1' cannot access 'Project.tasks' functionality on another project ':'")
-        }
-
+        failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        // TODO:isolated assert model stored successfully
         // TODO:isolated check the model matches the vintage model
-//        checkIdeaProject(ideaModel, originalIdeaModel)
+        // checkIdeaProject(ideaModel, originalIdeaModel)
     }
 
     private static void checkIdeaProject(IdeaProject actual, IdeaProject expected) {

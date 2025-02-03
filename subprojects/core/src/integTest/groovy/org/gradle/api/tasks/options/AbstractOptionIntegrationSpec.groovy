@@ -26,20 +26,20 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.options.Option;
 
             import java.util.List;
-            
+
             public class SampleTask extends DefaultTask {
                 private $optionType myProp;
-                
+
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
                 public void setMyProp($optionType myProp) {
                     this.myProp = myProp;
                 }
-                
+
                 @TaskAction
                 public void renderOptionValue() {
                     System.out.println("Value of myProp: " + myProp);
                 }
-                
+
                 private static enum TestEnum {
                     OPT_1, OPT_2, OPT_3
                 }
@@ -54,15 +54,15 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
             import org.gradle.api.tasks.options.Option;
 
             import java.util.List;
-            
+
             public class SampleTask extends DefaultTask {
                 private boolean myProp;
-                
+
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
                 public void active() {
                     this.myProp = true;
                 }
-                
+
                 @TaskAction
                 public void renderOptionValue() {
                     System.out.println("Value of myProp: " + myProp);
@@ -74,15 +74,23 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
     String groovyTaskWithSingleOption(String optionType) {
         """
             public class SampleTask extends DefaultTask {
+                private $optionType myProp
+
                 @Internal
+                public $optionType getMyProp() {
+                    return myProp
+                }
+
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
-                $optionType myProp
+                public void setMyProp($optionType myProp) {
+                    this.myProp = myProp
+                }
 
                 @TaskAction
                 public void renderOptionValue() {
                     println("Value of myProp: " + myProp)
                 }
-                
+
                 private static enum TestEnum {
                     OPT_1, OPT_2, OPT_3
                 }
@@ -196,22 +204,22 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
                 private String prop1;
                 private Boolean prop2;
                 private String prop3;
-                
+
                 @Option(option = "prop1", description = "Configures command line option 'prop1'.")
                 public void setProp1(String prop1) {
                     this.prop1 = prop1;
                 }
-                
+
                 @Option(option = "prop2", description = "Configures command line option 'prop2'.")
                 public void setProp2(Boolean prop2) {
                     this.prop2 = prop2;
                 }
-                
+
                 @Option(option = "prop3", description = "Configures command line option 'prop3'.")
                 public void setProp3(String prop3) {
                     this.prop3 = prop3;
                 }
-                
+
                 @TaskAction
                 public void renderOptionValue() {
                     System.out.println("Value of prop1: " + prop1);

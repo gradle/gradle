@@ -34,6 +34,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +54,7 @@ import java.util.logging.Logger;
  * For example, can be used to that certain tasks do or do not execute in parallel.
  */
 public class BlockingHttpServer extends ExternalResource implements ResettableExpectations {
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
     private final Lock lock = new ReentrantLock();
@@ -86,6 +89,10 @@ public class BlockingHttpServer extends ExternalResource implements ResettableEx
         this.context = server.createContext("/", handler);
         this.timeout = Duration.ofMillis(timeoutMs);
         this.scheme = scheme;
+    }
+
+    static String getCurrentTimestamp() {
+        return LocalDateTime.now().format(TIMESTAMP_FORMATTER);
     }
 
     /**

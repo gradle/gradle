@@ -42,6 +42,7 @@ import org.gradle.internal.encryption.EncryptionService
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
+import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.PositionAwareEncoder
@@ -83,8 +84,6 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedDecoder
 import org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.util.Path
 import java.io.Closeable
 import java.io.File
@@ -92,7 +91,6 @@ import java.io.InputStream
 import java.io.OutputStream
 
 
-@ServiceScope(Scope.Build::class)
 internal
 class DefaultConfigurationCacheIO internal constructor(
     private val startParameter: ConfigurationCacheStartParameter,
@@ -112,6 +110,9 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     val encryptionService by lazy { service<EncryptionService>() }
 
+    private
+    val buildInvocationScopeId by lazy { service<BuildInvocationScopeId>() }
+
     override fun writeCacheEntryDetailsTo(
         buildStateRegistry: BuildStateRegistry,
         intermediateModels: Map<ModelKey, BlockAddress>,
@@ -121,6 +122,7 @@ class DefaultConfigurationCacheIO internal constructor(
     ) {
         val rootDirs = collectRootDirs(buildStateRegistry)
         withWriteContextFor(stateFile, { "entry details" }) {
+            write(buildInvocationScopeId.id.asString())
             writeCollection(rootDirs) { writeFile(it) }
             val addressSerializer = BlockAddressSerializer()
             writeCollection(intermediateModels.entries) { entry ->
@@ -142,6 +144,7 @@ class DefaultConfigurationCacheIO internal constructor(
             return null
         }
         return withReadContextFor(stateFile) {
+            val buildInvocationScopeId = readNonNull<String>()
             val rootDirs = readList { readFile() }
             val addressSerializer = BlockAddressSerializer()
             val intermediateModels = mutableMapOf<ModelKey, BlockAddress>()
@@ -159,7 +162,7 @@ class DefaultConfigurationCacheIO internal constructor(
             val sideEffects = readList {
                 addressSerializer.read(this)
             }
-            EntryDetails(rootDirs, intermediateModels, metadata, sideEffects)
+            EntryDetails(buildInvocationScopeId, rootDirs, intermediateModels, metadata, sideEffects)
         }
     }
 
@@ -640,7 +643,6 @@ class DefaultConfigurationCacheIO internal constructor(
             propertyFactory = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
-            objectFactory = service(),
             instantiator = service(),
             fileSystemOperations = service(),
             taskNodeFactory = service(),

@@ -17,10 +17,13 @@
 package org.gradle.caching.internal.packaging.impl;
 
 import org.gradle.internal.file.TreeType;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 import java.io.IOException;
 
+@ServiceScope(Scope.Build.class)
 public interface TarPackerFileSystemSupport {
     /**
      * Make sure the parent directory exists while the given file itself doesn't exist.

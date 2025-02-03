@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildOption)
+    implementation(projects.coreKotlinExtensions)
     implementation(projects.declarativeDslEvaluator)
     implementation(projects.declarativeDslInternalUtils)
     implementation(projects.declarativeDslProvider)
@@ -66,6 +67,9 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.futureKotlin("scripting-jvm")) {
+        isTransitive = false
+    }
+    implementation(libs.futureKotlin("scripting-jvm-host")) {
         isTransitive = false
     }
     implementation(libs.futureKotlin("scripting-compiler-embeddable")) {

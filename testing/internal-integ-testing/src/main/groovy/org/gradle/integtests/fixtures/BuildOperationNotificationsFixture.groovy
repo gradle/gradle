@@ -34,7 +34,7 @@ import java.lang.reflect.InvocationTargetException
  * that allows a listener to observe all of the notifications from the very start of the build.
  *
  * This fixture reflectively exercises the details/results objects of the notifications,
- * ensuring that they are “usable”.
+ * ensuring that they are "usable".
  */
 class BuildOperationNotificationsFixture {
 

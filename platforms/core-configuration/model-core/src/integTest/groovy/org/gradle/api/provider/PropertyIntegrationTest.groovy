@@ -380,6 +380,32 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    def "can set Long property value using an Integer"() {
+        given:
+        buildFile << """
+            interface SomeExtension {
+                Property<Long> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = 1
+            assert custom.prop.get() == 1L
+
+            custom.prop = providers.provider { 2 }
+            assert custom.prop.get() == 2L
+
+            custom.prop = null
+            custom.prop.convention(3)
+            assert custom.prop.get() == 3L
+
+            custom.prop.convention(providers.provider { 4 })
+            assert custom.prop.get() == 4L
+        """
+
+        expect:
+        succeeds()
+    }
+
     @Requires(
         value = IntegTestPreconditions.NotConfigCached,
         reason = "Config cache does not support extensions during execution, leading to 'Could not get unknown property 'custom' for task ':wrongValueTypeDsl' of type org.gradle.api.DefaultTask."

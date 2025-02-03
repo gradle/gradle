@@ -79,6 +79,7 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
     }
 
     @Override
+    @Nullable
     public Location locationForUsage(Failure failure, boolean fromException) {
         List<StackTraceElement> stack = failure.getStackTrace();
         int startPos;
@@ -92,8 +93,8 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             startPos = 0;
             endPos = stack.size();
         } else {
-            // When analysing a problem stack trace, consider only the deepest user code in the stack.
-            startPos = failure.indexOfStackFrame(0, StackFramePredicate.USER_CODE);
+            // When analysing a problem stack trace, consider only the deepest user code with a location in the stack.
+            startPos = getStartPosWithLocation(failure);
             if (startPos == -1) {
                 // No user code in the stack
                 return null;
@@ -111,6 +112,15 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
         } finally {
             lock.unlock();
         }
+    }
+
+    private static int getStartPosWithLocation(Failure failure) {
+        int startPos = -1;
+        List<StackTraceElement> stackTrace = failure.getStackTrace();
+        do {
+            startPos = failure.indexOfStackFrame(startPos + 1, StackFramePredicate.USER_CODE);
+        } while (startPos >= 0 && stackTrace.get(startPos).getLineNumber() < 0);
+        return startPos;
     }
 
     @Nullable

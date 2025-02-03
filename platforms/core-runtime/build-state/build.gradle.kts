@@ -21,23 +21,22 @@ plugins {
 description = "Types for build process and session state management"
 
 dependencies {
+    api(projects.baseServices)
+    api(projects.core)
+    api(projects.daemonProtocol)
     api(projects.instrumentationAgentServices)
+    api(projects.logging)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.serviceRegistryBuilder)
-    api(projects.core)
-    api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
-    api(projects.daemonProtocol)
-    api(projects.logging)
 
     implementation(projects.buildOperationsTrace)
-    implementation(projects.coreApi)
-    implementation(projects.messaging)
     implementation(projects.concurrent)
+    implementation(projects.coreApi)
     implementation(projects.loggingApi)
+    implementation(projects.messaging)
     implementation(projects.problemsApi)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
+    implementation(projects.serialization)
+
 }

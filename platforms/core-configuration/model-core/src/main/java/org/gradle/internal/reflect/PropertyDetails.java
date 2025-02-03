@@ -33,11 +33,11 @@ public interface PropertyDetails {
      *
      * As an equivalent getter can be declared multiple times (e.g in a super class, overridden by the target type).
      * The actual method instance used is significant.
-     * The method instance is for the “nearest” declaration, where classes take precedence over interfaces.
+     * The method instance is for the "nearest" declaration, where classes take precedence over interfaces.
      * Interface precedence is breadth-first, declaration.
      *
      * The order of the methods follows the same precedence.
-     * That is, the “nearer” declarations are earlier in the list.
+     * That is, the "nearer" declarations are earlier in the list.
      */
     Collection<Method> getGetters();
 

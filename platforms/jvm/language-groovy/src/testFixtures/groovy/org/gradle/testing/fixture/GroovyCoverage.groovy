@@ -32,6 +32,7 @@ class GroovyCoverage {
     static final Set<String> SUPPORTS_PARAMETERS
     static final Set<String> SUPPORTS_DISABLING_AST_TRANSFORMATIONS
     static final Set<String> SINCE_3_0
+    static final Set<String> SINCE_4_0
 
     /**
      * The lowest working Groovy 3 version for the current JDK.
@@ -52,6 +53,7 @@ class GroovyCoverage {
         SUPPORTS_PARAMETERS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.5.0")
         SUPPORTS_DISABLING_AST_TRANSFORMATIONS = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "2.0.0")
         SINCE_3_0 = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "3.0.0")
+        SINCE_4_0 = VersionCoverage.versionsAtLeast(SUPPORTED_BY_JDK, "4.0.0")
         CURRENT_STABLE = isCurrentGroovyVersionStable()
             ? GroovySystem.version
             : VersionCoverage.versionsAtMost(SUPPORTED_BY_JDK, GroovySystem.version).last()

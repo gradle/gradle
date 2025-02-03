@@ -18,10 +18,9 @@ package org.gradle.internal.reflect.validation;
 
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 
@@ -32,30 +31,28 @@ import java.util.Optional;
 
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
-    private AdditionalDataBuilderFactory additionalDataBuilderFactory;
 
-    public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder, AdditionalDataBuilderFactory additionalDataBuilderFactory) {
+    public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
         super(problemBuilder);
-        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
     }
 
     @Override
     public TypeAwareProblemBuilder withAnnotationType(@Nullable Class<?> classWithAnnotationAttached) {
         if (classWithAnnotationAttached != null) {
-            additionalData(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
+            this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.typeName(classWithAnnotationAttached.getName().replaceAll("\\$", ".")));
         }
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder forProperty(String propertyName) {
-        additionalData(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.propertyName(propertyName));
         return this;
     }
 
     @Override
     public TypeAwareProblemBuilder forFunction(String methodName) {
-        additionalData(TypeValidationDataSpec.class, data -> data.functionName(methodName));
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.functionName(methodName));
         return this;
     }
 
@@ -65,18 +62,18 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
             return this;
         }
         String pp = getParentProperty(parentProperty);
-        additionalData(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
+        this.additionalDataInternal(TypeValidationDataSpec.class, data -> data.parentPropertyName(pp));
         parentPropertyAdditionalData = pp;
         return this;
     }
 
     @Override
-    public Problem build() {
-        Problem problem = super.build();
+    public InternalProblem build() {
+        InternalProblem problem = super.build();
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(additionalDataBuilderFactory).contextualLabel(prefix + text).build();
+        return problem.toBuilder(getAdditionalDataBuilderFactory(), getInstantiator(), getPayloadSerializer()).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {

@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationIdFactory
 import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.time.Time
 import spock.lang.Specification
@@ -35,8 +36,12 @@ class TestListenerBuildOperationAdapterTest extends Specification {
     public static final int TEST_COMPLETE_TIMESTAMP = 500
 
     BuildOperationListener listener = Mock()
+    BuildOperationListenerManager listenerManager = Mock(BuildOperationListenerManager) {
+        getBroadcaster() >> listener
+    }
+
     BuildOperationIdFactory buildOperationIdFactory = Mock()
-    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(Time.clock(), listener, buildOperationIdFactory)
+    TestListenerBuildOperationAdapter adapter = new TestListenerBuildOperationAdapter(Time.clock(), listenerManager, buildOperationIdFactory)
     TestDescriptorInternal parentTestDescriptorInternal = Mock()
     TestDescriptorInternal testDescriptorInternal = Mock()
     TestStartEvent testStartEvent = Mock()

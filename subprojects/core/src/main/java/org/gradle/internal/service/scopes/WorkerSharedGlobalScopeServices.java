@@ -129,7 +129,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return DefaultTaskDependencyFactory.withNoAssociatedProject();
     }
 
-    @Provides
+    @Provides({FilePropertyFactory.class, FileFactory.class})
     DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
     }
@@ -208,7 +208,7 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         BuildOperationListener listener = buildOperationListenerManager.getBroadcaster();
         return new DefaultBuildOperationRunner(
             currentBuildOperationRef,
-            clock::getCurrentTime,
+            clock,
             buildOperationIdFactory,
             () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock)
         );

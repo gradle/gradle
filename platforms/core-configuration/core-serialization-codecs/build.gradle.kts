@@ -64,6 +64,3 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.guava)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

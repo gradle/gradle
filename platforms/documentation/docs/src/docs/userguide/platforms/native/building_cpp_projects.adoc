@@ -160,8 +160,14 @@ GCC and Clang installed using Macports and Homebrew have been reported to work f
 
 To build on Windows, install a compatible version of Visual Studio.
 The {cpp} plugins will discover the Visual Studio installations and select the latest version.
-There is no need to mess around with environment variables or batch scripts.
-This works fine from a Cygwin shell or the Windows command-line.
+If automatic discovery does not work, you can configure Visual Studio using the `toolChains` block.
+
+.Manually configuring Visual Studio
+====
+include::sample[dir="snippets/cpp/basic/kotlin",files="build.gradle.kts[tags=cpp-toolchain]"]
+include::sample[dir="snippets/cpp/basic/groovy",files="build.gradle[tags=cpp-toolchain]"]
+====
+
 
 Alternatively, you can install Cygwin or MinGW with GCC.
 Clang is currently not supported.

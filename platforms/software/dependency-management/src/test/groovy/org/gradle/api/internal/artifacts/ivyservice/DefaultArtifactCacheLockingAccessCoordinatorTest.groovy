@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.CacheConfigurationsInternal
 import org.gradle.api.internal.cache.CacheResourceConfigurationInternal
 import org.gradle.cache.internal.DefaultCacheCleanupStrategyFactory
 import org.gradle.cache.internal.DefaultUnscopedCacheBuilderFactory
-import org.gradle.cache.internal.UsedGradleVersions
+import org.gradle.internal.versionedcache.UsedGradleVersions
 import org.gradle.internal.file.nio.ModificationTimeFileAccessTimeJournal
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.time.TimestampSuppliers

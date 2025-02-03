@@ -17,26 +17,79 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.tasks.testing.results.HtmlTestReportGenerator;
+import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
+import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.internal.TextUtil;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Instant;
 
 @NonNullApi
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
+
+    private final Path testReportDirectory;
+    private final Path binaryResultsDir;
+    private final SerializableTestResultStore.Writer testResultWriter;
+    private final HtmlTestReportGenerator htmlTestReportGenerator;
+    private final TestExecutionResultsListener executionResultsListener;
+
+    // Mutable state
     private String failureMessage;
 
-    DefaultRootTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor) {
-        super(listener, idGenerator, testDescriptor, new TestResultState(null));
+    DefaultRootTestEventReporter(
+        String rootName,
+        TestListenerInternal listener,
+        IdGenerator<?> idGenerator,
+        Path testReportDirectory,
+        Path binaryResultsDir,
+        SerializableTestResultStore.Writer testResultWriter,
+        HtmlTestReportGenerator htmlTestReportGenerator,
+        TestExecutionResultsListener executionResultsListener
+    ) {
+        super(
+            listener,
+            idGenerator,
+            new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName),
+            new TestResultState(null)
+        );
+
+        this.testReportDirectory = testReportDirectory;
+        this.binaryResultsDir = binaryResultsDir;
+        this.testResultWriter = testResultWriter;
+        this.htmlTestReportGenerator = htmlTestReportGenerator;
+        this.executionResultsListener = executionResultsListener;
     }
 
     @Override
     public void close() {
         super.close();
-        if (failureMessage != null) {
-            throw new VerificationException(failureMessage);
+
+        // Ensure binary results are written to disk.
+        try {
+            testResultWriter.close();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        boolean rootTestFailed = failureMessage != null;
+
+        // Notify aggregate listener of final results
+        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, rootTestFailed);
+
+        // Generate HTML report
+        Path reportIndexFile = htmlTestReportGenerator.generateHtmlReport(testReportDirectory, binaryResultsDir);
+
+        // Throw an exception with rendered test results, if necessary
+        if (rootTestFailed) {
+            String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
+            throw new VerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
         }
     }
 

@@ -17,16 +17,13 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
-import org.gradle.api.problems.internal.DefaultProblemBuilder;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.api.problems.internal.Problem;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.gradle.internal.reflect.validation.DefaultTypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
-import org.gradle.problems.buildtree.ProblemStream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,16 +60,15 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
         problemBuilder.withAnnotationType(rootType);
         pluginId()
             .map(PluginId::getId)
-            .ifPresent(id -> problemBuilder.additionalData(TypeValidationDataSpec.class, data -> data.pluginId(id)));
+            .ifPresent(id -> problemBuilder.additionalDataInternal(TypeValidationDataSpec.class, data -> data.pluginId(id)));
         recordProblem(problemBuilder.build());
     }
 
     private @Nonnull DefaultTypeAwareProblemBuilder getDefaultTypeAwareProblemBuilder(Action<? super TypeAwareProblemBuilder> problemSpec) {
-        AdditionalDataBuilderFactory additionalDataBuilderFactory = problems.getAdditionalDataBuilderFactory();
-        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(new DefaultProblemBuilder((ProblemStream) null, additionalDataBuilderFactory), additionalDataBuilderFactory);
+        DefaultTypeAwareProblemBuilder problemBuilder = new DefaultTypeAwareProblemBuilder(problems.getProblemBuilder());
         problemSpec.execute(problemBuilder);
         return problemBuilder;
     }
 
-    abstract protected void recordProblem(Problem problem);
+    abstract protected void recordProblem(InternalProblem problem);
 }

@@ -16,10 +16,7 @@
 package org.gradle.testfixtures.internal;
 
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.configuration.DefaultBuildClientMetaData;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultBuildCancellationToken;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.GradlePropertiesController;
@@ -56,11 +53,6 @@ public class TestBuildScopeServices extends BuildScopeServices {
     @Provides
     protected BuildCancellationToken createBuildCancellationToken() {
         return new DefaultBuildCancellationToken();
-    }
-
-    @Provides
-    protected BuildClientMetaData createClientMetaData() {
-        return new DefaultBuildClientMetaData(new GradleLauncherMetaData());
     }
 
     @Provides

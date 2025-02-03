@@ -38,7 +38,7 @@ import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
+import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleForPrecompiledScriptPluginsTo
 import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 import javax.inject.Inject
@@ -101,7 +101,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
         outputDir.withOutputDirectory { outputDir ->
             val scriptFiles = sourceFiles.map { it.path }
             if (scriptFiles.isNotEmpty())
-                compileKotlinScriptModuleTo(
+                compileKotlinScriptModuleForPrecompiledScriptPluginsTo(
                     outputDir,
                     compilerOptions.get(),
                     kotlinModuleName,

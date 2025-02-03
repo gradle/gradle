@@ -1,0 +1,266 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+
+[[understanding_dependency_resolution_model]]
+= Understanding the Dependency Resolution Model
+
+This chapter explains how dependency resolution works within Gradle.
+After learning how to declare <<declaring_dependencies.adoc#one-declaring-dependencies,dependencies>> and <<dependency_locking.adoc#locking-versions,specify the versions>> your project should use, the next step is understanding how these declarations are combined during the dependency resolution process.
+
+Dependency resolution happens in two key phases, repeated until the entire dependency graph is constructed:
+
+1. **Conflict Resolution**:
+* When a new dependency is introduced, Gradle resolves any conflicts to determine the version that should be added to the graph.
+* Gradle will apply its conflict resolution rules (e.g., "latest version wins" or custom version resolution strategies) to determine the version to be used.
+2. **Dependency Metadata Retrieval**:
+* Once a specific dependency (a module with a version) is included in the graph, Gradle retrieves its metadata (such as POM, Ivy, or module metadata) to:
+** add its own dependencies (transitives) to the graph.
+** understand the available variants of that dependency.
+
+This process continues until the entire dependency tree is resolved.
+
+image::dependency-resolution-model.png[]
+
+[[sec:conflict-resolution]]
+== Phase 1. Conflict resolution
+
+When performing dependency resolution, Gradle handles two types of conflicts:
+
+A. **Version conflicts**: Which occur when multiple dependencies request the same dependency but with different versions.
+Gradle must choose which version to include in the graph.
+B. **Implementation / Capability conflicts**: Which occur when the dependency graph contains different modules that provide the same functionality or _capability_.
+Gradle resolves these by selecting one module to avoid duplicate implementations.
+
+The dependency resolution process is highly customizable and many APIs can influence the process.
+
+[[sec:version-conflict]]
+=== A. Version conflicts
+
+A version conflict can occur when two components:
+
+* Depend on the same module, such as `com.google.guava:guava`
+* But on different versions, for example, `20.0` and `25.1-android`:
+** Our project directly depends on `com.google.guava:guava:20.0`
+** Our project also depends on `com.google.inject:guice:4.2.2`, which in turn depends on `com.google.guava:guava:25.1-android`
+
+[[sec:resolution-strategy]]
+Gradle must resolve this conflict by selecting one version to include in the dependency graph.
+
+Gradle considers all requested versions across the dependency graph and, by default, selects the _highest_ version.
+Detailed version ordering is explained in <<dependency_versions.adoc#sec:version-ordering,version ordering>>.
+
+Gradle also supports the concept of <<dependency_versions.adoc#sec:rich-version-constraints,rich version declarations>>, which means that what constitutes the "highest" version depends on how the versions were declared:
+
+* **Without ranges**: The highest non-rejected version will be selected.
+** If a `strictly` version is declared that is lower than the highest, resolution will fail.
+* **With ranges**:
+** If a non-range version fits within the range or is higher than the upper bound, it will be selected.
+** If only ranges exist, the selection depends on the intersection of those ranges:
+*** If ranges overlap, the highest _existing_ version in the intersection is selected.
+*** If no clear intersection exists, the highest version from the largest range will be selected. If no version exists in the highest range, the resolution fails.
+** If a `strictly` version is declared that is lower than the highest, resolution will fail.
+
+For version ranges, Gradle needs to perform intermediate metadata lookups to determine what variations are available, as explained in <<#sec:how-gradle-downloads-deps>>.
+
+[[sec:base-version-comparison]]
+==== Versions with qualifiers
+
+The term "qualifier" refers to the portion of a version string that comes after a non-dot separator, like a hyphen or underscore.
+
+For example:
+
+[cols="1,1,1"]
+|===
+|Original version | Base version | Qualifier
+
+|1.2.3
+|1.2.3
+|<none>
+
+|1.2-3
+|1.2
+|3
+
+|1_alpha
+|1
+|alpha
+
+|abc
+|abc
+|<none>
+
+|1.2b3
+|1.2
+|b3
+
+|abc.1+3
+|abc.1
+|3
+
+|b1-2-3.3
+|b
+|1-2-3.3
+|===
+
+As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
+
+By default, Gradle gives preference to versions without qualifiers when resolving conflicts.
+
+For example, in version `1.0-beta`, the base form is `1.0`, and `beta` is the qualifier.
+Versions without qualifiers are considered more stable, so Gradle will prioritize them.
+
+Here are a few examples to clarify:
+
+- `1.0.0` (no qualifier)
+- `1.0.0-beta` (qualifier: `beta`)
+- `2.1-rc1` (qualifier: `rc1`)
+
+Even if the qualifier is lexicographically higher, Gradle will typically consider a version like `1.0.0` higher than `1.0.0-beta`.
+
+When resolving conflicts between versions, Gradle applies the following logic:
+
+1. **Base version comparison:** Gradle first selects versions with the highest base version, ignoring any qualifiers.
+All others are discarded.
+2. **Qualifier handling:** If there are still multiple versions with the same base version, Gradle picks one with a preference for versions without qualifiers (i.e., release versions).
+If all versions have qualifiers, Gradle will consider the qualifier's order, preferring more stable ones like "release" over others such as "beta" or "alpha."
+
+[[sec:implementation-conflict]]
+=== B. Implementation / Capability conflicts
+
+Gradle uses **variants** and **capabilities** to define what a module *provides*.
+
+<<variant_attributes.adoc#variant-attributes,Variants>> are essentially different forms of a dependency, often based on factors such as platform (e.g., JVM or Android), or configuration (e.g., compile, runtime).
+
+<<variant_attributes.adoc#variant-attributes,Capabilities>> are a way to express mutually exclusive variants of a dependency.
+
+<<component_capabilities.adoc#sec:selecting-between-candidates,Conflicts>> arise in the following scenarios:
+
+- **Incompatible variants**: When two modules attempt to select different, incompatible variants of a dependency.
+- **Same capability**: When multiple modules declare the same capability, creating an overlap in functionality.
+
+For more details on how variant selection works and how it enables flexible dependency management, refer to the <<variant_model.adoc#sec:understanding-variant-selection>> below.
+
+[[sec:how-gradle-downloads-deps]]
+== Phase 2. Dependency metadata retrieval
+
+Gradle requires module metadata in the dependency graph for two reasons:
+
+A. **Determining existing versions for dynamic dependencies**: When a dynamic version (like `1.+` or `latest.release`) is specified, Gradle must identify the concrete versions available.
+
+B. **Resolving module dependencies for a specific version**: Gradle retrieves the dependencies associated with a module based on the specified version, ensuring the correct transitive dependencies are included in the build.
+
+=== A. Determining existing versions for dynamic dependencies
+
+When faced with a dynamic version, Gradle must identify the available concrete versions through the following steps:
+
+1. **Inspecting repositories**: Gradle checks each defined repository in the order they were added. It doesn't stop at the first one that returns metadata but continues through all available repositories.
+
+2. **Maven repositories**: Gradle retrieves version information from the `maven-metadata.xml` file, which lists available versions.
+
+3. **Ivy repositories**: Gradle resorts to a directory listing to gather available versions.
+
+The result is a list of candidate versions that Gradle evaluates and matches to the dynamic version.
+Gradle <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,caches>> this information to optimize future resolution.
+At this point, <<#sec:resolution-strategy,version conflict resolution>> is resumed.
+
+=== B. Resolving module dependencies for a specific version
+
+When Gradle tries to resolve a required dependency with a specific version, it follows this process:
+
+1. **Repository inspection**: Gradle checks each repository in the order they are defined.
+- It looks for metadata files describing the module (`.module`, `.pom`, or `ivy.xml`), or directly for artifact files.
+- Modules with metadata files (`.module`, `.pom`, or `ivy.xml`) are prioritized over those with just an artifact file.
+- Once metadata is found in a repository, subsequent repositories are ignored.
+2. **Retrieving and parsing metadata**: If metadata is found, it is parsed.
+- If the POM file has a parent POM, Gradle recursively resolves each parent module.
+3. **Requesting artifacts**: All artifacts for the module are fetched from the same repository that provided the metadata.
+4. **Caching**: All data, including the repository source and any potential misses, are stored in the <<dependency_caching.adoc#sec:controlling-dynamic-version-caching,dependency cache>> for future use.
+
+[NOTE]
+====
+The point above highlights a potential issue with integrating <<supported_repository_types.adoc#sec:case-for-maven-local,Maven Local>>. Since Maven Local acts as a Maven cache, it may occasionally miss artifacts for a module. When Gradle sources a module from Maven Local and artifacts are missing, it assumes those artifacts are entirely unavailable.
+====
+
+[[sec:repository-disabling]]
+=== Repository disabling
+
+When Gradle fails to retrieve information from a repository, it disables the repository for the remainder of the build and fails all dependency resolution.
+
+This behavior ensures reproducibility.
+
+If the build were to continue while ignoring the faulty repository, subsequent builds could produce different results once the repository is back online.
+
+[[sub:http-retries]]
+==== HTTP Retries
+
+Gradle will attempt to connect to a repository multiple times before disabling it.
+If the connection fails, Gradle retries on specific errors that might be temporary, with increasing wait times between retries.
+
+A repository is marked as unavailable when it cannot be reached, either due to a permanent error or after the maximum number of retries has been exhausted.
+
+== The dependency tree
+
+Once the process is complete, a dependency tree is created.
+
+The dependency tree is a hierarchical representation of all the dependencies required by a project, including direct dependencies (declared explicitly) and transitive dependencies (pulled in automatically by those direct dependencies).
+The graph shows how dependencies relate to each other and how Gradle resolves them.
+
+For the dependency `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`, the graph includes the primary dependency and all its transitive dependencies.
+Here's what the graph looks like:
+
+[source,json]
+----
+org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1
+├── JVM variant
+│   ├── org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1
+│   │   ├── org.jetbrains.kotlin:kotlin-stdlib:1.8.0
+│   │   ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+│   │   └── org.jetbrains:annotations:13.0
+│   ├── org.jetbrains.kotlin:kotlin-stdlib:1.8.0
+│   ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+│   └── org.jetbrains:annotations:13.0
+│
+├── Android variant
+│   ├── org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1
+│   │   ├── org.jetbrains.kotlin:kotlin-stdlib:1.8.0
+│   │   ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+│   │   └── org.jetbrains:annotations:13.0
+│   ├── org.jetbrains.kotlin:kotlin-stdlib:1.8.0
+│   ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+│   ├── org.jetbrains:annotations:13.0
+│   └── com.android.tools:common-library:1.0.0
+│
+├── Native variant
+│   ├── org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1
+│   │   ├── org.jetbrains.kotlin:kotlin-stdlib:1.8.0
+│   │   ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+│   │   └── org.jetbrains:annotations:13.0
+│   ├── org.jetbrains.kotlin:kotlin-stdlib:1.8.0
+│   ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+│   ├── org.jetbrains:annotations:13.0
+│   └── kotlinx.coroutines:kotlinx-coroutines-core-native:1.6.4
+│
+└── JavaScript variant
+    ├── org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1
+    │   ├── org.jetbrains.kotlin:kotlin-stdlib-js:1.8.0
+    │   └── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+    ├── org.jetbrains.kotlin:kotlin-stdlib-js:1.8.0
+    ├── org.jetbrains.kotlin:kotlin-stdlib-common:1.8.0
+    └── kotlinx.coroutines:kotlinx-coroutines-core-js:1.6.4
+----
+
+[.text-right]
+**Next Chapter:** <<variant_model.adoc#sec:understanding-variant-selection,Learn how Gradle selects Variants>> >>

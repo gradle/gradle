@@ -117,8 +117,8 @@ Additionally, several component-level properties can be changed:
 The format of a module's metadata affects how it maps to the variant-centric representation:
 
 - **Gradle Module Metadata**: The data structure is similar to the module’s `.module` file.
-- **POM Metadata**: For modules published with `.pom` metadata, fixed variants are derived as explained in the <<variant_model.adoc#sec:maven-mapping-to-variants,"Mapping POM Files to Variants">>, section.
-- **Ivy Metadata**: If a module was published with an `ivy.xml` file, Ivy configurations can be accessed in place of variants. Their dependencies, constraints, and files can be modified. You can also use `addVariant(name, baseVariantOrConfiguration)` to derive variants from Ivy configurations, such as defining <<variant_model.adoc#sec:ivy-mapping-to-variants,`compile` and `runtime` variants for the Java library plugin>>.
+- **POM Metadata**: For modules published with `.pom` metadata, fixed variants are derived as explained in the <<variant_attributes.adoc#sec:maven-mapping-to-variants,"Mapping POM Files to Variants">>, section.
+- **Ivy Metadata**: If a module was published with an `ivy.xml` file, Ivy configurations can be accessed in place of variants. Their dependencies, constraints, and files can be modified. You can also use `addVariant(name, baseVariantOrConfiguration)` to derive variants from Ivy configurations, such as defining <<variant_attributes.adoc#sec:ivy-mapping-to-variants,`compile` and `runtime` variants for the Java library plugin>>.
 
 Before using component metadata rules to adjust a module’s metadata, determine whether the module was published with **Gradle Module Metadata** (`.module` file) or **traditional metadata** (`.pom` or `ivy.xml`):
 
@@ -313,7 +313,7 @@ Modules published using Ivy do not have variants available by default.
 
 However, _Ivy configurations_ can be mapped to variants as the `addVariant(name, baseVariantOrConfiguration)` accepts any Ivy configuration that was published as base.
 This can be used, for example, to define runtime and compile variants.
-An example of a corresponding rule can be found <<variant_model.adoc#sec:ivy-mapping-to-variants,here>>.
+An example of a corresponding rule can be found <<variant_attributes.adoc#sec:ivy-mapping-to-variants,here>>.
 Ivy details of Ivy configurations (e.g. dependencies and files) can also be modified using the `withVariant(configurationName)` API.
 However, modifying attributes or capabilities on Ivy configurations has no effect.
 
@@ -340,7 +340,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Modifying metadata on the component level for alignment
 
 While all the examples above made modifications to variants of a component, there is also a limited set of modifications that can be done to the metadata of the component itself.
-This information can influence the <<variant_model.adoc#understanding_dependency_resolution_model,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
+This information can influence the <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
 It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.

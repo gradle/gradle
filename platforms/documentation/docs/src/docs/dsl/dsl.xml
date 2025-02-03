@@ -443,6 +443,9 @@
             <tr>
                 <td>org.gradle.api.tasks.diagnostics.ResolvableConfigurationsReportTask</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask</td>
+            </tr>
         </table>
     </section>
 

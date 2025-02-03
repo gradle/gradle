@@ -16,7 +16,7 @@
 package org.gradle.internal.resolve.caching;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.internal.action.InstantiatingAction;
 
 /**
@@ -44,12 +44,13 @@ public interface CachingRuleExecutor<KEY, DETAILS, RESULT> {
      *  @param rule the rule to be executed
      * @param detailsToResult transforms a details object into a result object which may be cached
      * @param onCacheMiss whenever cache is missed, this function is responsible for creating the initial DETAILS object that is going to be exposed to the user
-     * @param cachePolicy the cache policy
+     * @param cacheExpirationControl the cache policy
      */
     <D extends DETAILS> RESULT execute(
         KEY key,
         InstantiatingAction<DETAILS> rule,
         Transformer<RESULT, D> detailsToResult,
         Transformer<D, KEY> onCacheMiss,
-        CachePolicy cachePolicy);
+        CacheExpirationControl cacheExpirationControl
+    );
 }

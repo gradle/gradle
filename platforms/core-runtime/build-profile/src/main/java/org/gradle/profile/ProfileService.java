@@ -17,10 +17,13 @@
 package org.gradle.profile;
 
 import org.gradle.internal.service.scopes.ListenerService;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * A marker interface to allow the implementation to be registered as a service without exposing the various listener interfaces that it implements for injection into other services.
  */
 @ListenerService
+@ServiceScope(Scope.Build.class)
 public interface ProfileService {
 }

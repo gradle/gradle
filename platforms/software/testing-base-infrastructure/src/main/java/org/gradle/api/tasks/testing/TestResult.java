@@ -28,7 +28,7 @@ public interface TestResult {
     /**
      * The final status of a test.
      */
-    public enum ResultType {
+    enum ResultType {
         SUCCESS, FAILURE, SKIPPED
     }
 

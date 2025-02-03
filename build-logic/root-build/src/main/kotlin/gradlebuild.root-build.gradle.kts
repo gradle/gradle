@@ -15,9 +15,9 @@
  */
 
 plugins {
-    id("gradlebuild.internal.cc-experiment")
     id("gradlebuild.buildscan") // Reporting: Add more data through custom tags to build scans
     id("gradlebuild.ide") // Local development: Tweak IDEA import
-    id("gradlebuild.dependency-analysis") // Auditing dependencies to find unused libraries
     id("gradlebuild.warmup-ec2") // Warm up EC2 AMI
+
+    id("com.autonomousapps.dependency-analysis") apply false // Applied via pre-compiled script plugin to relevant projects
 }

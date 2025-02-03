@@ -25,14 +25,14 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
+import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.action.DefaultConfigurableRules
 import org.gradle.internal.action.InstantiatingAction
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor
@@ -53,16 +53,15 @@ class DefaultMetadataProviderTest extends Specification {
         getVersion() >> "1.2"
     }
     def metaData = Stub(ModuleComponentResolveMetadata)
-    def componentState = Stub(ModuleComponentGraphResolveState) {
+    def componentState = Stub(ExternalModuleComponentGraphResolveState) {
         getLegacyMetadata() >> metaData
     }
     def resolveState = Mock(ModuleComponentResolveState)
     def metadataProvider = new DefaultMetadataProvider(resolveState)
-    def cachePolicy = new DefaultCachePolicy()
     def ruleExecutor = new ComponentMetadataSupplierRuleExecutor(Stub(GlobalScopedCacheBuilderFactory), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
 
     def setup() {
-        resolveState.getCachePolicy() >> cachePolicy
+        resolveState.getCacheExpirationControl() >> Mock(CacheExpirationControl)
         resolveState.getComponentMetadataSupplierExecutor() >> ruleExecutor
         resolveState.attributesFactory >> AttributeTestUtil.attributesFactory()
     }
@@ -133,7 +132,7 @@ class DefaultMetadataProviderTest extends Specification {
         metaData.branch >> "branchValue"
         metaData.extraAttributes >> ImmutableMap.copyOf(extraInfo)
 
-        def componentState = Stub(ModuleComponentGraphResolveState)
+        def componentState = Stub(ExternalModuleComponentGraphResolveState)
         componentState.legacyMetadata >> metaData
 
         resolveState.resolve() >> {

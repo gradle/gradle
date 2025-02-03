@@ -358,9 +358,11 @@ Some thing.''')
         formatter.appendMethod(String.getMethod("charAt", int.class))
         formatter.append(" ")
         formatter.appendMethod(String.getMethod("getBytes", String.class))
+        formatter.append(" ")
+        formatter.appendMethod(String.getMethod("getClass"))
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing String.length() String.charAt(int) String.getBytes(String)")
+        formatter.toString() == toPlatformLineSeparators("thing String.length(): int String.charAt(int): char String.getBytes(String): byte[] Object.getClass(): Class<?>")
     }
 
     def "can append annoation name"() {

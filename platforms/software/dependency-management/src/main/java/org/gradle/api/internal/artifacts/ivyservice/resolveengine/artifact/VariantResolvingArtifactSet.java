@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -31,6 +32,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
+import org.gradle.internal.resolve.resolver.ExcludingVariantArtifactSet;
 import org.gradle.internal.resolve.resolver.VariantArtifactResolver;
 
 import java.util.Collections;
@@ -46,7 +48,10 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
     private final ComponentGraphResolveState component;
     private final VariantGraphResolveState variant;
     private final ImmutableAttributes overriddenAttributes;
+
+    // TODO: Create a separate implementation of ArtifactSet for when !requestedArtifacts.isEmpty()
     private final List<IvyArtifactName> requestedArtifacts;
+
     private final ExcludeSpec exclusions;
     private final Set<CapabilitySelector> capabilitySelectors;
 
@@ -161,21 +166,39 @@ public class VariantResolvingArtifactSet implements ArtifactSet {
         VariantGraphResolveState graphVariant,
         VariantArtifactResolver variantArtifactResolver
     ) {
-        VariantArtifactResolveState variantState = graphVariant.prepareForArtifactResolution();
-        Set<? extends VariantResolveMetadata> artifactVariants = variantState.getArtifactVariants();
-        ImmutableList.Builder<ResolvedVariant> resolved = ImmutableList.builderWithExpectedSize(artifactVariants.size());
+        ComponentArtifactResolveMetadata componentArtifacts = component.prepareForArtifactResolution().getArtifactMetadata();
+        ImmutableList<ResolvedVariant> variantArtifactSets = resolveVariantArtifactSets(graphVariant, componentArtifacts, variantArtifactResolver);
 
-        ComponentArtifactResolveMetadata componentMetadata = component.prepareForArtifactResolution().getArtifactMetadata();
-        if (exclusions.mayExcludeArtifacts()) {
-            for (VariantResolveMetadata artifactVariant : artifactVariants) {
-                resolved.add(variantArtifactResolver.resolveVariant(componentMetadata, artifactVariant, exclusions));
-            }
-        } else {
-            for (VariantResolveMetadata artifactVariant : artifactVariants) {
-                resolved.add(variantArtifactResolver.resolveVariant(componentMetadata, artifactVariant));
-            }
+        // Only apply exclusions to the resolved variant artifact sets if necessary.
+        if (!exclusions.mayExcludeArtifacts()) {
+            return variantArtifactSets;
+        }
+
+        ImmutableList.Builder<ResolvedVariant> excluded = ImmutableList.builderWithExpectedSize(variantArtifactSets.size());
+        ModuleIdentifier moduleId = componentArtifacts.getModuleVersionId().getModule();
+        for (ResolvedVariant artifactSet : variantArtifactSets) {
+            excluded.add(new ExcludingVariantArtifactSet(artifactSet, moduleId, exclusions));
+        }
+        return excluded.build();
+    }
+
+    /**
+     * Resolves all artifact sets for the given graph variant.
+     */
+    private static ImmutableList<ResolvedVariant> resolveVariantArtifactSets(
+        VariantGraphResolveState variant,
+        ComponentArtifactResolveMetadata component,
+        VariantArtifactResolver variantArtifactResolver
+    ) {
+        Set<? extends VariantResolveMetadata> unresolved = variant.prepareForArtifactResolution().getArtifactVariants();
+        ImmutableList.Builder<ResolvedVariant> resolved = ImmutableList.builderWithExpectedSize(unresolved.size());
+
+        for (VariantResolveMetadata artifactSet : unresolved) {
+            ResolvedVariant resolvedArtifactSet = variantArtifactResolver.resolveVariantArtifactSet(component, artifactSet);
+            resolved.add(resolvedArtifactSet);
         }
 
         return resolved.build();
     }
+
 }

@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Public and internal 'core' Gradle APIs with implementation"
@@ -114,6 +113,7 @@ dependencies {
     api(projects.processServices)
     api(projects.resources)
     api(projects.snapshots)
+    api(projects.versionedCache)
     api(projects.workerMain)
     api(projects.buildProcessServices)
     api(projects.instrumentationReporting)
@@ -268,7 +268,7 @@ dependencies {
     testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.baseServices))
-    testImplementation(testFixtures(projects.diagnostics))
+    testImplementation(testFixtures(projects.baseDiagnostics))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.time))

@@ -2,7 +2,6 @@ import gradlebuild.basics.googleApisJs
 
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Report type classes and plugins for reporting (build dashboard, report container)"

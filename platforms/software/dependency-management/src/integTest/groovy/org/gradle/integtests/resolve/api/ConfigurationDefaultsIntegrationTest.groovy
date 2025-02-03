@@ -125,42 +125,43 @@ project.status = 'foo'
 
     @Issue("gradle/gradle#812")
     def "can use defaultDependencies in a multi-project build"() {
-        buildFile << """
-subprojects {
-    apply plugin: 'java'
-
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-}
-
-project(":producer") {
-    configurations {
-        implementation {
-            defaultDependencies {
-                add(project.dependencies.create("org:default-dependency:1.0"))
-            }
-        }
-    }
-    dependencies {
-        if (System.getProperty('explicitDeps')) {
-            implementation "org:explicit-dependency:1.0"
-        }
-    }
-}
-
-project(":consumer") {
-    dependencies {
-        implementation project(":producer")
-    }
-}
-"""
-        resolve.prepare("runtimeClasspath")
-        resolve.expectDefaultConfiguration("runtimeElements")
-        createDirs("consumer", "producer")
         settingsFile << """
-include 'consumer', 'producer'
-"""
+            include 'consumer'
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            configurations {
+                implementation {
+                    defaultDependencies {
+                        add(project.dependencies.create("org:default-dependency:1.0"))
+                    }
+                }
+            }
+            dependencies {
+                if (System.getProperty('explicitDeps')) {
+                    implementation "org:explicit-dependency:1.0"
+                }
+            }
+        """
+
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(":producer")
+            }
+        """
+
+        resolve.prepare("runtimeClasspath")
 
         when:
         executer.withArgument("-DexplicitDeps=yes")
@@ -225,7 +226,6 @@ include 'consumer', 'producer'
     }
 """
         resolve.prepare("runtimeClasspath")
-        resolve.expectDefaultConfiguration("runtimeElements")
 
         when:
         run ":checkDeps"
@@ -237,39 +237,6 @@ include 'consumer', 'producer'
                     compositeSubstitute()
                     module("org:default-dependency:1.0")
                 }
-            }
-        }
-    }
-
-    def "can use beforeResolve to specify default dependencies"() {
-        buildFile << """
-configurations.conf.incoming.beforeResolve {
-    if (configurations.conf.dependencies.empty) {
-        configurations.conf.dependencies.add project.dependencies.create("org:default-dependency:1.0")
-    }
-}
-"""
-        resolve.prepare()
-
-        when:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependencies of configuration ':conf' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:default-dependency:1.0")
-            }
-        }
-
-        when:
-        executer.withArgument("-DexplicitDeps=yes")
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                module("org:explicit-dependency:1.0")
             }
         }
     }

@@ -19,7 +19,7 @@ package org.gradle.ide.sync
 import org.gradle.ide.sync.fixtures.IsolatedProjectsIdeSyncFixture
 
 
-class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeaSyncTest {
+class IsolatedProjectsJavaProjectSyncTest extends AbstractIdeSyncTest {
 
     private IsolatedProjectsIdeSyncFixture fixture = new IsolatedProjectsIdeSyncFixture(testDirectory)
 

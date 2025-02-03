@@ -19,12 +19,15 @@ package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
 import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.internal.FileUtils;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+@ServiceScope(Scope.BuildSession.class)
 public class WindowsRegistryVersionLocator extends AbstractVisualStudioVersionLocator implements VisualStudioVersionLocator {
     static final String[] REGISTRY_BASEPATHS = {
         "SOFTWARE\\",

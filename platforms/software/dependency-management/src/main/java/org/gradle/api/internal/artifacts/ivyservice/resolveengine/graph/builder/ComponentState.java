@@ -236,12 +236,11 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             for (ComponentState version : module.getAllVersions()) {
                 if (version != this) {
                     ComponentGraphResolveState versionState = version.getResolveStateOrNull();
-                    if (versionState != null) {
-                        ComponentGraphResolveState lenient = versionState.maybeAsLenientPlatform((ModuleComponentIdentifier) componentIdentifier, id);
-                        if (lenient != null) {
-                            setState(lenient, ComponentGraphSpecificResolveState.EMPTY_STATE);
-                            return true;
-                        }
+                    if (versionState instanceof LenientPlatformGraphResolveState) {
+                        LenientPlatformGraphResolveState lenientState = (LenientPlatformGraphResolveState) versionState;
+                        ComponentGraphResolveState withIds = lenientState.copyWithIds((ModuleComponentIdentifier) componentIdentifier, id);
+                        setState(withIds, ComponentGraphSpecificResolveState.EMPTY_STATE);
+                        return true;
                     }
                 }
             }

@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 
 /**
  * A set of artifacts that may be selected from a variant. This would be better named
- * {@code VariantArtifactSet}.
+ * {@code ResolvedVariantArtifactCollection}.
  */
 public interface ResolvedVariant extends HasAttributes {
     DisplayName asDescribable();

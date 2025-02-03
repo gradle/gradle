@@ -17,11 +17,13 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.logging.LogLevel
+import org.gradle.configurationcache.EntrySearchResult
 import org.gradle.configurationcache.ModelStoreResult
 import org.gradle.configurationcache.WorkGraphLoadResult
 import org.gradle.configurationcache.WorkGraphStoreResult
@@ -180,15 +182,15 @@ class DefaultConfigurationCache internal constructor(
         get() = host.service()
 
     override val isLoaded: Boolean
-        get() = cacheAction is ConfigurationCacheAction.LOAD
+        get() = cacheAction is ConfigurationCacheAction.Load
 
     override fun initializeCacheEntry() {
         val (cacheAction, cacheActionDescription) = determineCacheAction()
         this.cacheAction = cacheAction
         this.entryId = when (cacheAction) {
-            is ConfigurationCacheAction.LOAD -> cacheAction.entryId
-            is ConfigurationCacheAction.UPDATE -> cacheAction.entryId
-            ConfigurationCacheAction.STORE -> UUID.randomUUID().toString()
+            is ConfigurationCacheAction.Load -> cacheAction.entryId
+            is ConfigurationCacheAction.Update -> cacheAction.entryId
+            ConfigurationCacheAction.Store -> UUID.randomUUID().toString()
         }
         initializeCacheEntrySideEffects(cacheAction)
         problems.action(cacheAction, cacheActionDescription)
@@ -197,20 +199,20 @@ class DefaultConfigurationCache internal constructor(
     private
     fun initializeCacheEntrySideEffects(cacheAction: ConfigurationCacheAction) {
         when (cacheAction) {
-            is ConfigurationCacheAction.LOAD -> {
+            is ConfigurationCacheAction.Load -> {
                 val entryDetails = readEntryDetails()
                 val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
                 loadedSideEffects += sideEffects
             }
 
-            is ConfigurationCacheAction.UPDATE -> {
+            is ConfigurationCacheAction.Update -> {
                 val invalidProjects = cacheAction.invalidProjects
                 val entryDetails = readEntryDetails()
                 intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
                 projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
             }
 
-            ConfigurationCacheAction.STORE -> {}
+            ConfigurationCacheAction.Store -> {}
         }
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
@@ -280,7 +282,7 @@ class DefaultConfigurationCache internal constructor(
         }
     }
 
-    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentityPath?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
+    override fun <T> loadOrCreateIntermediateModel(project: ProjectIdentity?, modelName: String, parameter: ToolingModelParameterCarrier?, creator: () -> T?): T? {
         return intermediateModels.loadOrCreateIntermediateModel(project, modelName, parameter, creator)
     }
 
@@ -303,7 +305,7 @@ class DefaultConfigurationCache internal constructor(
             problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
             cacheEntryRequiresCommit = false
             // Can reuse the cache entry for the rest of this build invocation
-            cacheAction = ConfigurationCacheAction.LOAD(entryId)
+            cacheAction = ConfigurationCacheAction.Load(entryId)
         }
         try {
             cacheFingerprintController.stop()
@@ -348,7 +350,7 @@ class DefaultConfigurationCache internal constructor(
         startParameter.recreateCache -> {
             val description = StructuredMessage.forText("Recreating configuration cache")
             logBootstrapSummary(description)
-            ConfigurationCacheAction.STORE to description
+            ConfigurationCacheAction.Store to description
         }
 
         startParameter.isRefreshDependencies -> {
@@ -358,7 +360,7 @@ class DefaultConfigurationCache internal constructor(
                 "--refresh-dependencies"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.STORE to description
+            ConfigurationCacheAction.Store to description
         }
 
         startParameter.isWriteDependencyLocks -> {
@@ -368,7 +370,7 @@ class DefaultConfigurationCache internal constructor(
                 "--write-locks"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.STORE to description
+            ConfigurationCacheAction.Store to description
         }
 
         startParameter.isUpdateDependencyLocks -> {
@@ -378,7 +380,7 @@ class DefaultConfigurationCache internal constructor(
                 "--update-locks"
             )
             logBootstrapSummary(description)
-            ConfigurationCacheAction.STORE to description
+            ConfigurationCacheAction.Store to description
         }
 
         else -> {
@@ -390,7 +392,7 @@ class DefaultConfigurationCache internal constructor(
                         buildActionModelRequirements.configurationCacheKeyDisplayName.displayName
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.STORE to description
+                    ConfigurationCacheAction.Store to description
                 }
 
                 is CheckedFingerprint.Invalid -> {
@@ -400,7 +402,7 @@ class DefaultConfigurationCache internal constructor(
                         checkedFingerprint.reason.render()
                     )
                     logBootstrapSummary(description)
-                    ConfigurationCacheAction.STORE to description
+                    ConfigurationCacheAction.Store to description
                 }
 
                 is CheckedFingerprint.Valid -> {
@@ -408,7 +410,7 @@ class DefaultConfigurationCache internal constructor(
                         null -> {
                             val description = StructuredMessage.forText("Reusing configuration cache.")
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.LOAD(checkedFingerprint.entryId) to description
+                            ConfigurationCacheAction.Load(checkedFingerprint.entryId) to description
                         }
 
                         else -> {
@@ -418,7 +420,7 @@ class DefaultConfigurationCache internal constructor(
                                 invalid.first.reason.render()
                             )
                             logBootstrapSummary(description)
-                            ConfigurationCacheAction.UPDATE(checkedFingerprint.entryId, invalid) to description
+                            ConfigurationCacheAction.Update(checkedFingerprint.entryId, invalid) to description
                         }
                     }
                 }
@@ -450,18 +452,20 @@ class DefaultConfigurationCache internal constructor(
     private
     fun checkFingerprint(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val candidates = loadCandidateEntries()
-        val result = searchForValidEntry(candidates)
-        if (result is CheckedFingerprint.Valid) {
-            updateMostRecentEntry(result.entryId)
+        val searchResult = searchForValidEntry(candidates)
+        val checkedFingerprint = searchResult.checkedFingerprint
+        if (checkedFingerprint is CheckedFingerprint.Valid) {
+            updateMostRecentEntry(checkedFingerprint.entryId)
         }
-        result
+        searchResult
     }
 
     private
-    fun searchForValidEntry(candidates: List<CandidateEntry>): CheckedFingerprint {
-        var firstInvalidResult: CheckedFingerprint? = null
+    fun searchForValidEntry(candidates: List<CandidateEntry>): EntrySearchResult {
+        var firstInvalidResult: EntrySearchResult? = null
         for (candidate in candidates) {
-            when (val result = checkCandidate(candidate)) {
+            val result = checkCandidate(candidate)
+            when (result.checkedFingerprint) {
                 is CheckedFingerprint.Valid -> {
                     return result
                 }
@@ -476,7 +480,7 @@ class DefaultConfigurationCache internal constructor(
             }
         }
         return firstInvalidResult
-            ?: CheckedFingerprint.NotFound
+            ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
     }
 
     private
@@ -524,7 +528,7 @@ class DefaultConfigurationCache internal constructor(
         cacheIO.readCandidateEntries(fileForRead(StateType.Candidates))
 
     private
-    fun checkCandidate(candidateEntry: CandidateEntry): CheckedFingerprint {
+    fun checkCandidate(candidateEntry: CandidateEntry): EntrySearchResult {
         // checking a single fingerprint
         val entryName = candidateEntry.id
         val entryStore = cacheRepository.forKey(entryName)
@@ -534,12 +538,12 @@ class DefaultConfigurationCache internal constructor(
     }
 
     private
-    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): CheckedFingerprint =
+    fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult =
         cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
             ?.let { entryDetails ->
                 // TODO:configuration-cache read only rootDirs at this point
-                checkFingerprint(candidateEntry, entryDetails.rootDirs)
-            } ?: CheckedFingerprint.NotFound
+                EntrySearchResult(entryDetails.buildInvocationScopeId, checkFingerprint(candidateEntry, entryDetails.rootDirs))
+            } ?: EntrySearchResult(null, CheckedFingerprint.NotFound)
 
     private
     fun <T> runWorkThatContributesToCacheEntry(action: () -> T): T {

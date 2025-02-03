@@ -29,8 +29,7 @@ public class AnonymousListenerBroadcast<T> extends ListenerBroadcast<T> {
     }
 
     @Override
-    public void removeAll() {
-        super.removeAll();
-        add(forwardingDispatch);
+    public synchronized void removeAll() {
+        replaceWith(forwardingDispatch);
     }
 }

@@ -192,7 +192,7 @@ public class DefaultDependencyCoordinateResolverFactory implements DependencyCoo
 
         @Override
         public ResolvedCoordinates resolveComponentCoordinates(ProjectDependency dependency) {
-            Path identityPath = ((ProjectDependencyInternal) dependency).getIdentityPath();
+            Path identityPath = ((ProjectDependencyInternal) dependency).getTargetProjectIdentity().getBuildTreePath();
             return ResolvedCoordinates.create(projectDependencyResolver.resolveComponent(ModuleVersionIdentifier.class, identityPath));
         }
 

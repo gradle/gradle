@@ -28,7 +28,7 @@ import java.util.List;
  * The global cache is managed by Gradle, so we Gradle needs to take care
  * of informing all the infrastructure about changes to it.
  */
-@ServiceScope(Scope.Global.class)
+@ServiceScope({Scope.Global.class, Scope.UserHome.class})
 public interface GlobalCache {
     /**
      * Returns the root directories of the global cache.

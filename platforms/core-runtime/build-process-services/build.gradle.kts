@@ -16,6 +16,3 @@ dependencies {
 
     testRuntimeOnly(projects.resources)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

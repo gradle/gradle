@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
-import org.gradle.internal.component.external.model.ModuleComponentGraphResolveState
+import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
@@ -25,7 +25,7 @@ import spock.lang.Subject
 class CachedMetadataProviderTest extends Specification {
 
     def cachedResult = Stub(BuildableModuleComponentMetaDataResolveResult)
-    def componentState = Stub(ModuleComponentGraphResolveState)
+    def componentState = Stub(ExternalModuleComponentGraphResolveState)
     @Subject
     CachedMetadataProvider provider
 

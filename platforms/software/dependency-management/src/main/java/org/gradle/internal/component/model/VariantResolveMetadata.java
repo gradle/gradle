@@ -24,7 +24,7 @@ import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import javax.annotation.Nullable;
 
 /**
- * Also known as an "Artifact Variant". We should find a better name for this.
+ * Would be better named {@code VariantArtifactMetadata}.
  * <p>
  * Describes the artifacts of a {@link VariantGraphResolveMetadata}. Graph variants may have multiple
  * artifact variants, where each artifact variant may have different artifacts, but inherit the dependencies
@@ -66,6 +66,8 @@ public interface VariantResolveMetadata {
 
     /**
      * An opaque identifier for a an artifact variant.
+     * <p>
+     * Implementations must implement equals and hashCode.
      */
     interface Identifier {
     }

@@ -18,7 +18,7 @@ package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
@@ -86,7 +86,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     }
 
     @Override
-    public void emit(Problem problem, @Nullable OperationIdentifier id) {
+    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         if (exceededThreshold(problem)) {
             return;
         }
@@ -97,7 +97,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         }
     }
 
-    private boolean exceededThreshold(Problem problem) {
+    private boolean exceededThreshold(InternalProblem problem) {
         int count = seenProblemsWithCounts.merge(problem.getDefinition().getId(), 1, Integer::sum);
         return count > threshold;
     }

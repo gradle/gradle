@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 
 import java.time.Instant;
+import java.util.Map;
 
 @NonNullApi
 class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
@@ -52,6 +53,18 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
     }
 
     @Override
+    public void metadata(Instant logTime, String key, Object value) {
+        requireRunning();
+        delegate.metadata(logTime, key, value);
+    }
+
+    @Override
+    public void metadata(Instant logTime, Map<String, Object> values) {
+        requireRunning();
+        delegate.metadata(logTime, values);
+    }
+
+    @Override
     public void succeeded(Instant endTime) {
         markCompleted();
         delegate.succeeded(endTime);
@@ -74,12 +87,13 @@ class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements
         if (state == State.CLOSED) {
             return;
         }
+
+        delegate.close();
+
         if (state == State.STARTED) {
             throw new IllegalStateException("completed(...) must be called before close() if started(...) was called");
         }
         state = State.CLOSED;
-
-        delegate.close();
     }
 
     protected boolean isCompleted() {

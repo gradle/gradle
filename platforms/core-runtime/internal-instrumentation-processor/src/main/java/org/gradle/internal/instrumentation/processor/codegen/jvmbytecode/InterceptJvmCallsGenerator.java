@@ -202,20 +202,20 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         String interceptorName = request.getImplementationInfo().getName();
         String interceptorDesc = request.getImplementationInfo().getDescriptor();
         method.addStatement(
-            "final $1T builder = $1T.create(tag, owner, descriptor, $2N, $3S, $4S)",
+            "$1T builder = $1T.create(tag, owner, descriptor, $2N, $3S, $4S)",
             DefaultBridgeMethodBuilder.class,
             implTypeField,
             interceptorName,
             interceptorDesc);
         CallableInfo callable = request.getInterceptedCallable();
         if (callable.hasKotlinDefaultMaskParam()) {
-            method.addStatement("builder.withKotlinDefaultMask()");
+            method.addStatement("builder = builder.withKotlinDefaultMask()");
         }
         if (callable.hasCallerClassNameParam()) {
-            method.addStatement("builder.withClassName(className)");
+            method.addStatement("builder = builder.withClassName(className)");
         }
         if (callable.hasInjectVisitorContextParam()) {
-            method.addStatement("builder.withVisitorContext(context)");
+            method.addStatement("builder = builder.withVisitorContext(context)");
         }
         method.addStatement("return builder");
     }

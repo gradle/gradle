@@ -86,7 +86,7 @@ Let's break down the settings file in our project root directory:
 [source,kotlin]
 ----
 plugins {                                                                   // <1>
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.7.0"  // <2>
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"  // <2>
 }
 
 rootProject.name = "authoring-tutorial"                                     // <3>
@@ -108,7 +108,7 @@ includeBuild("gradle/license-plugin")                                       // <
 [source, groovy]
 ----
 plugins {                                                                   // <1>
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.7.0'   // <2>
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.9.0'   // <2>
 }
 
 rootProject.name = 'running-tutorial-groovy'                                // <3>

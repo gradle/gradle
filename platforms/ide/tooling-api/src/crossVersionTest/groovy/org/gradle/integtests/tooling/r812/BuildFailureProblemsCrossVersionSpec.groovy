@@ -16,11 +16,13 @@
 
 package org.gradle.integtests.tooling.r812
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.Failure
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.util.GradleVersion
 
 @ToolingApiVersion('>=8.12')
 @TargetGradleVersion('>=8.12')
@@ -135,11 +137,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 @Override
                 public void execute() {
                     Exception wrappedException = new Exception("Wrapped cause");
-                     getProblems().getReporter().throwing(problem -> problem
-                            .id("type", "label")
-                            .stackLocation()
-                            .withException(new RuntimeException("Exception message", wrappedException))
-                    );
+                    ${throwAsProblem('new RuntimeException("Exception message", wrappedException)')}
                 }
             }
         """
@@ -177,5 +175,24 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         problem.definition.id.name == 'type'
         problem.definition.id.displayName == 'label'
         problem.failure.message == 'Exception message'
+    }
+
+
+    private String throwAsProblem(String exception) {
+        if (targetVersion >= GradleVersion.version('8.13')) {
+            """
+                getProblems().getReporter().throwing($exception, ${ProblemsApiGroovyScriptUtils.createIdExpression()}, problem ->
+                    problem.stackLocation()
+                );
+            """
+        } else {
+            """
+                getProblems().getReporter().throwing(problem -> problem
+                    .${ProblemsApiGroovyScriptUtils.id(targetVersion)}
+                    .stackLocation()
+                    .withException($exception)
+                );
+            """
+        }
     }
 }

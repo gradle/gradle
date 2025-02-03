@@ -240,7 +240,7 @@ You should note that the `TestReport` type combines the results from multiple te
 [[communicating_test_results_to_CI_servers_and_other_tools_via_xml_files]]
 === Communicating test results to CI servers and other tools via XML files
 
-The Test tasks creates XML files describing the test results, in the “JUnit XML” pseudo standard.
+The Test tasks creates XML files describing the test results, in the "JUnit XML" pseudo standard.
 This standard is used by the JUnit 4, JUnit Jupiter, and TestNG test frameworks, and is configured using the same DSL block for each of these.
 It is common for CI servers and other tooling to observe test results via these XML files.
 
@@ -291,7 +291,7 @@ The default for each option is `true`.
 
 The `outputPerTestCase` option, when enabled, associates any output logging generated during a test case to that test case in the results.
 When disabled (the default) output is associated with the test class as whole and not the individual test cases (e.g. test methods) that produced the logging output.
-Most modern tools that observe JUnit XML files support the “output per test case” format.
+Most modern tools that observe JUnit XML files support the "output per test case" format.
 
 If you are using the XML files to communicate test results, it is recommended to enable this option as it provides more useful reporting.
 
@@ -313,7 +313,7 @@ and you wish to not consider the build failed if all failed tests passed when re
 This is the case for the Jenkins CI server and its link:https://plugins.jenkins.io/junit/[JUnit plugin].
 With `mergeReruns` enabled, tests that pass-on-retry will no longer cause this Jenkins plugin to consider the build to have failed.
 However, failed test executions will be omitted from the Jenkins test result visualizations as it does not consider `<flakyFailure>` information.
-The separate link:https://plugins.jenkins.io/flaky-test-handler[Flaky Test Handler Jenkins plugin] can be used in addition to the JUnit Jenkins plugin to have such “flaky failures” also be visualized.
+The separate link:https://plugins.jenkins.io/flaky-test-handler[Flaky Test Handler Jenkins plugin] can be used in addition to the JUnit Jenkins plugin to have such "flaky failures" also be visualized.
 
 Tests are grouped and merged based on their reported name.
 When using any kind of test parameterization that affects the reported test name,

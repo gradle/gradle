@@ -449,9 +449,7 @@ task wrongPropertyElementTypeApi(type: MyTask) {
             verify {
                 prop.convention(project.provider { [ 'a', 'b' ] })
                 assert !prop.explicit
-                prop.withActualValue {
-                    it.addAll(project.provider { [ 'c', 'd' ] })
-                }
+                prop.appendAll(project.provider { [ 'c', 'd' ] })
                 expected = [ 'a', 'b', 'c', 'd' ]
                 assert prop.explicit
             }

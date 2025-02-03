@@ -16,7 +16,7 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.problems.internal.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.steps.ValidateStep;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
     private final AtomicInteger workWithFailuresCount = new AtomicInteger();
 
     @Override
-    public void recordValidationWarnings(UnitOfWork work, Collection<? extends Problem> warnings) {
+    public void recordValidationWarnings(UnitOfWork work, Collection<? extends InternalProblem> warnings) {
         workWithFailuresCount.incrementAndGet();
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))

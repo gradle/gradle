@@ -91,7 +91,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springBoot = "3.3.2"
 
         // https://developer.android.com/studio/releases/build-tools
-        static androidTools = "34.0.0"
+        static androidTools = "35.0.0"
 
         // https://developer.android.com/studio/releases/gradle-plugin
         // Update by running `./gradlew updateAgpVersions`
@@ -129,7 +129,7 @@ abstract class AbstractSmokeTest extends Specification {
         static testRetryPlugin = "1.5.10"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
-        static aspectj = "8.10.2"
+        static aspectj = "8.12"
 
         // https://plugins.gradle.org/plugin/de.undercouch.download
         static undercouchDownload = Versions.of("5.6.0")

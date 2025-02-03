@@ -58,7 +58,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         if (buildOperationCategory == BuildOperationCategory.TASK) {
             // This is a legacy quirk.
             // Scans use this to determine that progress logging is indicating start/finish of tasks.
-            // This can be removed in Gradle 5.0 (along with the concept of a “logging category” of an operation)
+            // This can be removed in Gradle 5.0 (along with the concept of a "logging category" of an operation)
             category = ProgressStartEvent.TASK_CATEGORY;
         }
 
@@ -135,8 +135,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private int totalProgress;
 
         ProgressLoggerImpl(
-            ProgressLoggerImpl parent,
-            OperationIdentifier progressOperationId,
+            @Nullable ProgressLoggerImpl parent,
+            @Nullable OperationIdentifier progressOperationId,
             String category,
             ProgressListener listener,
             Clock clock,
@@ -186,11 +186,11 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         @Override
-        public void started(String status) {
+        public void started(@Nullable String status) {
             started(status, totalProgress);
         }
 
-        private void started(String status, int totalProgress) {
+        private void started(@Nullable String status, int totalProgress) {
             if (!GUtil.isTrue(description)) {
                 throw new IllegalStateException("A description must be specified before this operation is started.");
             }
@@ -228,12 +228,12 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         @Override
-        public void progress(String status) {
+        public void progress(@Nullable String status) {
             progress(status, false);
         }
 
         @Override
-        public void progress(String status, boolean failing) {
+        public void progress(@Nullable String status, boolean failing) {
             assertRunning();
             listener.progress(new ProgressEvent(progressOperationId, ensureNotNull(status), failing));
         }
@@ -251,7 +251,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             listener.completed(new ProgressCompleteEvent(progressOperationId, clock.getCurrentTime(), ensureNotNull(status), failed));
         }
 
-        private String ensureNotNull(String status) {
+        private String ensureNotNull(@Nullable String status) {
             return status == null ? "" : status;
         }
 

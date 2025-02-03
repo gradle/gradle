@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ConflictResolverDetails;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
@@ -40,9 +40,9 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
 
     private final ModuleConflictResolver<ComponentState> resolver;
     private final ConflictContainer<ModuleIdentifier, ComponentState> conflicts = new ConflictContainer<>();
-    private final ModuleReplacementsData moduleReplacements;
+    private final ImmutableModuleReplacements moduleReplacements;
 
-    public DefaultConflictHandler(ModuleConflictResolver<ComponentState> resolver, ModuleReplacementsData moduleReplacements) {
+    public DefaultConflictHandler(ModuleConflictResolver<ComponentState> resolver, ImmutableModuleReplacements moduleReplacements) {
         this.resolver = resolver;
         this.moduleReplacements = moduleReplacements;
     }
@@ -57,7 +57,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
      */
     @Override
     public PotentialConflict registerCandidate(CandidateModule candidate) {
-        ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
+        ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(candidate.getId());
         ModuleIdentifier replacedBy = replacement == null ? null : replacement.getTarget();
         return potentialConflict(conflicts.newElement(candidate.getId(), candidate.getVersions(), replacedBy));
     }
@@ -93,7 +93,7 @@ public class DefaultConflictHandler implements ModuleConflictHandler {
 
     private void maybeSetReason(Set<ModuleIdentifier> partifipants, ComponentResolutionState selected) {
         for (ModuleIdentifier identifier : partifipants) {
-            ModuleReplacementsData.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
+            ImmutableModuleReplacements.Replacement replacement = moduleReplacements.getReplacementFor(identifier);
             if (replacement != null) {
                 String reason = replacement.getReason();
                 ComponentSelectionDescriptorInternal moduleReplacement = ComponentSelectionReasons.SELECTED_BY_RULE.withDescription(Describables.of(identifier, "replaced with", replacement.getTarget()));

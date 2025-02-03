@@ -34,6 +34,3 @@ dependencies {
     manifestClasspath(projects.concurrent)
     manifestClasspath(projects.serviceLookup)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

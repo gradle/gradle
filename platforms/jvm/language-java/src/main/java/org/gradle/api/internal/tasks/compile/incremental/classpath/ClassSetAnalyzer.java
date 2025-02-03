@@ -17,9 +17,12 @@
 package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
+@ServiceScope(Scope.Build.class)
 public interface ClassSetAnalyzer {
     ClassSetAnalysisData analyzeClasspathEntry(File classpathEntry);
     ClassSetAnalysisData analyzeOutputFolder(File outputFolder);

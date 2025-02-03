@@ -227,44 +227,46 @@ configurations.compile.withDependencies {
     def "can use withDependencies to alter configuration resolved in a multi-project build"() {
         mavenRepo.module("org", "explicit-dependency", "3.4").publish()
         mavenRepo.module("org", "added-dependency", "3.4").publish()
-        buildFile.text = """
-subprojects {
-    apply plugin: 'java'
+        settingsFile << """
+            include 'consumer'
+            include 'producer'
+            dependencyResolutionManagement {
+                ${mavenTestRepository()}
+            }
+        """
+        buildFile.text = ""
 
-    repositories {
-        maven { url = '${mavenRepo.uri}' }
-    }
-}
-
-project(":producer") {
-    configurations {
-        implementation {
-            withDependencies { deps ->
-                deps.each {
-                    it.version {
-                       require '3.4'
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            configurations {
+                implementation {
+                    withDependencies { deps ->
+                        deps.each {
+                            it.version {
+                               require '3.4'
+                            }
+                        }
+                        deps.add(project.dependencies.create("org:added-dependency:3.4"))
                     }
                 }
-                deps.add(project.dependencies.create("org:added-dependency:3.4"))
             }
-        }
-    }
-    dependencies {
-        implementation "org:explicit-dependency"
-    }
-}
+            dependencies {
+                implementation "org:explicit-dependency"
+            }
+        """
 
-project(":consumer") {
-    dependencies {
-        implementation project(":producer")
-    }
-}
-"""
+        file("consumer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+            dependencies {
+                implementation project(":producer")
+            }
+        """
+
         resolve.prepare("runtimeClasspath")
-        createDirs("consumer", "producer")
-        settingsFile << """
-include 'consumer', 'producer'
-"""
         expect:
         // relying on default dependency
         succeeds(":consumer:checkDeps")
@@ -453,10 +455,10 @@ include 'consumer', 'producer'
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':deps' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':parent' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':deps' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
-        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':parent' after it has been resolved or consumed. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':deps' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency attributes of configuration ':parent' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':deps' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
+        executer.expectDocumentedDeprecationWarning("Mutating the dependency constraint attributes of configuration ':parent' after it's child configuration ':res' has been resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#mutate_configuration_after_locking")
         succeeds("resolve")
     }
 }

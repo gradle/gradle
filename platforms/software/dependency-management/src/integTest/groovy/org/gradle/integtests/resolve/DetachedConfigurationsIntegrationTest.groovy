@@ -33,12 +33,11 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-2889")
     def "detached configurations may have separate dependencies"() {
         given:
-        createDirs("a", "b")
         settingsFile << "include 'a', 'b'"
         mavenRepo.module("org", "foo").publish()
         mavenRepo.module("org", "bar").publish()
 
-        buildFile << """
+        def common = """
             abstract class CheckDependencies extends DefaultTask {
                 @Internal
                 abstract Property<ResolvedComponentResult> getResult()
@@ -53,29 +52,34 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            allprojects {
-                configurations {
-                    foo
-                }
-                repositories {
-                    maven { url = "${mavenRepo.uri}" }
-                }
+            configurations {
+                foo
+            }
+            repositories {
+                maven { url = "${mavenRepo.uri}" }
+            }
 
-                tasks.register("checkDependencies", CheckDependencies) {
-                    def detached = project.configurations.detachedConfiguration(project.configurations.foo.dependencies as Dependency[])
-                    result = detached.incoming.resolutionResult.rootComponent
-                    declared = provider { project.configurations.foo.dependencies*.name }
-                }
+            tasks.register("checkDependencies", CheckDependencies) {
+                def detached = project.configurations.detachedConfiguration(project.configurations.foo.dependencies as Dependency[])
+                result = detached.incoming.resolutionResult.rootComponent
+                declared = provider { project.configurations.foo.dependencies*.name }
             }
-            project(":a") {
-                dependencies {
-                    foo "org:foo:1.0"
-                }
+        """
+
+        buildFile << common
+        file("a/build.gradle") << """
+            $common
+
+            dependencies {
+                foo "org:foo:1.0"
             }
-            project(":b") {
-                dependencies {
-                    foo "org:bar:1.0"
-                }
+        """
+
+        file("b/build.gradle") << """
+            $common
+
+            dependencies {
+                foo "org:bar:1.0"
             }
         """
 
@@ -85,7 +89,6 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     def "detached configurations may have dependencies on other projects"() {
         given:
-        createDirs("other")
         settingsFile << "include 'other'"
         buildFile << """
             plugins {

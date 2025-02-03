@@ -37,6 +37,7 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
+    api(projects.serialization)
 
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)
@@ -49,4 +50,8 @@ dependencies {
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+packageCycles {
+    excludePatterns.add("org/gradle/api/problems/**") // ProblemId.create() and ProblemGroup.create() return internal types
 }

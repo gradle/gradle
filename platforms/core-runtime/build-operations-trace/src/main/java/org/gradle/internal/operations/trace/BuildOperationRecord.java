@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Lists.transform;
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public final class BuildOperationRecord {
 
@@ -58,7 +59,7 @@ public final class BuildOperationRecord {
         @Nullable Map<String, ?> result,
         @Nullable String resultClassName,
         @Nullable String failure,
-        List<Progress> progress,
+        List<SerializedOperationProgress> progress,
         List<BuildOperationRecord> children
     ) {
         this.id = id;
@@ -71,11 +72,25 @@ public final class BuildOperationRecord {
         this.result = result == null ? null : new StrictMap<String, Object>(result);
         this.resultClassName = resultClassName;
         this.failure = failure;
-        this.progress = progress;
         this.children = children;
+
+        this.progress = convertProgressEvents(progress);
     }
 
-    Map<String, ?> toSerializable() {
+    private static List<BuildOperationRecord.Progress> convertProgressEvents(List<SerializedOperationProgress> toConvert) {
+        List<BuildOperationRecord.Progress> progresses = new ArrayList<>();
+        for (SerializedOperationProgress progress : toConvert) {
+            Map<String, ?> progressDetailsMap = uncheckedCast(progress.details);
+            progresses.add(new BuildOperationRecord.Progress(
+                progress.time,
+                progressDetailsMap,
+                progress.detailsClassName
+            ));
+        }
+        return progresses;
+    }
+
+    /* package */ Map<String, ?> toSerializable() {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("displayName", displayName);
 

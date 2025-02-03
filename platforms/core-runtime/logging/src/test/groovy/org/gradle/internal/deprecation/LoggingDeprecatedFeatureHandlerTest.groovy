@@ -32,6 +32,7 @@ import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.gradle.problems.Location
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
@@ -54,11 +55,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final diagnosticsFactory = Stub(ProblemDiagnosticsFactory)
 
     final handler = new LoggingDeprecatedFeatureHandler()
-    final Clock clock = Mock(Clock)
+    final Clock clock = FixedClock.create()
     final BuildOperationListener buildOperationListener = Mock()
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
-        clock::getCurrentTime, currentBuildOperationRef, buildOperationListener)
+        clock, currentBuildOperationRef, buildOperationListener)
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
@@ -135,10 +136,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         events[0].message == TextUtil.toPlatformLineSeparators("""feature1 removal
 \tat some.KotlinGradleScript.foo(GradleScript.gradle.kts:31337)
-\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)""")
+\t(Run with -D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=true to print the full stack trace for this deprecation warning.)""")
         events[1].message == TextUtil.toPlatformLineSeparators("""feature1 removal
 \tat some.KotlinGradleScript.foo(GradleScript.gradle.kts:7)
-\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)""")
+\t(Run with -D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=true to print the full stack trace for this deprecation warning.)""")
 
         where:
         fakeStackTrace1 = [

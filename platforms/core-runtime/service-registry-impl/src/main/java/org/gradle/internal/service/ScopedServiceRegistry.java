@@ -25,14 +25,6 @@ class ScopedServiceRegistry extends DefaultServiceRegistry {
 
     public ScopedServiceRegistry(
         Class<? extends Scope> scope,
-        String displayName,
-        ServiceRegistry... parents
-    ) {
-        this(scope, false, displayName, parents);
-    }
-
-    public ScopedServiceRegistry(
-        Class<? extends Scope> scope,
         boolean strict,
         String displayName,
         ServiceRegistry... parents

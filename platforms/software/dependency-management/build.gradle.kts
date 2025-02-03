@@ -15,14 +15,12 @@ errorprone {
         "ClassCanBeStatic",
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
-        "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
         "InlineMeSuggester", // 2 occurrences
         "InvalidParam", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
         "MathAbsoluteNegative",
         "MissingCasesInEnumSwitch", // 7 occurrences
         "MixedMutabilityReturnType", // 5 occurrences
@@ -30,7 +28,6 @@ errorprone {
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
@@ -43,14 +40,11 @@ errorprone {
 
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.buildOption)
+    api(projects.buildProcessServices)
+    api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.enterpriseLogging)
@@ -68,8 +62,12 @@ dependencies {
     api(projects.problemsApi)
     api(projects.resources)
     api(projects.security)
+    api(projects.serialization)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.buildProcessServices)
+    api(projects.stdlibJavaExtensions)
+    api(projects.versionedCache)
 
     api(libs.bouncycastlePgp)
     api(libs.groovy)
@@ -99,12 +97,14 @@ dependencies {
     implementation(libs.httpcore)
 
     testImplementation(projects.buildCachePackaging)
-    testImplementation(projects.diagnostics)
+    testImplementation(projects.softwareDiagnostics)
+
     testImplementation(projects.processServices)
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
+
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))

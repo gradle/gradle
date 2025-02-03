@@ -56,7 +56,7 @@ class TasksFromProjectDependencies implements TaskDependencyContainerInternal {
         String taskName
     ) {
         for (ProjectDependency projectDependency : projectDependencies) {
-            Path identityPath = ((ProjectDependencyInternal) projectDependency).getIdentityPath();
+            Path identityPath = ((ProjectDependencyInternal) projectDependency).getTargetProjectIdentity().getBuildTreePath();
             ProjectState projectState = projectStateRegistry.stateFor(identityPath);
             projectState.ensureTasksDiscovered();
 

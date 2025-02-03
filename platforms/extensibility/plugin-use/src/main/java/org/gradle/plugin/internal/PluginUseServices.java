@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory;
 import org.gradle.api.problems.internal.InternalProblems;
@@ -66,6 +67,7 @@ import org.gradle.plugin.use.internal.DefaultPluginRequestApplicator;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
 import org.gradle.plugin.use.internal.PluginDependencyResolutionServices;
 import org.gradle.plugin.use.internal.PluginRepositoryHandlerProvider;
+import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginResolverFactory;
 import org.gradle.plugin.use.resolve.service.internal.ClientInjectedClasspathPluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.DefaultInjectedClasspathPluginResolver;
@@ -123,7 +125,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
         @Provides
         void configure(ServiceRegistration registration) {
             registration.add(PluginResolverFactory.class);
-            registration.add(DefaultPluginRequestApplicator.class);
+            registration.add(PluginRequestApplicator.class, DefaultPluginRequestApplicator.class);
             registration.add(PluginVersionTracker.class);
         }
 
@@ -206,8 +208,14 @@ public class PluginUseServices extends AbstractGradleModuleServices {
     @NonNullApi
     private static class ProjectScopeServices implements ServiceRegistrationProvider {
         @Provides
-        SoftwareFeatureApplicator createSoftwareFeatureApplicator(ModelDefaultsApplicator modelDefaultsApplicator, PluginScheme pluginScheme, InternalProblems problems, PluginManagerInternal pluginManager) {
-            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager);
+        SoftwareFeatureApplicator createSoftwareFeatureApplicator(
+            ModelDefaultsApplicator modelDefaultsApplicator,
+            PluginScheme pluginScheme,
+            InternalProblems problems,
+            PluginManagerInternal pluginManager,
+            ProjectInternal project
+        ) {
+            return new DefaultSoftwareFeatureApplicator(modelDefaultsApplicator, pluginScheme.getInspectionScheme(), problems, pluginManager, project.getClassLoaderScope());
         }
 
         @Provides

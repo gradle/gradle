@@ -24,7 +24,6 @@ import org.gradle.api.internal.file.DefaultArchiveOperations;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
-import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -72,8 +71,8 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     void configure(ServiceRegistration registration) {
-        registration.add(DefaultPropertyFactory.class);
-        registration.add(DefaultFilePropertyFactory.class);
+        registration.add(PropertyFactory.class, DefaultPropertyFactory.class);
+        registration.add(FilePropertyFactory.class, FileFactory.class, DefaultFilePropertyFactory.class);
     }
 
     @Provides
@@ -87,14 +86,14 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    protected DefaultFileOperations createFileOperations(
+    protected FileOperations createFileOperations(
             FileResolver fileResolver,
             Instantiator instantiator,
             DirectoryFileTreeFactory directoryFileTreeFactory,
             FileHasher fileHasher,
             DefaultResourceHandler.Factory resourceHandlerFactory,
             FileCollectionFactory fileCollectionFactory,
-            ObjectFactory objectFactory,
+            PropertyFactory propertyFactory,
             FileSystem fileSystem,
             Factory<PatternSet> patternSetFactory,
             Deleter deleter,
@@ -111,21 +110,21 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
                 fileHasher,
                 resourceHandlerFactory,
                 fileCollectionFactory,
-                objectFactory,
+                propertyFactory,
                 fileSystem,
                 patternSetFactory,
                 deleter,
                 documentationRegistry,
                 taskDependencyFactory,
                 providers,
-            decompressionCoordinator,
+                decompressionCoordinator,
                 temporaryFileProvider
         );
     }
 
     @Provides
-    protected FileSystemOperations createFileSystemOperations(ObjectFactory objectFactory, Instantiator instantiator, FileOperations fileOperations) {
-        return instantiator.newInstance(DefaultFileSystemOperations.class, objectFactory, fileOperations);
+    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultFileSystemOperations.class, instantiator, fileOperations);
     }
 
     @Provides
@@ -152,11 +151,5 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
                 taskDependencyFactory,
                 fileCollectionFactory,
                 domainObjectCollectionFactory);
-    }
-
-    @Provides
-    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
-                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }

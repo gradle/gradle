@@ -41,7 +41,22 @@ import java.util.function.Function;
 @ServiceScope(Scope.BuildTree.class)
 public interface LocalVariantGraphResolveStateBuilder {
 
-    LocalVariantGraphResolveState create(
+    /**
+     * Create variant state to be used as a root variant of a dependency graph.
+     */
+    LocalVariantGraphResolveState createRootVariantState(
+        ConfigurationInternal configuration,
+        ConfigurationsProvider configurationsProvider,
+        ComponentIdentifier componentId,
+        DependencyCache dependencyCache,
+        ModelContainer<?> model,
+        CalculatedValueContainerFactory calculatedValueContainerFactory
+    );
+
+    /**
+     * Create variant state to be used as a consumable variant of a component within a dependency graph.
+     */
+    LocalVariantGraphResolveState createConsumableVariantState(
         ConfigurationInternal configuration,
         ConfigurationsProvider configurationsProvider,
         ComponentIdentifier componentId,

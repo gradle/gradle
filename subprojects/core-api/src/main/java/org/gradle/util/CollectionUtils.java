@@ -547,14 +547,14 @@ public abstract class CollectionUtils {
     }
 
     /**
-     * Provides a “diff report” of how the two sets are similar and how they are different, comparing the entries by some aspect.
+     * Provides a "diff report" of how the two sets are similar and how they are different, comparing the entries by some aspect.
      *
      * The transformer is used to generate the value to use to compare the entries by. That is, the entries are not compared by equals by an attribute or characteristic.
      *
      * The transformer is expected to produce a unique value for each entry in a single set. Behaviour is undefined if this condition is not met.
      *
-     * @param left The set on the “left” side of the comparison.
-     * @param right The set on the “right” side of the comparison.
+     * @param left The set on the "left" side of the comparison.
+     * @param right The set on the "right" side of the comparison.
      * @param compareBy Provides the value to compare entries from either side by
      * @param <T> The type of the entry objects
      * @return A representation of the difference

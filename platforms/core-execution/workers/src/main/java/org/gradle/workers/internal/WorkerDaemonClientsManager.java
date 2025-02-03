@@ -28,6 +28,8 @@ import org.gradle.internal.logging.events.LogLevelChangeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
@@ -40,6 +42,7 @@ import java.util.function.Consumer;
 
 import static java.util.Comparator.comparingInt;
 
+@ServiceScope(Scope.UserHome.class)
 public class WorkerDaemonClientsManager implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
@@ -114,7 +117,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
+    WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(forkOptions);
         synchronized (lock) {
@@ -123,7 +126,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         return client;
     }
 
-    public void release(WorkerDaemonClient client) {
+    void release(WorkerDaemonClient client) {
         synchronized (lock) {
             if (!client.isFailed()) {
                 idleClients.add(client);

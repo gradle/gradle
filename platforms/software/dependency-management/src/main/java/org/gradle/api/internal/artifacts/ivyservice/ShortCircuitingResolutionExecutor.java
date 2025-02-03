@@ -25,11 +25,10 @@ import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolverResults;
-import org.gradle.api.internal.artifacts.ResolveContext;
+import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
-import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -65,50 +64,46 @@ import java.util.Set;
 public class ShortCircuitingResolutionExecutor {
     private final ResolutionExecutor delegate;
     private final AttributeDesugaring attributeDesugaring;
+    private final DependencyLockingProvider dependencyLockingProvider;
 
     public ShortCircuitingResolutionExecutor(
         ResolutionExecutor delegate,
-        AttributeDesugaring attributeDesugaring
+        AttributeDesugaring attributeDesugaring,
+        DependencyLockingProvider dependencyLockingProvider
     ) {
         this.delegate = delegate;
         this.attributeDesugaring = attributeDesugaring;
+        this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
-    public ResolverResults resolveBuildDependencies(ResolveContext resolveContext, CalculatedValue<ResolverResults> futureCompleteResults) {
-        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
-        LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
-
-        if (hasDependencies(rootVariant)) {
-            return delegate.resolveBuildDependencies(resolveContext, futureCompleteResults);
+    public ResolverResults resolveBuildDependencies(LegacyResolutionParameters legacyParams, ResolutionParameters params, CalculatedValue<ResolverResults> futureCompleteResults) {
+        if (hasDependencies(params)) {
+            return delegate.resolveBuildDependencies(legacyParams, params, futureCompleteResults);
         }
 
-        VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
+        VisitedGraphResults graphResults = emptyGraphResults(params);
         return DefaultResolverResults.buildDependenciesResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(EmptyResults.INSTANCE)
         );
     }
 
-    public ResolverResults resolveGraph(ResolveContext resolveContext, List<ResolutionAwareRepository> repositories) throws ResolveException {
-        RootComponentMetadataBuilder.RootComponentState rootComponent = resolveContext.toRootComponent();
-        LocalVariantGraphResolveState rootVariant = rootComponent.getRootVariant();
-
-        if (hasDependencies(rootVariant)) {
-            return delegate.resolveGraph(resolveContext, repositories);
+    public ResolverResults resolveGraph(LegacyResolutionParameters legacyParams, ResolutionParameters params, List<ResolutionAwareRepository> repositories) throws ResolveException {
+        if (hasDependencies(params)) {
+            return delegate.resolveGraph(legacyParams, params, repositories);
         }
 
-        if (resolveContext.getResolutionStrategy().isDependencyLockingEnabled()) {
-            DependencyLockingProvider dependencyLockingProvider = resolveContext.getResolutionStrategy().getDependencyLockingProvider();
-            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName());
+        if (params.isDependencyLockingEnabled()) {
+            DependencyLockingState lockingState = dependencyLockingProvider.loadLockState(params.getDependencyLockingId(), params.getResolutionHost().displayName());
             if (lockingState.mustValidateLockState() && !lockingState.getLockedDependencies().isEmpty()) {
                 // Invalid lock state, need to do a real resolution to gather locking failures
-                return delegate.resolveGraph(resolveContext, repositories);
+                return delegate.resolveGraph(legacyParams, params, repositories);
             }
-            dependencyLockingProvider.persistResolvedDependencies(resolveContext.getDependencyLockingId(), resolveContext.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
+            dependencyLockingProvider.persistResolvedDependencies(params.getDependencyLockingId(), params.getResolutionHost().displayName(), Collections.emptySet(), Collections.emptySet());
         }
 
-        VisitedGraphResults graphResults = emptyGraphResults(rootComponent.getRootComponent(), rootVariant);
+        VisitedGraphResults graphResults = emptyGraphResults(params);
         ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
-            graphResults, resolveContext.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
+            graphResults, params.getResolutionHost(), EmptyResults.INSTANCE, new EmptyLenientConfiguration()
         );
         return DefaultResolverResults.graphResolved(graphResults, EmptyResults.INSTANCE,
             DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
@@ -117,7 +112,9 @@ public class ShortCircuitingResolutionExecutor {
         );
     }
 
-    private static boolean hasDependencies(LocalVariantGraphResolveState rootVariant) {
+    private static boolean hasDependencies(ResolutionParameters params) {
+        LocalVariantGraphResolveState rootVariant = params.getRootVariant();
+
         if (!rootVariant.getFiles().isEmpty()) {
             return true;
         }
@@ -132,10 +129,10 @@ public class ShortCircuitingResolutionExecutor {
         return false;
     }
 
-    private VisitedGraphResults emptyGraphResults(
-        LocalComponentGraphResolveState rootComponent,
-        VariantGraphResolveState rootVariant
-    ) {
+    private VisitedGraphResults emptyGraphResults(ResolutionParameters params) {
+        LocalComponentGraphResolveState rootComponent = params.getRootComponent();
+        VariantGraphResolveState rootVariant = params.getRootVariant();
+
         MinimalResolutionResult emptyResult = ResolutionResultGraphBuilder.empty(
             rootComponent.getModuleVersionId(),
             rootComponent.getId(),

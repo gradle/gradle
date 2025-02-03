@@ -107,7 +107,7 @@ include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipl
 The order of repository declaration determines the order that Gradle will search for dependencies during resolution.
 If Gradle finds a dependency's metadata in a particular repository, it will attempt to download all the artifacts for that module from _the same repository_.
 
-You can learn more about the inner workings of <<variant_model.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
+You can learn more about the inner workings of <<dependency_resolution_model.adoc#sec:how-gradle-downloads-deps, dependency downloads>>.
 
 [[sec:plugin-repos]]
 == Plugin repositories

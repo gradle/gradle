@@ -40,6 +40,3 @@ dependencies {
 
     agentsClasspath(projects.instrumentationAgent)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

@@ -17,13 +17,13 @@
 package org.gradle.api.problems.internal;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails {
-    private final Problem problem;
+    private final InternalProblem problem;
 
-    public DefaultProblemProgressDetails(Problem problem) {
+    public DefaultProblemProgressDetails(InternalProblem problem) {
         this.problem = problem;
     }
 
-    public Problem getProblem() {
+    public InternalProblem getProblem() {
         return problem;
     }
 }
