@@ -24,21 +24,34 @@ import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.RelativePathTracker;
+import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
+import org.gradle.internal.snapshot.SnapshotVisitResult;
 import org.gradle.internal.vfs.FileSystemAccess;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileSystemAccess fileSystemAccess;
     private final Stat stat;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
+    public DefaultFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat, BuildOperationRunner buildOperationRunner) {
         this.fileSystemAccess = fileSystemAccess;
         this.stat = stat;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -69,6 +82,36 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             for (File file : contents) {
                 roots.add(fileSystemAccess.read(file.getAbsolutePath()));
             }
+//            roots.add(new FileSystemSnapshot() {
+//                @Override
+//                public Stream<FileSystemLocationSnapshot> roots() {
+//                    return delegate.roots();
+//                }
+//
+//                @Override
+//                public SnapshotVisitResult accept(FileSystemSnapshotHierarchyVisitor visitor) {
+//                    return operation(() -> delegate.accept(visitor), "accept(FileSystemSnapshotHierarchyVisitor)");
+//                }
+//
+//                @Override
+//                public SnapshotVisitResult accept(RelativePathTracker pathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor visitor) {
+//                    return operation(() -> delegate.accept(pathTracker, visitor), "accept(RelativePathTracker, RelativePathTrackingFileSystemSnapshotHierarchyVisitor)");
+//                }
+//
+//                private <T> T operation(Callable<T> callable, String type) {
+//                    return buildOperationRunner.call(new CallableBuildOperation<T>() {
+//                        @Override
+//                        public T call(BuildOperationContext context) throws Exception {
+//                            return callable.call();
+//                        }
+//
+//                        @Override
+//                        public BuildOperationDescriptor.Builder description() {
+//                            return BuildOperationDescriptor.displayName("Fingerprinting " + file.getName() + " " + type);
+//                        }
+//                    });
+//                }
+//            });
         }
 
         @Override

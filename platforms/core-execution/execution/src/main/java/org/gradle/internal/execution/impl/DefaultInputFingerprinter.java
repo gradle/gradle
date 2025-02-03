@@ -19,6 +19,7 @@ package org.gradle.internal.execution.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
@@ -29,6 +30,10 @@ import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.execution.UnitOfWork.ValueSupplier;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
@@ -40,15 +45,18 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
     private final FileCollectionSnapshotter snapshotter;
     private final FileCollectionFingerprinterRegistry fingerprinterRegistry;
     private final ValueSnapshotter valueSnapshotter;
+    private final BuildOperationRunner buildOperationRunner;
 
     public DefaultInputFingerprinter(
         FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        ValueSnapshotter valueSnapshotter
+        ValueSnapshotter valueSnapshotter,
+        BuildOperationRunner buildOperationRunner
     ) {
         this.snapshotter = snapshotter;
         this.fingerprinterRegistry = fingerprinterRegistry;
         this.valueSnapshotter = valueSnapshotter;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Override
@@ -59,7 +67,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
         Consumer<InputVisitor> inputs
     ) {
-        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousFingerprints, snapshotter, fingerprinterRegistry, valueSnapshotter, knownCurrentValueSnapshots, knownCurrentFingerprints);
+        InputCollectingVisitor visitor = new InputCollectingVisitor(previousValueSnapshots, previousFingerprints, snapshotter, fingerprinterRegistry, valueSnapshotter, knownCurrentValueSnapshots, knownCurrentFingerprints, buildOperationRunner);
         inputs.accept(visitor);
         return visitor.complete();
     }
@@ -72,6 +80,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
         private final ValueSnapshotter valueSnapshotter;
         private final ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots;
         private final ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints;
+        private final BuildOperationRunner buildOperationRunner;
 
         private final ImmutableSortedMap.Builder<String, ValueSnapshot> valueSnapshotsBuilder = ImmutableSortedMap.naturalOrder();
         private final ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> fingerprintsBuilder = ImmutableSortedMap.naturalOrder();
@@ -84,7 +93,8 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
             ValueSnapshotter valueSnapshotter,
             ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
-            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints
+            ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
+            BuildOperationRunner buildOperationRunner
         ) {
             this.previousValueSnapshots = previousValueSnapshots;
             this.previousFingerprints = previousFingerprints;
@@ -93,6 +103,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             this.valueSnapshotter = valueSnapshotter;
             this.knownCurrentValueSnapshots = knownCurrentValueSnapshots;
             this.knownCurrentFingerprints = knownCurrentFingerprints;
+            this.buildOperationRunner = buildOperationRunner;
         }
 
         @Override
@@ -131,7 +142,22 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             try {
                 FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
-                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+
+
+
+                CurrentFileCollectionFingerprint fingerprint = buildOperationRunner.call(new CallableBuildOperation<CurrentFileCollectionFingerprint>() {
+                    @Override
+                    public CurrentFileCollectionFingerprint call(BuildOperationContext context) throws Exception {
+                        return fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+                    }
+
+                    @Override
+                    public BuildOperationDescriptor.Builder description() {
+                        return BuildOperationDescriptor.displayName("Fingerprinting property " + propertyName + " " + Iterables.toString(value.getFiles()));
+                    }
+                });
+
+
                 fingerprintsBuilder.put(propertyName, fingerprint);
                 if (result.containsArchiveTrees()) {
                     propertiesRequiringIsEmptyCheck.add(propertyName);

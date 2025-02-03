@@ -168,9 +168,10 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     InputFingerprinter createInputFingerprinter(
         FileCollectionSnapshotter snapshotter,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
-        ValueSnapshotter valueSnapshotter
+        ValueSnapshotter valueSnapshotter,
+        BuildOperationRunner buildOperationRunner
     ) {
-        return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
+        return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter, buildOperationRunner);
     }
 
     @Provides

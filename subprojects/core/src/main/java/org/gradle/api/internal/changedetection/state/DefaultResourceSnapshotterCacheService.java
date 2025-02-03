@@ -18,12 +18,16 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.IndexedCache;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
-import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContext;
+import org.gradle.internal.fingerprint.hashing.RegularFileSnapshotContextHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.io.IoSupplier;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationRunner;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
@@ -32,9 +36,11 @@ import java.io.IOException;
 public class DefaultResourceSnapshotterCacheService implements ResourceSnapshotterCacheService {
     private static final HashCode NO_HASH = Hashing.signature(CachingResourceHasher.class.getName() + " : no hash");
     private final IndexedCache<HashCode, HashCode> indexedCache;
+    private final BuildOperationRunner buildOperationRunner;
 
-    public DefaultResourceSnapshotterCacheService(IndexedCache<HashCode, HashCode> indexedCache) {
+    public DefaultResourceSnapshotterCacheService(IndexedCache<HashCode, HashCode> indexedCache, BuildOperationRunner buildOperationRunner) {
         this.indexedCache = indexedCache;
+        this.buildOperationRunner = buildOperationRunner;
     }
 
     @Nullable
@@ -61,7 +67,17 @@ public class DefaultResourceSnapshotterCacheService implements ResourceSnapshott
             return resourceHash;
         }
 
-        resourceHash = hashCodeSupplier.get();
+        resourceHash = buildOperationRunner.call(new CallableBuildOperation<HashCode>() {
+            @Override
+            public HashCode call(BuildOperationContext context) throws Exception {
+                return hashCodeSupplier.get();
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Hashing " + snapshot.getName());
+            }
+        });
 
         if (resourceHash != null) {
             indexedCache.put(resourceHashCacheKey, resourceHash);

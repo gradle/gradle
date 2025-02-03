@@ -40,6 +40,7 @@ import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.operations.TestBuildOperationRunner;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.service.scopes.Scope;
@@ -200,7 +201,7 @@ public class TestFiles {
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(fileSystemAccess(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(fileSystemAccess(), fileSystem(), new TestBuildOperationRunner());
     }
 
     public static VirtualFileSystem virtualFileSystem() {

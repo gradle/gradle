@@ -73,6 +73,7 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.NativeCapabilities;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.PrivateService;
@@ -284,17 +285,17 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
-            return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat);
+        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat, BuildOperationRunner buildOperationRunner) {
+            return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat, buildOperationRunner);
         }
 
         @Provides
-        ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
+        ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store, BuildOperationRunner buildOperationRunner) {
             IndexedCache<HashCode, HashCode> resourceHashesCache = store.createIndexedCache(
                 IndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
                 400000,
                 true);
-            return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
+            return new DefaultResourceSnapshotterCacheService(resourceHashesCache, buildOperationRunner);
         }
 
         @Provides
@@ -369,8 +370,8 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat) {
-            return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat);
+        FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemAccess fileSystemAccess, Stat stat, BuildOperationRunner buildOperationRunner) {
+            return new DefaultFileCollectionSnapshotter(fileSystemAccess, stat, buildOperationRunner);
         }
 
         @Provides
@@ -403,19 +404,21 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         InputFingerprinter createInputFingerprinter(
             FileCollectionSnapshotter snapshotter,
             FileCollectionFingerprinterRegistry fingerprinterRegistry,
-            ValueSnapshotter valueSnapshotter
+            ValueSnapshotter valueSnapshotter,
+            BuildOperationRunner buildOperationRunner
         ) {
-            return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter);
+            return new DefaultInputFingerprinter(snapshotter, fingerprinterRegistry, valueSnapshotter, buildOperationRunner);
         }
 
         @Provides
         ResourceSnapshotterCacheService createResourceSnapshotterCacheService(
             GlobalCacheLocations globalCacheLocations,
             CrossBuildFileHashCache store,
-            ResourceSnapshotterCacheService globalCache
+            ResourceSnapshotterCacheService globalCache,
+            BuildOperationRunner buildOperationRunner
         ) {
             IndexedCache<HashCode, HashCode> resourceHashesCache = store.createIndexedCache(IndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()), 800000, true);
-            DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache);
+            DefaultResourceSnapshotterCacheService localCache = new DefaultResourceSnapshotterCacheService(resourceHashesCache, buildOperationRunner);
             return new SplitResourceSnapshotterCacheService(globalCache, localCache, globalCacheLocations);
         }
     }
