@@ -120,6 +120,7 @@ dependencies {
     api(libs.nativePlatform)
 
     implementation(projects.buildOperationsTrace)
+    implementation(projects.groovySupport)
     implementation(projects.io)
     implementation(projects.inputTracking)
     implementation(projects.modelGroovy)

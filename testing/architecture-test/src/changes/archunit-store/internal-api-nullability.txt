@@ -459,7 +459,6 @@ Class <org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource
 Class <org.gradle.api.internal.provider.sources.process.ProviderCompatibleBaseExecSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProviderCompatibleBaseExecSpec.java:0)
 Class <org.gradle.api.internal.provider.sources.process.ProviderCompatibleExecSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProviderCompatibleExecSpec.java:0)
 Class <org.gradle.api.internal.provider.sources.process.ProviderCompatibleJavaExecSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (ProviderCompatibleJavaExecSpec.java:0)
-Class <org.gradle.api.internal.provider.support.LazyGroovySupport> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (LazyGroovySupport.java:0)
 Class <org.gradle.api.internal.resolve.DefaultLocalLibraryResolver> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultLocalLibraryResolver.java:0)
 Class <org.gradle.api.internal.resolve.DefaultProjectModelResolver> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultProjectModelResolver.java:0)
 Class <org.gradle.api.internal.resolve.LibraryResolutionErrorMessageBuilder> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (LibraryResolutionErrorMessageBuilder.java:0)
