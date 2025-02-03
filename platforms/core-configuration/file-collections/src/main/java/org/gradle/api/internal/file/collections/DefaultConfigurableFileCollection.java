@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
@@ -201,13 +202,23 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void setFromAnyValue(Object object) {
+    public void setFromAnyValue(@Nullable Object object) {
+        Preconditions.checkNotNull(object, "Can't assign null value to %s", getDisplayName());
+
+        if (object instanceof FileCollectionCompoundAssignmentResult) {
+            FileCollectionCompoundAssignmentResult compoundAssignmentResult = (FileCollectionCompoundAssignmentResult) object;
+            if (compoundAssignmentResult.isOwnedBy(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
+        }
+
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
         throwOnSelfSubtraction(fileCollection);
 
-        // Don't allow a += b or a = (a + b), this is not support
+        // Don't allow a = (a + b), this is not supported yet
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
@@ -845,5 +856,14 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             }
             return this;
         }
+    }
+
+    /**
+     * Returns a stand-in that defines operations for Groovy's {@code <OP>=} expression.
+     *
+     * @return the stand-in to call the operation on
+     */
+    public ConfigurableFileCollectionCompoundAssignmentStandIn forCompoundAssignment() {
+       return new ConfigurableFileCollectionCompoundAssignmentStandIn(this, taskDependencyFactory);
     }
 }
