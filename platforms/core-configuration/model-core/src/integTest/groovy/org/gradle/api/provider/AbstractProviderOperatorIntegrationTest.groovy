@@ -41,7 +41,7 @@ abstract class AbstractProviderOperatorIntegrationTest extends AbstractIntegrati
         }
     }
 
-    private static interface Failure {
+    static interface Failure {
         void assertHasExpectedFailure(ExecutionFailure failure);
     }
 

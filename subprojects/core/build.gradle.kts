@@ -89,6 +89,7 @@ dependencies {
     implementation(projects.buildCacheSpi)
     implementation(projects.buildDiscoveryReporting)
     implementation(projects.buildOperationsTrace)
+    implementation(projects.groovySupport)
     implementation(projects.daemonLogging)
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
