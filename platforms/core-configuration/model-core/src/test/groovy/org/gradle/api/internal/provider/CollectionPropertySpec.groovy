@@ -1493,7 +1493,6 @@ The value of this property is derived from: <source>""")
         when:
         property.setToConventionIfUnset()
 
-        "".subSequence()
         then:
         assertValueIs([])
         !property.explicit
