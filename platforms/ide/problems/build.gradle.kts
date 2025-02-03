@@ -68,8 +68,10 @@ dependencies {
     implementation(projects.serialization)
 
     implementation(libs.guava)
+    implementation(libs.fastutil)
 
     testImplementation(projects.stdlibKotlinExtensions)
+    testImplementation(testFixtures(projects.core))
 
     testImplementation(libs.junit)
 

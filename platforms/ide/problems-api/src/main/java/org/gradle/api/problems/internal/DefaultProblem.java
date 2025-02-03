@@ -133,4 +133,17 @@ public class DefaultProblem implements Serializable, InternalProblem {
         return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData);
     }
 
+    @Override
+    public String toString() {
+        return "DefaultProblem{" +
+            "problemDefinition=" + problemDefinition +
+            ", contextualLabel='" + contextualLabel + '\'' +
+            ", solutions=" + solutions +
+            ", originLocations=" + originLocations +
+            ", contextualLocations=" + contextualLocations +
+            ", details='" + details + '\'' +
+            ", exception=" + (exception != null ? exception.toString() : "null") +
+            ", additionalData=" + additionalData +
+            '}';
+    }
 }

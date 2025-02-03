@@ -30,12 +30,15 @@ import java.util.Locale;
  */
 @Deprecated
 public class VersionNumber implements Comparable<VersionNumber> {
-
-    private static void logDeprecation(int majorVersion) {
+    private static void logDeprecation(int majorVersion, String upgradeGuideSection) {
         DeprecationLogger.deprecateType(VersionNumber.class)
             .willBeRemovedInGradle9()
-            .withUpgradeGuideSection(majorVersion, "org_gradle_util_reports_deprecations")
+            .withUpgradeGuideSection(majorVersion, upgradeGuideSection)
             .nagUser();
+    }
+
+    private static void logDeprecation() {
+        logDeprecation(7, "org_gradle_util_reports_deprecations");
     }
 
     private static final DefaultScheme DEFAULT_SCHEME = new DefaultScheme();
@@ -66,14 +69,14 @@ public class VersionNumber implements Comparable<VersionNumber> {
         this.qualifier = qualifier;
         this.scheme = scheme;
         if (logDeprecation) {
-            logDeprecation(7);
+            logDeprecation();
             deprecationLogged = true;
         }
     }
 
     private void maybeLogDeprecation() {
         if(!deprecationLogged) {
-            logDeprecation(7);
+            logDeprecation();
         }
     }
 
@@ -110,7 +113,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
     @Override
     public int compareTo(VersionNumber other) {
-        logDeprecation(8);
+        logDeprecation(8, "org_gradle_util_reports_deprecations_8");
         if (major != other.major) {
             return major - other.major;
         }
@@ -159,7 +162,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * Returns the default MAJOR.MINOR.MICRO-QUALIFIER scheme.
      */
     public static Scheme scheme() {
-        logDeprecation(7);
+        logDeprecation();
         return DEFAULT_SCHEME;
     }
 
@@ -167,17 +170,17 @@ public class VersionNumber implements Comparable<VersionNumber> {
      * Returns the MAJOR.MINOR.MICRO.PATCH-QUALIFIER scheme.
      */
     public static Scheme withPatchNumber() {
-        logDeprecation(7);
+        logDeprecation();
         return PATCH_SCHEME;
     }
 
     public static VersionNumber parse(String versionString) {
-        logDeprecation(8);
+        logDeprecation(8, "org_gradle_util_reports_deprecations_8");
         return DEFAULT_SCHEME.parse(versionString);
     }
 
     @Nullable
-    private String toLowerCase(@Nullable String string) {
+    private static String toLowerCase(@Nullable String string) {
         return string == null ? null : string.toLowerCase(Locale.ROOT);
     }
 
@@ -187,7 +190,6 @@ public class VersionNumber implements Comparable<VersionNumber> {
     @Deprecated
     public interface Scheme {
         VersionNumber parse(String value);
-
         String format(VersionNumber versionNumber);
     }
 
@@ -200,7 +202,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         @Override
         public VersionNumber parse(@Nullable String versionString) {
-            if (versionString == null || versionString.length() == 0) {
+            if (versionString == null || versionString.isEmpty()) {
                 return UNKNOWN;
             }
             Scanner scanner = new Scanner(versionString);
@@ -256,8 +258,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
             private boolean oneOf(char... separators) {
                 char current = str.charAt(pos);
-                for (int i = 0; i < separators.length; i++) {
-                    char separator = separators[i];
+                for (char separator : separators) {
                     if (current == separator) {
                         return true;
                     }

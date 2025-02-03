@@ -206,10 +206,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             fqid == 'deprecation:typed-task'
             contextualLabel == 'Typed task has been deprecated.'
         }
-        verifyAll(receivedProblem(8)) {
-            fqid == 'deprecation:typed-task'
-            contextualLabel == 'Typed task has been deprecated.'
-        }
+        // The second one of this deprecation is not reported as it is dropped by the hash based deduplication
     }
 
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {

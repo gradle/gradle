@@ -16,7 +16,6 @@
 
 package org.gradle.problems.internal.services;
 
-import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
@@ -34,20 +33,15 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
-    private final Integer threshold;
+    private final int threshold;
     private final ProblemReportCreator problemReportCreator;
-
-    private final ConcurrentMap<ProblemId, Integer> seenProblemsWithCounts = new ConcurrentHashMap<>();
+    private final SummarizerStrategy summarizerStrategy;
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -63,6 +57,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
         this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
+        this.summarizerStrategy = new SummarizerStrategy(threshold);
         this.problemReportCreator = problemReportCreator;
     }
 
@@ -73,32 +68,18 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
-        List<ProblemSummaryData> cutOffProblems = getCutOffProblems();
+        List<ProblemSummaryData> cutOffProblems = summarizerStrategy.getCutOffProblems();
         problemReportCreator.createReportFile(reportDir, cutOffProblems);
         eventEmitter.emitNow(currentBuildOperationRef.getId(), new DefaultProblemsSummaryProgressDetails(cutOffProblems));
     }
 
-    private List<ProblemSummaryData> getCutOffProblems() {
-        return seenProblemsWithCounts.entrySet().stream()
-            .filter(entry -> entry.getValue() > threshold)
-            .map(entry -> new ProblemSummaryData(entry.getKey(), entry.getValue() - threshold))
-            .collect(toImmutableList());
-    }
-
     @Override
     public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
-        if (exceededThreshold(problem)) {
-            return;
+        if (summarizerStrategy.shouldEmit(problem)) {
+            problemReportCreator.addProblem(problem);
+            for (ProblemEmitter problemEmitter : problemEmitters) {
+                problemEmitter.emit(problem, id);
+            }
         }
-
-        problemReportCreator.addProblem(problem);
-        for (ProblemEmitter problemEmitter : problemEmitters) {
-            problemEmitter.emit(problem, id);
-        }
-    }
-
-    private boolean exceededThreshold(InternalProblem problem) {
-        int count = seenProblemsWithCounts.merge(problem.getDefinition().getId(), 1, Integer::sum);
-        return count > threshold;
     }
 }
