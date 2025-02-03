@@ -17,6 +17,13 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.operations.problems.DocumentationLink;
+import org.gradle.operations.problems.FileLocation;
+import org.gradle.operations.problems.LineInFileLocation;
+import org.gradle.operations.problems.OffsetInFileLocation;
+import org.gradle.operations.problems.ProblemDefinition;
+import org.gradle.operations.problems.ProblemGroup;
+import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemUsageProgressDetails;
 
 import javax.annotation.Nullable;
@@ -59,11 +66,15 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
     public List<ProblemLocation> getLocations() {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : problem.getOriginLocations()) {
-            builder.add(convertToLocation(location));
+            ProblemLocation develocityLocation = convertToLocation(location);
+            if (develocityLocation != null) {
+                builder.add(develocityLocation);
+            }
         }
         return builder.build();
     }
 
+    @Nullable
     private static ProblemLocation convertToLocation(final org.gradle.api.problems.ProblemLocation location) {
         if (location instanceof org.gradle.api.problems.FileLocation) {
             if (location instanceof org.gradle.api.problems.LineInFileLocation) {
@@ -76,7 +87,13 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         } else if (location instanceof org.gradle.api.problems.internal.TaskPathLocation) {
             return new DevelocityTaskPathLocation((org.gradle.api.problems.internal.TaskPathLocation) location);
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
-            return new DevelocityPluginIdLocation((org.gradle.api.problems.internal.PluginIdLocation) location);
+            PluginIdLocation pluginIdLocation = (PluginIdLocation) location;
+            if (pluginIdLocation.getPluginId() != null) {
+                return new DevelocityPluginIdLocation(pluginIdLocation.getPluginId());
+            } else {
+                // Ignore "empty" plugin id locations
+                return null;
+            }
         } else {
             return new DevelocityProblemLocation(location);
         }
@@ -96,7 +113,17 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         @Override
-        public ProblemId getId() {
+        public String getId() {
+            return definition.getId().getName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return definition.getId().getDisplayName();
+        }
+
+        @Override
+        public List<ProblemGroup> getGroup() {
             ImmutableList.Builder<ProblemGroup> builder = ImmutableList.builder();
             final org.gradle.api.problems.ProblemId problemId = definition.getId();
             org.gradle.api.problems.ProblemGroup currentGroup = problemId.getGroup();
@@ -104,23 +131,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
                 builder.add(new DevelocityProblemGroup(currentGroup));
                 currentGroup = currentGroup.getParent();
             }
-            final ImmutableList<ProblemGroup> problemGroup = builder.build();
-            return new ProblemId() {
-                @Override
-                public String getId() {
-                    return problemId.getName();
-                }
-
-                @Override
-                public String getDisplayName() {
-                    return problemId.getDisplayName();
-                }
-
-                @Override
-                public List<ProblemGroup> getGroup() {
-                    return problemGroup;
-                }
-            };
+            return builder.build();
         }
 
         @Override
@@ -246,7 +257,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
     }
 
-    private static class DevelocityTaskPathLocation implements TaskPathLocation {
+    private static class DevelocityTaskPathLocation implements org.gradle.operations.problems.TaskPathLocation {
 
         private final org.gradle.api.problems.internal.TaskPathLocation taskPathLocation;
 
@@ -266,26 +277,27 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
 
         @Override
         public String getDisplayName() {
+            // TODO: toString doesn't work for locations right now
             return taskPathLocation.toString();
         }
     }
 
-    private static class DevelocityPluginIdLocation implements PluginIdLocation {
+    private static class DevelocityPluginIdLocation implements org.gradle.operations.problems.PluginIdLocation {
 
-        private final org.gradle.api.problems.internal.PluginIdLocation pluginIdLocation;
+        private final String pluginId;
 
-        public DevelocityPluginIdLocation(org.gradle.api.problems.internal.PluginIdLocation pluginIdLocation) {
-            this.pluginIdLocation = pluginIdLocation;
+        public DevelocityPluginIdLocation(String pluginId) {
+            this.pluginId = pluginId;
         }
 
         @Override
         public String getPluginId() {
-            return pluginIdLocation.getPluginId();
+            return pluginId;
         }
 
         @Override
         public String getDisplayName() {
-            return pluginIdLocation.toString();
+            return pluginId;
         }
     }
 }
