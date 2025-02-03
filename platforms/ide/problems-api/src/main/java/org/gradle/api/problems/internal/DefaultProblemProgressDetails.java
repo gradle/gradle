@@ -46,6 +46,11 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         return new DevelocityProblemDefinition(problem.getDefinition());
     }
 
+    @Override
+    public String getSeverity() {
+        return problem.getDefinition().getSeverity().name();
+    }
+
     @Nullable
     @Override
     public String getContextualLabel() {
@@ -143,11 +148,6 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
                 currentGroup = currentGroup.getParent();
             }
             return builder.build();
-        }
-
-        @Override
-        public String getSeverity() {
-            return definition.getSeverity().name();
         }
 
         @Nullable

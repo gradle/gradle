@@ -23,6 +23,8 @@ public interface ProblemUsageProgressDetails {
 
     ProblemDefinition getProblemDefinition();
 
+    String getSeverity();
+
     @Nullable
     String getContextualLabel();
 

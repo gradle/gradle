@@ -26,8 +26,6 @@ public interface ProblemDefinition {
 
     List<ProblemGroup> getGroup();
 
-    String getSeverity();
-
     @Nullable
     DocumentationLink getDocumentationLink();
 }
