@@ -190,16 +190,23 @@ suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory
 
 
 suspend fun WriteContext.writeMap(value: Map<*, *>) {
-    writeSmallInt(value.size)
-    writeMapEntries(value)
+    val size = value.size
+    writeSmallInt(size)
+    val totalWritten = writeMapEntries(value)
+    check(size == totalWritten) {
+        "The size of the map has changed from $size to $totalWritten while writing"
+    }
 }
 
 
-suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
+suspend fun WriteContext.writeMapEntries(value: Map<*, *>): Int {
+    var totalWritten = 0
     for (entry in value.entries) {
         write(entry.key)
         write(entry.value)
+        ++totalWritten
     }
+    return totalWritten
 }
 
 
@@ -250,9 +257,15 @@ fun Decoder.readStringsSet(): Set<String> =
 
 
 inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
-    writeSmallInt(collection.size)
+    val size = collection.size
+    writeSmallInt(size)
+    var totalWritten = 0
     for (element in collection) {
         writeElement(element)
+        ++totalWritten
+    }
+    check(size == totalWritten) {
+        "The size of the collection has changed from $size to $totalWritten while writing"
     }
 }
 

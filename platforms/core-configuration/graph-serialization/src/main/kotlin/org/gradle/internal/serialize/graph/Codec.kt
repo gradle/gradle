@@ -168,6 +168,9 @@ interface IsolateContext {
 
     fun onError(error: Exception, message: StructuredMessageBuilder)
 
+    // TODO(mlopatkin) name TBD
+    fun checksumAction()
+
     val name: String
         get() = this::class.simpleName!!
 }
@@ -261,9 +264,16 @@ inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block:
 
 inline fun <T : MutableIsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
-        action()
+        withChecksum {
+            action()
+        }
     }
 
+inline fun <T : MutableIsolateContext, R> T.withChecksum(action: () -> R): R {
+    val result = action()
+    this.checksumAction()
+    return result
+}
 
 inline fun <T : MutableIsolateContext, R> T.withPropertyTrace(kind: PropertyKind, name: String, action: () -> R): R =
     withPropertyTrace(PropertyTrace.Property(kind, name, trace)) {
