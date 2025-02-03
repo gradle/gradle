@@ -138,10 +138,11 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
+            import org.gradle.kotlin.dsl.*
 
             class PublishedApiTestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    project.tasks.register("myTask", CustomTask::class.java) { task ->
+                    val myTask = project.tasks.registering(CustomTask::class) { task ->
                         task.mapValues.set(mapOf("alma" to 1, "bela" to 2))
                         println("Hello from plugin")
                     }
