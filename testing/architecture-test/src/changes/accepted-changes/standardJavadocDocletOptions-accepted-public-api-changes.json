@@ -1,0 +1,44 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.MinimalJavadocOptions)",
+            "acceptation": "StandardJavadocDocletOptions should not be instantiated directly",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.StandardJavadocDocletOptions)",
+            "acceptation": "StandardJavadocDocletOptions should not be instantiated directly",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.StandardJavadocDocletOptions,org.gradle.external.javadoc.internal.JavadocOptionFile)",
+            "acceptation": "StandardJavadocDocletOptions should not be instantiated directly",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Constructor org.gradle.external.javadoc.StandardJavadocDocletOptions(org.gradle.external.javadoc.internal.JavadocOptionFile)",
+            "acceptation": "StandardJavadocDocletOptions should not be instantiated directly",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.external.javadoc.StandardJavadocDocletOptions",
+            "member": "Field noTimestamp",
+            "acceptation": "Field was public, but it's not needed anymore",
+            "changes": [
+                "Field has been removed"
+            ]
+        }
+    ]
+}

@@ -79,12 +79,12 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
                 .withPathSensitivity(PathSensitivity.NAME_ONLY);
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
-            options.setEncoding("utf-8");
-            options.setDocEncoding("utf-8");
-            options.setCharSet("utf-8");
+            options.encoding("utf-8");
+            options.docEncoding("utf-8");
+            options.charSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setFooter("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">" +
+            options.footer("<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css\">" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js\"></script>" +
                 "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/groovy.min.js\"></script>" +

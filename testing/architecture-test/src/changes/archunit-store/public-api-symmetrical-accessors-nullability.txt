@@ -6,7 +6,6 @@ Accessors for org.gradle.api.tasks.AbstractCopyTask.fileMode don't use symmetric
 Accessors for org.gradle.api.tasks.SourceSetOutput.resourcesDir don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.compile.CompileOptions.annotationProcessorGeneratedSourcesDirectory don't use symmetrical @Nullable
 Accessors for org.gradle.api.tasks.diagnostics.DependencyInsightReportTask.configuration don't use symmetrical @Nullable
-Accessors for org.gradle.external.javadoc.MinimalJavadocOptions.destinationDirectory don't use symmetrical @Nullable
 Accessors for org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.inputFile don't use symmetrical @Nullable
 Accessors for org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask.inputFile don't use symmetrical @Nullable
 Accessors for org.gradle.ide.visualstudio.tasks.GenerateSolutionFileTask.inputFile don't use symmetrical @Nullable
