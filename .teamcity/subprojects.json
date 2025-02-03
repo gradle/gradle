@@ -602,6 +602,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-support",
+    "path": "platforms/core-configuration/groovy-support",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "guava-serialization-codecs",
     "path": "platforms/core-configuration/guava-serialization-codecs",
     "unitTests": false,
