@@ -47,6 +47,7 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.modelCore)
     implementation(projects.modelGroovy)
+    implementation(projects.persistentCache)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)

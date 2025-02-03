@@ -66,6 +66,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.annotation.Nonnull;
@@ -213,6 +214,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 .provider(new WorkerProjectServices())
                 .provider(new WorkerSharedProjectScopeServices(baseDir))
                 .provider(new WorkerBuildSessionScopeWorkaroundServices(projectCacheDir))
+                .provider(new WorkerProcessIsolationProblemsServiceProvider())
                 .build();
         }
 

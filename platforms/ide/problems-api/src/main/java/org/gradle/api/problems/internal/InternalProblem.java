@@ -20,8 +20,6 @@ import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -31,7 +29,7 @@ public interface InternalProblem extends Problem {
     /**
      * Returns a problem builder with fields initialized with values from this instance.
      */
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer);
+    InternalProblemBuilder toBuilder(ProblemsInfrastructure infrastructure);
 
     /**
      * Returns the problem definition, i.e. the data that is independent of the report context.

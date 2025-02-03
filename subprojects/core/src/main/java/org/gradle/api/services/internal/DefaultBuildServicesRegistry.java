@@ -92,7 +92,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         this.isolatableFactory = isolatableFactory;
         this.leaseRegistry = leaseRegistry;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
-        this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
+        this.specInstantiator = instantiatorFactory.decorateLenient(services);
         this.listener = listener;
         listenerManager.addListener(new ServiceCleanupListener());
     }

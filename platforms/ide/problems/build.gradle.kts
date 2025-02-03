@@ -65,7 +65,10 @@ dependencies {
     implementation(projects.baseServices)
     implementation(projects.logging)
     implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.serialization)
+    implementation(projects.serviceLookup)
+    implementation(projects.snapshotsWorker)
 
     implementation(libs.guava)
     implementation(libs.fastutil)

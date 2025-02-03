@@ -30,6 +30,7 @@ import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue
 import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry
 import org.gradle.util.TestUtil
 import org.gradle.workers.fixtures.TestManagedTypes
 import spock.lang.Specification
