@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -45,7 +46,7 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
 
     @Override
     public List<Object> isolate() {
-        List<Object> list = new ArrayList<Object>(elements.size());
+        List<Object> list = new ArrayList<>(elements.size());
         for (Isolatable<?> element : elements) {
             list.add(element.isolate());
         }
@@ -55,6 +56,6 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        return null;
+        return Cast.uncheckedCast(elements);
     }
 }

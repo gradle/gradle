@@ -61,6 +61,7 @@ public interface AttributeValue<T> {
      * Returns the value of this attribute.
      * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
      */
+    @Nullable
     T get();
 
     /**
@@ -69,5 +70,6 @@ public interface AttributeValue<T> {
      *
      * @throws IllegalArgumentException if this attribute is not compatible with the other one
      */
+    @Nullable
     <S> S coerce(Attribute<S> otherAttribute);
 }
