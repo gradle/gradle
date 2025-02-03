@@ -211,6 +211,7 @@ data class DefaultDataParameter(
     @SerialName("privateType")
     override val type: DataTypeRef,
     override val isDefault: Boolean,
+    override val isVararg: Boolean,
     override val semantics: ParameterSemantics
 ) : DataParameter
 

@@ -120,6 +120,7 @@ class StatementResolverImpl(
             is ObjectOrigin.DelegatingObjectOrigin -> isPotentiallyPersistentReceiver(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> false
             is ObjectOrigin.EnumConstantOrigin -> false
+            is ObjectOrigin.GroupedVarargValue -> false
             is ObjectOrigin.External -> true
             is ObjectOrigin.FunctionOrigin -> {
                 val semantics = objectOrigin.function.semantics

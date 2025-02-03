@@ -2,11 +2,13 @@ package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.ExternalObjectProviderKey
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.AssignmentMethod
+import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
@@ -68,7 +70,7 @@ class DeclarativeReflectionToObjectConverter(
             reflectionIdentityPublicTypes[key] = instanceAndPublicType.publicType
             return instanceAndPublicType
         } else {
-            return InstanceAndPublicType.of(reflectionIdentityObjects[key],  reflectionIdentityPublicTypes[key])
+            return InstanceAndPublicType.of(reflectionIdentityObjects[key], reflectionIdentityPublicTypes[key])
         }
     }
 
@@ -86,8 +88,11 @@ class DeclarativeReflectionToObjectConverter(
         return when (objectOrigin) {
             is ObjectOrigin.DelegatingObjectOrigin -> getObjectByResolvedOrigin(objectOrigin.delegate)
             is ObjectOrigin.ConstantOrigin -> InstanceAndPublicType.of(objectOrigin.literal.value, objectOrigin.literal.type.constantType.kotlin)
-            is ObjectOrigin.EnumConstantOrigin -> InstanceAndPublicType.of(getEnumConstant(objectOrigin), getScopeClassLoader().loadClass(objectOrigin.javaTypeName).kotlin)
-            is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}"))
+            is ObjectOrigin.EnumConstantOrigin -> getEnumConstant(objectOrigin)
+            is ObjectOrigin.External -> InstanceAndPublicType.unknownPublicType(
+                externalObjectsMap[objectOrigin.key] ?: error("no external object provided for external object key of ${objectOrigin.key}")
+            )
+
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
             is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction() }
             is ObjectOrigin.NullObjectOrigin -> InstanceAndPublicType.NULL
@@ -96,9 +101,41 @@ class DeclarativeReflectionToObjectConverter(
             is ObjectOrigin.TopLevelReceiver -> InstanceAndPublicType.of(topLevelObject, topLevelObject::class)
             is ObjectOrigin.ConfiguringLambdaReceiver -> objectFromConfiguringLambda(objectOrigin)
             is ObjectOrigin.CustomConfigureAccessor -> objectFromCustomAccessor(objectOrigin)
+            is ObjectOrigin.GroupedVarargValue -> {
+                @Suppress("UNCHECKED_CAST")
+                val resultArray = when (val elementClass = loadJvmTypeFor(objectOrigin.elementType)) {
+                    Int::class.java -> IntArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Int }
+                    Long::class.java -> LongArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Long }
+                    Boolean::class.java -> BooleanArray(objectOrigin.elementValues.size) { getObjectByResolvedOrigin(objectOrigin.elementValues[it]).instance as Boolean }
+                    else -> (java.lang.reflect.Array.newInstance(elementClass, objectOrigin.elementValues.size) as Array<in Any>).also {
+                        (objectOrigin.elementValues.map { getObjectByResolvedOrigin(it).instance }.toTypedArray() as Array<out Any>).copyInto(it)
+                    }
+                }
+
+                InstanceAndPublicType.of(
+                    resultArray,
+                    resultArray::class
+                )
+            }
         }
     }
 
+    private fun loadJvmTypeFor(dataType: DataType): Class<*> = when (dataType) {
+        is DataType.HasTypeName -> try {
+            getScopeClassLoader().loadClass(dataType.javaTypeName)
+        } catch (e: ClassNotFoundException) {
+            throw DeclarativeDslInterpretationException("Failed to load the JVM class for $dataType (${e.message})")
+                .also { it.addSuppressed(e) }
+        }
+
+        is DataType.BooleanDataType -> Boolean::class.java
+        is DataType.IntDataType -> Int::class.java
+        is DataType.LongDataType -> Long::class.java
+        is DataType.StringDataType -> String::class.java
+        is DataType.NullType -> Nothing::class.java
+        is DataType.TypeVariableUsage -> Any::class.java
+        is DataType.UnitType -> Unit::class.java
+    }
 
     private
     sealed interface ObjectAccessKey {
@@ -106,7 +143,6 @@ class DeclarativeReflectionToObjectConverter(
         data class CustomAccessor(val owner: ObjectOrigin, val accessorId: String) : ObjectAccessKey
         data class ConfiguringLambda(val owner: ObjectOrigin, val function: SchemaFunction, val identityValues: List<Any?>) : ObjectAccessKey
     }
-
 
     private
     fun objectFromMemberFunction(
@@ -174,6 +210,7 @@ class DeclarativeReflectionToObjectConverter(
                 val binding = mapOf(function.dataParameter to getObjectByResolvedOrigin(valueOrigin).instance)
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, false).result
             }
+
             RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a member function $function call in the owner class $receiverKClass")
         }
     }
@@ -197,19 +234,15 @@ class DeclarativeReflectionToObjectConverter(
     }
 
     private
-    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): Enum<*>? {
-        val typeName = objectOrigin.javaTypeName
-        try {
-            val enumClass = getScopeClassLoader().loadClass(typeName) as Class<*>
-            if (enumClass.isEnum) {
-                @Suppress("UNCHECKED_CAST")
-                return (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
-            } else {
-                error("$typeName is not an enum class")
-            }
-        } catch (e: ClassNotFoundException) {
-            error("failed loading class $typeName: ${e.message}")
+    fun getEnumConstant(objectOrigin: ObjectOrigin.EnumConstantOrigin): InstanceAndPublicType {
+        val enumClass = loadJvmTypeFor(objectOrigin.type)
+        val enumConstant = if (enumClass.isEnum) {
+            @Suppress("UNCHECKED_CAST")
+            (enumClass as Class<Enum<*>>).enumConstants.find { it.name == objectOrigin.entryName }
+        } else {
+            error("$enumClass is not an enum class")
         }
+        return InstanceAndPublicType.of(enumConstant, enumClass.kotlin)
     }
 
     private

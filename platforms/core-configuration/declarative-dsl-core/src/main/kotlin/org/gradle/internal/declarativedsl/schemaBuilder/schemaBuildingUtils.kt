@@ -41,10 +41,14 @@ fun KCallable<*>.returnTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (
     }
 }
 
-fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost) =
+fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost): DataTypeRef =
     parameterTypeToRefOrError(host) { this.type }
 
-fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (KParameter) -> KType) =
+fun KParameter.parameterTypeToRefOrError(host: SchemaBuildingHost, typeMapping: (KParameter) -> KType): DataTypeRef =
     host.withTag(parameter(name ?: "(no name)")) {
-        host.modelTypeRef(typeMapping(this))
+        if (isVararg) {
+            host.varargTypeRef(type)
+        } else {
+            host.modelTypeRef(typeMapping(this))
+        }
     }

@@ -175,6 +175,7 @@ fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (obj
     is ObjectOrigin.NullObjectOrigin -> DataTypeInternal.DefaultNullType
     is ObjectOrigin.CustomConfigureAccessor -> resolveRef(objectOrigin.accessedType)
     is ObjectOrigin.ConfiguringLambdaReceiver -> resolveRef(objectOrigin.lambdaReceiverType)
+    is ObjectOrigin.GroupedVarargValue -> objectOrigin.elementType
 }
 
 

@@ -49,8 +49,8 @@ private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()), false, DefaultUnknown) },
-        projectDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ProjectDependency>()), false, DefaultUnknown) }
+        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()), false, false, DefaultUnknown) },
+        projectDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ProjectDependency>()), false, false, DefaultUnknown) }
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(
