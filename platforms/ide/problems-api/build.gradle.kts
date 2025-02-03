@@ -39,6 +39,8 @@ dependencies {
     api(libs.jsr305)
     api(projects.serialization)
 
+    implementation(projects.snapshots)
+
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))

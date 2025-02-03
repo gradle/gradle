@@ -330,7 +330,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         AdditionalData additionalDataInstance = createAdditionalData(type, config);
         Map<String, Object> methodValues = getAdditionalDataMap(type, additionalDataInstance);
 
-        SerializedPayload payload = getPayloadSerializer().serialize(type);
+        SerializedPayload payload = getPayloadSerializer().serialize(additionalDataInstance);
 
         this.additionalData = new DefaultTypedAdditionalData(methodValues, payload);
         return this;

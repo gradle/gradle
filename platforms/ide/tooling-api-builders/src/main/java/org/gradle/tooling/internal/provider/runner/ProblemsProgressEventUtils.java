@@ -68,7 +68,6 @@ import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
-import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -234,7 +233,7 @@ public class ProblemsProgressEventUtils {
             );
         } else if (additionalData instanceof TypedAdditionalData) {
             TypedAdditionalData typedData = (TypedAdditionalData) additionalData;
-            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getData(), (SerializedPayload) typedData.getSerializedType());
+            return new DefaultInternalPayloadSerializedAdditionalData(typedData.getData(), typedData.getSerializedType());
         } else {
             return new DefaultInternalAdditionalData(Collections.emptyMap());
         }
