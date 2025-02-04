@@ -26,7 +26,6 @@ import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESS
 import static org.hamcrest.CoreMatchers.containsString
 
 class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
-    public static final String CONFLICT_FOUND_HEADER_MESSAGE = 'Conflict found for the following module:'
     private ResolveTestFixture resolve = new ResolveTestFixture(buildFile, "compile")
 
     def setup() {
@@ -74,13 +73,30 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             }
 
             configurations.runtimeClasspath.resolutionStrategy.failOnVersionConflict()
+
+            task resolve {
+                def files = configurations.runtimeClasspath.incoming.files
+                doLast {
+                    println files*.name
+                }
+            }
         """
 
         when:
-        fails("tool:dependencies")
+        succeeds("tool:dependencies")
 
         then:
-        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        outputContains("""runtimeClasspath - Runtime classpath of source set 'main'.
++--- project :api
+|    \\--- org:foo:1.3.3 FAILED
+\\--- project :impl
+     \\--- org:foo:1.4.4 FAILED""")
+
+        when:
+        fails(":tool:resolve")
+
+        then:
+        failure.assertHasCause("Conflict found for module 'org:foo': between versions 1.4.4 and 1.3.3")
         failure.assertHasResolutions("Run with :tool:dependencyInsight --configuration runtimeClasspath " +
             "--dependency org:foo to get more insight on how to solve the conflict.",
             STACKTRACE_MESSAGE,
@@ -1321,7 +1337,7 @@ parentFirst
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        failure.assertHasCause("Conflict found for module 'org:leaf': between versions 3 and 8")
     }
 
     def "upgrades version when one of the ranges is disjoint"() {
@@ -1409,7 +1425,7 @@ parentFirst
         fails 'checkDeps'
 
         then:
-        failure.assertThatCause(containsString(CONFLICT_FOUND_HEADER_MESSAGE))
+        failure.assertHasCause("Conflict found for module 'org:leaf': between versions 8 and 4")
     }
 
     def "chooses highest version of all versions fully included within range"() {

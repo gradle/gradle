@@ -148,7 +148,8 @@ class DefaultResolutionResultTest extends Specification {
         def mid = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
         org.gradle.internal.Factory<String> broken = { "too bad" }
         def dep = new DefaultUnresolvedDependencyResult(
-            Stub(ComponentSelector), false,
+            Stub(ComponentSelector),
+            false,
             Stub(ComponentSelectionReason),
             new DefaultResolvedComponentResult(mid, Stub(ComponentSelectionReason), projectId, ImmutableMap.of(1L, Stub(ResolvedVariantResult)), ImmutableList.of(Stub(ResolvedVariantResult)), null),
             new ModuleVersionNotFoundException(Stub(ModuleComponentSelector), broken, [])

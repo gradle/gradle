@@ -428,15 +428,12 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
         op.failure == "org.gradle.api.internal.artifacts.ivyservice.TypedResolveException: Could not resolve all dependencies for configuration ':compile'."
-        failure.assertHasCause("""Conflict found for the following module:
-  - org:leaf between versions 2.0 and 1.0""")
+        failure.assertHasCause("""Conflict found for module 'org:leaf': between versions 2.0 and 1.0""")
         op.result != null
         op.result.resolvedDependenciesCount == 2
     }
 
-    // This documents the current behavior, not necessarily the smartest one.
-    // FTR This behaves the same in 4.7, 4.8 and 4.9
-    def "non fatal errors incur no resolution failure"() {
+    def "unresolved dependency errors incur build operation failure"() {
         def mod = mavenHttpRepo.module('org', 'a', '1.0')
         mod.pomFile << "corrupt"
 
@@ -453,7 +450,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             dependencies {
                compile 'org:a:1.0'
             }
-"""
+        """
+
         failedResolve.prepare()
 
         then:
@@ -464,7 +462,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
-        op.failure == null
+        op.failure != null
+        op.failure.contains("Could not resolve all dependencies for configuration ':compile'")
         op.result.resolvedDependenciesCount == 1
     }
 

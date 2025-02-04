@@ -322,16 +322,6 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return incoming;
     }
 
-    @Override
-    public Collection<? extends ModuleVersionIdentifier> getAllVersions() {
-        Collection<ComponentState> moduleVersions = module.getAllVersions();
-        List<ModuleVersionIdentifier> out = new ArrayList<>(moduleVersions.size());
-        for (ComponentState moduleVersion : moduleVersions) {
-            out.add(moduleVersion.id);
-        }
-        return out;
-    }
-
     public boolean isSelected() {
         return state == ComponentSelectionState.Selected;
     }

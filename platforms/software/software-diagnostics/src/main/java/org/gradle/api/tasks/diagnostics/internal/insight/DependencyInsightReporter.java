@@ -39,6 +39,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
@@ -138,7 +139,6 @@ public class DependencyInsightReporter {
             String errorMessage = collectErrorMessages(failure, alreadyReportedErrors, uniqueResolutions);
             failures.addChild(new DefaultSection(errorMessage));
             sections.add(failures);
-
         }
     }
 
@@ -153,16 +153,23 @@ public class DependencyInsightReporter {
             formatter.node(failure.getMessage());
 
             Throwable cause = failure.getCause();
-            if (failure instanceof ResolutionProvider && cause != failure){
-                ((ResolutionProvider) failure).getResolutions().forEach(resolution -> {
-                    if (!resolution.startsWith(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX) && uniqueResolutions.add(resolution)) {
-                        formatter.node(resolution);
-                    }
-                });
-            }
-
             if (alreadyReportedErrors.contains(cause)) {
                 formatter.append(" (already reported)");
+            }
+
+            if (failure instanceof ResolutionProvider && cause != failure && !shouldSkipResolutions(failure)) {
+                for (String resolution : ((ResolutionProvider) failure).getResolutions()) {
+                    if (resolution.startsWith(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX)) {
+                        continue;
+                    }
+                    if (resolution.contains("dependencyInsight")) {
+                        // The resolution is likely recommending the user to run this task. Do not emit it.
+                        continue;
+                    }
+                    if (uniqueResolutions.add(resolution)) {
+                        formatter.node(resolution);
+                    }
+                }
             }
             if (cause != null && cause != failure) {
                 formatter.startChildren();
@@ -170,6 +177,23 @@ public class DependencyInsightReporter {
                 formatter.endChildren();
             }
         }
+    }
+
+    /**
+     * Multi-cause exceptions by default aggregate the resolutions of their causes.
+     * If a cause has resolutions, skip emitting the parent exception's resolutions,
+     * so we can correctly associate the resolution with the child.
+     */
+    private static boolean shouldSkipResolutions(Throwable throwable) {
+        if (throwable instanceof MultiCauseException) {
+            for (Throwable cause : ((MultiCauseException) throwable).getCauses()) {
+                if (cause instanceof ResolutionProvider) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private static DefaultSection buildSelectionReasonSection(ComponentSelectionReason reason) {

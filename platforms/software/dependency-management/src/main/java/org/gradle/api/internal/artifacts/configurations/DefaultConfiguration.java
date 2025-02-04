@@ -121,6 +121,7 @@ import org.gradle.util.internal.WrapUtil;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -772,12 +773,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 // Mark all affected configurations as observed
                 markParentsObserved(GRAPH_RESOLVED);
 
-                // TODO: Currently afterResolve runs if there are unresolved dependencies, which are
-                //       resolution failures. However, they are not run for other failures.
-                //       We should either _always_ run afterResolve, or only run it if _no_ failure occurred
-                if (!results.getVisitedGraph().getResolutionFailure().isPresent()) {
-                    dependencyResolutionListeners.getSource().afterResolve(getIncoming());
-                }
+                dependencyResolutionListeners.getSource().afterResolve(getIncoming());
 
                 // Discard State
                 dependencyResolutionListeners.removeAll();
@@ -790,7 +786,12 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             }
 
             private void captureBuildOperationResult(BuildOperationContext context, ResolverResults results) {
-                results.getVisitedGraph().getResolutionFailure().ifPresent(context::failed);
+                if (results.getVisitedGraph().hasAnyFailure()) {
+                    List<Throwable> failures = new ArrayList<>();
+                    results.getVisitedGraph().visitFailures(failures::add);
+                    getResolutionHost().consolidateFailures("dependencies", failures).ifPresent(context::failed);
+                }
+
                 // When dependency resolution has failed, we don't want the build operation listeners to fail as well
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
@@ -1798,7 +1799,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
     }
 
-    public class ConfigurationResolvableDependencies implements ResolvableDependenciesInternal {
+    public class ConfigurationResolvableDependencies implements ResolvableDependencies {
 
         @Override
         public String getName() {
@@ -1871,12 +1872,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         @Override
         public AttributeContainer getAttributes() {
             return configurationAttributes;
-        }
-
-        @Override
-        public ResolutionOutputsInternal getResolutionOutputs() {
-            assertIsResolvable();
-            return resolutionAccess.getPublicView();
         }
     }
 

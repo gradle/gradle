@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.CachingDependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator;
@@ -105,6 +106,7 @@ public class DependencyGraphResolver {
         CapabilitiesResolutionInternal capabilitiesResolutionRules,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
         ComponentMetaDataResolver clientModuleResolver = new ClientModuleResolver(
@@ -132,6 +134,7 @@ public class DependencyGraphResolver {
             conflictResolution,
             failingOnDynamicVersions,
             failingOnChangingVersions,
+            failureResolutions,
             modelVisitor
         );
     }

@@ -90,7 +90,7 @@ rootProject.name = 'testproject'
 """
         expect:
         fails "help"
-        failureHasCause("Conflict found for the following module:")
+        failureHasCause("Conflict found for module 'org.gradle:test': between versions 1.46 and 1.45")
     }
 
     @Issue("gradle/gradle#19300")
