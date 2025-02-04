@@ -24,6 +24,7 @@ import org.gradle.internal.buildconfiguration.resolvers.UnconfiguredToolchainRep
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -60,13 +61,13 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                             Stream.of(OperatingSystem.values()).map(os -> BuildPlatformFactory.of(arch, os)))
                         .collect(Collectors.toSet()));
                 task.getToolchainDownloadUrls().convention(task.getToolchainPlatforms()
-                    .zip(task.getLanguageVersion().zip(task.getJvmVendor().orElse("any"), Pair::of),
+                    .zip(task.getLanguageVersion().zip(task.getVendor().orElse(DefaultJvmVendorSpec.any()), Pair::of),
                         (platforms, versionVendor) -> {
-                            String vendor = versionVendor.getRight();
+                            JvmVendorSpec vendor = versionVendor.getRight();
                             JavaToolchainSpec toolchainSpec = project.getObjects().newInstance(DefaultToolchainSpec.class);
                             toolchainSpec.getLanguageVersion().set(versionVendor.getLeft());
-                            if (!vendor.equals("any")) {
-                                toolchainSpec.getVendor().set(JvmVendorSpec.of(vendor));
+                            if (!vendor.equals(DefaultJvmVendorSpec.any())) {
+                                toolchainSpec.getVendor().set(vendor);
                             }
                             if (platforms.isEmpty()) {
                                 return emptyMap();

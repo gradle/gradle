@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -36,6 +35,7 @@ import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.IncubationLogger;
 import org.gradle.work.DisableCachingByDefault;
@@ -73,11 +73,12 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     void generate() {
         IncubationLogger.incubatingFeatureUsed("Daemon JVM criteria");
 
+        handleDeprecatedJvmVendor();
+
         final String jvmVendor;
-        Provider<JvmVendorSpec> vendorSpec = getJvmVendor().map(JvmVendorSpec::of);
-        if (vendorSpec.isPresent()) {
-            // TODO change this to something else, we should serialize the spec, not just the vendor string
-            jvmVendor = getJvmVendor().get();
+        if (getVendor().isPresent()) {
+            // TODO We need to serialize the spec by using either the enum name or the match value
+            jvmVendor = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
         } else {
             jvmVendor = null; // any vendor is acceptable
         }
@@ -87,6 +88,14 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             jvmVendor,
             getToolchainDownloadUrls().get()
         );
+    }
+
+    @SuppressWarnings("Deprecated")
+    private void handleDeprecatedJvmVendor() {
+        if (getJvmVendor().isPresent()) {
+            // TODO Improve error message with upgrade guide link
+            throw new IllegalStateException("Configuring 'jvmVendor' is no longer supported, replace its usage with 'vendor'");
+        }
     }
 
     /**
@@ -128,18 +137,27 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
     public abstract Property<JavaLanguageVersion> getLanguageVersion();
 
     /**
-     * The vendor of Java required to run the Gradle Daemon.
-     * <p>
-     * When unset, any vendor is acceptable.
-     * </p>
+     * Deprecated and a no-op
      *
      * @since 8.10
+     * @see #getVendor()
+     * @deprecated use {@link #getVendor()} instead
+     */
+    @Internal
+    @Deprecated
+    // TODO Add deprecation warning
+    public abstract Property<String> getJvmVendor();
+
+    /**
+     * Configures the vendor spec for the daemon toolchain properties generation.
+     *
+     * @since 8.13
      */
     @Input
     @Optional
     @Incubating
     @Option(option = "jvm-vendor", description = "The vendor of the JVM required to run the Gradle Daemon.")
-    public abstract Property<String> getJvmVendor();
+    public abstract Property<JvmVendorSpec> getVendor();
 
     /**
      * Returns the supported JVM vendors.
