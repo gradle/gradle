@@ -38,6 +38,7 @@ dependencies {
     api(projects.buildOperations)
     api(libs.inject)
     api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
 
     implementation(projects.io)

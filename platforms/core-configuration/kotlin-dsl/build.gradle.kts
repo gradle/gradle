@@ -23,7 +23,6 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.kotlinStdlib)
-    api(libs.jsr305)
     api(libs.inject)
     api(libs.slf4jApi)
 
@@ -58,6 +57,7 @@ dependencies {
 
     implementation(libs.asm)
     implementation(libs.groovyJson)
+    implementation(libs.jspecify)
     implementation(libs.kotlinReflect)
 
     implementation(libs.kotlinCompilerEmbeddable)
