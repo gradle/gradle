@@ -45,7 +45,7 @@ object ModelDefaultsDocumentTransformation {
     fun isTopLevelDefaultsCall(
         node: DeclarativeDocument.DocumentNode,
         resolutionContainer: DocumentResolutionContainer
-    ) = (node as? ElementNode)?.name == DefaultsTopLevelReceiver::defaults.name &&
+    ) = (node as? ElementNode)?.name == DEFAULTS_BLOCK_NAME &&
         resolutionContainer.data(node).let { resolution ->
             resolution is ConfiguringElementResolved &&
                 resolution.elementType.name.qualifiedName == DefaultsConfiguringBlock::class.qualifiedName
