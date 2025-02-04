@@ -98,7 +98,7 @@ class PerformanceTest(
             }
         }
 
-        applyDefaultDependencies(model, this, !performanceTestBuildSpec.withoutDependencies)
+        applyDefaultDependencies(model, this)
     }
 )
 

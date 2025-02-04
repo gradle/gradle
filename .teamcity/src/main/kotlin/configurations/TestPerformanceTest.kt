@@ -84,5 +84,5 @@ class TestPerformanceTest(model: CIBuildModel, stage: Stage) : BaseGradleBuildTy
         checkCleanM2AndAndroidUserHome(os)
     }
 
-    applyDefaultDependencies(model, this, true)
+    applyDefaultDependencies(model, this)
 })

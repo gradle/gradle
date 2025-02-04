@@ -9,7 +9,6 @@ import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.compileAllDependency
-import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
@@ -17,12 +16,10 @@ import jetbrains.buildServer.configs.kotlin.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import model.CIBuildModel
-import model.StageName
 
 fun checkCleanDirUnixLike(dir: String, exitOnFailure: Boolean = true) = """
     REPO=$dir
@@ -108,7 +105,6 @@ fun applyDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
     extraParameters: String = "",
     timeout: Int = 90,
@@ -125,14 +121,13 @@ fun applyDefaults(
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
-    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
+    applyDefaultDependencies(model, buildType)
 }
 
 fun applyTestDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    dependsOnQuickFeedbackLinux: Boolean = false,
     buildJvm: Jvm = BuildToolBuildJvm,
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -159,18 +154,14 @@ fun applyTestDefaults(
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
-    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
+    applyDefaultDependencies(model, buildType)
 }
 
 fun buildScanTag(tag: String) = """"-Dscan.tag.$tag""""
+
 fun buildScanCustomValue(key: String, value: String) = """"-Dscan.value.$key=$value""""
-fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsOnQuickFeedbackLinux: Boolean) {
-    if (dependsOnQuickFeedbackLinux) {
-        // wait for quick feedback phase to finish successfully
-        buildType.dependencies {
-            dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
-        }
-    }
+
+fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType) {
     if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))
