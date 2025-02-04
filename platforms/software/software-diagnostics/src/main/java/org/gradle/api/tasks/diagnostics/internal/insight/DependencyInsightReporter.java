@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -46,6 +47,7 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -157,8 +159,8 @@ public class DependencyInsightReporter {
                 formatter.append(" (already reported)");
             }
 
-            if (failure instanceof ResolutionProvider && cause != failure && !shouldSkipResolutions(failure)) {
-                for (String resolution : ((ResolutionProvider) failure).getResolutions()) {
+            if (failure instanceof ResolutionProvider && cause != failure) {
+                for (String resolution : getResolutionsFor(failure)) {
                     if (resolution.startsWith(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX)) {
                         continue;
                     }
@@ -179,21 +181,27 @@ public class DependencyInsightReporter {
         }
     }
 
-    /**
-     * Multi-cause exceptions by default aggregate the resolutions of their causes.
-     * If a cause has resolutions, skip emitting the parent exception's resolutions,
-     * so we can correctly associate the resolution with the child.
-     */
-    private static boolean shouldSkipResolutions(Throwable throwable) {
+    private static Set<String> getResolutionsFor(Throwable throwable) {
         if (throwable instanceof MultiCauseException) {
-            for (Throwable cause : ((MultiCauseException) throwable).getCauses()) {
+            //  Multi-cause exceptions by default aggregate the resolutions of their causes.
+            // If a cause has resolutions, ensure we do not emit them for the parent exception.
+            MultiCauseException multiCause = (MultiCauseException) throwable;
+            Set<String> parentResolutions = new LinkedHashSet<>(multiCause.getResolutions());
+            for (Throwable cause : multiCause.getCauses()) {
                 if (cause instanceof ResolutionProvider) {
-                    return true;
+                    ResolutionProvider childResolutionProvider = (ResolutionProvider) cause;
+                    childResolutionProvider.getResolutions().forEach(parentResolutions::remove);
                 }
             }
+
+            return Collections.unmodifiableSet(parentResolutions);
         }
 
-        return false;
+        if (throwable instanceof ResolutionProvider) {
+            return ImmutableSet.copyOf(((ResolutionProvider) throwable).getResolutions());
+        }
+
+        return Collections.emptySet();
     }
 
     private static DefaultSection buildSelectionReasonSection(ComponentSelectionReason reason) {

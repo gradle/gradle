@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import java.util.List;
 
 /**
- * Describes a version conflict between two or more modules in a dependency graph.
+ * Describes a version conflict between two or more versions of a module in a dependency graph.
  */
 public class Conflict {
 
