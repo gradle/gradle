@@ -13,5 +13,4 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(libs.jsr305)
-    api("org.jspecify:jspecify:1.0.0")
 }

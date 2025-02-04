@@ -26,7 +26,7 @@ dependencies {
     api(projects.resources)
     api(projects.persistentCache)
     api(projects.declarativeDslApi)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
     api(libs.groovyAnt)
     api(libs.guava)
@@ -38,6 +38,7 @@ dependencies {
     implementation(projects.logging)
     implementation(projects.buildProcessServices)
     implementation(libs.commonsLang)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     runtimeOnly(libs.kotlinReflect)

@@ -35,7 +35,7 @@ dependencies {
     implementation(libs.futureKotlin("gradle-plugin-api"))
     implementation(libs.futureKotlin("sam-with-receiver"))
     implementation(libs.futureKotlin("assignment"))
-
+    implementation(libs.jspecify)
 
     testImplementation(projects.logging)
     testImplementation(testFixtures(projects.kotlinDsl))

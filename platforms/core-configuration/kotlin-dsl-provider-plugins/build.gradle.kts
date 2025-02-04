@@ -40,6 +40,7 @@ dependencies {
         isTransitive = false
     }
     implementation(libs.kotlinCompilerEmbeddable)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.kotlinReflect)
