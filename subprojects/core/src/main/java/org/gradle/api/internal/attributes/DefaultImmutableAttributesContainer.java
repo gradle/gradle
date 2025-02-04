@@ -128,11 +128,11 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
 
     @Override
     @Nullable
-    public <T> T getAttribute(Attribute<T> key) {
+    public <T> T getAttribute(@Nullable Attribute<T> key) {
         Isolatable<T> isolatable = getIsolatableAttribute(key);
         if (isolatable == null) {
             return null;
-        } else if (isolatable.getClass() != key.getClass() && isolatable.getClass().getName().equals(key.getClass().getName())) {
+        } else if (key != null && isolatable.getClass() != key.getClass() && isolatable.getClass().getName().equals(key.getClass().getName())) {
             return isolatable.coerce(key.getType());
         } else {
             return isolatable.isolate();
@@ -140,8 +140,8 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Nullable
-    /* package */ <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
-        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(key.getName());
+    /* package */ <T> Isolatable<T> getIsolatableAttribute(@Nullable Attribute<T> key) {
+        DefaultImmutableAttributesContainer attributes = key != null ? hierarchyByName.get(key.getName()) : null;
         return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
 

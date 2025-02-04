@@ -63,7 +63,7 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
 
     @Nullable
     @Override
-    public <T> T getAttribute(Attribute<T> key) {
+    public <T> T getAttribute(@Nullable Attribute<T> key) {
         T attribute = primary.getAttribute(key);
         if (attribute != null) {
             return attribute;
@@ -83,7 +83,7 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }

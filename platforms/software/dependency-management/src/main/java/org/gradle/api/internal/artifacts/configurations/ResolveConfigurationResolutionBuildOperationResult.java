@@ -123,7 +123,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
         @Nullable
         @Override
-        public <T> T getAttribute(Attribute<T> key) {
+        public <T> T getAttribute(@Nullable Attribute<T> key) {
             return getDesugared().getAttribute(key);
         }
 
