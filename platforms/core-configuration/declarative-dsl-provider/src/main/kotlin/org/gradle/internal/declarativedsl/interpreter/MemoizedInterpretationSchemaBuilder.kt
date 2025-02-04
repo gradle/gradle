@@ -17,7 +17,7 @@
 package org.gradle.internal.declarativedsl.interpreter
 
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 
 /**

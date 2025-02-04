@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,6 @@
  */
 
 package org.gradle.internal.declarativedsl.evaluator.schema
-
-import org.gradle.declarative.dsl.evaluation.InterpretationSequence
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
-
-
-@ServiceScope(Scope.Build::class)
-interface InterpretationSchemaBuilder {
-    fun getEvaluationSchemaForScript(
-        scriptContext: DeclarativeScriptContext,
-    ): InterpretationSchemaBuildingResult
-}
-
-
-sealed interface InterpretationSchemaBuildingResult {
-    class InterpretationSequenceAvailable(val sequence: InterpretationSequence) : InterpretationSchemaBuildingResult
-    data object SchemaNotBuilt : InterpretationSchemaBuildingResult
-}
-
 
 sealed interface DeclarativeScriptContext {
     data object SettingsScript : DeclarativeScriptContext

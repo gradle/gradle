@@ -18,7 +18,7 @@ package org.gradle.internal.declarativedsl.interpreter
 
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.InterpretationSequenceAvailable
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult.SchemaNotBuilt

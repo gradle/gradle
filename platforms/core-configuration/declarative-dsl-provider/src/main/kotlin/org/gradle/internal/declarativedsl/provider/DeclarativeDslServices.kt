@@ -26,7 +26,7 @@ import org.gradle.internal.declarativedsl.interpreter.MemoizedInterpretationSche
 import org.gradle.internal.declarativedsl.interpreter.StoringInterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.defaultDeclarativeScriptEvaluator
 import org.gradle.internal.declarativedsl.interpreter.defaults.DeclarativeModelDefaultsHandler
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
