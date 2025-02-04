@@ -34,6 +34,7 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -88,12 +89,15 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 2
+        def expectedPath = targetVersion.baseVersion >= GradleVersion.version("8.14")
+            ? buildFile.path
+            : "build file '$buildFile.path'"
         verifyAll(listener.problems[0]) {
             definition.id.displayName.contains("The RepositoryHandler.jcenter() method has been deprecated.")
             definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
             definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
             definition.severity == Severity.WARNING
-            locations(it).find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
+            locations(it).find { l -> l instanceof LineInFileLocation && l.path == expectedPath }
         }
     }
 
