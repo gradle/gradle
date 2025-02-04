@@ -54,6 +54,7 @@ dependencies {
             because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
         }
         api("com.google.code.findbugs:jsr305:3.0.2")
+        api("org.jspecify:jspecify:1.0.0")
         api("commons-io:commons-io:2.14.0")
         api("commons-lang:commons-lang:2.6")
         api("javax.activation:activation:1.1.1")
