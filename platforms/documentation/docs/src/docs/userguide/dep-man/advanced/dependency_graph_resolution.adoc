@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
-
-[[understanding_dependency_resolution_model]]
-= Understanding the Dependency Resolution Model
-
-This chapter explains how dependency resolution works within Gradle.
-After learning how to declare <<declaring_dependencies.adoc#one-declaring-dependencies,dependencies>> and <<dependency_locking.adoc#locking-versions,specify the versions>> your project should use, the next step is understanding how these declarations are combined during the dependency resolution process.
+[[dependency-graph-resolution]]
+= Dependency Graph Resolution
 
 Dependency resolution happens in two key phases, repeated until the entire dependency graph is constructed:
 
@@ -32,7 +27,32 @@ Dependency resolution happens in two key phases, repeated until the entire depen
 
 This process continues until the entire dependency tree is resolved.
 
-image::dependency-resolution-model.png[]
+image::dep-man-adv-2.png[]
+
+The output of the _graph resolution_ phase is a fully resolved *dependency graph*, which is used as the input to the _artifact resolution_ phase.
+
+== The process
+
+Graph resolution operates on a node-by-node (variant-by-variant) basis.
+
+Each iteration processes one node at a time, starting by de-queuing a node.
+Its dependencies are examined, their target versions determined, and metadata for all dependencies is downloaded in parallel.
+Version conflict resolution is performed, variants are selected, and those variants are added to the queue for further processing.
+
+The process is single-threaded, with parallel downloads occurring between sequential resolution steps, repeated iteratively for the entire graph.
+
+
+The graph resolution process works on a node by node (variant by variant) basis.
+
+Each iteration of the loop starts by pulling a node off the queue.
+We process the graph one node (variant) at a time.
+
+For each node we look at all its dependencies, determine what versions they target, and download the metadata for all dependencies (for that node) at once.
+We look at the node's dependencies, and for each of their dependencies perform version conflict resolution.
+Then we, download the metadata for all its dependencies in parallel, then we select variants for each of those dependencies, then those variants get added to the top-level queue.
+
+Graph resolution is single threaded.
+it’s a bunch of parallel downloads separated by single threaded logic, over and over again — for a single graph.
 
 [[sec:conflict-resolution]]
 == Phase 1. Conflict resolution
@@ -74,46 +94,6 @@ Gradle also supports the concept of <<dependency_versions.adoc#sec:rich-version-
 ** If a `strictly` version is declared that is lower than the highest, resolution will fail.
 
 For version ranges, Gradle needs to perform intermediate metadata lookups to determine what variations are available, as explained in <<#sec:how-gradle-downloads-deps>>.
-
-[[sec:base-version-comparison]]
-==== Versions with qualifiers
-
-The term "qualifier" refers to the portion of a version string that comes after a non-dot separator, like a hyphen or underscore.
-
-For example:
-
-[cols="1,1,1"]
-|===
-|Original version | Base version | Qualifier
-
-|1.2.3
-|1.2.3
-|<none>
-
-|1.2-3
-|1.2
-|3
-
-|1_alpha
-|1
-|alpha
-
-|abc
-|abc
-|<none>
-
-|1.2b3
-|1.2
-|b3
-
-|abc.1+3
-|abc.1
-|3
-
-|b1-2-3.3
-|b
-|1-2-3.3
-|===
 
 As you can see separators are any of the `.`, `-`, `_`, `+` characters, plus the empty string when a numeric and a non-numeric part of the version are next to each-other.
 
@@ -262,89 +242,68 @@ org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1
     └── kotlinx.coroutines:kotlinx-coroutines-core-js:1.6.4
 ----
 
-[.text-right]
-**Next Chapter:** <<variant_model.adoc#sec:understanding-variant-selection,Learn how Gradle selects Variants>> >>
 
 
-// Copyright (C) 2024 Gradle, Inc.
-//
-// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      https://creativecommons.org/licenses/by-nc-sa/4.0/
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-[[dependency-resolution-basics]]
-= Dependency Resolution
-
-Dependency resolution in Gradle can largely be thought of as a two-step process.
-
-First, the _graph resolution_ phase constructs the dependency graph based on declared dependencies.
-Second, the _artifact resolution_ phase fetches the actual files (artifacts) for the resolved components:
-
-1. **Graph resolution phase**:
-- Driven by declared dependencies and their metadata
-- Uses the request attributes defined by the configuration being resolved
-
-2. **Artifact resolution phase**:
-- Based on nodes in the resolved dependency graph
-- Matches each node to a variant and an artifact
-
-image::dep-man-adv-1.png[]
 
 
-The outcome of these processes can be accessed via different APIs, each designed for specific use cases.
 
-[[sec:graph-resolution]]
-== 1. Graph Resolution
 
-During the _graph resolution_ phase, Gradle downloads and analyzes component metadata (GMM, POM, or Ivy XML) for declared and transitive dependencies.
-This information is used to construct a *dependency graph*, which models the relationships between different components and their variants.
+
 You can learn about how the graph is constructed in <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,Understanding the Dependency Resolution Model>>.
 
-The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult` API] represents the output of the graph resolution phase, providing access to the resolved dependency graph without triggering artifact downloads.
-The graph itself focuses on component variants, not the artifacts (files) associated with those variants:
+The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] API provides access to the resolved dependency graph without triggering artifact resolution.
+This API presents the resolved dependency graph, where each node in the graph is a variant of a component.
 
-- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedComponentResult.html[`ResolvedComponentResult`] - Represents a resolved component in the raw dependency graph.
-- link:{javadocPath}/org/gradle/api/artifacts/result/ResolvedVariantResult.html[`ResolvedVariantResult`] - Represents a resolved variant of a component in the raw dependency graph.
+Raw access to the dependency graph can be useful for a number of use cases:
 
-See <<dependency_graph_resolution.adoc#dependency-graph-resolution,Graph Resolution>> to learn more.
+- Visualizing the dependency graph, for example generating a `.dot` file for Graphviz.
+- Exposing <<viewing_debugging_dependencies.adoc#viewing-debugging-dependencies,diagnostics>> about a given resolution, similar to the `dependencies` or `dependencyInsight` tasks.
+- Resolving a subset of the artifacts for a dependency graph when used in conjunction with the `ArtifactView` API.
 
-[[sec:artifact-resolution]]
-== 2. Artifact Resolution
+Consider the following function that traverses a dependency graph, starting from the root node.
+Callbacks are notified for each node and edge in the graph.
+This function can be used as a base for any use case that requires traversing a dependency graph:
 
-Once the *dependency graph* is resolved, the _artifact resolution_ phase determines which actual files (artifacts) need to be downloaded or retrieved.
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=graph-traversal-function]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=graph-traversal-function]"]
+====
 
-An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] operates on top of the resolved graph, defined by the link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`].
-It allows you to query for specific artifacts based on attributes.
-The same attributes used during _graph resolution_ typically guide _artifact selection_.
+This function starts at the root variant, and performs a breadth-first traversal of the graph.
+The `ResolutionResult` API is lenient, so it is important to check whether a visited edge is unresolved (failed) or resolved.
+With this function, the node callback is always called before the edge callback for any given node.
 
-The  link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView` API] provides flexible ways to access these resolved artifacts:
+Below, we leverage the above traversal function to transform a dependency graph into a `.dot` file for visualization:
 
-- link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] - A flat list of files, which is the most commonly way to work with resolved artifacts.
-- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] - Offers access to both the metadata and the files of resolved artifacts, allowing for more advanced artifact handling.
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=define-graph-traversal-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=define-graph-traversal-task]"]
+====
 
-See <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
+NOTE: A proper implementation would not use `println` but would write to an output file. For more details on declaring task inputs and outputs, see the <<writing_tasks.adoc#writing_tasks,Writing Tasks>> section.
 
-== Controlling Resolution
+When we register the task, we use the `ResolutionResult` API to access the root component and root variant of the `runtimeClasspath` configuration:
 
-An link:{javadocPath}/org/gradle/api/artifacts/transform/package-summary.html[`ArtifactTransform`] modifies the content of an artifact during dependency resolution, such as converting JAR files into custom formats.
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/kotlin",files="build.gradle.kts[tags=register-graph-traversal-task]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-resolutionResult/groovy",files="build.gradle[tags=register-graph-traversal-task]"]
+====
 
-An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] permits customizing the artifact selection process, for example filtering components or requesting attributes that trigger artifact transforms.
+NOTE: This example uses incubating APIs.
 
-When used together:
+Running this task, we get the following output:
 
-1. Register a `ArtifactTransform` to process artifacts.
-2. Configure an `ArtifactView` to select artifacts based on attributes that differ from the original graph.
-3. Query the transformed artifacts via the `ArtifactView` to access or process the transformed files.
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dot.out[]
+----
 
-See <<artifact_views.adoc#artifact-views,Artifact Views>> and <<artifact_transforms.adoc#artifact-transforms,Artifact Transforms>> to learn more.
+Compare this to the output of the `dependencies` task:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
+----
+
+Notice how the graph is the same for both representations.
 
 [.text-right]
-**Next Step:** <<dependency_graph_resolution.adoc#dependency-graph-resolution,Learn about Graph Resolution>> >>
+**Next Step:** <<artifact_resolution.adoc#artifact-resolution,Learn about Artifact Resolution>> >>
