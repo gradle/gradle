@@ -105,7 +105,17 @@ fun configureCompileDefaults() {
         configureCompileTask(options)
     }
     tasks.withType<GroovyCompile>().configureEach {
-        groovyOptions.encoding = "utf-8"
+        with(groovyOptions) {
+            encoding = "utf-8"
+            disabledGlobalASTTransformations.addAll(listOf(
+                // TODO(mlopatkin): remove default values when we have a way to add to the convention of the collection property
+                // This is disabled by convention, but we may override it
+                "groovy.grape.GrabAnnotationTransformation",
+                // We do not want to transform the actual tests or Gradle code written in Groovy, as they may not have the proper classpath at runtime.
+                "org.gradle.groovy.scripts.internal.GlobalCompoundAssignmentTransformation",
+            ))
+        }
+
         configureCompileTask(options)
     }
 }
