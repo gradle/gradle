@@ -48,7 +48,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +62,7 @@ public class ModuleResolveState implements CandidateModule {
     private final ComponentMetaDataResolver metaDataResolver;
     private final ComponentIdGenerator idGenerator;
     private final ModuleIdentifier id;
-    private final List<EdgeState> unattachedEdges = new LinkedList<>();
+    private final List<EdgeState> unattachedEdges = new ArrayList<>();
     private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
