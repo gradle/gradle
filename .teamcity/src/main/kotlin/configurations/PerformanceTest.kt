@@ -53,7 +53,7 @@ class PerformanceTest(
     stage = stage,
     init = {
         this.id(performanceTestBuildSpec.asConfigurationId(model, "bucket${bucketIndex + 1}"))
-        this.name = "$description${if (performanceTestBuildSpec.withoutDependencies) " (without dependencies)" else ""}"
+        this.name = description
         val type = performanceTestBuildSpec.type
         val os = performanceTestBuildSpec.os
         val arch = performanceTestBuildSpec.arch
