@@ -48,7 +48,7 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
 const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
 const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "bot/upgradle-to-latest-wrapper"
 
-fun determineBranchFilter(vararg branches: String): String {
+fun determineBranchFilter(branches: List<String>): String {
     return branches.map { "+:$it" }.joinToString("\n")
 }
 
@@ -74,18 +74,27 @@ class StageTrigger(
     if (generateTriggers) {
         val enableTriggers = model.branch.enableVcsTriggers
         if (stage.trigger == Trigger.eachCommit) {
+            val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
+
+            if (model.branch.isMaster) {
+                effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
+                effectiveTriggerBranches.add(BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
+            }
+
             triggers.vcs {
                 quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
                 quietPeriod = 90
                 triggerRules = triggerExcludes
-                branchFilter = determineBranchFilter(
-                    model.branch.branchName,
-                    PROVIDER_API_MIGRATION_BRANCH,
-                    BOT_DAILY_UPGRADLE_WRAPPER_BRANCH
-                )
+                branchFilter = determineBranchFilter(effectiveTriggerBranches)
                 enabled = enableTriggers
             }
         } else if (stage.trigger != Trigger.never) {
+            val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
+
+            if (model.branch.isMaster) {
+                effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
+            }
+
             triggers.schedule {
                 if (stage.trigger == Trigger.weekly) {
                     schedulingPolicy = weekly {
@@ -101,10 +110,7 @@ class StageTrigger(
                 triggerBuild = always()
                 withPendingChangesOnly = true
                 param("revisionRule", "lastFinished")
-                branchFilter = determineBranchFilter(
-                    model.branch.branchName,
-                    PROVIDER_API_MIGRATION_BRANCH
-                )
+                branchFilter = determineBranchFilter(effectiveTriggerBranches)
                 enabled = enableTriggers
             }
         }

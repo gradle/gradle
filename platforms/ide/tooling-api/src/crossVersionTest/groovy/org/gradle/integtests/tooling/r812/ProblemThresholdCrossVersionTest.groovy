@@ -232,7 +232,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
            ($threshold).times {
                  getProblems().${ProblemsApiGroovyScriptUtils.report(targetVersion, category, label)} {
                     it.${ProblemsApiGroovyScriptUtils.id(targetVersion, category, label)}
-                      .details('Wrong API usage, will not show up anywhere')
+                      .details("Wrong API usage, will not show up anywhere \$it")
                  }
              }
         """
