@@ -132,10 +132,13 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         Isolatable<T> isolatable = getIsolatableAttribute(key);
         if (isolatable == null) {
             return null;
-        } else if (key != null && isolatable.getClass() != key.getClass() && isolatable.getClass().getName().equals(key.getClass().getName())) {
+        }
+
+        T value = isolatable.isolate();
+        if (key != null && value != null && value.getClass() != key.getType() && key.getType() != Object.class) {
             return isolatable.coerce(key.getType());
         } else {
-            return isolatable.isolate();
+            return value;
         }
     }
 
