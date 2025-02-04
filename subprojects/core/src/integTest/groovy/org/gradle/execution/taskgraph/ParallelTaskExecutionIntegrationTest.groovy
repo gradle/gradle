@@ -531,6 +531,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec imple
         }
     }
 
+    @ToBeFixedForConfigurationCache(skip = INVESTIGATE)
+    @Requires(IntegTestPreconditions.NotIsolatedProjects)
     def "other tasks are not started when an invalid task is running"() {
         given:
         withParallelThreads(3)

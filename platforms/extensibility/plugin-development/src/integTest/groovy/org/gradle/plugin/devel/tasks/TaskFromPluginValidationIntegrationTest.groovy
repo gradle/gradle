@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
@@ -26,6 +27,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         expectReindentedValidationMessage()
     }
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32296")
     def "detects that a problem is from a task declared in a precompiled script plugin"() {
         def pluginId = "test.gradle.demo.plugin"
 
@@ -49,6 +51,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         output.contains("- ${convertToSingleLine(dummyValidationProblemWithLink { inPlugin(pluginId) })}")
     }
 
+    @ToBeFixedForConfigurationCache(because = "https://github.com/gradle/gradle/issues/32296")
     def "detects that a problem is from a task declared in plugin"() {
         def pluginId = "org.gradle.demo.plugin"
 
