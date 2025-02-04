@@ -121,7 +121,6 @@ import org.gradle.util.internal.WrapUtil;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -786,12 +785,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             }
 
             private void captureBuildOperationResult(BuildOperationContext context, ResolverResults results) {
-                if (results.getVisitedGraph().hasAnyFailure()) {
-                    List<Throwable> failures = new ArrayList<>();
-                    results.getVisitedGraph().visitFailures(failures::add);
-                    getResolutionHost().consolidateFailures("dependencies", failures).ifPresent(context::failed);
-                }
-
                 // When dependency resolution has failed, we don't want the build operation listeners to fail as well
                 // because:
                 // 1. the `failed` method will have been called with the user facing error
