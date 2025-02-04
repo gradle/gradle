@@ -21,39 +21,74 @@ import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.FileSystemTreeDecoder
 import org.gradle.internal.serialize.graph.FileSystemTreeEncoder
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
 
 class DefaultFileSystemTreeEncoder(
-    private val writeContext: CloseableWriteContext
+    private val globalContext: CloseableWriteContext,
+    private val prefixedTree: StringPrefixedTree
 ) : FileSystemTreeEncoder {
-    override suspend fun writeFile(writeContext: WriteContext, file: File) {
-        TODO("Not yet implemented")
+
+    override fun writeFile(writeContext: WriteContext, file: File) {
+        val key = prefixedTree.insert(file)
+        writeContext.run {
+            writeCollection(key) { writeSmallInt(it) }
+        }
     }
 
     override suspend fun writeTree() {
-        TODO("Not yet implemented")
+        globalContext.writePrefixedTreeNode(prefixedTree.root)
     }
 
     override fun close() {
-        TODO("Not yet implemented")
+        globalContext.close()
     }
 
+    private fun WriteContext.writePrefixedTreeNode(node: StringPrefixedTree.Node) {
+        writeSmallInt(node.index)
+        writeString(node.segment)
+        writeSmallInt(node.children.size)
+        for (child in node.children) {
+            writeString(child.key)
+            writePrefixedTreeNode(child.value)
+        }
+    }
 }
 
 class DefaultFileSystemTreeDecoder(
-    private val readContext: CloseableReadContext
+    private val globalContext: CloseableReadContext,
+    private val prefixedTree: StringPrefixedTree
 ) : FileSystemTreeDecoder {
-    override suspend fun readFile(readContext: ReadContext): File {
-        TODO("Not yet implemented")
+
+    override fun readFile(readContext: ReadContext): File {
+        val key = readContext.run {
+            readCollectionInto({ mutableListOf() }) { readSmallInt() }
+        }
+        return prefixedTree.getByKey(key)
     }
 
     override suspend fun readTree() {
-        TODO("Not yet implemented")
+        prefixedTree.root = globalContext.readPrefixedTreeNode()
     }
 
     override fun close() {
-        TODO("Not yet implemented")
+        globalContext.close()
     }
 
+    private fun ReadContext.readPrefixedTreeNode(): StringPrefixedTree.Node {
+        val index = readSmallInt()
+        val segment = readString()
+        val childrenCount = readSmallInt()
+        val children = mutableMapOf<String, StringPrefixedTree.Node>()
+        repeat(childrenCount) {
+            val key = readString()
+            val child = readPrefixedTreeNode()
+            children[key] = child
+        }
+
+        return StringPrefixedTree.Node(index, segment, children)
+    }
 }

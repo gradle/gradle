@@ -18,11 +18,9 @@ package org.gradle.internal.serialize.graph
 
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
-import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
-import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import kotlin.coroutines.Continuation
@@ -219,15 +217,6 @@ suspend fun <K, V, T : MutableMap<K, V>> ReadContext.readMapEntriesInto(items: T
         items[key] = value
     }
 }
-
-
-fun Encoder.writeFile(file: File) {
-    BaseSerializerFactory.FILE_SERIALIZER.write(this, file)
-}
-
-
-fun Decoder.readFile(): File =
-    BaseSerializerFactory.FILE_SERIALIZER.read(this)
 
 
 fun Encoder.writeStrings(strings: Collection<String>) {

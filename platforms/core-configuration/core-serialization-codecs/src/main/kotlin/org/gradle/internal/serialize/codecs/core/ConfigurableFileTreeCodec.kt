@@ -22,8 +22,6 @@ import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readFile
-import org.gradle.internal.serialize.graph.writeFile
 
 
 class ConfigurableFileTreeCodec(

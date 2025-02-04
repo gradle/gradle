@@ -72,10 +72,10 @@ import org.gradle.internal.serialize.graph.SpecialDecoders
 import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.StringDecoder
 import org.gradle.internal.serialize.graph.StringEncoder
+import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readCollection
-import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readStrings
@@ -83,7 +83,6 @@ import org.gradle.internal.serialize.graph.readWith
 import org.gradle.internal.serialize.graph.runReadOperation
 import org.gradle.internal.serialize.graph.runWriteOperation
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.serialize.graph.writeFile
 import org.gradle.internal.serialize.graph.writeStrings
 import org.gradle.internal.serialize.graph.writeWith
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
@@ -107,7 +106,8 @@ class DefaultConfigurationCacheIO internal constructor(
     private val eventEmitter: BuildOperationProgressEventEmitter,
     private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
-    private val instantiatorFactory: InstantiatorFactory
+    private val instantiatorFactory: InstantiatorFactory,
+    private val prefixedTree: StringPrefixedTree
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private
@@ -259,10 +259,10 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ): T =
-        withFileSystemTreeDecoderFor(stateFile) {
+        withFileSystemTreeDecoderFor(stateFile) { fileSystemTreeDecoder ->
             withStringDecoderFor(stateFile) { stringDecoder ->
                 withSharedObjectDecoderFor(stateFile, stringDecoder) { sharedObjectDecoder ->
-                    readConfigurationCacheStateWithSpecialDecoders(SpecialDecoders(stringDecoder, sharedObjectDecoder), stateFile, action)
+                    readConfigurationCacheStateWithSpecialDecoders(SpecialDecoders(stringDecoder, sharedObjectDecoder, fileSystemTreeDecoder), stateFile, action)
                 }
             }
         }
@@ -285,7 +285,7 @@ class DefaultConfigurationCacheIO internal constructor(
         if (true) {
             val (globalContext, _) = writeContextFor(fileSystemTreeFile, SpecialEncoders()) { "files" }
             globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
-            DefaultFileSystemTreeEncoder(globalContext)
+            DefaultFileSystemTreeEncoder(globalContext, prefixedTree)
         } else {
             InlineFileSystemTreeEncoder
         }
@@ -296,7 +296,7 @@ class DefaultConfigurationCacheIO internal constructor(
         if (true) {
             val (globalContext, _) = readContextFor(fileSystemTreeFile)
             globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
-            DefaultFileSystemTreeDecoder(globalContext)
+            DefaultFileSystemTreeDecoder(globalContext, prefixedTree)
         } else {
             InlineFileSystemTreeDecoder
         }
@@ -639,18 +639,38 @@ class DefaultConfigurationCacheIO internal constructor(
     inner class ChildContextSource(private val baseFile: ConfigurationCacheStateFile) : IsolateContextSource {
         override fun readContextFor(baseContext: ReadContext, path: Path): CloseableReadContext =
             baseFile.relatedStateFile(path).let {
-                readContextFor(it, SpecialDecoders(baseContext.currentStringDecoder, baseContext.currentSharedObjectDecoder)).also { (subContext, subCodecs) ->
+                readContextFor(
+                    it,
+                    SpecialDecoders(baseContext.currentStringDecoder, baseContext.currentSharedObjectDecoder, baseContext.currentFileSystemTreeDecoder)
+                ).also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
 
         override fun writeContextFor(baseContext: WriteContext, path: Path): CloseableWriteContext =
             baseFile.relatedStateFile(path).let {
-                writeContextFor(it, SpecialEncoders(baseContext.currentStringEncoder, baseContext.currentSharedObjectEncoder)) { "child '$path' state" }.also { (subContext, subCodecs) ->
+                writeContextFor(
+                    it,
+                    SpecialEncoders(baseContext.currentStringEncoder, baseContext.currentSharedObjectEncoder, baseContext.currentFileSystemTreeEncoder)
+                ) { "child '$path' state" }.also { (subContext, subCodecs) ->
                     subContext.push(baseContext.isolate.owner, subCodecs.internalTypesCodec())
                 }.first
             }
     }
+
+    private
+    val WriteContext.currentFileSystemTreeEncoder: FileSystemTreeEncoder
+        get() {
+            require(this is DefaultWriteContext)
+            return this.fileSystemTreeEncoder
+        }
+
+    private
+    val ReadContext.currentFileSystemTreeDecoder: FileSystemTreeDecoder
+        get() {
+            require(this is DefaultReadContext)
+            return this.fileSystemTreeDecoder
+        }
 
     private
     val WriteContext.currentStringEncoder: StringEncoder
@@ -717,7 +737,6 @@ class DefaultConfigurationCacheIO internal constructor(
             parallelStore = startParameter.isParallelStore,
             parallelLoad = startParameter.isParallelLoad,
             problems = service(),
-            prefixedTree = service()
         )
 
     private

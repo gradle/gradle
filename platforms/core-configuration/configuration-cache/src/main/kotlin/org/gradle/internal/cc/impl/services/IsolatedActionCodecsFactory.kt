@@ -65,10 +65,6 @@ class IsolatedActionCodecsFactory(
 
     private
     val fileFactory: FileFactory,
-
-    private
-    val stringPrefixedTree: StringPrefixedTree
-
 ) {
     fun isolatedActionCodecs() = Bindings.of {
         allUnsupportedTypes()
@@ -77,8 +73,8 @@ class IsolatedActionCodecsFactory(
         groovyCodecs()
         bind(ExternalizableCodec)
 
-        bind(RegularFileCodec(fileFactory, stringPrefixedTree))
-        bind(DirectoryCodec(fileFactory, stringPrefixedTree))
+        bind(RegularFileCodec(fileFactory))
+        bind(DirectoryCodec(fileFactory))
 
         bind(LoggerCodec)
         bind(ProxyCodec)

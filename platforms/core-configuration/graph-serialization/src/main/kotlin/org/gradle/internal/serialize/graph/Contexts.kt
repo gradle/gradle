@@ -116,7 +116,7 @@ class DefaultWriteContext(
         }
     }
 
-    override suspend fun writeFile(file: File) {
+    override fun writeFile(file: File) {
         fileSystemTreeEncoder.run {
             writeFile(this@DefaultWriteContext, file)
         }
@@ -162,14 +162,14 @@ interface ClassEncoder {
 
 
 interface ClassDecoder {
-    fun Decoder.decodeClass(): Class<*>
+    fun ReadContext.decodeClass(): Class<*>
 
     /**
      * Decodes a [ClassLoader] previously encoded via [ClassEncoder.encodeClassLoader].
      *
      * @return the previously encoded [ClassLoader] or `null` when [ClassEncoder.encodeClassLoader] returns `false`
      */
-    fun Decoder.decodeClassLoader(): ClassLoader? = null
+    fun ReadContext.decodeClassLoader(): ClassLoader? = null
 }
 
 
@@ -210,13 +210,15 @@ object InlineStringDecoder : StringDecoder {
 
 
 interface FileSystemTreeEncoder : AutoCloseable {
-    suspend fun writeFile(writeContext: WriteContext, file: File)
-    suspend fun writeTree();
+    // TODO suspend?
+    fun writeFile(writeContext: WriteContext, file: File)
+    suspend fun writeTree()
 }
 
 
 interface FileSystemTreeDecoder : AutoCloseable {
-    suspend fun readFile(readContext: ReadContext): File
+    // TODO suspend?
+    fun readFile(readContext: ReadContext): File
     suspend fun readTree()
 }
 
@@ -250,8 +252,8 @@ object InlineSharedObjectEncoder : SharedObjectEncoder {
 
 
 object InlineFileSystemTreeEncoder : FileSystemTreeEncoder {
-    override suspend fun writeFile(writeContext: WriteContext, file: File) {
-        writeContext.writeFile(file)
+    override fun writeFile(writeContext: WriteContext, file: File) {
+        BaseSerializerFactory.FILE_SERIALIZER.write(writeContext, file)
     }
 
     override suspend fun writeTree() = Unit
@@ -261,8 +263,8 @@ object InlineFileSystemTreeEncoder : FileSystemTreeEncoder {
 
 
 object InlineFileSystemTreeDecoder : FileSystemTreeDecoder {
-    override suspend fun readFile(readContext: ReadContext): File =
-        readContext.readFile()
+    override fun readFile(readContext: ReadContext): File =
+        BaseSerializerFactory.FILE_SERIALIZER.read(readContext)
 
     override suspend fun readTree() = Unit
 
@@ -330,6 +332,9 @@ class DefaultReadContext(
     override suspend fun read(): Any? = getCodec().run {
         decode()
     }
+
+    override fun readFile(): File =
+        fileSystemTreeDecoder.readFile(this)
 
     override suspend fun readFileSystemTree() {
         fileSystemTreeDecoder.readTree()

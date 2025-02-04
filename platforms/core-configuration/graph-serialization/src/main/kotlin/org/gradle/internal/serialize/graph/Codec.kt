@@ -25,6 +25,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import java.io.File
 
 
 /**
@@ -58,6 +59,9 @@ interface WriteContext : MutableIsolateContext, Encoder {
     suspend fun write(value: Any?)
 
     suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+
+    // TODO suspend?
+    fun writeFile(file: File)
 
     suspend fun writeFileSystemTree()
 
@@ -107,6 +111,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
     var immediateMode: Boolean // TODO:configuration-cache prevent StackOverflowErrors when crossing protocols
 
     suspend fun read(): Any?
+
+    // TODO suspend?
+    fun readFile(): File
 
     suspend fun readFileSystemTree()
 

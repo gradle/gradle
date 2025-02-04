@@ -23,6 +23,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
+import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.ReadIdentities
 
 
@@ -38,7 +39,7 @@ class DefaultClassDecoder(
     private
     val scopes = ReadIdentities()
 
-    override fun Decoder.decodeClass(): Class<*> {
+    override fun ReadContext.decodeClass(): Class<*> {
         val id = readSmallInt()
         val type = classes.getInstance(id)
         if (type != null) {
@@ -53,7 +54,7 @@ class DefaultClassDecoder(
         return actualType
     }
 
-    override fun Decoder.decodeClassLoader(): ClassLoader? =
+    override fun ReadContext.decodeClassLoader(): ClassLoader? =
         if (readBoolean()) {
             val scope = readScope()
             if (readBoolean()) {
@@ -66,7 +67,7 @@ class DefaultClassDecoder(
         }
 
     private
-    fun Decoder.readScope(): ClassLoaderScope {
+    fun ReadContext.readScope(): ClassLoaderScope {
         val id = readSmallInt()
         val scope = scopes.getInstance(id)
         if (scope != null) {
