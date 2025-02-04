@@ -40,8 +40,6 @@ public class DeclarativeDslDependencyTest {
 
     @ArchTest
     public static final ArchRule evaluator_classes_do_not_depend_on_generic_gradle_code =
-        // The `declarative-dsl-evaluator` is meant to be used outside the context of Gradle.
-        // We check that it does not depend on Gradle API/internals.
         classes().that()
             .haveNameMatching("org\\.gradle\\.internal\\.declarativedsl\\.evaluator.*")
             .should().onlyDependOnClassesThat(
@@ -49,7 +47,8 @@ public class DeclarativeDslDependencyTest {
                     not(new GradleCode()),
                     new DeclarativeGradleCode()
                 )
-            );
+            )
+            .because("The `declarative-dsl-evaluator` module is meant to be used outside the context of Gradle, so it should not depend on Gradle API/internals.");
 }
 
 class GradleCode extends DescribedPredicate<JavaClass> {
