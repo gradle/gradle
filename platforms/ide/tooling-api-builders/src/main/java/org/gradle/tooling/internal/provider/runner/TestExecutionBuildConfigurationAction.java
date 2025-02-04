@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
@@ -138,10 +137,9 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                             filter.includeCommandLineTest(cls, method);
                         }
                     }
-                    SetProperty<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
-                    commandLineIncludePatterns.addAll(testSpec.getPatterns());
+                    filter.getCommandLineIncludePatterns().addAll(testSpec.getPatterns());
                     for (String pkg : testSpec.getPackages()) {
-                        commandLineIncludePatterns.add(pkg + ".*");
+                        filter.getCommandLineIncludePatterns().add(pkg + ".*");
                     }
                 }
             }

@@ -70,7 +70,7 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
 public interface TestFilter {
 
     /**
-     * Appends a test name pattern to the inclusion filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names:("com.foo.FooTest.someMethod",
+     * Appends a test name pattern to the inclusion filter. Wildcard '*' is supported, either test method name or class name is supported. Examples of test names: "com.foo.FooTest.someMethod",
      * "com.foo.FooTest", "*FooTest*", "com.foo*". See examples in the docs for {@link TestFilter}.
      *
      * @param testNamePattern test name pattern to include, can be class or method name, can contain wildcard '*'
