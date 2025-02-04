@@ -83,7 +83,7 @@ public interface AttributeContainer extends HasAttributes {
      * @return the attribute value, or null if not found
      */
     @Nullable
-    <T> T getAttribute(Attribute<T> key);
+    <T> T getAttribute(@Nullable Attribute<T> key);
 
     /**
      * Returns true if this container is empty.
