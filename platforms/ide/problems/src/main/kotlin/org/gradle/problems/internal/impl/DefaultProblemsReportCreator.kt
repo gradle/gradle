@@ -85,8 +85,11 @@ class DefaultProblemsReportCreator(
                 }
             }
         })?.let {
-            val url = ConsoleRenderer().asClickableFileUrl(it)
-            logger.warn("${System.lineSeparator()}[Incubating] Problems report is available at: $url")
+            // Set org.gradle.problems.quietReport=true to disable this warning.
+            if (System.getProperty("org.gradle.problems.quietReport") != "true") {
+                val url = ConsoleRenderer().asClickableFileUrl(it)
+                logger.warn("${System.lineSeparator()}[Incubating] Problems report is available at: $url")
+            }
         }
     }
 
