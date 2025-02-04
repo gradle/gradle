@@ -191,19 +191,21 @@ When creating a new file, please make sure to add a header as defined below.
 #### Copyright Header for Documentation Files:
 
 ```
-// Copyright [YEAR OF FILE CREATION] Gradle and contributors.
-//
-// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      https://creativecommons.org/licenses/by-nc-sa/4.0/
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+ * Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+ *
+ * Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      https://creativecommons.org/licenses/by-nc-sa/4.0/
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 ```
 
 ### Submitting Your Change
