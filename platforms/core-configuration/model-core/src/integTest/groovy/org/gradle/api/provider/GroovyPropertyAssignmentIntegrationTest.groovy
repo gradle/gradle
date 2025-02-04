@@ -16,7 +16,6 @@
 
 package org.gradle.api.provider
 
-import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
@@ -331,7 +330,6 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         run("help")
     }
 
-    @ToBeImplemented
     def "compound assignments work in plugins too"() {
         given:
         createDir("plugin") {
@@ -392,11 +390,11 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
             }
         """
 
-        expect:
-        fails("printProperties")
+        when:
+        run("printProperties")
 
-        // TODO(mlopatkin): With the AST transformation applied globally this should succeed and print the property.
-        // outputContains("stringList = [a, b]")
+        then:
+        outputContains("stringList = [a, b]")
     }
 
     private void groovyBuildFile(String inputDeclaration, String inputValue, String operation) {
