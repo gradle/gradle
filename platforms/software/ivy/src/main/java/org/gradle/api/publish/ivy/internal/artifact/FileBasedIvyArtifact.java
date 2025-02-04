@@ -17,10 +17,12 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import com.google.common.io.Files;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.file.DefaultFileSystemLocation;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
-import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
@@ -35,7 +37,6 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
         extension = Files.getFileExtension(file.getName());
         this.coordinates = coordinates;
     }
-
     @Override
     protected String getDefaultName() {
         return coordinates.getModule().get();
@@ -62,14 +63,10 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected TaskDependency getDefaultBuildDependencies() {
-        return TaskDependencyInternal.EMPTY;
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return Providers.of(new DefaultFileSystemLocation(file));
     }
 
-    @Override
-    public File getFile() {
-        return file;
-    }
 
     @Override
     public boolean shouldBePublished() {
