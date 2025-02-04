@@ -23,21 +23,13 @@ import java.io.File
 @ServiceScope(BuildTree::class)
 class StringPrefixedTree {
 
-    private var currentIndex: Int = 1
-    var root = Node(0, "", mutableMapOf())
+    private var currentIndex: Int = 0
 
-    data class Node(
-        val index: Int,
-        val segment: String,
-        val children: MutableMap<String, Node> // Just a list?
-    )
+    val root = Node(null, "", mutableMapOf())
 
-    // Use array as a return type?
-    // Support absolute/relative paths
-    fun insert(file: File): List<Int> {
+    fun insert(file: File): Int {
         val segments = file.path.split("/")
         var current = root
-        val key = mutableListOf<Int>()
 
         for (segment in segments) {
             if (segment.isEmpty()) {
@@ -47,26 +39,23 @@ class StringPrefixedTree {
 
             var child = current.children[segment]
             if (child == null) {
-                child = Node(currentIndex++, segment, mutableMapOf())
+                child = Node(null, segment, mutableMapOf())
                 current.children[segment] = child
             }
-            key.add(child.index)
+
             current = child
         }
-
-        return key
-    }
-
-    fun getByKey(key: List<Int>): File {
-        val segments = arrayListOf<String>() // array of known length key.length
-        var current = root
-
-        for (index in key) {
-            current = current.children.values.first { it.index == index }
-            segments.add(current.segment)
+        if (current.index == null) {
+            current.index = currentIndex++
         }
 
-        return File("/${segments.joinToString("/")}")
+        return current.index!!
     }
+
+    data class Node(
+        var index: Int?,
+        val segment: String,
+        val children: MutableMap<String, Node> // Just a list?
+    )
 }
 

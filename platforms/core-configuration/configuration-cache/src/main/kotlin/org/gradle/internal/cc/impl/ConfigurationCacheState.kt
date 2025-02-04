@@ -739,18 +739,6 @@ class ConfigurationCacheState(
     }
 
     private
-    suspend fun WriteContext.writeFileSystemTree(gradle: GradleInternal) {
-        val prefixedTree = gradle.serviceOf<StringPrefixedTree>()
-        write(prefixedTree.root)
-    }
-
-    private
-    suspend fun ReadContext.readFileSystemTree(gradle: GradleInternal) {
-        val prefixedTreeRoot = read() as StringPrefixedTree.Node
-        gradle.serviceOf<StringPrefixedTree>().root = prefixedTreeRoot
-    }
-
-    private
     suspend fun WriteContext.writeCacheConfigurations(gradle: GradleInternal) {
         gradle.settings.caches.let { cacheConfigurations ->
             write(cacheConfigurations.releasedWrappers.entryRetention)
