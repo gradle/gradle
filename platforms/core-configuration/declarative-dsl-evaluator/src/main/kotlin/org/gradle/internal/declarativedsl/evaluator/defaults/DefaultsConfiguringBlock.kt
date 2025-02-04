@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,8 @@
 
 package org.gradle.internal.declarativedsl.evaluator.defaults
 
-import org.gradle.api.file.ProjectLayout
-import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
-import org.gradle.declarative.dsl.model.annotations.Configuring
-import org.gradle.declarative.dsl.model.annotations.Restricted
-
-
-/**
- * Represents a top-level receiver for processing the defaults block in the Settings DSL.
- */
-interface DefaultsTopLevelReceiver {
-    @Configuring
-    @AccessFromCurrentReceiverOnly
-    fun defaults(defaults: DefaultsConfiguringBlock.() -> Unit)
-
-    @get:Restricted
-    val layout: ProjectLayout
-}
-
-
 /**
  * A receiver for the defaults block.  Note that this class is only used to provide a receiver for custom accessors
  * that expose the software types available in the build.
  */
 class DefaultsConfiguringBlock
-
-
