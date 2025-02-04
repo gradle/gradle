@@ -43,7 +43,7 @@ public class DeclarativeDslDependencyTest {
         // The `declarative-dsl-evaluator` is meant to be used outside the context of Gradle.
         // We check that it does not depend on Gradle API/internals.
         classes().that()
-            .haveNameMatching("org\\.gradle\\.internal\\.declarativedsl\\.evaluator.*") // TODO: also include d.dsl core & api (these shouldn't depend on other declarative code either)
+            .haveNameMatching("org\\.gradle\\.internal\\.declarativedsl\\.evaluator.*")
             .should().onlyDependOnClassesThat(
                 or(
                     not(new GradleCode()),
