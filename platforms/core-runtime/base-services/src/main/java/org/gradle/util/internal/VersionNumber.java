@@ -171,7 +171,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
 
         @Override
         public VersionNumber parse(@Nullable String versionString) {
-            if (versionString == null || versionString.length() == 0) {
+            if (versionString == null || versionString.isEmpty()) {
                 return UNKNOWN;
             }
             Scanner scanner = new Scanner(versionString);
