@@ -87,16 +87,19 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem(0)) {
             definition.id.fqid == 'deprecation:space-assignment-syntax-in-groovy-dsl'
             definition.id.displayName == 'Space-assignment syntax in Groovy DSL has been deprecated.'
-            def locations = allLocations(LineInFileLocation)
-            //guarantee no duplicate locations
-            locations.size() == 1
-            with(locations) {
-                with(get(0)) {
-                    length == -1
-                    column == -1
-                    line == 10
-                    path == buildFile.absolutePath
-                }
+            originLocations.size() == 1
+            with(originLocations[0] as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 10
+                path == buildFile.absolutePath
+            }
+            contextualLocations.size() == 1
+            with(contextualLocations[0] as LineInFileLocation) {
+                length == -1
+                column == -1
+                line == 10
+                path == buildFile.absolutePath
             }
         }
     }
@@ -157,18 +160,22 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll(receivedProblem.originLocations) {
-            size() == 2
-            with(get(0) as OffsetInFileLocation) {
+        verifyAll(receivedProblem) {
+            originLocations.size() == 1
+            with(originLocations[0] as OffsetInFileLocation) {
                 path == 'test-location'
                 offset == 1
                 length == 2
             }
-            with(get(1) as LineInFileLocation) {
+            contextualLocations.size() == 2
+            with(contextualLocations[0] as LineInFileLocation) {
                 length == -1
                 column == -1
                 line == 13
                 path == buildFile.absolutePath
+            }
+            with(contextualLocations[1] as TaskPathLocation) {
+                buildTreePath == ':reportProblem'
             }
         }
     }
@@ -186,19 +193,23 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        verifyAll(receivedProblem.originLocations) {
-            size() == 2
-            with(get(0) as LineInFileLocation) {
+        verifyAll(receivedProblem) {
+            originLocations.size() == 1
+            with(originLocations[0] as LineInFileLocation) {
                 length == -1
                 column == 2
                 line == 1
                 path == 'test-location'
             }
-            with(get(1) as LineInFileLocation) {
+            contextualLocations.size() == 2
+            with(contextualLocations[0] as LineInFileLocation) {
                 length == -1
                 column == -1
                 line == 13
                 path == buildFile.absolutePath
+            }
+            with(contextualLocations[1] as TaskPathLocation) {
+                buildTreePath == ':reportProblem'
             }
         }
     }
