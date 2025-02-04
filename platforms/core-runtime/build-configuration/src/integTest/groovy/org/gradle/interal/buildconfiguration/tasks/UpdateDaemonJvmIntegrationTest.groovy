@@ -323,7 +323,74 @@ tasks.named("updateDaemonJvm") {
         // TODO The description is different with CC on
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
         failureHasCause("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific} for any of the requested platforms")
+    }
 
+    def "configuring the languageVersion will use that value for the generate properties file"() {
+        given:
+        // Run the test by specifying a different version than the one used to execute, using two LTS alternatives
+        def javaVersion = Jvm.current().javaVersion == JavaVersion.VERSION_21 ? JavaVersion.VERSION_17 : JavaVersion.VERSION_21
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    languageVersion = JavaLanguageVersion.of(${javaVersion.majorVersion})
+    toolchainPlatforms = []
+}
+""")
+
+        when:
+        run "updateDaemonJvm"
+
+        then:
+        assertJvmCriteria(javaVersion)
+
+    }
+
+    def "configuring the vendor with a known vendor serializes the vendor name"() {
+        given:
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    vendor = JvmVendorSpec.BELLSOFT
+    toolchainPlatforms = []
+}
+""")
+
+        when:
+        run "updateDaemonJvm"
+
+        then:
+        assertJvmCriteria(Jvm.current().javaVersion, "BELLSOFT")
+    }
+
+    def "configuring the vendor with a partial name match serializes the match"() {
+        given:
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    vendor = JvmVendorSpec.matching("murin")
+    toolchainPlatforms = []
+}
+""")
+
+        when:
+        run "updateDaemonJvm"
+
+        then:
+        assertJvmCriteria(Jvm.current().javaVersion, "murin")
+    }
+
+    def "having the deprecated jvmVendor configured is an error when running the task"() {
+        given:
+        buildFile("""
+tasks.named("updateDaemonJvm") {
+    jvmVendor = "foo"
+    toolchainPlatforms = []
+}
+""")
+
+        when:
+        fails "updateDaemonJvm"
+
+        then:
+        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
+        failureHasCause("Configuring 'jvmVendor' is no longer supported, replace its usage with 'vendor'")
     }
 
     def "can hardcode download URLs in task configuration for generation and then it does not require a toolchain provider configured"() {
