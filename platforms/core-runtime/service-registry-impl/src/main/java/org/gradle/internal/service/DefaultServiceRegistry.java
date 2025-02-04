@@ -101,15 +101,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
     @Nullable
     private final String displayName;
     private final ServiceProvider thisAsServiceProvider;
+    @Nullable
+    private final ServiceCreationListener serviceCreationListener;
 
     private final AtomicReference<State> state = new AtomicReference<State>(State.INIT);
 
     public DefaultServiceRegistry() {
         this(null, NO_PARENTS);
-    }
-
-    public DefaultServiceRegistry(String displayName) {
-        this(displayName, NO_PARENTS);
     }
 
     public DefaultServiceRegistry(ServiceRegistry... parents) {
@@ -132,6 +130,13 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
         ServiceAccessToken token = ServiceAccess.createToken(getDisplayName());
         findProviderMethods(this, token);
+
+        if (parentServices == null) {
+            this.serviceCreationListener = null;
+        } else {
+            Service creationListenerService = find(ServiceCreationListener.class, null, parentServices);
+            this.serviceCreationListener = creationListenerService == null ? null : (ServiceCreationListener) creationListenerService.get();
+        }
     }
 
     private static ServiceProvider setupParentServices(ServiceRegistry[] parents) {
@@ -299,7 +304,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
      */
     public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
         assertMutable();
-        ServiceAccessToken token = org.gradle.internal.service.ServiceAccess.createToken(format(provider.getClass()));
+        ServiceAccessToken token = ServiceAccess.createToken(format(provider.getClass()));
         findProviderMethods(provider, token);
         return this;
     }
@@ -351,6 +356,7 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
 
     @Override
     public Object find(Type serviceType) throws ServiceLookupException {
+        // wrap in build operation
         assertValidServiceType(unwrap(serviceType));
         Service provider = getService(serviceType);
         return provider == null ? null : provider.get();
@@ -683,13 +689,29 @@ public class DefaultServiceRegistry implements CloseableServiceRegistry, Contain
                 synchronized (this) {
                     result = instance;
                     if (result == null) {
-                        setInstance(createServiceInstance());
+                        setInstance(createServiceInstanceMaybeTracking());
                         result = instance;
                     }
                 }
             }
             return result;
         }
+
+        private Object createServiceInstanceMaybeTracking() {
+            ServiceCreationListener creationListener = owner.serviceCreationListener;
+            if (creationListener == null) {
+                return createServiceInstance();
+            }
+
+            ServiceCreationListener.CreationFinishedListener onFinished =
+                creationListener.beforeCreated(getDisplayName());
+            try {
+                return createServiceInstance();
+            } finally {
+                onFinished.afterCreated();
+            }
+        }
+
 
         /**
          * Subclasses implement this method to create the service instance. It is never called concurrently and may not return null.
