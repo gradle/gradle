@@ -63,7 +63,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private Throwable exception;
     //TODO Reinhold make private again
     private AdditionalData additionalData;
-    private boolean collectLocation = false;
+    private boolean collectStackLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
@@ -111,9 +111,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
                     ". Supported types are: " + getAdditionalDataBuilderFactory().getSupportedTypes());
         }
 
-        Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
         if (problemStream != null) {
-            addLocationsFromProblemStream(this.locations, exceptionForProblemInstantiation);
+            addLocationsFromProblemStream(collectStackLocation ? this.locations: this.contextLocations, exceptionForStackLocation());
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
@@ -124,7 +123,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             locations,
             contextLocations,
             details,
-            exceptionForProblemInstantiation,
+            exception,
             additionalData
         );
     }
@@ -166,22 +165,21 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
             "Problems API")
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
-        Throwable exceptionForProblemInstantiation = getExceptionForProblemInstantiation();
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
-        addLocationsFromProblemStream(problemLocations, exceptionForProblemInstantiation);
+        addLocationsFromProblemStream(problemLocations, exceptionForStackLocation());
         return new DefaultProblem(problemDefinition,
             contextualLabel,
             ImmutableList.<String>of(),
             problemLocations,
             ImmutableList.<ProblemLocation>of(),
             null,
-            exceptionForProblemInstantiation,
+            null,
             null
         );
     }
 
-    public Throwable getExceptionForProblemInstantiation() {
-        return getException() == null && collectLocation ? new RuntimeException() : getException();
+    public Throwable exceptionForStackLocation() {
+        return getException() == null && collectStackLocation ? new RuntimeException() : getException();
     }
 
     protected Severity getSeverity() {
@@ -254,7 +252,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder stackLocation() {
-        this.collectLocation = true;
+        this.collectStackLocation = true;
         return this;
     }
 
