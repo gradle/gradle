@@ -21,6 +21,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,6 +41,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ExceptionAnalyser exceptionAnalyser;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
+    private final IsolatableFactory isolatableFactory;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
@@ -49,7 +51,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        IsolatableFactory isolatableFactory
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -59,6 +62,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         this.exceptionAnalyser = exceptionAnalyser;
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
@@ -71,7 +75,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Nonnull
     private DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory);
     }
 
     @Override
@@ -172,7 +176,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Nonnull
     private InternalProblemBuilder getBuilder(Problem problem) {
-        return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory, instantiator, payloadSerializer);
+        return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory);
     }
 
     private Throwable transform(Throwable failure) {

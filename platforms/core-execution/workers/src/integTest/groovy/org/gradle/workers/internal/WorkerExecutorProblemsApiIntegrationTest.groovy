@@ -55,6 +55,17 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
         """
+        file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
+            package org.gradle.test;
+
+            import org.gradle.api.problems.AdditionalData;
+
+            public interface SomeData extends AdditionalData {
+                String getName();
+                void setName(String name);
+            }
+
+        """
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
@@ -82,6 +93,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
                     getProblems().getReporter().report(problemId, problem -> problem
                             .stackLocation()
+                            .additionalData(SomeData.class, d -> d.setName("someData"))
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );
 

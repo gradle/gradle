@@ -107,7 +107,8 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                         new ExceptionProblemRegistry(),
                         null,
                         instantiatorFactory.decorateLenient(),
-                        createPayloadSerializer()));
+                        createPayloadSerializer(),
+                        null));
                 })
                 .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);

@@ -18,6 +18,7 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
@@ -39,6 +40,7 @@ public class DefaultProblems implements InternalProblems {
     private final ExceptionAnalyser exceptionAnalyser;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
+    private final IsolatableFactory isolatableFactory;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -47,7 +49,8 @@ public class DefaultProblems implements InternalProblems {
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        IsolatableFactory isolatableFactory
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -56,6 +59,7 @@ public class DefaultProblems implements InternalProblems {
         this.exceptionAnalyser = exceptionAnalyser;
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
+        this.isolatableFactory = isolatableFactory;
         this.internalReporter = createReporter();
     }
 
@@ -74,7 +78,8 @@ public class DefaultProblems implements InternalProblems {
             exceptionProblemRegistry,
             exceptionAnalyser,
             instantiator,
-            payloadSerializer);
+            payloadSerializer,
+            isolatableFactory);
     }
 
     @Override
@@ -94,6 +99,11 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public InternalProblemBuilder getProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory);
+    }
+
+    @Override
+    public IsolatableFactory getIsolatableFactory() {
+        return isolatableFactory;
     }
 }

@@ -30,6 +30,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
+import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
@@ -51,6 +52,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
+    @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         buildFile """

@@ -139,6 +139,19 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultStreamHasher();
     }
 
+//    @Provides
+//    ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
+//        // Return a dummy implementation of this as creating a real hasher drags ~20 more services
+//        // along with it, and a hasher isn't actually needed on the worker process side at the moment.
+//        return new ClassLoaderHierarchyHasher() {
+//            @Nullable
+//            @Override
+//            public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
+//                throw new UnsupportedOperationException();
+//            }
+//        };
+//    }
+
     @Provides
     Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());

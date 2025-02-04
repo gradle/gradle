@@ -23,6 +23,7 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
+import org.gradle.internal.isolation.IsolatableFactory;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -32,8 +33,11 @@ import java.util.Optional;
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
-    public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
+    private final IsolatableFactory isolatbleFactory;
+
+    public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder, IsolatableFactory isolatbleFactory) {
         super(problemBuilder);
+        this.isolatbleFactory = isolatbleFactory;
     }
 
     @Override
@@ -73,7 +77,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(getAdditionalDataBuilderFactory(), getInstantiator(), getPayloadSerializer()).contextualLabel(prefix + text).build();
+        return problem.toBuilder(getAdditionalDataBuilderFactory(), getInstantiator(), getPayloadSerializer(), isolatbleFactory).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {

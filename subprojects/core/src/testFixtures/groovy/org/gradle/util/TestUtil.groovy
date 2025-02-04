@@ -62,6 +62,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
@@ -433,6 +434,11 @@ class TestProblems implements InternalProblems {
     @Override
     InternalProblemBuilder getProblemBuilder() {
         delegate.getProblemBuilder()
+    }
+
+    @Override
+    IsolatableFactory getIsolatableFactory() {
+        return null
     }
 
     void assertProblemEmittedOnce(Object expectedProblem) {

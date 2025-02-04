@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.Problems;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 
 public interface InternalProblems extends Problems {
@@ -33,4 +34,6 @@ public interface InternalProblems extends Problems {
     Instantiator getInstantiator();
 
     InternalProblemBuilder getProblemBuilder();
+
+    IsolatableFactory getIsolatableFactory();
 }

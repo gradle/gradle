@@ -20,6 +20,7 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.isolation.Isolatable;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
@@ -69,9 +70,11 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
             return;
         }
 
-        Object proxy = createProxy(type, state);
+        Isolatable<?> isolatable = serializedAdditionalData.getIsolatable();
+        Object object = isolatable.coerce(type);
+//        Object proxy = createProxy(type, state);
 
-        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, proxy, serializedType));
+        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, object, serializedType));
     }
 
     @SuppressWarnings("unchecked")
