@@ -440,7 +440,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             public class MyTask extends org.gradle.api.tasks.Copy {
                 public MyTask() {
                     from("input.txt");
-                    setDestinationDir(new java.io.File("output"));
+                    getDestinationDir().set(new java.io.File("output"));
                 }
             }
         """

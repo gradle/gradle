@@ -22,17 +22,18 @@ import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
 import org.jspecify.annotations.Nullable;
 
-import java.io.File;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
@@ -367,8 +368,7 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    @Nullable
-    public File getDestinationDir() {
+    public Provider<Directory> getDestinationDir() {
         return getDelegateCopySpec().getDestinationDir();
     }
 }

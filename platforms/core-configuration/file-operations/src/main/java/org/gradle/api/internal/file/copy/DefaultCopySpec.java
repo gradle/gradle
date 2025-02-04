@@ -27,6 +27,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
@@ -37,10 +38,13 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultConfigurableFilePermissions;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -76,6 +80,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     protected final FileCollectionFactory fileCollectionFactory;
     protected final Instantiator instantiator;
     private final PropertyFactory propertyFactory;
+    private final FileFactory fileFactory;
     private final ConfigurableFileCollection sourcePaths;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
@@ -83,6 +88,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private final Property<ConfigurableFilePermissions> dirPermissions;
     private final Property<ConfigurableFilePermissions> filePermissions;
+    private final Provider<Directory> destinationDir;
+    @Nullable
     private Object destDir;
     private boolean hasCustomActions;
     private Boolean caseSensitive;
@@ -93,25 +100,26 @@ public class DefaultCopySpec implements CopySpecInternal {
     private PatternFilterable preserve = new PatternSet();
 
     @Inject
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
-        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSetFactory.create());
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, FileFactory fileFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory) {
+        this(fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory, patternSetFactory.create());
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, PatternSet patternSet) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, FileFactory fileFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, PatternSet patternSet) {
         this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
         this.propertyFactory = propertyFactory;
+        this.fileFactory = fileFactory;
         this.instantiator = instantiator;
         this.patternSetFactory = patternSetFactory;
         this.patternSet = patternSet;
         this.filePermissions = propertyFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = propertyFactory.property(ConfigurableFilePermissions.class);
+        this.destinationDir = Providers.changing(this::getDestPath).map(SerializableLambdas.transformer(dir -> fileFactory.dir(new File(dir))));
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
-        this(fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, patternSet);
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, FileFactory fileFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
+        this(fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
-        destDir = destPath;
         this.copyActions.addAll(copyActions);
         for (CopySpecInternal child : children) {
             addChildSpec(child);
@@ -177,14 +185,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildRootResolver());
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory, buildRootResolver());
         addChildSpec(position, child);
         return child;
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory, buildRootResolver());
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory, buildRootResolver());
         addChildSpec(child);
         return child;
     }
@@ -245,17 +253,14 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Nullable
     public String getDestPath() {
-        return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+        return destDir != null
+            ? PATH_NOTATION_PARSER.parseNotation(destDir)
+            : null;
     }
 
     @Override
-    @Nullable
-    public File getDestinationDir() {
-        if (destDir instanceof File) {
-            return (File) destDir;
-        } else {
-            return destDir == null ? null : new File(PATH_NOTATION_PARSER.parseNotation(destDir));
-        }
+    public Provider<Directory> getDestinationDir() {
+        return destinationDir;
     }
 
     @Override

@@ -35,7 +35,7 @@ import org.junit.Rule
  * https://androidstudio.googleblog.com/
  *
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
- * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
 class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 

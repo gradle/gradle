@@ -75,6 +75,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
     private final PropertyFactory propertyFactory;
+    private final FileFactory fileFactory;
     private final Instantiator instantiator;
     private final Deleter deleter;
     private final ResourceHandler resourceHandler;
@@ -97,6 +98,7 @@ public class DefaultFileOperations implements FileOperations {
         DefaultResourceHandler.Factory resourceHandlerFactory,
         FileCollectionFactory fileCollectionFactory,
         PropertyFactory propertyFactory,
+        FileFactory fileFactory,
         FileSystem fileSystem,
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
@@ -109,6 +111,7 @@ public class DefaultFileOperations implements FileOperations {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
         this.propertyFactory = propertyFactory;
+        this.fileFactory = fileFactory;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.resourceHandler = resourceHandlerFactory.create(this);
@@ -124,6 +127,7 @@ public class DefaultFileOperations implements FileOperations {
             fileResolver,
             patternSetFactory,
             propertyFactory,
+            fileFactory,
             fileSystem,
             instantiator,
             documentationRegistry
@@ -298,7 +302,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
+        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, propertyFactory, fileFactory, instantiator, patternSetFactory);
     }
 
     @Override
@@ -314,6 +318,7 @@ public class DefaultFileOperations implements FileOperations {
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
         PropertyFactory propertyFactory = services.get(PropertyFactory.class);
+        FileFactory fileFactory = services.get(FileFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         FileHasher fileHasher = services.get(FileHasher.class);
@@ -342,6 +347,7 @@ public class DefaultFileOperations implements FileOperations {
             resourceHandlerFactory,
             fileTreeFactory,
             propertyFactory,
+            fileFactory,
             fileSystem,
             patternSetFactory,
             deleter,

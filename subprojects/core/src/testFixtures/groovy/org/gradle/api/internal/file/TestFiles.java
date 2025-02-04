@@ -147,6 +147,10 @@ public class TestFiles {
         return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(), fileCollectionFactory());
     }
 
+    public static FileFactory fileFactory(File baseDir) {
+        return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(baseDir), fileCollectionFactory(baseDir));
+    }
+
     public static FileOperations fileOperations(File basedDir) {
         return fileOperations(basedDir, new DefaultTemporaryFileProvider(() -> new File(basedDir, "tmp")));
     }
@@ -171,6 +175,7 @@ public class TestFiles {
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
             propertyFactory(),
+            fileFactory(basedDir),
             fileSystem,
             getPatternSetFactory(),
             deleter(),

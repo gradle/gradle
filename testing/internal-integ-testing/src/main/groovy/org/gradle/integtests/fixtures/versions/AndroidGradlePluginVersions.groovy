@@ -38,6 +38,7 @@ class AndroidGradlePluginVersions {
     public static final String OVERRIDE_VERSION_CHECK = '-Dcom.android.build.gradle.overrideVersionCheck=true'
 
     private static final VersionNumber AGP_8_0 = VersionNumber.parse('8.0.0')
+    private static final VersionNumber AGP_8_9 = VersionNumber.parse('8.9.0')
     private static final VersionNumber AGP_7_0 = VersionNumber.parse('7.0.0')
     private static final VersionNumber AGP_7_3 = VersionNumber.parse('7.3.0')
     private static final VersionNumber KOTLIN_1_6_20 = VersionNumber.parse('1.6.20')
@@ -160,7 +161,7 @@ class AndroidGradlePluginVersions {
         return null
     }
 
-    static void assumeCurrentJavaVersionIsSupportedBy(String agpVersion) {
+    static void assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(String agpVersion) {
         VersionNumber agpVersionNumber = VersionNumber.parse(agpVersion)
         JavaVersion current = JavaVersion.current()
         JavaVersion mini = getMinimumJavaVersionFor(agpVersionNumber)
@@ -169,6 +170,10 @@ class AndroidGradlePluginVersions {
         if (maxi != null) {
             assumeTrue("AGP $agpVersion maximum supported Java version is $maxi, current is $current", current <= maxi)
         }
+        // TODO: Remove for Gradle 9.0
+        // These versions are not compatible with Copy/Sync.destinationDir changes
+        assumeTrue("AGP version -dev, doesn't work with Provider API", !agpVersion.contains("-dev"))
+        assumeTrue("AGP version must be > 8.9.0", agpVersionNumber > AGP_8_9)
     }
 
     static JavaVersion getMinimumJavaVersionFor(String agpVersion) {
@@ -207,8 +212,8 @@ class AndroidGradlePluginVersions {
         return null
     }
 
-    static void assumeAgpSupportsCurrentJavaVersionAndKotlinVersion(String agpVersion, String kotlinVersion) {
-        assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+    static void assumeAgpSupportsCurrentJavaVersionAndProviderApiChangesAndKotlinVersion(String agpVersion, String kotlinVersion) {
+        assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
         assumeAgpSupportsKotlinVersion(agpVersion, kotlinVersion)
     }
 

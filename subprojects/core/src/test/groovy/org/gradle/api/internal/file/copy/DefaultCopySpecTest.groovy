@@ -42,8 +42,9 @@ class DefaultCopySpecTest extends Specification {
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     private fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     private propertyFactory = TestUtil.propertyFactory()
+    private filePropertyFactory = TestFiles.filePropertyFactory(testDir.testDirectory)
     private instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final DefaultCopySpec spec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, TestFiles.patternSetFactory)
+    private final DefaultCopySpec spec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, filePropertyFactory, instantiator, TestFiles.patternSetFactory)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -469,7 +470,7 @@ class DefaultCopySpecTest extends Specification {
     }
 
     def 'can add spec hierarchy as child'() {
-        CopySpec otherSpec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, instantiator, TestFiles.patternSetFactory)
+        CopySpec otherSpec = new DefaultCopySpec(fileCollectionFactory, propertyFactory, filePropertyFactory, instantiator, TestFiles.patternSetFactory)
         otherSpec.addChild()
         def added = []
 

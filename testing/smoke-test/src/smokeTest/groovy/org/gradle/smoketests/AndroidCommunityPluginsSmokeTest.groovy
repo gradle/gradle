@@ -27,7 +27,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
  * https://androidstudio.googleblog.com/
  *
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
- * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
 class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
 
@@ -69,7 +69,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
 
     @Override
     void configureValidation(String testedPluginId, String version) {
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(ANDROID_PLUGIN_VERSION_FOR_TESTS)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(ANDROID_PLUGIN_VERSION_FOR_TESTS)
         configureAndroidProject(testedPluginId, version)
 
         validatePlugins {

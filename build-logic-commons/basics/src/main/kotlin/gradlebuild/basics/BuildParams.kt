@@ -329,11 +329,12 @@ val Project.includePerformanceTestScenarios: Boolean
 
 
 val Project.gradleInstallPath: Provider<String>
-    get() = gradleProperty(GRADLE_INSTALL_PATH).orElse(
-        provider<String> {
-            throw RuntimeException("You can't install without setting the $GRADLE_INSTALL_PATH property.")
+    get() = gradleProperty(GRADLE_INSTALL_PATH).orElse("").map {
+        require(it.isNotEmpty()) {
+            "Property '$GRADLE_INSTALL_PATH' is empty or unset. Please set it to a valid path."
         }
-    )
+        it
+    }
 
 
 val Project.rerunAllTests: Provider<Boolean>

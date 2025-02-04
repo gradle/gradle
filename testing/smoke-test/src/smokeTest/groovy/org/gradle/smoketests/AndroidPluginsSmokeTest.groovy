@@ -36,7 +36,7 @@ import static org.junit.Assume.assumeTrue
  * https://androidstudio.googleblog.com/
  *
  * To run your tests against all AGP versions from agp-versions.properties, use higher version of java by setting -PtestJavaVersion=<version>
- * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeCurrentJavaVersionIsSupportedBy() assumeCurrentJavaVersionIsSupportedBy} for more details
+ * See {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions#assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges() assumeCurrentJavaVersionIsSupportedBy} for more details
  */
 class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker, RunnerFactory {
 
@@ -65,7 +65,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         assumeTrue(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("8.8.0"))
 
         and:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         androidLibraryAndApplicationBuild(agpVersion)
@@ -94,7 +94,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"() {
 
         given:
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(agpVersion)
 
         and:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
@@ -110,7 +110,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(runner.projectDir, IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
         def result = runner
             .deprecations(AndroidDeprecations) {
-                expectIsPropertyDeprecationWarnings()
+                maybeExpectIsPropertyDeprecationWarnings()
             }
             .expectChangingPropertyValueAtExecutionTimeDeprecationWarning("systemProperties")
             .build()
@@ -408,7 +408,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
     @Override
     void configureValidation(String testedPluginId, String version) {
-        AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(version)
+        AGP_VERSIONS.assumeAgpSupportsCurrentJavaVersionAndProviderApiChanges(version)
         if (testedPluginId != 'com.android.reporting') {
             buildFile << """
                 android {

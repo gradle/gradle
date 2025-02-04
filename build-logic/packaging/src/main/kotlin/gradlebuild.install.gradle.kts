@@ -19,7 +19,7 @@ import gradlebuild.basics.repoRoot
 import gradlebuild.packaging.GradleDistributionSpecs.binDistributionSpec
 import gradlebuild.packaging.GradleDistributionSpecs.allDistributionSpec
 
-val installDirectory = repoRoot().dir(gradleInstallPath).map { validateInstallDir(it) }
+val installDirectory = repoRoot().dir(gradleInstallPath).map { InstallDirValidator.validate(it) }
 
 tasks.register<Sync>("install") {
     description = "Installs the minimal distribution"
@@ -35,21 +35,23 @@ tasks.register<Sync>("installAll") {
     into(installDirectory)
 }
 
-fun validateInstallDir(installDir: Directory) = installDir.also { dir ->
-    val dirFile = dir.asFile
-    if (dirFile.isFile) {
-        throw RuntimeException("Install directory $dir is not valid: it is actually a file")
-    }
-    if (dirFile.list()?.isEmpty() != false) {
-        return@also
-    }
-    val binDirFiles = dirFile.resolve("bin").list()
-    if (binDirFiles != null && binDirFiles.isNotEmpty() && binDirFiles.all { it.matches(Regex("^gradle.*")) }) {
-        val libDir = dirFile.resolve("lib")
-        if (libDir.list()?.any { it.matches(Regex("^gradle.*\\.jar")) } == true) {
+object InstallDirValidator {
+    fun validate(installDir: Directory) = installDir.also { dir ->
+        val dirFile = dir.asFile
+        if (dirFile.isFile) {
+            throw RuntimeException("Install directory $dir is not valid: it is actually a file")
+        }
+        if (dirFile.list()?.isEmpty() != false) {
             return@also
         }
-    }
+        val binDirFiles = dirFile.resolve("bin").list()
+        if (binDirFiles != null && binDirFiles.isNotEmpty() && binDirFiles.all { it.matches(Regex("^gradle.*")) }) {
+            val libDir = dirFile.resolve("lib")
+            if (libDir.list()?.any { it.matches(Regex("^gradle.*\\.jar")) } == true) {
+                return@also
+            }
+        }
 
-    throw RuntimeException("Install directory $dir does not look like a Gradle installation. Cannot delete it to install.")
+        throw RuntimeException("Install directory $dir does not look like a Gradle installation. Cannot delete it to install.")
+    }
 }
