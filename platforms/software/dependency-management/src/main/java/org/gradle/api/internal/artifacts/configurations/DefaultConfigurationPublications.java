@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.ConfigurationVariant;
@@ -29,6 +28,7 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.DomainObjectCollectionInternal;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -37,7 +37,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.FinalizableValue;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -45,13 +44,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
-public class DefaultConfigurationPublications implements ConfigurationPublications, FinalizableValue {
+public class DefaultConfigurationPublications implements ConfigurationPublications {
+
+    // Parent state
     private final DisplayName displayName;
-    private final PublishArtifactSet artifacts;
     private final PublishArtifactSetProvider allArtifacts;
     private final AttributeContainerInternal parentAttributes;
-    private final AttributeContainerInternal attributes;
+
+    // Services
     private final Instantiator instantiator;
     private final NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser;
     private final NotationParser<Object, Capability> capabilityNotationParser;
@@ -59,10 +61,13 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     private final AttributesFactory attributesFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
+
+    // Mutable state
+    private final PublishArtifactSet artifacts;
+    private final AttributeContainerInternal attributes;
     private NamedDomainObjectContainer<ConfigurationVariant> variants;
-    private ConfigurationVariantFactory variantFactory;
     private DomainObjectSet<Capability> capabilities;
-    private boolean canCreate = true;
+    private Supplier<String> observationReason;
 
     public DefaultConfigurationPublications(
         DisplayName displayName,
@@ -157,8 +162,12 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
     public NamedDomainObjectContainer<ConfigurationVariant> getVariants() {
         if (variants == null) {
             // Create variants container only as required
-            variantFactory = new ConfigurationVariantFactory();
-            variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(ConfigurationVariant.class, variantFactory);
+            variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(ConfigurationVariant.class, this::createVariant);
+            ((DomainObjectCollectionInternal<?>) variants).beforeCollectionChanges(variantName -> {
+                if (isObserved()) {
+                    throw new IllegalStateException("Cannot add secondary artifact set to " + displayName + " after " + observationReason.get() + ".");
+                }
+            });
         }
         return variants;
     }
@@ -170,18 +179,18 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Override
     public void capability(Object notation) {
-        if (canCreate) {
-            if (capabilities == null) {
-                capabilities = domainObjectCollectionFactory.newDomainObjectSet(Capability.class);
-            }
-            if (notation instanceof Provider) {
-                capabilities.addLater(((Provider<?>) notation).map(capabilityNotationParser::parseNotation));
-            } else {
-                Capability descriptor = capabilityNotationParser.parseNotation(notation);
-                capabilities.add(descriptor);
-            }
+        if (isObserved()) {
+            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' on " + displayName + " after " + observationReason.get() + ".");
+        }
+
+        if (capabilities == null) {
+            capabilities = domainObjectCollectionFactory.newDomainObjectSet(Capability.class);
+        }
+        if (notation instanceof Provider) {
+            capabilities.addLater(((Provider<?>) notation).map(capabilityNotationParser::parseNotation));
         } else {
-            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' after dependency " + displayName + " has been resolved");
+            Capability descriptor = capabilityNotationParser.parseNotation(notation);
+            capabilities.add(descriptor);
         }
     }
 
@@ -190,9 +199,8 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         return capabilities == null ? Collections.emptyList() : ImmutableList.copyOf(capabilities);
     }
 
-    @Override
-    public void preventFromFurtherMutation() {
-        canCreate = false;
+    public void preventFromFurtherMutation(Supplier<String> observationReason) {
+        this.observationReason = observationReason;
         if (variants != null) {
             for (ConfigurationVariant variant : variants) {
                 ((ConfigurationVariantInternal) variant).preventFurtherMutation();
@@ -200,16 +208,21 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
         }
     }
 
-    private class ConfigurationVariantFactory implements NamedDomainObjectFactory<ConfigurationVariant> {
-        @Override
-        public ConfigurationVariant create(String name) {
-            if (canCreate) {
-                return instantiator.newInstance(
-                    DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory, taskDependencyFactory
-                );
-            } else {
-                throw new InvalidUserCodeException("Cannot create variant '" + name + "' after dependency " + displayName + " has been resolved");
-            }
-        }
+    private boolean isObserved() {
+        return observationReason != null;
+    }
+
+    private DefaultVariant createVariant(String name) {
+        return instantiator.newInstance(
+            DefaultVariant.class,
+            displayName,
+            name,
+            parentAttributes,
+            artifactNotationParser,
+            fileCollectionFactory,
+            attributesFactory,
+            domainObjectCollectionFactory,
+            taskDependencyFactory
+        );
     }
 }
