@@ -49,6 +49,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.analysis.DefaultVarargSignature
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal
@@ -158,6 +159,13 @@ object SchemaSerialization {
             }
             polymorphic(DataType.TypeVariableUsage::class) {
                 subclass(DataTypeInternal.DefaultTypeVariableUsage::class)
+            }
+            polymorphic(DataType.ParameterizedTypeSignature::class) {
+                subclass(DataTypeInternal.DefaultParameterizedTypeSignature::class)
+                subclass(DefaultVarargSignature::class)
+            }
+            polymorphic(DataType.VarargSignature::class) {
+                subclass(DefaultVarargSignature::class)
             }
         }
         prettyPrint = true

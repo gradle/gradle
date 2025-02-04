@@ -101,6 +101,7 @@ sealed interface DataType : Serializable {
      */
     // In the future, a type signature may become resolvable to a generic DataClass, but for now, it should not be associated with any DataClass, even if
     // a data class with the same name appears in the schema.
+    @ToolingModelContract(subTypes = [VarargSignature::class])
     interface ParameterizedTypeSignature : HasTypeName {
         interface TypeParameter {
             val name: String
@@ -109,6 +110,15 @@ sealed interface DataType : Serializable {
 
         val typeParameters: List<TypeParameter>
     }
+
+    /**
+     * Represents the single existing parameterized type signature that corresponds to the type of vararg parameters like `vararg ints: Int` or `vararg strings: String`.
+     *
+     * A schema should not have more than one instance of [VarargSignature], and all vararg types in function parameters should be represented by [ParameterizedTypeInstance] referencing
+     * the [VarargSignature] as [ParameterizedTypeInstance.typeSignature].
+     * These types may be handled specially by the processing stages to follow the vararg representations expected by the runtime.
+     */
+    interface VarargSignature : ParameterizedTypeSignature
 
     interface ParameterizedTypeInstance : ClassDataType {
         val typeSignature: ParameterizedTypeSignature
