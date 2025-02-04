@@ -184,7 +184,6 @@ class ConfigurationCacheState(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
-
         val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {

@@ -199,6 +199,6 @@ class IsolatedActionCodecsFactoryTest {
             javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
             propertyFactory = propertyFactory(),
             fileFactory = TestFiles.fileFactory(),
-            filePropertyFactory = TestFiles.filePropertyFactory()
+            filePropertyFactory = TestFiles.filePropertyFactory(),
         )
 }
