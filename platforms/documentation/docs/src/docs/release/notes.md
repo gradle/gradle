@@ -101,11 +101,11 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 <a name="java-24"></a>
 ### Support for building projects with Java 24
 
-Gradle now supports [using Java 24](userguide/compatibility.html#java) for compiling, testing, and starting other Java programs.
-Selecting a language version is done using [toolchains](userguide/toolchains.html).
+Gradle now supports [Java 24](userguide/compatibility.html#java) for compiling, testing, and starting Java programs.
+You can select the Java language version using [toolchains](userguide/toolchains.html).
 
-You cannot run Gradle @version@ itself with Java 24 because Groovy still needs to support JDK 24.
-However, future versions are expected to provide this support.
+However, Gradle itself cannot run on Java 24 yet, as Groovy does not fully support JDK 24.
+Future versions are expected to address this.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
