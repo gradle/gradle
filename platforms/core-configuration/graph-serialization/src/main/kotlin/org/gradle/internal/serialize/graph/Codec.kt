@@ -57,7 +57,9 @@ interface WriteContext : MutableIsolateContext, Encoder {
 
     suspend fun write(value: Any?)
 
-    suspend fun <T: Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit)
+
+    suspend fun writeFileSystemTree()
 
     fun writeClass(type: Class<*>)
 
@@ -106,7 +108,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     suspend fun read(): Any?
 
-    suspend fun <T: Any> readSharedObject(decode: suspend ReadContext.() -> T): T
+    suspend fun readFileSystemTree()
+
+    suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T
 
     fun readClass(): Class<*>
 

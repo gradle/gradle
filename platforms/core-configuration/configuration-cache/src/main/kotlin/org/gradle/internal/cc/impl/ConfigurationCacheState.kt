@@ -68,6 +68,7 @@ import org.gradle.internal.flow.services.BuildFlowScope
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.serialize.codecs.core.IsolateContextSource
+import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.MutableReadContext
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -177,6 +178,7 @@ class ConfigurationCacheState(
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
+        writeFileSystemTree()
     }
 
     suspend fun MutableReadContext.readRootBuildState(
@@ -184,7 +186,7 @@ class ConfigurationCacheState(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
-
+        readFileSystemTree()
         val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {
@@ -734,6 +736,18 @@ class ConfigurationCacheState(
             buildCache.registrations = readNonNull<MutableSet<BuildCacheServiceRegistration>>()
         }
         RootBuildCacheControllerSettingsProcessor.process(gradle)
+    }
+
+    private
+    suspend fun WriteContext.writeFileSystemTree(gradle: GradleInternal) {
+        val prefixedTree = gradle.serviceOf<StringPrefixedTree>()
+        write(prefixedTree.root)
+    }
+
+    private
+    suspend fun ReadContext.readFileSystemTree(gradle: GradleInternal) {
+        val prefixedTreeRoot = read() as StringPrefixedTree.Node
+        gradle.serviceOf<StringPrefixedTree>().root = prefixedTreeRoot
     }
 
     private

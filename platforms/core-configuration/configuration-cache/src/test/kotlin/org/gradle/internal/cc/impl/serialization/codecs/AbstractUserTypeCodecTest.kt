@@ -190,6 +190,7 @@ abstract class AbstractUserTypeCodecTest {
         flowProviders = mock(),
         transformStepNodeFactory = mock(),
         problems = mock(),
+        prefixedTree = mock()
     )
 }
 

@@ -30,6 +30,7 @@ import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
 import org.gradle.internal.cc.impl.services.IsolatedActionCodecsFactory
 import org.gradle.internal.Cast.uncheckedNonnullCast
 import org.gradle.internal.isolation.IsolatedActionsForTesting.isolatedActionLambdaWith
+import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.util.TestUtil
 import org.gradle.util.TestUtil.objectFactory
@@ -198,6 +199,7 @@ class IsolatedActionSerializerTest {
             javaSerializationEncodingLookup = JavaSerializationEncodingLookup(),
             propertyFactory = propertyFactory(),
             fileFactory = TestFiles.fileFactory(),
-            filePropertyFactory = TestFiles.filePropertyFactory()
+            filePropertyFactory = TestFiles.filePropertyFactory(),
+            stringPrefixedTree = StringPrefixedTree()
         )
 }

@@ -23,10 +23,12 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.io.File
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -43,13 +45,15 @@ interface BeanStateReaderLookup {
 
 data class SpecialEncoders(
     val stringEncoder: StringEncoder = InlineStringEncoder,
-    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder
+    val sharedObjectEncoder: SharedObjectEncoder = InlineSharedObjectEncoder,
+    val fileSystemTreeEncoder: FileSystemTreeEncoder = InlineFileSystemTreeEncoder
 )
 
 
 data class SpecialDecoders(
     val stringDecoder: StringDecoder = InlineStringDecoder,
-    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
+    val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder,
+    val fileSystemTreeDecoder: FileSystemTreeDecoder = InlineFileSystemTreeDecoder
 )
 
 
@@ -81,6 +85,8 @@ class DefaultWriteContext(
 
     val sharedObjectEncoder = specialEncoders.sharedObjectEncoder
 
+    val fileSystemTreeEncoder = specialEncoders.fileSystemTreeEncoder
+
     override val sharedIdentities = WriteIdentities()
 
     override val circularReferences = CircularReferences()
@@ -110,10 +116,20 @@ class DefaultWriteContext(
         }
     }
 
+    override suspend fun writeFile(file: File) {
+        fileSystemTreeEncoder.run {
+            writeFile(this@DefaultWriteContext, file)
+        }
+    }
+
     override suspend fun <T : Any> writeSharedObject(value: T, encode: suspend WriteContext.(T) -> Unit) {
         sharedObjectEncoder.run {
             write(this@DefaultWriteContext, value, encode)
         }
+    }
+
+    override suspend fun writeFileSystemTree() {
+        fileSystemTreeEncoder.writeTree()
     }
 
     override fun writeClass(type: Class<*>) {
@@ -192,19 +208,32 @@ object InlineStringDecoder : StringDecoder {
     override fun close() = Unit
 }
 
+
+interface FileSystemTreeEncoder : AutoCloseable {
+    suspend fun writeFile(writeContext: WriteContext, file: File)
+    suspend fun writeTree();
+}
+
+
+interface FileSystemTreeDecoder : AutoCloseable {
+    suspend fun readFile(readContext: ReadContext): File
+    suspend fun readTree()
+}
+
+
 //TODO-RC consider making the implementations auto-closeable
 interface SharedObjectEncoder : AutoCloseable {
-    suspend fun <T: Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
+    suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit)
 }
 
 
 interface SharedObjectDecoder : AutoCloseable {
-    suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
+    suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T
 }
 
 
 object InlineSharedObjectDecoder : SharedObjectDecoder {
-    override suspend fun <T: Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
+    override suspend fun <T : Any> read(readContext: ReadContext, decode: suspend ReadContext.() -> T): T =
         readContext.decode()
 
     override fun close() = Unit
@@ -215,6 +244,27 @@ object InlineSharedObjectEncoder : SharedObjectEncoder {
     override suspend fun <T : Any> write(writeContext: WriteContext, value: T, encode: suspend WriteContext.(T) -> Unit) {
         writeContext.encode(value)
     }
+
+    override fun close() = Unit
+}
+
+
+object InlineFileSystemTreeEncoder : FileSystemTreeEncoder {
+    override suspend fun writeFile(writeContext: WriteContext, file: File) {
+        writeContext.writeFile(file)
+    }
+
+    override suspend fun writeTree() = Unit
+
+    override fun close() = Unit
+}
+
+
+object InlineFileSystemTreeDecoder : FileSystemTreeDecoder {
+    override suspend fun readFile(readContext: ReadContext): File =
+        readContext.readFile()
+
+    override suspend fun readTree() = Unit
 
     override fun close() = Unit
 }
@@ -245,6 +295,8 @@ class DefaultReadContext(
     val stringDecoder = specialDecoders.stringDecoder
 
     val sharedObjectDecoder = specialDecoders.sharedObjectDecoder
+
+    val fileSystemTreeDecoder = specialDecoders.fileSystemTreeDecoder
 
     private
     var singletonProperty: Any? = null
@@ -277,6 +329,10 @@ class DefaultReadContext(
 
     override suspend fun read(): Any? = getCodec().run {
         decode()
+    }
+
+    override suspend fun readFileSystemTree() {
+        fileSystemTreeDecoder.readTree()
     }
 
     override suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T =

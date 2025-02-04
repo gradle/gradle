@@ -21,28 +21,45 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readFile
+import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeFile
 
 
-class DirectoryCodec(private val fileFactory: FileFactory) : Codec<Directory> {
+class DirectoryCodec(
+    private val fileFactory: FileFactory,
+    private val prefixedTree: StringPrefixedTree
+) : Codec<Directory> {
     override suspend fun WriteContext.encode(value: Directory) {
-        writeFile(value.asFile)
+        writeFile()
+        val key = prefixedTree.insert(value.asFile)
+        writeCollection(key) { writeSmallInt(it) }
     }
 
     override suspend fun ReadContext.decode(): Directory {
-        return fileFactory.dir(readFile())
+        readFile()
+        val key = readCollectionInto({ mutableListOf() }) { readSmallInt() }
+        val dir = prefixedTree.getByKey(key)
+        return fileFactory.dir(dir)
     }
 }
 
 
-class RegularFileCodec(private val fileFactory: FileFactory) : Codec<RegularFile> {
+class RegularFileCodec(
+    private val fileFactory: FileFactory,
+    private val prefixedTree: StringPrefixedTree
+) : Codec<RegularFile> {
     override suspend fun WriteContext.encode(value: RegularFile) {
-        writeFile(value.asFile)
+        val key = prefixedTree.insert(value.asFile)
+        writeCollection(key) { writeSmallInt(it) }
     }
 
     override suspend fun ReadContext.decode(): RegularFile {
-        return fileFactory.file(readFile())
+        val key = readCollectionInto({ mutableListOf() }) { readSmallInt() }
+        val file = prefixedTree.getByKey(key)
+        return fileFactory.file(file)
     }
 }

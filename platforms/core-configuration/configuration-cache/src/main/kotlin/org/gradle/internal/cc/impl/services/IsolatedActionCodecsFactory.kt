@@ -34,6 +34,7 @@ import org.gradle.internal.serialize.codecs.core.ProviderCodec
 import org.gradle.internal.serialize.codecs.core.RegularFileCodec
 import org.gradle.internal.serialize.codecs.core.RegularFilePropertyCodec
 import org.gradle.internal.serialize.codecs.core.SetPropertyCodec
+import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
@@ -63,7 +64,10 @@ class IsolatedActionCodecsFactory(
     val filePropertyFactory: FilePropertyFactory,
 
     private
-    val fileFactory: FileFactory
+    val fileFactory: FileFactory,
+
+    private
+    val stringPrefixedTree: StringPrefixedTree
 
 ) {
     fun isolatedActionCodecs() = Bindings.of {
@@ -73,8 +77,8 @@ class IsolatedActionCodecsFactory(
         groovyCodecs()
         bind(ExternalizableCodec)
 
-        bind(RegularFileCodec(fileFactory))
-        bind(DirectoryCodec(fileFactory))
+        bind(RegularFileCodec(fileFactory, stringPrefixedTree))
+        bind(DirectoryCodec(fileFactory, stringPrefixedTree))
 
         bind(LoggerCodec)
         bind(ProxyCodec)

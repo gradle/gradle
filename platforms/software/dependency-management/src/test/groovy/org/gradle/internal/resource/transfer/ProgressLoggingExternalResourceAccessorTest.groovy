@@ -100,12 +100,12 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
         and:
         1 * action.execute(_, _) >> { inputStream, metaData ->
-            inputStream.read(new byte[2])
-            inputStream.read(new byte[560])
-            inputStream.read(new byte[1000])
-            inputStream.read(new byte[1600])
-            inputStream.read(new byte[1024])
-            inputStream.read(new byte[1024])
+            inputStream.readFile(new byte[2])
+            inputStream.readFile(new byte[560])
+            inputStream.readFile(new byte[1000])
+            inputStream.readFile(new byte[1600])
+            inputStream.readFile(new byte[1024])
+            inputStream.readFile(new byte[1024])
             "result"
         }
         1 * context.progress(1562, 4096, 'bytes', '1.5 KiB/4 KiB downloaded')
@@ -125,7 +125,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
         then:
         1 * action.execute(_, _) >> { inputStream, metaData ->
-            inputStream.read(new byte[1600])
+            inputStream.readFile(new byte[1600])
             "result"
         }
         1 * context.progress(1600, 4096, 'bytes', '1.5 KiB/4 KiB downloaded')
@@ -143,7 +143,7 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
         then:
         1 * action.execute(_, _) >> { inputStream, metaData ->
-            inputStream.read(new byte[1024])
+            inputStream.readFile(new byte[1024])
             "result"
         }
         0 * context.progress(_)
@@ -163,12 +163,12 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
         and:
         1 * action.execute(_, _) >> { inputStream, metaData ->
-            inputStream.read(new byte[2])
-            inputStream.read(new byte[560])
-            inputStream.read(new byte[1000])
-            inputStream.read(new byte[1600])
-            inputStream.read(new byte[1024])
-            inputStream.read(new byte[1024])
+            inputStream.readFile(new byte[2])
+            inputStream.readFile(new byte[560])
+            inputStream.readFile(new byte[1000])
+            inputStream.readFile(new byte[1600])
+            inputStream.readFile(new byte[1024])
+            inputStream.readFile(new byte[1024])
             "result"
         }
         1 * context.progress(1562, -1, 'bytes', '1.5 KiB downloaded')
