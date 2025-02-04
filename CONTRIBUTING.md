@@ -148,6 +148,64 @@ It's also a good idea to run `./gradlew sanityCheck` before submitting your chan
 > The full test suites are executed on the CI instance for multiple configurations,
 > and you can rely on it after doing initial sanity check and targeted local testing.
 
+### Copyright and License
+
+When updating/modifying a file, please do not make changes to the copyright header.
+
+When creating a new file, please make sure to add a header as defined below.
+
+#### Required Files for Copyright Headers:
+
+- Source code files (e.g., `.java`, `.kt`, `.groovy`).
+- Documentation files, where applicable (e.g., `.adoc`, `.md`).
+
+#### Exempt Files for Copyright Headers:
+
+- Scripts critical to builds, CI, or deployment (e.g., `.kts`, `.groovy`).
+- Auto-generated files (e.g., by code generators).
+- Minor configuration files (e.g., `.gitignore`).
+- Documentation samples and code snippets (e.g., `.java`, `.kt`, `.groovy`, `.kts`).
+- Release notes (e.g., `.md`).
+- READMEs (e.g., `.md`).
+
+#### Copyright Header for Source Files:
+
+```
+/*
+ * Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+```
+
+#### Copyright Header for Documentation Files:
+
+```
+// Copyright [YEAR OF FILE CREATION] Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+```
+
 ### Submitting Your Change
 
 After you submit your pull request, a Gradle developer will review it. It is normal for this to take several iterations, so don't get discouraged by change requests. They ensure the high quality that we all enjoy.
