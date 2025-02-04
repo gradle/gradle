@@ -34,6 +34,7 @@ dependencies {
     implementation(projects.toolchainsJvm)
     implementation(projects.toolchainsJvmShared)
     implementation(projects.declarativeDslEvaluator)
+    implementation(projects.declarativeDslProvider)
     implementation(projects.declarativeDslCore)
 
     implementation(libs.futureKotlin("scripting-compiler-impl-embeddable")) {
