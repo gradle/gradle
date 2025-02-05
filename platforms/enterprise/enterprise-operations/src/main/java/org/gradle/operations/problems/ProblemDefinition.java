@@ -18,13 +18,55 @@ package org.gradle.operations.problems;
 
 import javax.annotation.Nullable;
 
+/**
+ * Describes a specific problem without a concrete usage.
+ * <p>
+ * For example, in the domain of Java compilation problems, an unused variable warning could be described as such:
+ * <ul>
+ *     <li>group: compilation:java</li>
+ *     <li>unused variable</li>
+ *     <li>severity: WARNING</li>
+ *     <li>...</li>
+ * </ul>
+ * <p>
+ * The group and the name uniquely identify the problem definition, the remaining fields only supply additional information.
+ *
+ * @since 8.14
+ */
 public interface ProblemDefinition {
-    String getId();
 
+    /**
+     * The name of the problem.
+     * <p>
+     * The name should be used to categorize a set of problems.
+     * The name itself does not need to be unique, the uniqueness is determined the name and the group hierarchy.
+     *
+     * @since 8.14
+     */
+    String getName();
+
+    /**
+     * A human-readable label describing the problem ID.
+     * <p>
+     * The display name should be used to present the problem to the user.
+     *
+     * @since 8.14
+     */
     String getDisplayName();
 
+    /**
+     * The group of the problem.
+     *
+     * @since 8.14
+     */
     ProblemGroup getGroup();
 
+    /**
+     * A link to the documentation for this problem.
+     *
+     * @since 8.14
+     */
     @Nullable
     DocumentationLink getDocumentationLink();
+
 }
