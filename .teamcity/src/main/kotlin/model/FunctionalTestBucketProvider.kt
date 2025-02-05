@@ -1,8 +1,8 @@
 package model
 
-import com.alibaba.fastjson.JSON
-import com.alibaba.fastjson.JSONArray
-import com.alibaba.fastjson.JSONObject
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import common.Os
 import configurations.FunctionalTest
 import configurations.ParallelizationMethod
@@ -77,15 +77,16 @@ class CrossVersionTestBucketProvider(
 }
 
 class StatisticBasedFunctionalTestBucketProvider(val model: CIBuildModel, testBucketsJson: File) : FunctionalTestBucketProvider {
+    private val objectMapper = ObjectMapper().registerKotlinModule()
     private val buckets: Map<TestCoverage, List<BuildTypeBucket>> by lazy {
         val uuidToTestCoverage = model.stages.flatMap { it.functionalTests }.associateBy { it.uuid }
-        val testCoverageAndBuckets = JSON.parseArray(testBucketsJson.readText()) as JSONArray
+        val testCoverageAndBuckets: List<Map<String, Any>> = objectMapper.readValue(testBucketsJson.readText())
         testCoverageAndBuckets.associate { testCoverageAndBucket ->
-            testCoverageAndBucket as JSONObject
-            val testCoverage: TestCoverage = uuidToTestCoverage.getValue(testCoverageAndBucket.getIntValue("testCoverageUuid"))
-            val buckets: List<SmallSubprojectBucket> = testCoverageAndBucket.getJSONArray("buckets").map {
-                FunctionalTestBucket(it as JSONObject).toBuildTypeBucket(model.subprojects)
-            }
+            val testCoverage: TestCoverage = uuidToTestCoverage.getValue(testCoverageAndBucket["testCoverageUuid"].toString().toInt())
+            val buckets: List<SmallSubprojectBucket> =
+                (testCoverageAndBucket["buckets"] as List<Map<String, Any>>).map {
+                    FunctionalTestBucket(it).toBuildTypeBucket(model.subprojects)
+                }
 
             // Sometimes people may add new subproject into `subprojects.json`
             // in this case we have no historical test running time, so we simply add these subprojects into first available bucket

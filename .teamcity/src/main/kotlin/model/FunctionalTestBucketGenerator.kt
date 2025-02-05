@@ -1,9 +1,8 @@
 package model
 
-import com.alibaba.fastjson.JSON
-import com.alibaba.fastjson.JSONArray
-import com.alibaba.fastjson.JSONObject
-import com.alibaba.fastjson.serializer.SerializerFeature
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import common.Arch
 import common.Os
 import common.VersionedSettingsBranch
@@ -35,29 +34,29 @@ fun main() {
 
 class TestClassTime(
     val testClassAndSourceSet: TestClassAndSourceSet,
-    val buildTimeMs: Int
+    val buildTimeMs: Int,
 ) {
-    constructor(jsonObject: JSONObject) : this(
+    constructor(jsonObject: Map<String, Any>) : this(
         TestClassAndSourceSet(
-            jsonObject.getString("testClass"),
-            jsonObject.getString("sourceSet")
+            jsonObject["testClass"] as String,
+            jsonObject["sourceSet"] as String,
         ),
-        jsonObject.getIntValue("buildTimeMs")
+        (jsonObject["buildTimeMs"] as Number).toInt(),
     )
 }
 
 data class TestCoverageAndBucketSplits(
     val testCoverageUuid: Int,
-    val buckets: List<FunctionalTestBucket>
+    val buckets: List<FunctionalTestBucket>,
 )
 
 data class FunctionalTestBucket(
     val subprojects: List<String>,
-    val parallelizationMethod: ParallelizationMethod
+    val parallelizationMethod: ParallelizationMethod,
 ) {
-    constructor(jsonObject: JSONObject) : this(
-        jsonObject.getJSONArray("subprojects").map { it.toString() },
-        ParallelizationMethod.fromJson(jsonObject)
+    constructor(jsonObject: Map<String, Any>) : this(
+        (jsonObject["subprojects"] as List<*>).map { it.toString() },
+        ParallelizationMethod.fromJson(jsonObject),
     )
 
     fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): SmallSubprojectBucket = SmallSubprojectBucket(
@@ -68,7 +67,7 @@ data class FunctionalTestBucket(
 
 class SubprojectTestClassTime(
     val subProject: GradleSubproject,
-    testClassTimes: List<TestClassTime> = emptyList()
+    testClassTimes: List<TestClassTime> = emptyList(),
 ) {
     val totalTime: Int = testClassTimes.sumOf { it.buildTimeMs }
 
@@ -78,28 +77,28 @@ class SubprojectTestClassTime(
 }
 
 class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDataJson: File) {
+    private val objectMapper = ObjectMapper().registerKotlinModule()
     private val buckets: Map<TestCoverage, List<SmallSubprojectBucket>> = buildBuckets(testTimeDataJson, model)
 
     fun generate(jsonFile: File) {
-        jsonFile.writeText(
-            JSON.toJSONString(
-                buckets.map {
-                    TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
-                },
-                SerializerFeature.PrettyFormat,
-                SerializerFeature.DisableCircularReferenceDetect
-            )
-        )
+        val output =
+            buckets.map {
+                TestCoverageAndBucketSplits(it.key.uuid, it.value.map { it.toJsonBucket() })
+            }
+        jsonFile.writeText(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(output))
     }
 
-    private
-    fun buildBuckets(buildClassTimeJson: File, model: CIBuildModel): Map<TestCoverage, List<SmallSubprojectBucket>> {
-        val jsonObj = JSON.parseObject(buildClassTimeJson.readText()) as JSONObject
-        val buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes = jsonObj.map { buildProjectToSubprojectTestClassTime ->
-            buildProjectToSubprojectTestClassTime.key to (buildProjectToSubprojectTestClassTime.value as JSONObject).map { subProjectToTestClassTime ->
-                subProjectToTestClassTime.key to (subProjectToTestClassTime.value as JSONArray).map { TestClassTime(it as JSONObject) }
-            }.toMap()
-        }.toMap()
+    private fun buildBuckets(
+        buildClassTimeJson: File,
+        model: CIBuildModel,
+    ): Map<TestCoverage, List<SmallSubprojectBucket>> {
+        val jsonObj: Map<String, Map<String, List<Map<String, Any>>>> = objectMapper.readValue(buildClassTimeJson.readText())
+        val buildProjectClassTimes: BuildProjectToSubprojectTestClassTimes =
+            jsonObj.mapValues { (_, subprojectMap) ->
+                subprojectMap.mapValues { (_, testClassTimes) ->
+                    testClassTimes.map { TestClassTime(it) }
+                }
+            }
 
         val result = mutableMapOf<TestCoverage, List<SmallSubprojectBucket>>()
         for (stage in model.stages) {
@@ -118,7 +117,8 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
 
         // Build project not found, don't split into buckets
         val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> =
-            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }
+            determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap()
+                ?: return validSubprojects.map { SmallSubprojectBucket(it, ParallelizationMethod.None) }
 
         validSubprojects.forEach {
             if (!subProjectToClassTimes.containsKey(it.name)) {
@@ -146,7 +146,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
     private fun parallelize(
         subProjectTestClassTimes: List<SubprojectTestClassTime>,
         testCoverage: TestCoverage,
-        parallelization: (Int) -> ParallelizationMethod
+        parallelization: (Int) -> ParallelizationMethod,
     ): List<SmallSubprojectBucket> {
         // splitIntoBuckets() method expects us to split large element into N elements,
         // but we want to have a single bucket with N batches.
