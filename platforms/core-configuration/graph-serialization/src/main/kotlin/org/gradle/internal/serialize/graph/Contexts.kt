@@ -27,6 +27,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import java.util.Arrays
 
 
 @ServiceScope(Scope.BuildTree::class)
@@ -52,6 +53,7 @@ data class SpecialDecoders(
     val sharedObjectDecoder: SharedObjectDecoder = InlineSharedObjectDecoder
 )
 
+val MAGIC = byteArrayOf(0xCA.toByte(), 0xFE.toByte(), 0xBA.toByte(), 0xBE.toByte())
 
 class DefaultWriteContext(
     name: String? = null,
@@ -90,6 +92,10 @@ class DefaultWriteContext(
      */
     override fun close() {
         (encoder as? AutoCloseable)?.close()
+    }
+
+    override fun checksumAction() {
+        writeBytes(MAGIC)
     }
 
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
@@ -248,6 +254,14 @@ class DefaultReadContext(
 
     private
     var singletonProperty: Any? = null
+
+    override fun checksumAction() {
+        val magicBuf = ByteArray(MAGIC.size)
+        readBytes(magicBuf)
+        check(Arrays.equals(magicBuf, MAGIC)) {
+            "Checksum failed"
+        }
+    }
 
     override fun onFinish(action: () -> Unit) {
         pendingOperations.add(action)
