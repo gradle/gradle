@@ -53,7 +53,7 @@ class PotentialEdge {
 
     static PotentialEdge of(ResolveState resolveState, NodeState from, ModuleComponentIdentifier toComponent, ModuleComponentSelector toSelector, ComponentIdentifier owner, boolean force, boolean transitive) {
         DependencyState dependencyState = new DependencyState(new LenientPlatformDependencyMetadata(resolveState, from, toSelector, toComponent, owner, force || hasStrongOpinion(from), transitive), resolveState.getComponentSelectorConverter());
-        dependencyState = NodeState.maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+        dependencyState = dependencyState.maybeSubstitute(resolveState.getDependencySubstitutionApplicator());
         ExcludeSpec exclusions = from.previousTraversalExclusions;
         if (exclusions == null) {
             exclusions = resolveState.getModuleExclusions().nothing();
