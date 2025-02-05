@@ -133,13 +133,15 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             "due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}")
     }
 
-    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
     def "toolchain downloaded is used by daemon when spec matches"() {
         def differentJdk = AvailableJavaHomes.differentVersion
         given:
         def jdkRepository = new JdkRepository(differentJdk, "jdk.zip")
         def uri = jdkRepository.start()
         jdkRepository.reset()
+
+        println("Java version selected is ${differentJdk.javaVersion}")
 
         writeJvmCriteria(differentJdk.javaVersion)
         writeToolchainDownloadUrls(uri.toString())
