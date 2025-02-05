@@ -1,4 +1,5 @@
 @file:Suppress("UnstableApiUsage")
+import org.gradle.kotlin.dsl.desktop
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import java.time.Year
 
@@ -12,6 +13,13 @@ plugins {
 }
 
 kotlinApplication {
+    dependencies {
+        implementation(project.dependencies.platform(libs.kotlin.bom))
+        implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
+        implementation(project.dependencies.platform(libs.kotlinx.serialization.bom))
+        implementation(project.dependencies.platform(libs.ktor.bom))
+    }
+
     targets {
         jvm {
             jdkVersion = 17
@@ -19,13 +27,6 @@ kotlinApplication {
             dependencies {
                 implementation(project(":build-action"))
                 implementation(project(":mutations-demo"))
-
-                // TODO: These were originally added for the `all` sourceSet, as common dependencies, but we're only
-                // supporting JVM now, so here is the only place they need to live
-                implementation(project.dependencies.platform(libs.kotlin.bom))
-                implementation(project.dependencies.platform(libs.kotlinx.coroutines.bom))
-                implementation(project.dependencies.platform(libs.kotlinx.serialization.bom))
-                implementation(project.dependencies.platform(libs.ktor.bom))
 
                 implementation(libs.gradle.tooling.api)
 
@@ -53,28 +54,40 @@ kotlinApplication {
                 implementation(libs.gradle.declarative.dsl.tooling.models)
 
                 runtimeOnly(libs.kotlinx.coroutines.swing)
+
+                // Compose doesn't play well with DCL SoftwareTypes
+                // But we can determine the value of these strings at runtime and just hardcode them
+                implementation("org.jetbrains.compose.runtime:runtime:1.6.11")
+                implementation("org.jetbrains.compose.foundation:foundation:1.6.11")
+                implementation("org.jetbrains.compose.material3:material3:1.6.11")
+                implementation("org.jetbrains.compose.material:material-icons-extended:1.6.11")
+                implementation("org.jetbrains.compose.ui:ui:1.6.11")
+                implementation("org.jetbrains.compose.components:components-resources:1.6.11")
+                implementation("org.jetbrains.compose.components:components-ui-tooling-preview:1.6.11")
+                implementation("org.jetbrains.compose.desktop:desktop-jvm-macos-arm64:1.6.11")
             }
-        }
-    }
-}
 
-kotlin {
-    sourceSets {
-        jvmMain.dependencies {
-            // TODO: Compose doesn't play well with DCL SoftwareTypes
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.materialIconsExtended)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
-            implementation(compose.desktop.currentOs)
-        }
+            testing {
+                dependencies {
+                    implementation(libs.junit.junit)
 
-        jvmTest.dependencies {
-            implementation(libs.junit.junit)
-            implementation(compose.desktop.uiTestJUnit4)
+                    // Compose doesn't play well with DCL SoftwareTypes
+                    // But we can determine the value of this string at runtime and just hardcode it
+                    implementation("org.jetbrains.compose.ui:ui-test-junit4:1.6.11")
+                }
+
+                unitTests {
+                    dependencies {
+                        // TODO: Make some tests here to demo this
+                    }
+                }
+
+                functionalTests {
+                    dependencies {
+                        // TODO: Make some tests here to demo this
+                    }
+                }
+            }
         }
     }
 }
