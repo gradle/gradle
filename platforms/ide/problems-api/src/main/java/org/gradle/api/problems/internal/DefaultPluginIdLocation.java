@@ -32,7 +32,6 @@ public class DefaultPluginIdLocation implements PluginIdLocation {
     }
 
     @Override
-    @Nullable
     public String getPluginId() {
         return pluginId;
     }
