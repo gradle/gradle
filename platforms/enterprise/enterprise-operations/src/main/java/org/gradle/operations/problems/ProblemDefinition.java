@@ -17,14 +17,13 @@
 package org.gradle.operations.problems;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public interface ProblemDefinition {
     String getId();
 
     String getDisplayName();
 
-    List<ProblemGroup> getGroup();
+    ProblemGroup getGroup();
 
     @Nullable
     DocumentationLink getDocumentationLink();

@@ -16,8 +16,14 @@
 
 package org.gradle.operations.problems;
 
+import javax.annotation.Nullable;
+
 public interface ProblemGroup {
+
     String getId();
 
     String getDisplayName();
+
+    @Nullable
+    ProblemGroup getParent();
 }

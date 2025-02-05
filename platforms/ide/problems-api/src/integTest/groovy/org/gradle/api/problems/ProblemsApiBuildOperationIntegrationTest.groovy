@@ -49,9 +49,11 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(problemDefinition) {
                 id == 'type'
                 displayName == 'label'
-                group == [
-                    [displayName: 'group label', id: 'generic']
-                ]
+                with(group) {
+                    displayName == 'group label'
+                    id == 'generic'
+                    parent == null
+                }
                 documentationLink == null
             }
             severity == Severity.WARNING.name()
@@ -92,9 +94,11 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(problemDefinition) {
                 id == 'type'
                 displayName == 'label'
-                group == [
-                    [displayName: 'group label', id: 'generic']
-                ]
+                with(group) {
+                    displayName == 'group label'
+                    id == 'generic'
+                    parent == null
+                }
                 documentationLink == null
             }
             severity == Severity.WARNING.name()
@@ -156,10 +160,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(problemDefinition) {
                 id == 'type'
                 displayName == 'label'
-                group == [
-                    [displayName: 'problem group label', id: 'problem group'],
-                    [displayName: 'parent group label', id: 'parent']
-                ]
+                with(group) {
+                    displayName == 'problem group label'
+                    id == 'problem group'
+                    with(parent) {
+                        displayName == 'parent group label'
+                        id == 'parent'
+                        parent == null
+                    }
+                }
                 with(documentationLink) {
                     consultDocumentationMessage == 'For more information, please refer to https://example.org/doc.'
                     url == 'https://example.org/doc'

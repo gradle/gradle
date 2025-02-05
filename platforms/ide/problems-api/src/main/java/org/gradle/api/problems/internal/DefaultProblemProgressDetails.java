@@ -139,15 +139,8 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         @Override
-        public List<ProblemGroup> getGroup() {
-            ImmutableList.Builder<ProblemGroup> builder = ImmutableList.builder();
-            final org.gradle.api.problems.ProblemId problemId = definition.getId();
-            org.gradle.api.problems.ProblemGroup currentGroup = problemId.getGroup();
-            while (currentGroup != null) {
-                builder.add(new DevelocityProblemGroup(currentGroup));
-                currentGroup = currentGroup.getParent();
-            }
-            return builder.build();
+        public ProblemGroup getGroup() {
+            return new DevelocityProblemGroup(definition.getId().getGroup());
         }
 
         @Nullable
@@ -170,6 +163,13 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
             @Override
             public String getDisplayName() {
                 return currentGroup.getDisplayName();
+            }
+
+            @Nullable
+            @Override
+            public ProblemGroup getParent() {
+                org.gradle.api.problems.ProblemGroup parent = currentGroup.getParent();
+                return parent == null ? null : new DevelocityProblemGroup(parent);
             }
         }
 
