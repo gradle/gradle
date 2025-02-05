@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -55,10 +54,20 @@ public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implemen
         return toReturn;
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        return Cast.uncheckedCast(elements);
+        if (type.isArray()) {
+            S result = (S) Array.newInstance(type.getComponentType(), elements.size());
+            Object[] isolated = isolate();
+            for (int i = 0; i < isolated.length; i++) {
+                Array.set(result, i, isolated[i]);
+            }
+            return result;
+        } else {
+            return null;
+        }
     }
 
     public Class<?> getArrayType() {
