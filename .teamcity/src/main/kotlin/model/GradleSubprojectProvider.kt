@@ -16,7 +16,9 @@
 
 package model
 
-import com.alibaba.fastjson.JSON
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.io.File
 
 val ignoredSubprojects = listOf(
@@ -31,9 +33,12 @@ interface GradleSubprojectProvider {
     fun getSubprojectByName(name: String): GradleSubproject?
 }
 
-data class JsonBasedGradleSubprojectProvider(private val jsonFile: File) : GradleSubprojectProvider {
-    @Suppress("UNCHECKED_CAST")
-    override val subprojects = JSON.parseArray(jsonFile.readText()).map { toSubproject(it as Map<String, Any>) }
+data class JsonBasedGradleSubprojectProvider(
+    private val jsonFile: File,
+) : GradleSubprojectProvider {
+    private val objectMapper = ObjectMapper().registerKotlinModule()
+
+    override val subprojects = objectMapper.readValue<List<Map<String, Any>>>(jsonFile.readText()).map { toSubproject(it) }
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
 
     override fun getSubprojectsFor(testConfig: TestCoverage, stage: Stage) =

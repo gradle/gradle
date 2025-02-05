@@ -6,7 +6,7 @@
         <mockk.version>1.13.13</mockk.version>
         <bytebuddy.version>1.15.7</bytebuddy.version>
         <junit.version>5.11.3</junit.version>
-        <fastjson.version>1.2.83</fastjson.version>
+        <jackson.version>2.18.2</jackson.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
     </properties>
     <groupId>Gradle_Check</groupId>
@@ -127,11 +127,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>server-api</artifactId>
             <version>${teamcity.dsl.version}</version>
@@ -176,6 +171,22 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 </project>
