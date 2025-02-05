@@ -178,7 +178,6 @@ class ConfigurationCacheState(
         writeRootBuild(build).also {
             writeInt(0x1ecac8e)
         }
-        writeFileSystemTree()
     }
 
     suspend fun MutableReadContext.readRootBuildState(
@@ -186,7 +185,6 @@ class ConfigurationCacheState(
         graphBuilder: BuildTreeWorkGraphBuilder?,
         loadAfterStore: Boolean
     ): Pair<String, BuildTreeWorkGraph.FinalizedGraph> {
-        readFileSystemTree()
         val originBuildInvocationId = readBuildInvocationId()
         val builds = readRootBuild()
         require(readInt() == 0x1ecac8e) {

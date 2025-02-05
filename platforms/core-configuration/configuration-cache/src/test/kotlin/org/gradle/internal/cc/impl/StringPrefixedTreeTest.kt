@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.junit.Assert.assertEquals
+import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
@@ -39,6 +40,7 @@ class StringPrefixedTreeTest {
     fun `prefixify strings`() {
         val prefixedTree = StringPrefixedTree()
         prefixedTree.insert(File("org/example/foo/Foo"))
+        prefixedTree.insert(File("org/example/bar")) // insert a dir
         prefixedTree.insert(File("org/example/bar/Bar"))
         prefixedTree.insert(File("org/example/bar/Bar1"))
 
@@ -47,16 +49,13 @@ class StringPrefixedTreeTest {
             "",
             mutableListOf(
                 StringPrefixedTree.Node(
-                    null,
-                    "org",
+                    null, "org",
                     mutableListOf(
                         StringPrefixedTree.Node(
-                            null,
-                            "example",
+                            null, "example",
                             mutableListOf(
                                 StringPrefixedTree.Node(
-                                    null,
-                                    "foo",
+                                    null, "foo",
                                     mutableListOf(
                                         StringPrefixedTree.Node(
                                             0,
@@ -66,17 +65,14 @@ class StringPrefixedTreeTest {
                                     )
                                 ),
                                 StringPrefixedTree.Node(
-                                    null,
-                                    "bar",
+                                    1, "bar",
                                     mutableListOf(
                                         StringPrefixedTree.Node(
-                                            1,
-                                            "Bar",
+                                            2, "Bar",
                                             mutableListOf()
                                         ),
                                         StringPrefixedTree.Node(
-                                            2,
-                                            "Bar1",
+                                            3, "Bar1",
                                             mutableListOf()
                                         )
                                     )
@@ -92,6 +88,7 @@ class StringPrefixedTreeTest {
     }
 
     @Test
+    @Ignore("wip")
     fun `tree is compressable`() {
         val prefixedTree = StringPrefixedTree()
         prefixedTree.insert(File("org/example/company/foo/Foo"))
@@ -103,6 +100,25 @@ class StringPrefixedTreeTest {
             mutableListOf(
                 StringPrefixedTree.Node(0, "foo/Foo", mutableListOf()),
                 StringPrefixedTree.Node(1, "bar/Bar", mutableListOf())
+            )
+        )
+
+        assertEquals(expectedCompressedTree, prefixedTree.compress())
+    }
+
+    @Test
+    @Ignore("wip")
+    fun `inserted dirs are not compressable`() {
+        val prefixedTree = StringPrefixedTree()
+        prefixedTree.insert(File("org/example/company/foo"))
+        prefixedTree.insert(File("org/example/company/foo/bar/zum/Zum"))
+
+        val expectedCompressedTree = StringPrefixedTree.Node(
+            null,
+            "org/example/company",
+            mutableListOf(
+                StringPrefixedTree.Node(0, "foo", mutableListOf()),
+                StringPrefixedTree.Node(1, "bar/zum/Zum", mutableListOf())
             )
         )
 

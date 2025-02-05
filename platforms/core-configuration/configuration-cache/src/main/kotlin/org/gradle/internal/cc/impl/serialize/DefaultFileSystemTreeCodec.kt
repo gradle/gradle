@@ -60,7 +60,8 @@ class DefaultFileSystemTreeDecoder(
 
     private val files = mutableMapOf<Int, File>()
 
-    override fun readFile(readContext: ReadContext): File = files[readContext.readSmallInt()]!!
+    override fun readFile(readContext: ReadContext): File =
+        files[readContext.readSmallInt()]!!
 
     override suspend fun readTree() {
         files.putAll(prefixedTree.buildIndexes(globalContext.readPrefixedTreeNode()))

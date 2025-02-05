@@ -394,6 +394,7 @@ class DefaultConfigurationCacheIO internal constructor(
         stateFile: ConfigurationCacheStateFile,
         action: suspend MutableReadContext.(ConfigurationCacheState) -> T
     ) = withReadContextFor(stateFile, specialDecoders) { codecs ->
+        readFileSystemTree()
         ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host).run {
             action(this)
         }
@@ -409,7 +410,9 @@ class DefaultConfigurationCacheIO internal constructor(
             host.currentBuild.gradle.owner.displayName.displayName + " state"
         }
         return withWriteContextFor(stateFile, profile, specialEncoders) { codecs ->
-            action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
+            val result = action(ConfigurationCacheState(codecs, stateFile, ChildContextSource(stateFile), eventEmitter, host))
+            writeFileSystemTree()
+            result
         }
     }
 
