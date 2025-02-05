@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 
 /**
@@ -619,7 +621,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             // Because of type erasure, we cannot have two overloads of this method.
             ProviderInternal<? extends Iterable<T>> safeProvider = toSafeProvider(provider);
             return new CompoundAssignmentResult<>(
-                Providers.internal(zip(safeProvider, Iterables::concat)),
+                Providers.internal(zip(safeProvider, bifunction(Iterables::concat))),
                 AbstractCollectionProperty.this,
                 () -> AbstractCollectionProperty.this.addAll(safeProvider)
             );
@@ -628,7 +630,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         // property += Iterable<T>
         public Object plus(Iterable<? extends T> items) {
             return new CompoundAssignmentResult<>(
-                Providers.internal(map(thisItems -> Iterables.concat(thisItems, items))),
+                Providers.internal(map(transformer(thisItems -> Iterables.concat(thisItems, items)))),
                 AbstractCollectionProperty.this,
                 () -> AbstractCollectionProperty.this.addAll(items)
             );
@@ -637,7 +639,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         // property += T[]
         public Object plus(T[] items) {
             return new CompoundAssignmentResult<>(
-                Providers.internal(map(thisItems -> Iterables.concat(thisItems, Arrays.asList(items)))),
+                Providers.internal(map(transformer(thisItems -> Iterables.concat(thisItems, Arrays.asList(items))))),
                 AbstractCollectionProperty.this,
                 () -> AbstractCollectionProperty.this.addAll(items)
             );
@@ -654,7 +656,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 elementType.getSimpleName());
             T safeItem = Cast.uncheckedCast(item);
             return new CompoundAssignmentResult<>(
-                Providers.internal(map(thisItems -> Iterables.concat(thisItems, Collections.singleton(safeItem)))),
+                Providers.internal(map(transformer(thisItems -> Iterables.concat(thisItems, Collections.singleton(safeItem))))),
                 AbstractCollectionProperty.this, () -> AbstractCollectionProperty.this.add(safeItem));
         }
 
@@ -665,13 +667,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 return Cast.uncheckedCast(internal);
             }
             // May still be provider of iterable, but we'll only know after it is computed.
-            return internal.map(value -> {
+            return internal.map(transformer(value -> {
                 if (value instanceof Iterable) {
                     return Cast.<Iterable<T>>uncheckedCast(value);
                 }
                 // Technically, the value can be null here.
                 return Collections.singleton(Cast.uncheckedCast(value));
-            });
+            }));
         }
     }
 

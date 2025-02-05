@@ -80,6 +80,16 @@ public final class CompoundAssignmentResult<T> extends AbstractMinimalProvider<T
     }
 
     @Override
+    public ValueProducer getProducer() {
+        return value.getProducer();
+    }
+
+    @Override
+    protected String toStringNoReentrance() {
+        return value.toString();
+    }
+
+    @Override
     @Nullable
     public Provider<T> unwrap() {
         // When the expression involves a variable on the left side as opposed to a field, then this provider becomes its value.

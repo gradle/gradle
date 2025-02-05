@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -691,7 +693,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public class CompoundAssignmentStandIn {
         public Object plus(Provider<? extends Map<K, V>> provider) {
             return new CompoundAssignmentResult<>(
-                Providers.internal(zip(provider, DefaultMapProperty::concat)),
+                Providers.internal(zip(provider, bifunction(DefaultMapProperty::concat))),
                 DefaultMapProperty.this,
                 () -> DefaultMapProperty.this.putAll(provider));
 
@@ -699,7 +701,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         public Object plus(Map<K, V> map) {
             return new CompoundAssignmentResult<>(
-                Providers.internal(map(left -> concat(left, map))),
+                Providers.internal(map(transformer(left -> concat(left, map)))),
                 DefaultMapProperty.this, () -> DefaultMapProperty.this.putAll(map));
         }
     }

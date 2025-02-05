@@ -272,6 +272,109 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | "List"                       | unsupportedWithCause("No signature of method")
     }
 
+    def "variable can be used as task input after #description"() {
+        buildFile """
+            ${groovyTypesDefinition()}
+            import static ${org.gradle.api.internal.provider.Providers.name}.changing
+
+            abstract class MyTask extends DefaultTask {
+                @Input
+                abstract $inputType getInput()
+
+                @TaskAction
+                def action() {
+                    ${groovyInputPrintRoutine(RESULT_PREFIX)}
+                }
+            }
+
+            tasks.register("myTask", MyTask) {
+                def property = $factory
+                property += $value
+                input = property
+            }
+        """
+
+        expect:
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                                  | inputType                     | factory     | value                    | expectedResult
+        "ListProperty<T> += T"                       | "ListProperty<String>"        | listFactory | '"a"'                    | "[a]"
+        "ListProperty<T> += Collection<T>"           | "ListProperty<String>"        | listFactory | '["a"]'                  | "[a]"
+        "ListProperty<T> += Provider<T>"             | "ListProperty<String>"        | listFactory | 'provider { "a" }'       | "[a]"
+        "ListProperty<T> += Provider<Collection<T>>" | "ListProperty<String>"        | listFactory | 'provider { ["a"] }'     | "[a]"
+        "SetProperty<T> += T"                        | "SetProperty<String>"         | setFactory  | '"a"'                    | "[a]"
+        "SetProperty<T> += Collection<T>"            | "SetProperty<String>"         | setFactory  | '["a"]'                  | "[a]"
+        "SetProperty<T> += Provider<T>"              | "SetProperty<String>"         | setFactory  | 'provider { "a" }'       | "[a]"
+        "SetProperty<T> += Provider<Collection<T>>"  | "SetProperty<String>"         | setFactory  | 'provider { ["a"] }'     | "[a]"
+        "MapProperty<K,V> += Map<K,V>"               | "MapProperty<String, String>" | mapFactory  | '["a":"b"]'              | "{a=b}"
+        "MapProperty<K,V> += Provider<Map<K,V>>"     | "MapProperty<String, String>" | mapFactory  | 'provider { ["a":"b"] }' | "{a=b}"
+    }
+
+    // We need these properties to have changing values so the tests trigger CC-serialization of intermediate providers created by += implementation.
+    private static String getListFactory() { "objects.listProperty(String).value(changing {[]})" }
+
+    private static String getSetFactory() { "objects.setProperty(String).value(changing {[]})" }
+
+    private static String getMapFactory() { "objects.mapProperty(String, String).value(changing {[:]})" }
+
+    def "compound assignment preserves dependencies"() {
+        given:
+        buildFile """
+            abstract class MyTask extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOutputFile()
+
+                MyTask() {
+                    outputFile.convention(project.layout.buildDirectory.file(name + ".txt"))
+                }
+
+                @TaskAction
+                def action() {
+                    outputFile.get().asFile.text = name
+                }
+            }
+
+            def t1 = tasks.register("t1", MyTask)
+            def t2 = tasks.register("t2", MyTask)
+            def t3 = tasks.register("t3", MyTask)
+            def t4 = tasks.register("t4", MyTask)
+
+            tasks.register("echo") {
+                Closure<Provider<String>> outputAsText = { t -> t.flatMap { it.outputFile }.map { it.asFile.text.trim() }}
+
+                def lines = objects.listProperty(String)
+                lines.add(outputAsText(t1))
+                lines += outputAsText(t2)
+
+                def mapLines = objects.mapProperty(String, String)
+                mapLines.put("k3", outputAsText(t3))
+                mapLines += outputAsText(t4).map { [k4: it] }
+
+                inputs.property("lines", lines)
+                inputs.property("mapLines", mapLines)
+
+                doLast {
+                    lines.get().forEach {
+                        println("line: \$it")
+                    }
+                    mapLines.get().forEach { k, v ->
+                        println("mapLine: \$k=\$v")
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("echo")
+
+        then:
+        result.assertTasksExecuted(":t1", ":t2", ":t3", ":t4", ":echo")
+        outputContains("line: t1")
+        outputContains("line: t2")
+        outputContains("mapLine: k3=t3")
+        outputContains("mapLine: k4=t4")
+    }
+
     def "Groovy assignment for ConfigurableFileCollection doesn't resolve a Configuration"() {
         buildFile """
             configurations {
@@ -482,3 +585,4 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         outputContains(EXPRESSION_PREFIX + value)
     }
 }
+
