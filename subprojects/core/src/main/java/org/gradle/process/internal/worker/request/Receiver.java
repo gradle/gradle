@@ -46,10 +46,11 @@ import java.util.concurrent.BlockingQueue;
 public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
-    private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(10);
+    private final BlockingQueue<Object> received = new ArrayBlockingQueue<>(10);
     private final String baseName;
     private Object next;
     private final String taskPath;
+    private final String buildPath;
 
     // Sub-handlers for the different protocols implemented by ResponseProtocol
     private final WorkerLoggingProtocol loggingProtocol;
@@ -59,7 +60,8 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
         this.loggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
         this.problemProtocol = new DefaultWorkerProblemProtocol();
         this.baseName = baseName;
-        this.taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
+        this.buildPath = ProblemTaskPathTracker.getBuildPath();
+        this.taskPath = ProblemTaskPathTracker.getTaskPath();
     }
 
     public boolean awaitNextResult() {
@@ -127,7 +129,11 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
 
     @Override
     public void reportProblem(Problem problem, OperationIdentifier id) {
-        problem = this.taskPath == null ? problem : ((InternalProblem) problem).toBuilder(null, null, null).taskPathLocation(this.taskPath).build();
+        problem = (taskPath == null || buildPath == null)
+            ? problem
+            : ((InternalProblem) problem)
+            .toBuilder(null, null, null)
+            .taskPathLocation(buildPath, taskPath).build();
         problemProtocol.reportProblem(problem, id);
     }
 

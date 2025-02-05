@@ -277,19 +277,17 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
 
         @Override
         public String getBuildPath() {
-            // TODO wolfs: What do we do here? Should we capture build path separately?
-            return ":";
+            return taskPathLocation.getBuildPath();
         }
 
         @Override
         public String getPath() {
-            return taskPathLocation.getBuildTreePath();
+            return taskPathLocation.getTaskPath();
         }
 
         @Override
         public String getDisplayName() {
-            // TODO: toString doesn't work for locations right now
-            return taskPathLocation.toString();
+            return "task '" + taskPathLocation.getBuildTreePath() + "'";
         }
     }
 

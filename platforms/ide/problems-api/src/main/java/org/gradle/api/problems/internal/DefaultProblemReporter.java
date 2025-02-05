@@ -161,8 +161,11 @@ public class DefaultProblemReporter implements InternalProblemReporter {
      */
     @Override
     public void report(Problem problem, OperationIdentifier id) {
-        String taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
-        InternalProblem internalProblem = taskPath == null ? (InternalProblem) problem : getBuilder(problem).taskPathLocation(taskPath).build();
+        String buildPath = ProblemTaskPathTracker.getBuildPath();
+        String taskPath = ProblemTaskPathTracker.getTaskPath();
+        InternalProblem internalProblem = (taskPath == null ||buildPath == null)
+            ? (InternalProblem) problem
+            : getBuilder(problem).taskPathLocation(buildPath, taskPath).build();
         Throwable exception = internalProblem.getException();
         if (exception != null) {
             exceptionProblemRegistry.onProblem(transform(exception), internalProblem);
