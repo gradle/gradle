@@ -51,6 +51,7 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.NewIsolatableSerializer
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
@@ -438,6 +439,11 @@ class TestProblems implements InternalProblems {
 
     @Override
     IsolatableFactory getIsolatableFactory() {
+        return null
+    }
+
+    @Override
+    NewIsolatableSerializer getIsolatableSerializer() {
         return null
     }
 

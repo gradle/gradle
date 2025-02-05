@@ -42,6 +42,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
     private final IsolatableFactory isolatableFactory;
+    private final NewIsolatableSerializer isolatableSerializer;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
@@ -52,7 +53,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
         PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory
+        IsolatableFactory isolatableFactory,
+        NewIsolatableSerializer isolatableSerializer
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -63,6 +65,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
         this.isolatableFactory = isolatableFactory;
+        this.isolatableSerializer = isolatableSerializer;
     }
 
     @Override
@@ -75,7 +78,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Nonnull
     private DefaultProblemBuilder createProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory);
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer);
     }
 
     @Override
@@ -176,7 +179,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
 
     @Nonnull
     private InternalProblemBuilder getBuilder(Problem problem) {
-        return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory);
+        return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer);
     }
 
     private Throwable transform(Throwable failure) {

@@ -17,8 +17,6 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.AdditionalData;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 
 import java.io.Serializable;
@@ -26,10 +24,10 @@ import java.util.Collections;
 
 @NonNullApi
 public class DefaultInternalPayloadSerializedAdditionalData extends DefaultInternalAdditionalData implements InternalPayloadSerializedAdditionalData, Serializable {
-    private final Isolatable<AdditionalData> isolatable;
+    private final byte[] isolatable;
     private final Object payload;
 
-    public DefaultInternalPayloadSerializedAdditionalData(Isolatable<AdditionalData> isolatable, Object payload) {
+    public DefaultInternalPayloadSerializedAdditionalData(byte[] isolatable, Object payload) {
         super(Collections.emptyMap());
         this.isolatable = isolatable;
         this.payload = payload;
@@ -41,7 +39,7 @@ public class DefaultInternalPayloadSerializedAdditionalData extends DefaultInter
     }
 
     @Override
-    public Isolatable<?> getIsolatable() {
+    public byte[] getIsolatable() {
         return isolatable;
     }
 }

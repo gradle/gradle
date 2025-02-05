@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.problem;
+package org.gradle.api.problems.internal;
 
-public interface InternalPayloadSerializedAdditionalData extends InternalAdditionalData {
-    Object getSerializedType();
+import org.gradle.internal.isolation.Isolatable;
 
-    byte[] getIsolatable();
+public interface NewIsolatableSerializer {
+    Isolatable<?> deserialize(byte[] bytes);
+
+    byte[] serialize(Isolatable<?> isolatable);
 }

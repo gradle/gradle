@@ -20,7 +20,10 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
@@ -32,14 +35,19 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
 
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
+    private final IsolatableFactory isolatableFactory;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableFactory isolatableFactory, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
+        this.isolatableFactory = isolatableFactory;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     @Override
@@ -48,6 +56,7 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         delegate.dispatch(message);
     }
 
+    @SuppressWarnings("unused")
     private void remapAdditionalData(Object message) {
         if (!(message instanceof DefaultProblemEvent)) {
             return;
@@ -70,11 +79,18 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
             return;
         }
 
-        Isolatable<?> isolatable = serializedAdditionalData.getIsolatable();
-        Object object = isolatable.coerce(type);
+        byte[] isolatableBytes = serializedAdditionalData.getIsolatable();
+        Object o = ClassLoaderUtils.executeInClassloader(type.getClassLoader(), () -> {
+            Isolatable<?> deserialize = isolatableSerializerRegistry.deserialize(isolatableBytes);
+            return deserialize.coerce(type);
+        });
+//        Isolatable<?> deserialize = isolatableSerializerRegistry.deserialize(isolatableBytes);
+//        deserialize.coerce(type);
+
+//        Object object = isolatableBytes.coerce(type);
 //        Object proxy = createProxy(type, state);
 
-        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, object, serializedType));
+        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, o, serializedType));
     }
 
     @SuppressWarnings("unchecked")

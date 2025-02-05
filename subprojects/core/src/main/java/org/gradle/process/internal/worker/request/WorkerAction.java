@@ -17,24 +17,35 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
+import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.event.DefaultListenerManager;
+import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
+import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory;
+import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
@@ -46,6 +57,7 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.concurrent.Callable;
@@ -67,14 +79,83 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         this.workerImplementationName = workerImplementation.getName();
     }
 
-    @Nonnull
-    private static PayloadSerializer createPayloadSerializer() {
-        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
-        return new PayloadSerializer(
-            new WellKnownClassLoaderRegistry(
-                new DefaultPayloadClassLoaderRegistry(
-                    classLoaderCache,
-                    new ModelClassLoaderFactory())));
+
+    public static class ProblemsServiceProvider implements ServiceRegistrationProvider {
+
+        private final InstantiatorFactory instantiatorFactory;
+        private final ResponseProtocol responder;
+
+        public ProblemsServiceProvider(ResponseProtocol responder, InstantiatorFactory instantiatorFactory) {
+            this.responder = responder;
+            this.instantiatorFactory = instantiatorFactory;
+        }
+
+        @Nonnull
+        @Provides
+        private PayloadSerializer createPayloadSerializer() {
+            ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+            return new PayloadSerializer(
+                new WellKnownClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        new ModelClassLoaderFactory())));
+        }
+
+        @Provides
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(new ClassLoaderHierarchyHasher() {
+                @Nullable
+                @Override
+                public HashCode getClassLoaderHash(ClassLoader classLoader) {
+                    throw new UnsupportedOperationException();
+                }
+            }, managedFactoryRegistry);
+        }
+
+        @Provides
+        protected ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator) {
+            return new DefaultManagedFactoryRegistry(null).withFactories(namedObjectInstantiator, instantiatorFactory.getManagedFactory());
+        }
+
+        @Provides
+        IsolatableFactory createIsolatableFactory(
+            ManagedFactoryRegistry managedFactoryRegistry
+        ) {
+            return new DefaultIsolatableFactory(new ClassLoaderHierarchyHasher() {
+                @Nullable
+                @Override
+                public HashCode getClassLoaderHash(ClassLoader classLoader) {
+                    throw new UnsupportedOperationException();
+                }
+            }, managedFactoryRegistry);
+        }
+
+        @Provides
+        CrossBuildInMemoryCacheFactory createCrossBuildInMemoryCacheFactory(ListenerManager listenerManager) {
+            return new DefaultCrossBuildInMemoryCacheFactory(listenerManager);
+        }
+
+        @Provides
+        NamedObjectInstantiator createNamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+            return new NamedObjectInstantiator(cacheFactory);
+        }
+
+
+        @Provides
+        InternalProblems createInternalProblems(PayloadSerializer payloadSerializer, IsolatableFactory isolatableFactory, IsolatableSerializerRegistry isolatableSerializerRegistry) {
+            return new DefaultProblems(
+                new WorkerProblemEmitter(responder),
+                null,
+                CurrentBuildOperationRef.instance(),
+                new ExceptionProblemRegistry(),
+                null,
+                instantiatorFactory.decorateLenient(),
+                payloadSerializer,
+                isolatableFactory,
+                isolatableSerializerRegistry
+            );
+        }
+
     }
 
     @Override
@@ -85,12 +166,14 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         connection.addIncoming(RequestProtocol.class, this);
         responder = connection.addOutgoing(ResponseProtocol.class);
         workerLogEventListener = workerProcessContext.getServiceRegistry().get(WorkerLogEventListener.class);
-
         RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Global.class)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
+                instantiatorFactory = new DefaultInstantiatorFactory(
+                    new DefaultCrossBuildInMemoryCacheFactory(
+                        new DefaultListenerManager(Global.class)), Collections.emptyList(),
+                    new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
             }
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
@@ -100,15 +183,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                     registration.add(RequestArgumentSerializers.class, argumentSerializers);
                     registration.add(InstantiatorFactory.class, instantiatorFactory);
                     // TODO we should inject a worker-api specific implementation of InternalProblems here
-                    registration.add(InternalProblems.class, new DefaultProblems(
-                        new WorkerProblemEmitter(responder),
-                        null,
-                        CurrentBuildOperationRef.instance(),
-                        new ExceptionProblemRegistry(),
-                        null,
-                        instantiatorFactory.decorateLenient(),
-                        createPayloadSerializer(),
-                        null));
+                    registration.addProvider(new ProblemsServiceProvider(responder, instantiatorFactory));
                 })
                 .build();
             Class<?> workerImplementation = Class.forName(workerImplementationName);

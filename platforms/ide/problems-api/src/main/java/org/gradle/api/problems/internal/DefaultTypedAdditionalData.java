@@ -17,15 +17,15 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
-import org.gradle.api.problems.AdditionalData;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+
+import java.util.Arrays;
 
 public class DefaultTypedAdditionalData implements TypedAdditionalData {
     private final SerializedPayload type;
-    private final Isolatable<AdditionalData> isolated;
+    private final byte[] isolated;
 
-    public DefaultTypedAdditionalData(SerializedPayload type, Isolatable<AdditionalData> isolated) {
+    public DefaultTypedAdditionalData(SerializedPayload type, byte[] isolated) {
         this.type = type;
         this.isolated = isolated;
     }
@@ -41,16 +41,16 @@ public class DefaultTypedAdditionalData implements TypedAdditionalData {
             return false;
         }
         DefaultTypedAdditionalData that = (DefaultTypedAdditionalData) o;
-        return Objects.equal(isolated, that.isolated) && Objects.equal(type, that.type);
+        return Arrays.equals(isolated, that.isolated) && Objects.equal(type, that.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(isolated, type);
+        return Objects.hashCode(Arrays.hashCode(isolated), type);
     }
 
     @Override
-    public Isolatable<AdditionalData> getIsolated() {
+    public byte[] getIsolated() {
         return isolated;
     }
 }

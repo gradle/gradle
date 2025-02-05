@@ -30,6 +30,7 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
+import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
@@ -52,7 +53,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         return listener.problems
     }
 
-    @IgnoreRest
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         buildFile """
@@ -140,6 +140,137 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         listener.problems.size() == 1
         (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
+    }
+
+    def setupBuild() {
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation(gradleApi())
+            }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
+            package org.gradle.test;
+
+            import org.gradle.workers.WorkParameters;
+
+            public interface ProblemsWorkerTaskParameter extends WorkParameters { }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
+            package org.gradle.test;
+
+            import org.gradle.api.problems.AdditionalData;
+            import org.gradle.api.provider.Property;
+
+            public interface SomeData extends AdditionalData {
+//                String getName();
+//                void setName(String name);
+                Property<String> getName();
+//                void setValues(List<String> values);
+//                List<String> getValues();
+            }
+
+        """
+        file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
+            package org.gradle.test;
+
+            import java.io.File;
+            import java.io.FileWriter;
+            import org.gradle.api.problems.Problems;
+            import org.gradle.api.problems.ProblemId;
+            import org.gradle.api.problems.ProblemGroup;
+            import org.gradle.internal.operations.CurrentBuildOperationRef;
+
+            import org.gradle.workers.WorkAction;
+
+            import javax.inject.Inject;
+
+            public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
+
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void execute() {
+                    Exception wrappedException = new Exception("Wrapped cause");
+                    // Create and report a problem
+                    // This needs to be Java 6 compatible, as we are in a worker
+                    ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
+                    getProblems().getReporter().report(problemId, problem -> problem
+                            .stackLocation()
+                            .additionalData(SomeData.class, d -> d.getName().set("someData"))
+                            .withException(new RuntimeException("Exception message", wrappedException))
+                    );
+
+//                    // Write the current build operation id to a file
+//                    // This needs to be Java 6 compatible, as we are in a worker
+//                    // Backslashes need to be escaped, so test works on Windows
+//                    File buildOperationIdFile = new File("");
+//                    try {
+//                        FileWriter writer = new FileWriter(buildOperationIdFile);
+//                        writer.write(CurrentBuildOperationRef.instance().get().getId().toString());
+//                        writer.close();
+//                    } catch (Exception e) {
+//                        throw new RuntimeException(e);
+//                    }
+                }
+            }
+        """
+    }
+
+    interface SomeDataView {
+        void setName(String name);
+
+        String getName();
+    }
+
+    @IgnoreRest
+    @ToolingApiVersion(">=8.14")
+    @TargetGradleVersion(">=8.14")
+    def "problems are emitted correctly from a worker when using #isolationMode"() {
+        setupBuild()
+
+        given:
+        buildFile << """
+            import javax.inject.Inject
+            import org.gradle.test.ProblemWorkerTask
+
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().${isolationMode}().submit(ProblemWorkerTask.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("reportProblem")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
+        }
+
+        then:
+        listener.problems.size() == 1
+        listener.problems[0].additionalData.get(SomeDataView).name == "someData"
+
+        where:
+//        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+        isolationMode << [WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method]
     }
 
     class ProblemProgressListener implements ProgressListener {

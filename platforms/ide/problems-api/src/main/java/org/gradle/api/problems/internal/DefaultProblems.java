@@ -41,6 +41,7 @@ public class DefaultProblems implements InternalProblems {
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
     private final IsolatableFactory isolatableFactory;
+    private final NewIsolatableSerializer isolatableSerializer;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -50,7 +51,8 @@ public class DefaultProblems implements InternalProblems {
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
         PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory
+        IsolatableFactory isolatableFactory,
+        NewIsolatableSerializer isolatableSerializer
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -60,6 +62,7 @@ public class DefaultProblems implements InternalProblems {
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
         this.isolatableFactory = isolatableFactory;
+        this.isolatableSerializer = isolatableSerializer;
         this.internalReporter = createReporter();
     }
 
@@ -79,7 +82,8 @@ public class DefaultProblems implements InternalProblems {
             exceptionAnalyser,
             instantiator,
             payloadSerializer,
-            isolatableFactory);
+            isolatableFactory,
+            isolatableSerializer);
     }
 
     @Override
@@ -99,11 +103,16 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public InternalProblemBuilder getProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory);
+        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer);
     }
 
     @Override
     public IsolatableFactory getIsolatableFactory() {
         return isolatableFactory;
+    }
+
+    @Override
+    public NewIsolatableSerializer getIsolatableSerializer() {
+        return isolatableSerializer;
     }
 }

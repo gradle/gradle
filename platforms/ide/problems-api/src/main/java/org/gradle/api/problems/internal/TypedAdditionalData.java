@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
-import org.gradle.internal.isolation.Isolatable;
 
 /**
  * General additional data type that can be used to attach arbitrary data to a problem with a string map.
@@ -28,7 +27,7 @@ import org.gradle.internal.isolation.Isolatable;
 @Incubating
 public interface TypedAdditionalData extends AdditionalData {
 
-    Isolatable<AdditionalData> getIsolated();
+    byte[] getIsolated();
 
     /**
      * the serialized type/class of the object
