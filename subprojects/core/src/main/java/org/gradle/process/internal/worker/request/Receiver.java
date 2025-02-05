@@ -133,7 +133,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
             ? problem
             : ((InternalProblem) problem)
             .toBuilder(null, null, null)
-            .taskPathLocation(buildPath, taskPath).build();
+            .taskLocation(buildPath, taskPath).build();
         problemProtocol.reportProblem(problem, id);
     }
 

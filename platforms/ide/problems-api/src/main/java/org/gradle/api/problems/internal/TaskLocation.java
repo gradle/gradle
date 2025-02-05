@@ -19,9 +19,9 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.ProblemLocation;
 
 /**
- * Task path location.
+ * Task location.
  */
-public interface TaskPathLocation extends ProblemLocation {
+public interface TaskLocation extends ProblemLocation {
 
     /**
      * The absolute build tree path of the task reporting the problem.

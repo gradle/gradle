@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems
 
-import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import spock.lang.Issue
@@ -53,7 +53,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 13
                 path == buildFile.absolutePath
             }
-            with(oneLocation(TaskPathLocation)) {
+            with(oneLocation(TaskLocation)) {
                 buildTreePath == ':reportProblem'
                 buildPath == ':'
                 taskPath == ':reportProblem'
