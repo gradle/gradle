@@ -146,7 +146,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     private static FileLocation getFileLocation(Location loc) {
-        String path = loc.getSourceLongDisplayName().getDisplayName();
+        String path = loc.getFilePath();
         int line = loc.getLineNumber();
         return DefaultLineInFileLocation.from(path, line);
     }

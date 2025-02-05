@@ -60,7 +60,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.configurations.DefaultResolvableConfiguration
-import org.gradle.api.internal.artifacts.configurations.DefaultUnlockedConfiguration
+import org.gradle.api.internal.artifacts.configurations.DefaultLegacyConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataHandler
 import org.gradle.api.internal.artifacts.dsl.DefaultComponentModuleMetadataHandler
@@ -394,7 +394,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         where:
         concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
-        DefaultUnlockedConfiguration   | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
         DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }
@@ -552,7 +552,7 @@ class ConfigurationCacheUnsupportedTypesIntegrationTest extends AbstractConfigur
 
         where:
         concreteType                   | baseType           | creator                                     | reference                                            | deserializedValue
-        DefaultUnlockedConfiguration   | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
+        DefaultLegacyConfiguration     | Configuration      | "project.configurations.create('some')"     | "project.configurations.getByName('some')"           | 'file collection'
         DefaultResolvableConfiguration | Configuration      | "project.configurations.resolvable('some')" | "project.configurations.getByName('some')"           | 'file collection'
         DefaultSourceDirectorySet      | SourceDirectorySet | ""                                          | "project.objects.sourceDirectorySet('some', 'more')" | 'file tree'
     }

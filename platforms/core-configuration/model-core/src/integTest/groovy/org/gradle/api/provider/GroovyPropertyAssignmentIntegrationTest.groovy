@@ -48,17 +48,32 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
-        "T = null" | "Property<MyObject>" | 'null' | "undefined"
+        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
         "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
         "String = Object"                               | "Property<String>"   | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
-        "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
         "File = T extends FileSystemLocation"           | "DirectoryProperty"  | 'layout.buildDirectory.dir("out").get()' | "out"
         "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"  | 'layout.buildDirectory.dir("out")'       | "out"
         "File = File"                                   | "DirectoryProperty"  | 'file("out")'                            | "out"
         "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("out") }'               | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
         "File = Object"                                 | "DirectoryProperty"  | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+    }
+
+    def "lazy object properties assignment for deprecated string to enum coercion"() {
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, "=")
+
+        expect:
+        deprecationValues.forEach {
+            executer.expectDocumentedDeprecationWarning("Assigning String value '$it' to property of enum type 'class MyEnum'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
+        }
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                 | inputType              | inputValue      | expectedResult | deprecationValues
+        "Enum = String"             | "Property<MyEnum>"     | '"yes"'         | "YES"          | ["yes"]
+        "List<Enum> = List<String>" | "ListProperty<MyEnum>" | '["yes", "NO"]' | "[YES, NO]"    | ["yes", "NO"]
     }
 
     def "eager collection properties assignment for #description"() {

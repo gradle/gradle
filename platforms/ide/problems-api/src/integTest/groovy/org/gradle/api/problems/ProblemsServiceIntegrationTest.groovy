@@ -51,7 +51,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
             with(oneLocation(TaskPathLocation)) {
                 buildTreePath == ':reportProblem'
@@ -95,7 +95,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     length == -1
                     column == -1
                     line == 10
-                    path == "build file '$buildFile.absolutePath'"
+                    path == buildFile.absolutePath
                 }
             }
         }
@@ -122,7 +122,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
 
@@ -168,7 +168,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
     }
@@ -198,7 +198,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
     }
@@ -317,7 +317,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
     }
@@ -365,7 +365,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             for (int i = 0; i < 10; i++) {
                 problems.getReporter().report(problemId) {
                         it.severity(Severity.WARNING)
-                        .solution("solution")
+                        .solution("solution \$i")
                 }
             }
         """
@@ -374,12 +374,12 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        10.times {
-            verifyAll(receivedProblem(it)) {
+        10.times { index ->
+            verifyAll(receivedProblem(index)) {
                 definition.id.displayName == 'label'
                 definition.id.name == 'type'
                 definition.severity == Severity.WARNING
-                solutions == ["solution"]
+                solutions == ["solution $index"]
             }
         }
     }

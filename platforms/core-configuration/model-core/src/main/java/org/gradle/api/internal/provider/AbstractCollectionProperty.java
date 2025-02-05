@@ -530,7 +530,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         ) {
             ImmutableCollection.Builder<T> entries = collectionFactory.get();
             for (ExecutionTimeValue<? extends C> value : executionTimeValues) {
-                entries.addAll(value.getFixedValue());
+                valueCollector.addAll(value.getFixedValue(), entries);
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
             return ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(entries.build()));
