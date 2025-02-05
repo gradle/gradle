@@ -112,8 +112,8 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder taskPathLocation(String buildPath, String taskPath) {
-        return validateDelegate(delegate.taskPathLocation(buildPath, taskPath));
+    public InternalProblemBuilder taskLocation(String buildPath, String taskPath) {
+        return validateDelegate(delegate.taskLocation(buildPath, taskPath));
     }
 
     @Override

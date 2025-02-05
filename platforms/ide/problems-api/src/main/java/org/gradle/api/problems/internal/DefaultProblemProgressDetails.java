@@ -100,8 +100,8 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
             } else {
                 return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
             }
-        } else if (location instanceof org.gradle.api.problems.internal.TaskPathLocation) {
-            return new DevelocityTaskPathLocation((org.gradle.api.problems.internal.TaskPathLocation) location);
+        } else if (location instanceof TaskLocation) {
+            return new DevelocityTaskLocation((TaskLocation) location);
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
             PluginIdLocation pluginIdLocation = (PluginIdLocation) location;
             if (pluginIdLocation.getPluginId() != null) {
@@ -267,27 +267,27 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
     }
 
-    private static class DevelocityTaskPathLocation implements org.gradle.operations.problems.TaskPathLocation {
+    private static class DevelocityTaskLocation implements org.gradle.operations.problems.TaskLocation {
 
-        private final org.gradle.api.problems.internal.TaskPathLocation taskPathLocation;
+        private final TaskLocation taskLocation;
 
-        public DevelocityTaskPathLocation(org.gradle.api.problems.internal.TaskPathLocation taskPathLocation) {
-            this.taskPathLocation = taskPathLocation;
+        public DevelocityTaskLocation(TaskLocation taskLocation) {
+            this.taskLocation = taskLocation;
         }
 
         @Override
         public String getBuildPath() {
-            return taskPathLocation.getBuildPath();
+            return taskLocation.getBuildPath();
         }
 
         @Override
         public String getPath() {
-            return taskPathLocation.getTaskPath();
+            return taskLocation.getTaskPath();
         }
 
         @Override
         public String getDisplayName() {
-            return "task '" + taskPathLocation.getBuildTreePath() + "'";
+            return "task '" + taskLocation.getBuildTreePath() + "'";
         }
     }
 

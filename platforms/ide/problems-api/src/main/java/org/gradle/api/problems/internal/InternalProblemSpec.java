@@ -55,7 +55,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param taskPath the path of the task within the build
      * @return this
      */
-    InternalProblemSpec taskPathLocation(String buildPath, String taskPath);
+    InternalProblemSpec taskLocation(String buildPath, String taskPath);
 
     /**
      * Declares the documentation for this problem.

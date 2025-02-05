@@ -17,11 +17,11 @@
 package org.gradle.operations.problems;
 
 /**
- * Task path location.
+ * Task location.
  *
  * @since 8.14
  */
-public interface TaskPathLocation extends ProblemLocation {
+public interface TaskLocation extends ProblemLocation {
 
     /**
      * The build path of the task.

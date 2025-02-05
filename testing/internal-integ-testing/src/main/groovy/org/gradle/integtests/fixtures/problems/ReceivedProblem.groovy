@@ -31,7 +31,7 @@ import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.PluginIdLocation
-import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 
@@ -74,7 +74,7 @@ class ReceivedProblem implements InternalProblem {
             } else if (location['path'] != null) {
                 result += new ReceivedFileLocation(location as Map<String, Object>)
             } else if (location['buildTreePath'] != null) {
-                result += new ReceivedTaskPathLocation(location as Map<String, Object>)
+                result += new ReceivedTaskLocation(location as Map<String, Object>)
             } else {
                 result += new ReceivedFileLocation(location as Map<String, Object>)
             }
@@ -374,12 +374,12 @@ class ReceivedProblem implements InternalProblem {
         }
     }
 
-    static class ReceivedTaskPathLocation implements TaskPathLocation {
+    static class ReceivedTaskLocation implements TaskLocation {
         private final String buildPath
         private final String taskPath
         private final String buildTreePath
 
-        ReceivedTaskPathLocation(Map<String, Object> location) {
+        ReceivedTaskLocation(Map<String, Object> location) {
             this.buildPath = location['buildPath'] as String
             this.taskPath = location['taskPath'] as String
             this.buildTreePath = location['buildTreePath'] as String

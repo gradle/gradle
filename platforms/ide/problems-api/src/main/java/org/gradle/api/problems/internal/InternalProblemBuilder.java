@@ -42,7 +42,7 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder id(String name, String displayName, ProblemGroup parent);
 
     @Override
-    InternalProblemBuilder taskPathLocation(String buildPath, String taskPath);
+    InternalProblemBuilder taskLocation(String buildPath, String taskPath);
 
     @Override
     InternalProblemBuilder documentedAt(DocLink doc);

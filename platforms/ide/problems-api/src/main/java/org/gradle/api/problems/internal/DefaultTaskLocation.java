@@ -21,12 +21,12 @@ import org.gradle.util.Path;
 /**
  * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
  */
-public class DefaultTaskPathLocation implements TaskPathLocation {
+public class DefaultTaskLocation implements TaskLocation {
 
     private final String buildPath;
     private final String taskPath;
 
-    public DefaultTaskPathLocation(String buildPath, String taskPath) {
+    public DefaultTaskLocation(String buildPath, String taskPath) {
         this.buildPath = buildPath;
         this.taskPath = taskPath;
     }
