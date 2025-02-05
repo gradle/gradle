@@ -130,7 +130,6 @@ import org.gradle.internal.serialize.codecs.dm.transform.TransformedExternalArti
 import org.gradle.internal.serialize.codecs.dm.transform.TransformedProjectArtifactSetCodec
 import org.gradle.internal.serialize.codecs.stdlib.ProxyCodec
 import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.codecs.BeanCodec
 import org.gradle.internal.serialize.graph.codecs.BeanSpecCodec
 import org.gradle.internal.serialize.graph.codecs.Bindings

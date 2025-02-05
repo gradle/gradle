@@ -34,7 +34,6 @@ import org.gradle.internal.serialize.codecs.core.ProviderCodec
 import org.gradle.internal.serialize.codecs.core.RegularFileCodec
 import org.gradle.internal.serialize.codecs.core.RegularFilePropertyCodec
 import org.gradle.internal.serialize.codecs.core.SetPropertyCodec
-import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec

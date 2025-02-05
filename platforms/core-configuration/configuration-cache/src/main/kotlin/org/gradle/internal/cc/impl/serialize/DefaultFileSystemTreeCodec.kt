@@ -24,7 +24,6 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.StringPrefixedTree.Node
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
