@@ -857,7 +857,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         when:
         expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer,
             "Type 'CustomTask' property 'unsupportedEagerMap' where key of nested map is of type 'java.lang.Boolean'. " +
-                "Reason: Key of nested map must be one of the following types: 'Enum', 'Integer', 'String'.",
+                "Reason: Key of nested map must be one of the following types or an enum: 'java.lang.Integer', 'java.lang.String'.",
             'validation_problems',
             'unsupported_key_type_of_nested_map')
         run("customTask")
