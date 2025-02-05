@@ -20,11 +20,13 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactBackedResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.local.model.LocalVariantMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
@@ -36,11 +38,18 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ArtifactResolver artifactResolver;
     private final ResolvedVariantCache resolvedVariantCache;
+    private final AttributeDesugaring attributeDesugaring;
 
-    public DefaultVariantArtifactResolver(ArtifactResolver artifactResolver, ImmutableArtifactTypeRegistry artifactTypeRegistry, ResolvedVariantCache resolvedVariantCache) {
+    public DefaultVariantArtifactResolver(
+        ArtifactResolver artifactResolver,
+        ImmutableArtifactTypeRegistry artifactTypeRegistry,
+        ResolvedVariantCache resolvedVariantCache,
+        AttributeDesugaring attributeDesugaring
+    ) {
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.artifactResolver = artifactResolver;
         this.resolvedVariantCache = resolvedVariantCache;
+        this.attributeDesugaring = attributeDesugaring;
     }
 
     @Override
@@ -101,6 +110,9 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
         ImmutableList<? extends ComponentArtifactMetadata> artifacts
     ) {
         ImmutableAttributes attributes = artifactTypeRegistry.mapAttributesFor(artifactVariant.getAttributes(), artifacts);
+        if (artifactVariant instanceof LocalVariantMetadata) {
+            attributes = attributeDesugaring.desugar(attributes);
+        }
 
         ImmutableCapabilities capabilities = withImplicitCapability(artifactVariant.getCapabilities(), component);
 
