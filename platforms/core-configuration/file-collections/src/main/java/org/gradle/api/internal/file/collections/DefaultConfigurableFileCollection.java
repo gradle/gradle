@@ -213,7 +213,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
-        // Don't allow a = (a + b), this is not support
+        // Don't allow a = (a + b), this is not supported yet
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
