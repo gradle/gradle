@@ -24,6 +24,9 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.gradle.internal.serialize.graph.StringPrefixedTree.Node
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.readCollection
+import org.gradle.internal.serialize.graph.readCollectionInto
+import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
 
 class DefaultFileSystemTreeEncoder(
@@ -36,7 +39,7 @@ class DefaultFileSystemTreeEncoder(
     }
 
     override suspend fun writeTree() {
-        globalContext.writePrefixedTreeNode(prefixedTree.root)
+        globalContext.writePrefixedTreeNode(prefixedTree.compress())
     }
 
     override fun close() {
@@ -46,16 +49,13 @@ class DefaultFileSystemTreeEncoder(
     private fun WriteContext.writePrefixedTreeNode(node: Node) {
         writeNullableSmallInt(node.index)
         writeString(node.segment)
-        writeSmallInt(node.children.size)
-        for (child in node.children) {
-            writeString(child.key)
-            writePrefixedTreeNode(child.value)
-        }
+        writeCollection(node.children) { writePrefixedTreeNode(it) }
     }
 }
 
 class DefaultFileSystemTreeDecoder(
     private val globalContext: CloseableReadContext,
+    private val prefixedTree: StringPrefixedTree
 ) : FileSystemTreeDecoder {
 
     private val files = mutableMapOf<Int, File>()
@@ -63,36 +63,16 @@ class DefaultFileSystemTreeDecoder(
     override fun readFile(readContext: ReadContext): File = files[readContext.readSmallInt()]!!
 
     override suspend fun readTree() {
-        prepareFilesFrom(globalContext.readPrefixedTreeNode(), mutableListOf())
+        files.putAll(prefixedTree.buildIndexes(globalContext.readPrefixedTreeNode()))
     }
 
     override fun close() {
         globalContext.close()
     }
 
-    private fun prepareFilesFrom(node: Node, segments: MutableList<String>) {
-        segments.add(node.segment)
-        node.index?.let { idx ->
-            files[idx] = File("/${segments.joinToString("/")}")
-
-        }
-        for (child in node.children.values) {
-            prepareFilesFrom(child, segments)
-        }
-        segments.removeAt(segments.size - 1) // backtrack
-    }
-
-    private fun ReadContext.readPrefixedTreeNode(): Node {
-        val index = readNullableSmallInt()
-        val segment = readString()
-        val childrenCount = readSmallInt()
-        val children = mutableMapOf<String, Node>()
-        repeat(childrenCount) {
-            val key = readString()
-            val child = readPrefixedTreeNode()
-            children[key] = child
-        }
-
-        return Node(index, segment, children)
-    }
+    private fun ReadContext.readPrefixedTreeNode(): Node = Node(
+        readNullableSmallInt(),
+        readString(),
+        readCollectionInto({ mutableListOf() }) { readPrefixedTreeNode() }
+    )
 }

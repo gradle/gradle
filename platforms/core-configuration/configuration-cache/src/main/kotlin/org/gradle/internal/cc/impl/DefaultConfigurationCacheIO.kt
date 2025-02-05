@@ -296,7 +296,7 @@ class DefaultConfigurationCacheIO internal constructor(
         if (true) {
             val (globalContext, _) = readContextFor(fileSystemTreeFile)
             globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
-            DefaultFileSystemTreeDecoder(globalContext)
+            DefaultFileSystemTreeDecoder(globalContext, prefixedTree)
         } else {
             InlineFileSystemTreeDecoder
         }

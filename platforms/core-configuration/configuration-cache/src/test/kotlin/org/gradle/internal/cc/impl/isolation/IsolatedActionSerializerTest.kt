@@ -200,6 +200,5 @@ class IsolatedActionSerializerTest {
             propertyFactory = propertyFactory(),
             fileFactory = TestFiles.fileFactory(),
             filePropertyFactory = TestFiles.filePropertyFactory(),
-            stringPrefixedTree = StringPrefixedTree()
         )
 }

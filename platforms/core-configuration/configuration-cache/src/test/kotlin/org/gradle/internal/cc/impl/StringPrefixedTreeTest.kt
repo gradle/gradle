@@ -26,58 +26,58 @@ class StringPrefixedTreeTest {
     @Test
     fun `prefixed tree humble beginning`() {
         val prefixedTree = StringPrefixedTree()
+        val fooIndex = prefixedTree.insert(File("org/example/foo/Foo"))
+        val barIndex = prefixedTree.insert(File("org/example/bar/Bar"))
 
-        val fooKey = prefixedTree.insert(File("org/example/foo/Foo"))
-        val barKey = prefixedTree.insert(File("org/example/bar/Bar"))
+        val indexes = prefixedTree.buildIndexes(prefixedTree.root)
 
-        assertEquals(prefixedTree.getByKey(fooKey), File("org/example/foo/Foo"))
-        assertEquals(prefixedTree.getByKey(barKey), File("org/example/bar/Bar"))
+        assertEquals(File("/org/example/foo/Foo"), indexes[fooIndex])
+        assertEquals(File("/org/example/bar/Bar"), indexes[barIndex])
     }
 
     @Test
     fun `prefixify strings`() {
         val prefixedTree = StringPrefixedTree()
-
         prefixedTree.insert(File("org/example/foo/Foo"))
         prefixedTree.insert(File("org/example/bar/Bar"))
         prefixedTree.insert(File("org/example/bar/Bar1"))
 
         val expectedTree = StringPrefixedTree.Node(
-            0,
+            null,
             "",
-            mutableMapOf(
-                "org" to StringPrefixedTree.Node(
-                    1,
+            mutableListOf(
+                StringPrefixedTree.Node(
+                    null,
                     "org",
-                    mutableMapOf(
-                        "example" to StringPrefixedTree.Node(
-                            2,
+                    mutableListOf(
+                        StringPrefixedTree.Node(
+                            null,
                             "example",
-                            mutableMapOf(
-                                "foo" to StringPrefixedTree.Node(
-                                    3,
+                            mutableListOf(
+                                StringPrefixedTree.Node(
+                                    null,
                                     "foo",
-                                    mutableMapOf(
-                                        "Foo" to StringPrefixedTree.Node(
-                                            4,
+                                    mutableListOf(
+                                        StringPrefixedTree.Node(
+                                            0,
                                             "Foo",
-                                            mutableMapOf()
+                                            mutableListOf()
                                         )
                                     )
                                 ),
-                                "bar" to StringPrefixedTree.Node(
-                                    5,
+                                StringPrefixedTree.Node(
+                                    null,
                                     "bar",
-                                    mutableMapOf(
-                                        "Bar" to StringPrefixedTree.Node(
-                                            6,
+                                    mutableListOf(
+                                        StringPrefixedTree.Node(
+                                            1,
                                             "Bar",
-                                            mutableMapOf()
+                                            mutableListOf()
                                         ),
-                                        "Bar1" to StringPrefixedTree.Node(
-                                            7,
+                                        StringPrefixedTree.Node(
+                                            2,
                                             "Bar1",
-                                            mutableMapOf()
+                                            mutableListOf()
                                         )
                                     )
                                 )
@@ -88,16 +88,46 @@ class StringPrefixedTreeTest {
             )
         )
 
-        assertEquals(prefixedTree.root, expectedTree)
+        assertEquals(expectedTree, prefixedTree.root)
     }
 
     @Test
-    fun `returns the same key for the same file`() {
+    fun `tree is compressable`() {
+        val prefixedTree = StringPrefixedTree()
+        prefixedTree.insert(File("org/example/company/foo/Foo"))
+        prefixedTree.insert(File("org/example/company/bar/Bar"))
+
+        val expectedCompressedTree = StringPrefixedTree.Node(
+            null,
+            "org/example/company",
+            mutableListOf(
+                StringPrefixedTree.Node(0, "foo/Foo", mutableListOf()),
+                StringPrefixedTree.Node(1, "bar/Bar", mutableListOf())
+            )
+        )
+
+        assertEquals(expectedCompressedTree, prefixedTree.compress())
+    }
+
+    @Test
+    fun `indexes are valid after compression`() {
+        val prefixedTree = StringPrefixedTree()
+        val fooIndex = prefixedTree.insert(File("org/example/foo/Foo"))
+        val barIndex = prefixedTree.insert(File("org/example/bar/Bar"))
+
+        val indexes = prefixedTree.buildIndexes(prefixedTree.compress())
+
+        assertEquals(File("/org/example/foo/Foo"), indexes[fooIndex])
+        assertEquals(File("/org/example/bar/Bar"), indexes[barIndex])
+    }
+
+    @Test
+    fun `returns the same index for the same file`() {
         val prefixedTree = StringPrefixedTree()
 
-        val foo1Key = prefixedTree.insert(File("org/example/foo/Foo"))
-        val foo2Key = prefixedTree.insert(File("org/example/foo/Foo"))
+        val foo1Index = prefixedTree.insert(File("org/example/foo/Foo"))
+        val foo2Index = prefixedTree.insert(File("org/example/foo/Foo"))
 
-        assertEquals(foo1Key, foo2Key)
+        assertEquals(foo1Index, foo2Index)
     }
 }

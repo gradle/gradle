@@ -25,7 +25,7 @@ class StringPrefixedTree {
 
     private var currentIndex: Int = 0
 
-    val root = Node(null, "", mutableMapOf())
+    val root = Node(null, "", mutableListOf())
 
     fun insert(file: File): Int {
         val segments = file.path.split("/")
@@ -37,25 +37,78 @@ class StringPrefixedTree {
                 continue
             }
 
-            var child = current.children[segment]
+            var child = current.children.find { it.segment == segment }
             if (child == null) {
-                child = Node(null, segment, mutableMapOf())
-                current.children[segment] = child
+                child = Node(null, segment, mutableListOf())
+                current.children.add(child)
             }
 
             current = child
         }
-        if (current.index == null) {
+        if (current.isIntermediate) {
             current.index = currentIndex++
         }
 
         return current.index!!
     }
 
+    fun buildIndexes(root: Node): Map<Int, File> {
+        val indexes = mutableMapOf<Int, File>()
+        buildIndexFor(root, mutableListOf(), indexes)
+        return indexes
+    }
+
+    fun compress(): Node = compressFrom(root)
+
+    private fun buildIndexFor(node: Node, segments: MutableList<String>, indexes: MutableMap<Int, File>) {
+        segments.add(node.segment)
+        node.index?.let { idx ->
+            indexes[idx] = File("/${segments.joinToString("/")}")
+        }
+        for (child in node.children) {
+            buildIndexFor(child, segments, indexes)
+        }
+        segments.removeAt(segments.size - 1) // backtrack
+    }
+
+    // TODO simplify?
+    private fun compressFrom(node: Node): Node {
+        if (!node.isIntermediate) return node
+        val compressedSegments = mutableListOf<String>()
+        var current = node
+
+        while (current.children.size == 1) {
+            compressedSegments.add(current.segment)
+            val child = current.children[0]
+            if (!child.isIntermediate) {
+                compressedSegments.add(child.segment)
+                current = child
+                break
+            }
+            current = child
+        }
+
+        if (current.children.size != 1 && (compressedSegments.isEmpty() || compressedSegments.last() != current.segment)) {
+            compressedSegments.add(current.segment)
+        }
+
+        val index = if (current.isIntermediate) null else current.index
+        val children = current.children.map { compressFrom(it) }.toMutableList()
+        val segment = compressedSegments
+            // root segment is empty
+            .filter { it.isNotEmpty() }
+            .joinToString("/")
+
+        return Node(index, segment, children)
+    }
+
     data class Node(
         var index: Int?,
         val segment: String,
-        val children: MutableMap<String, Node> // Just a list?
-    )
+        val children: MutableList<Node>
+    ) {
+        val isIntermediate
+            get() = index == null
+    }
 }
 
