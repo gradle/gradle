@@ -690,7 +690,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         return new CompoundAssignmentStandIn();
     }
 
+    /**
+     * This class acts as a replacement to call {@code +} on when evaluating {@code DefaultMapProperty += <RHS>} expressions in Groovy code.
+     *
+     * @see SupportsCompoundAssignment
+     */
     public class CompoundAssignmentStandIn {
+        // Called for property += Provider<Map<K,V>>
         public Object plus(Provider<? extends Map<K, V>> provider) {
             return new CompoundAssignmentResult<>(
                 Providers.internal(zip(provider, bifunction(DefaultMapProperty::concat))),
@@ -699,6 +705,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
         }
 
+        // Called for property += Map<K,V>
         public Object plus(Map<K, V> map) {
             return new CompoundAssignmentResult<>(
                 Providers.internal(map(transformer(left -> concat(left, map)))),

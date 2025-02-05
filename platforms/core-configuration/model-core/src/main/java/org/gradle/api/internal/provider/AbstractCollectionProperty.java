@@ -614,7 +614,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return new CompoundAssignmentStandIn();
     }
 
+    /**
+     * This class acts as a replacement to call {@code +} on when evaluating {@code AbstractCollectionProperty += <RHS>} expressions in Groovy code.
+     *
+     * @see SupportsCompoundAssignment
+     */
     public class CompoundAssignmentStandIn {
+        // Called for:
         // property += Provider<Iterable<T>>
         // property += Provider<T>
         public Object plus(Provider<?> provider) {
@@ -627,7 +633,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             );
         }
 
-        // property += Iterable<T>
+        // Called for property += Iterable<T>
         public Object plus(Iterable<? extends T> items) {
             return new CompoundAssignmentResult<>(
                 Providers.internal(map(transformer(thisItems -> Iterables.concat(thisItems, items)))),
@@ -636,7 +642,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             );
         }
 
-        // property += T[]
+        // Called for property += T[]
         public Object plus(T[] items) {
             return new CompoundAssignmentResult<>(
                 Providers.internal(map(transformer(thisItems -> Iterables.concat(thisItems, Arrays.asList(items))))),
@@ -645,7 +651,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             );
         }
 
-        // property += T
+        // Called for property += T
         public Object plus(Object item) {
             Preconditions.checkNotNull(item, "Cannot add a null element to a property of type %s.", collectionType.getSimpleName());
             Preconditions.checkArgument(
@@ -671,7 +677,6 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
                 if (value instanceof Iterable) {
                     return Cast.<Iterable<T>>uncheckedCast(value);
                 }
-                // Technically, the value can be null here.
                 return Collections.singleton(Cast.uncheckedCast(value));
             }));
         }

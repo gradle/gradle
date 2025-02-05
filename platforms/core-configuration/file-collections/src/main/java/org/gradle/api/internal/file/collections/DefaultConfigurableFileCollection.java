@@ -839,7 +839,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         return new CompoundAssignmentStandIn();
     }
 
+    /**
+     * This class acts as a replacement to call {@code +} on when evaluating {@code DefaultConfigurableFileCollection += <RHS>} expressions in Groovy code.
+     *
+     * @see SupportsCompoundAssignment
+     */
     public class CompoundAssignmentStandIn {
+        // Called for fileCollection += fileCollection
         public Object plus(FileCollectionInternal rhs) {
             return new CompoundAssignmentResult(taskDependencyFactory, DefaultConfigurableFileCollection.this, rhs);
         }
