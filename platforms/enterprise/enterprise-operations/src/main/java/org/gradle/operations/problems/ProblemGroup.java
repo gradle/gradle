@@ -18,12 +18,37 @@ package org.gradle.operations.problems;
 
 import javax.annotation.Nullable;
 
+/**
+ * Represents a group of problems.
+ * <p>
+ * Groups are organized in hierarchy where the parent group should represent the more broad problem group.
+ * <p>
+ * Two problem groups  are considered equal if their {@link #getName()} and their parents are equal.
+ *
+ * @since 8.14
+ */
 public interface ProblemGroup {
 
-    String getId();
+    /**
+     * The name of the problem group.
+     *
+     * @since 8.14
+     */
+    String getName();
 
+    /**
+     * Returns a human-readable label describing the group.
+     *
+     * @since 8.14
+     */
     String getDisplayName();
 
+    /**
+     * Returns the parent group or {@code null} for root groups.
+     *
+     * @since 8.14
+     */
     @Nullable
     ProblemGroup getParent();
+
 }

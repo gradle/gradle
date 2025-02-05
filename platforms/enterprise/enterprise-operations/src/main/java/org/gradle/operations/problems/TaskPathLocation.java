@@ -16,8 +16,25 @@
 
 package org.gradle.operations.problems;
 
+/**
+ * Task path location.
+ *
+ * @since 8.14
+ */
 public interface TaskPathLocation extends ProblemLocation {
+
+    /**
+     * The build path of the task.
+     *
+     * @since 8.14
+     */
     String getBuildPath();
 
+    /**
+     * The relative task path.
+     *
+     * @since 8.14
+     */
     String getPath();
+
 }

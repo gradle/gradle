@@ -16,11 +16,18 @@
 
 package org.gradle.operations.problems;
 
+/**
+ * Gradle Plugin ID location.
+ *
+ * @since 8.14
+ */
 public interface PluginIdLocation extends ProblemLocation {
+
     /**
      * The plugin ID.
      *
-     * @return the plugin ID
+     * @since 8.14
      */
     String getPluginId();
+
 }

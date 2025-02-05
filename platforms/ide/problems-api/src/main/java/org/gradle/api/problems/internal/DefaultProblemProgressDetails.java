@@ -42,7 +42,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
     }
 
     @Override
-    public ProblemDefinition getProblemDefinition() {
+    public ProblemDefinition getDefinition() {
         return new DevelocityProblemDefinition(problem.getDefinition());
     }
 
@@ -129,7 +129,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         @Override
-        public String getId() {
+        public String getName() {
             return definition.getId().getName();
         }
 
@@ -156,7 +156,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
             public DevelocityProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {this.currentGroup = currentGroup;}
 
             @Override
-            public String getId() {
+            public String getName() {
                 return currentGroup.getName();
             }
 
@@ -176,18 +176,13 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         private static class DevelocityDocumentationLink implements DocumentationLink {
             private final InternalDocLink documentationLink;
 
-            public DevelocityDocumentationLink(InternalDocLink documentationLink) {this.documentationLink = documentationLink;}
+            public DevelocityDocumentationLink(InternalDocLink documentationLink) {
+                this.documentationLink = documentationLink;
+            }
 
-            @Nullable
             @Override
             public String getUrl() {
                 return documentationLink.getUrl();
-            }
-
-            @Nullable
-            @Override
-            public String getConsultDocumentationMessage() {
-                return documentationLink.getConsultDocumentationMessage();
             }
         }
     }
@@ -238,13 +233,13 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         @Nullable
         @Override
         public Integer getColumn() {
-            return lineInFileLocation.getColumn();
+            return lineInFileLocation.getColumn() <= 0 ? null : lineInFileLocation.getColumn();
         }
 
         @Nullable
         @Override
         public Integer getLength() {
-            return lineInFileLocation.getLength();
+            return lineInFileLocation.getLength() <= 0 ? null : lineInFileLocation.getLength();
         }
     }
 
@@ -278,6 +273,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
 
         @Override
         public String getBuildPath() {
+            // TODO wolfs: What do we do here? Should we capture build path separately?
             return ":";
         }
 

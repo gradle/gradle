@@ -16,6 +16,20 @@
 
 package org.gradle.operations.problems;
 
+/**
+ * The location information of a problem.
+ * <p>
+ * See the subtypes for more specific location information.
+ *
+ * @since 8.14
+ */
 public interface ProblemLocation {
+
+    /**
+     * A human-readable description of the location.
+     *
+     * @since 8.14
+     */
     String getDisplayName();
+
 }

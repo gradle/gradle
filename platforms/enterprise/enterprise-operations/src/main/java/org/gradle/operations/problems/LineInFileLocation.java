@@ -18,13 +18,21 @@ package org.gradle.operations.problems;
 
 import javax.annotation.Nullable;
 
+/**
+ * A basic location pointing to a specific part of a file using line number, column, and length for coordinates.
+ * <p>
+ * The line and column coordinates are one-indexed so that they can be easily matched to the content of a UI editor interface.
+ *
+ * @since 8.14
+ */
 public interface LineInFileLocation extends FileLocation {
+
     /**
      * The line number within the file.
      * <p>
      * The line is <b>one-indexed</b>, i.e. the first line in the file is line number 1.
      *
-     * @return the line number
+     * @since 8.14
      */
     int getLine();
 
@@ -32,19 +40,21 @@ public interface LineInFileLocation extends FileLocation {
      * The starting column on the selected line.
      * <p>
      * The column is <b>one-indexed</b>, i.e. the first column in the file is line number 1.
-     * A non-positive value indicates that the column information is not available.
+     * Null indicates that the column information is not available.
      *
-     * @return the column
+     * @since 8.14
      */
     @Nullable
     Integer getColumn();
 
     /**
      * The length of the selected content starting from specified column.
-     * A negative value indicates that the column information is not available.
+     * Null indicates that the column information is not available.
      *
      * @return the length
+     * @since 8.14
      */
     @Nullable
     Integer getLength();
+
 }

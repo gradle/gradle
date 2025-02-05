@@ -16,13 +16,20 @@
 
 package org.gradle.operations.problems;
 
+/**
+ * A file location.
+ *
+ * @since 8.14
+ */
 public interface FileLocation extends ProblemLocation {
+
     // TODO: Add getFileType() - build logic file, software definition, application code
 
     /**
-     * The path to the file.
+     * The absolute path of the file.
      *
-     * @return the file path
+     * @since 8.14
      */
     String getPath();
+
 }

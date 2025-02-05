@@ -16,18 +16,28 @@
 
 package org.gradle.operations.problems;
 
+/**
+ * A basic location pointing to a specific part of a file using a global offset and length for coordinates.
+ * <p>
+ * The coordinates are expected to be zero indexed.
+ *
+ * @since 8.14
+ */
 public interface OffsetInFileLocation extends FileLocation {
+
     /**
      * The global offset from the beginning of the file.
      *
      * @return the zero-indexed the offset
+     * @since 8.14
      */
     int getOffset();
 
     /**
-     * The content of the content starting from {@link #getOffset()}.
+     * The length of the content starting from {@link #getOffset()}.
      *
-     * @return the length
+     * @since 8.14
      */
     int getLength();
+
 }

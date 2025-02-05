@@ -46,12 +46,12 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
         with(problem) {
-            with(problemDefinition) {
-                id == 'type'
+            with(definition) {
+                name == 'type'
                 displayName == 'label'
                 with(group) {
                     displayName == 'group label'
-                    id == 'generic'
+                    name == 'generic'
                     parent == null
                 }
                 documentationLink == null
@@ -64,8 +64,8 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(originLocations[0]) {
                 path == this.buildFile.absolutePath
                 line == 13
-                column == -1
-                length == -1
+                column == null
+                length == null
             }
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
@@ -91,12 +91,12 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
         with(problem) {
-            with(problemDefinition) {
-                id == 'type'
+            with(definition) {
+                name == 'type'
                 displayName == 'label'
                 with(group) {
                     displayName == 'group label'
-                    id == 'generic'
+                    name == 'generic'
                     parent == null
                 }
                 documentationLink == null
@@ -109,8 +109,8 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(originLocations[0]) {
                 path == this.buildFile.absolutePath
                 line == 13
-                column == -1
-                length == -1
+                column == null
+                length == null
             }
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
@@ -157,20 +157,19 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         then:
         def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
         with(problem) {
-            with(problemDefinition) {
-                id == 'type'
+            with(definition) {
+                name == 'type'
                 displayName == 'label'
                 with(group) {
                     displayName == 'problem group label'
-                    id == 'problem group'
+                    name == 'problem group'
                     with(parent) {
                         displayName == 'parent group label'
-                        id == 'parent'
+                        name == 'parent'
                         parent == null
                     }
                 }
                 with(documentationLink) {
-                    consultDocumentationMessage == 'For more information, please refer to https://example.org/doc.'
                     url == 'https://example.org/doc'
                 }
             }
@@ -186,14 +185,14 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(originLocations[1]) {
                 path == location1
                 line == 25
-                column == -1
-                length == -1
+                column == null
+                length == null
             }
             with(originLocations[2]) {
                 path == location2
                 line == 35
                 column == 4
-                length == -1
+                length == null
             }
             with(originLocations[3]) {
                 path == location3

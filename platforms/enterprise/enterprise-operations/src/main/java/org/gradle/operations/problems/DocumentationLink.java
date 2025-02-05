@@ -16,19 +16,18 @@
 
 package org.gradle.operations.problems;
 
-import javax.annotation.Nullable;
-
+/**
+ * A link to a documentation page.
+ *
+ * @since 8.14
+ */
 public interface DocumentationLink {
+
     /**
-     * The URL to the documentation page.
+     * The URL of the documentation page.
+     *
+     * @since 8.14
      */
-    @Nullable
     String getUrl();
 
-    /**
-     * A message that tells the user to consult the documentation.
-     * There are currently 2 different messages used for this, hence this method.
-     */
-    @Nullable
-    String getConsultDocumentationMessage();
 }
