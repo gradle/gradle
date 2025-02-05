@@ -205,12 +205,14 @@ class DefaultProblemBuilderTest extends Specification {
         //noinspection GroovyAssignabilityCheck
         def problem = problemBuilder
             .id(problemId)
-            .taskPathLocation(":taskPath")
+            .taskPathLocation(":included-build", ":taskPath")
             .build()
 
 
         then:
         problem.contextualLocations.every { it instanceof TaskPathLocation }
-        problem.contextualLocations.collect { (it as TaskPathLocation).buildTreePath } == [':taskPath']
+        problem.contextualLocations.collect { (it as TaskPathLocation).buildTreePath } == [':included-build:taskPath']
+        problem.contextualLocations.collect { (it as TaskPathLocation).buildPath } == [':included-build']
+        problem.contextualLocations.collect { (it as TaskPathLocation).taskPath } == [':taskPath']
     }
 }

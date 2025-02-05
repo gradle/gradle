@@ -375,10 +375,24 @@ class ReceivedProblem implements InternalProblem {
     }
 
     static class ReceivedTaskPathLocation implements TaskPathLocation {
+        private final String buildPath
+        private final String taskPath
         private final String buildTreePath
 
         ReceivedTaskPathLocation(Map<String, Object> location) {
+            this.buildPath = location['buildPath'] as String
+            this.taskPath = location['taskPath'] as String
             this.buildTreePath = location['buildTreePath'] as String
+        }
+
+        @Override
+        String getBuildPath() {
+            buildPath
+        }
+
+        @Override
+        String getTaskPath() {
+            taskPath
         }
 
         @Override

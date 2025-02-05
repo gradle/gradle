@@ -51,10 +51,11 @@ public interface InternalProblemSpec extends ProblemSpec {
     /**
      * Declares that this problem was emitted by a task with the given path.
      *
-     * @param buildTreePath the absolute path of the task within the build tree
+     * @param buildPath the path to the build of the task within the build tree
+     * @param taskPath the path of the task within the build
      * @return this
      */
-    InternalProblemSpec taskPathLocation(String buildTreePath);
+    InternalProblemSpec taskPathLocation(String buildPath, String taskPath);
 
     /**
      * Declares the documentation for this problem.

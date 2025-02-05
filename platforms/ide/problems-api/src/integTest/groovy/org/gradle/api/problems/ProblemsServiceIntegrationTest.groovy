@@ -55,6 +55,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             }
             with(oneLocation(TaskPathLocation)) {
                 buildTreePath == ':reportProblem'
+                buildPath == ':'
+                taskPath == ':reportProblem'
             }
         }
     }

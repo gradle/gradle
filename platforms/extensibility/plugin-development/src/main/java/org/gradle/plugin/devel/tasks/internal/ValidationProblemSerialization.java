@@ -358,32 +358,38 @@ public class ValidationProblemSerialization {
 
             out.beginArray();
             out.name("type").value("task");
-            out.name("buildTreePath").value(value.getBuildTreePath());
+            out.name("buildPath").value(value.getBuildPath());
+            out.name("taskPath").value(value.getTaskPath());
             out.endObject();
         }
 
         @Override
         public DefaultTaskPathLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultTaskPathLocation buildTreePath = readObject(in);
+            DefaultTaskPathLocation taskPathLocation = readObject(in);
             in.endObject();
 
-            Objects.requireNonNull(buildTreePath, "buildTreePath must not be null");
-            return buildTreePath;
+            Objects.requireNonNull(taskPathLocation, "taskPathLocation must not be null");
+            return taskPathLocation;
         }
 
         @Nonnull
         private static DefaultTaskPathLocation readObject(JsonReader in) throws IOException {
-            String buildTreePath = null;
+            String buildPath = null;
+            String taskPath = null;
             while (in.hasNext()) {
                 String name = in.nextName();
-                if (name.equals("buildTreePath")) {
-                    buildTreePath = in.nextString();
+                if (name.equals("buildPath")) {
+                    buildPath = in.nextString();
+                } else if (name.equals("taskPath")) {
+                    taskPath = in.nextString();
                 } else {
                     in.skipValue();
                 }
             }
-            return new DefaultTaskPathLocation(buildTreePath);
+            Objects.requireNonNull(buildPath, "buildPath must not be null");
+            Objects.requireNonNull(taskPath, "taskPath must not be null");
+            return new DefaultTaskPathLocation(buildPath, taskPath);
         }
     }
 
