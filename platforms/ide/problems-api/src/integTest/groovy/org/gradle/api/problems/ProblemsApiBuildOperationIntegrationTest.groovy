@@ -69,7 +69,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             }
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
-                path == ':reportProblem'
+                taskPath == ':reportProblem'
                 buildPath == ':'
             }
             failure == null
@@ -114,7 +114,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             }
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
-                path == ':reportProblem'
+                taskPath == ':reportProblem'
                 buildPath == ':'
             }
             // TODO: IMO the failure should be null...
@@ -181,34 +181,40 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             with(originLocations[0]) {
                 path == location0
                 !containsKey('line')
+                displayName == "file '${location0}'"
             }
             with(originLocations[1]) {
                 path == location1
                 line == 25
                 column == null
                 length == null
+                displayName == "file '${location1}:25'"
             }
             with(originLocations[2]) {
                 path == location2
                 line == 35
                 column == 4
                 length == null
+                displayName == "file '${location2}:35:4'"
             }
             with(originLocations[3]) {
                 path == location3
                 line == 45
                 column == 7
                 length == 10
+                displayName == "file '${location3}:45:7:10'"
             }
             with(originLocations[4]) {
                 path == location4
                 offset == 55
                 length == 20
+                displayName == "offset in file '${location4}:55:20'"
             }
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
-                path == ':reportProblem'
                 buildPath == ':'
+                taskPath == ':reportProblem'
+                displayName == "task ':reportProblem'"
             }
             with(failure) {
                 message == 'problem exception'

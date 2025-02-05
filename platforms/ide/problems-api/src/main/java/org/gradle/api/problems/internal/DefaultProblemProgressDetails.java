@@ -110,9 +110,8 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
                 // Ignore "empty" plugin id locations
                 return null;
             }
-        } else {
-            return new DevelocityProblemLocation(location);
         }
+        throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
     }
 
     @Nullable
@@ -189,19 +188,6 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
     }
 
-    private static class DevelocityProblemLocation implements ProblemLocation {
-        private final org.gradle.api.problems.ProblemLocation location;
-
-        public DevelocityProblemLocation(org.gradle.api.problems.ProblemLocation location) {
-            this.location = location;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return location.toString();
-        }
-    }
-
     private static class DevelocityFileLocation implements FileLocation {
 
         private final org.gradle.api.problems.FileLocation location;
@@ -211,13 +197,13 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         @Override
-        public String getDisplayName() {
-            return location.toString();
+        public String getPath() {
+            return location.getPath();
         }
 
         @Override
-        public String getPath() {
-            return location.getPath();
+        public String getDisplayName() {
+            return "file '" + getPath() + "'";
         }
     }
 
@@ -245,6 +231,18 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         public Integer getLength() {
             return lineInFileLocation.getLength() <= 0 ? null : lineInFileLocation.getLength();
         }
+
+        @Override
+        public String getDisplayName() {
+            String location = getPath() + ":" + getLine();
+            if (getColumn() != null) {
+                location += ":" + getColumn();
+            }
+            if (getLength() != null) {
+                location += ":" + getLength();
+            }
+            return "file '" + location + "'";
+        }
     }
 
     private static class DevelocityOffsetInFileLocation extends DevelocityFileLocation implements OffsetInFileLocation {
@@ -265,6 +263,11 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         public int getLength() {
             return offsetInFileLocation.getLength();
         }
+
+        @Override
+        public String getDisplayName() {
+            return "offset in file '" + getPath() + ":" + getOffset() + ":" + getLength() + "'";
+        }
     }
 
     private static class DevelocityTaskLocation implements org.gradle.operations.problems.TaskLocation {
@@ -281,7 +284,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         }
 
         @Override
-        public String getPath() {
+        public String getTaskPath() {
             return taskLocation.getTaskPath();
         }
 
@@ -306,7 +309,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
 
         @Override
         public String getDisplayName() {
-            return pluginId;
+            return "plugin '" + pluginId + "'";
         }
     }
 }
