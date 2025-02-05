@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -53,9 +52,14 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
         return list;
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        return Cast.uncheckedCast(elements);
+        if  (type.isAssignableFrom(List.class)) {
+            return (S) elements;
+        } else {
+            return null;
+        }
     }
 }
