@@ -153,7 +153,9 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         private static class DevelocityProblemGroup implements ProblemGroup {
             private final org.gradle.api.problems.ProblemGroup currentGroup;
 
-            public DevelocityProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {this.currentGroup = currentGroup;}
+            public DevelocityProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {
+                this.currentGroup = currentGroup;
+            }
 
             @Override
             public String getName() {
@@ -190,7 +192,9 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
     private static class DevelocityProblemLocation implements ProblemLocation {
         private final org.gradle.api.problems.ProblemLocation location;
 
-        public DevelocityProblemLocation(org.gradle.api.problems.ProblemLocation location) {this.location = location;}
+        public DevelocityProblemLocation(org.gradle.api.problems.ProblemLocation location) {
+            this.location = location;
+        }
 
         @Override
         public String getDisplayName() {
