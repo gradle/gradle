@@ -24,24 +24,11 @@ import org.gradle.util.internal.GroovyDependencyUtil
 
 @TargetCoverage({ GroovyCoverage.SINCE_4_0 })
 class DeprecatedBooleanPropertyMatchesGroovy4IntegrationTest extends MultiVersionIntegrationSpec {
-    def "warns when Groovy 4 will not support the property (boolType=#boolType,name=#name)"() {
-        boolean shouldWarn = name == "isProperty" && boolType == "Boolean"
-        String propertyDeclaration = "$boolType $name() { return Boolean.TRUE }"
-        String propertyAssertion = "assert myext.property"
+    def "Groovy 4 does not recognize Boolean isProperty() as property"() {
         buildFile << """
             plugins {
                 id 'groovy'
                 id 'application'
-            }
-
-            abstract class MyExtension {
-                $propertyDeclaration
-            }
-            def myext = extensions.create("myext", MyExtension)
-            task assertProperty {
-                doLast {
-                    $propertyAssertion
-                }
             }
 
             ${mavenCentralRepository()}
@@ -56,36 +43,17 @@ class DeprecatedBooleanPropertyMatchesGroovy4IntegrationTest extends MultiVersio
         """
 
         file("src/main/groovy/Main.groovy") << """
+            @groovy.transform.CompileStatic
             class Main {
                 static void main(String[] args) {
-                    def myext = new Main()
-                    $propertyAssertion
+                    assert new Main().property
                 }
 
-                $propertyDeclaration
+                Boolean isProperty() { return Boolean.TRUE }
             }
         """
 
         expect:
-        if (shouldWarn) {
-            executer.expectDocumentedDeprecationWarning("Declaring an 'is-' property with a Boolean type has been deprecated. Starting with Gradle 9.0, this property will be ignored by Gradle. " +
-                "The combination of method name and return type is not consistent with Java Bean property rules and will become unsupported in future versions of Groovy. " +
-                "Add a method named 'getProperty' with the same behavior and mark the old one with @Deprecated, or change the type of 'MyExtension.isProperty' (and the setter) to 'boolean'. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_boolean_properties")
-        }
-        succeeds("assertProperty")
-        if (shouldWarn) {
-            executer.withStackTraceChecksDisabled()
-            fails("run")
-        } else {
-            succeeds("run")
-        }
-
-        where:
-        boolType  | name
-        "Boolean" | "getProperty"
-        "Boolean" | "isProperty"
-        "boolean" | "getProperty"
-        "boolean" | "isProperty"
+        fails("compileGroovy")
     }
 }

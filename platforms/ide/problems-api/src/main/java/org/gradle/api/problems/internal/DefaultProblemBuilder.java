@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
+import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
@@ -135,18 +136,26 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (loc != null) {
             addFileLocationTo(locations, getFileLocation(loc));
         }
-        if (problemDiagnostics.getSource() != null && problemDiagnostics.getSource().getPluginId() != null) {
-            locations.add(getDefaultPluginIdLocation(problemDiagnostics));
+        PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(problemDiagnostics);
+        if (pluginIdLocation != null) {
+            locations.add(pluginIdLocation);
         }
     }
 
-    private static DefaultPluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
-        assert problemDiagnostics.getSource() != null;
-        return new DefaultPluginIdLocation(problemDiagnostics.getSource().getPluginId());
+    private static PluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
+        UserCodeSource source = problemDiagnostics.getSource();
+        if (source == null) {
+            return null;
+        }
+        String pluginId = source.getPluginId();
+        if (pluginId == null) {
+            return null;
+        }
+        return new DefaultPluginIdLocation(pluginId);
     }
 
     private static FileLocation getFileLocation(Location loc) {
-        String path = loc.getSourceLongDisplayName().getDisplayName();
+        String path = loc.getFilePath();
         int line = loc.getLineNumber();
         return DefaultLineInFileLocation.from(path, line);
     }

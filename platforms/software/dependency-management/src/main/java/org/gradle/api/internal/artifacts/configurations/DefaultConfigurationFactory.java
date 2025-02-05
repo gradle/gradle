@@ -113,7 +113,7 @@ public class DefaultConfigurationFactory {
     /**
      * Creates a new unlocked configuration instance.
      */
-    DefaultUnlockedConfiguration create(
+    DefaultLegacyConfiguration create(
         String name,
         ConfigurationsProvider configurationsProvider,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
@@ -122,8 +122,8 @@ public class DefaultConfigurationFactory {
     ) {
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners =
             listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
-        DefaultUnlockedConfiguration instance = instantiator.newInstance(
-            DefaultUnlockedConfiguration.class,
+        DefaultLegacyConfiguration instance = instantiator.newInstance(
+            DefaultLegacyConfiguration.class,
             domainObjectContext,
             name,
             configurationsProvider,
