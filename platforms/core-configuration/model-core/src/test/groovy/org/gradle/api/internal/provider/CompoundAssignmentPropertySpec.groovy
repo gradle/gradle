@@ -17,22 +17,12 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.internal.provider.support.LazyGroovySupport
-import org.gradle.api.internal.provider.support.SupportsCompoundAssignment
 import org.gradle.api.provider.Provider
 import org.gradle.internal.evaluation.CircularEvaluationException
 import spock.lang.Specification
 
+@TransformCompoundAssignments
 abstract class CompoundAssignmentPropertySpec<T extends LazyGroovySupport & Provider<?>> extends Specification {
-    // This test checks various stages of the rewritten compound assignment expression.
-    // In short, the compound assignment to a field: lhs += ["a"] is rewritten into:
-    //      def intermediate = wrap(lhs) + ["a"]
-    //      lhs = intermediate -> setLhs(intermediate) -> lhs.setFromAnyValue(intermediate)
-    //      unwrap(intermediate) <- this becomes the value of the expression (not the field)
-    // The compound assignment to a variable is simpler:
-    //      def intermediate = wrap(lhs) + ["a"]
-    //      lhs = intermediate
-    //      unwrap(intermediate) <- this is the value of the expression (not the variable)
-    // See SupportsCompoundAssignment javadoc for details.
     protected PropertyHost host = Mock()
 
     abstract T property()
@@ -43,42 +33,59 @@ abstract class CompoundAssignmentPropertySpec<T extends LazyGroovySupport & Prov
 
     abstract def addValue(T property, String v)
 
+    class Origin {
+        private def value = property()
+
+        def getValue() { value }
+
+        void setValue(def v) {
+            // This simulates what the AsmBackedClassGenerator does.
+            value.setFromAnyValue(v)
+        }
+    }
+
     def "compound operand can be applied to property"() {
         given:
-        def lhs = property()
+        def lhs = new Origin()
 
-        when:
-        def intermediate = SupportsCompoundAssignment.wrap(lhs) + value("a")
-        lhs.setFromAnyValue(intermediate)
-        SupportsCompoundAssignment.unwrap(intermediate)
-
-        then:
-        asValue(lhs.get()) == value("a")
+        expect:
+        (lhs.value += value("a")) == null
+        asValue(lhs.value.get()) == value("a")
     }
 
     def "compound operand can be applied to variable"() {
         given:
         def lhs = property()
 
+        expect:
+        (lhs += value("a")) == null
+        asValue(lhs.get()) == value("a")
+    }
+
+    def "updating the variable with compound operand does not change the property value"() {
+        // The in-place update magic only kicks in when LHS is a property of something.
+        // The plain assignment follows the same rule.
+        given:
+        def origin = property()
+        addValue(origin, "a")
+        def lhs = origin
+
         when:
-        def intermediate = SupportsCompoundAssignment.wrap(lhs) + value("a")
-        lhs = intermediate
-        SupportsCompoundAssignment.unwrap(intermediate)
+        lhs += value("b")
 
         then:
-        asValue(lhs.get()) == value("a")
+        asValue(lhs.get()) == value("a") + value("b")
+        asValue(origin.get()) == value("a")
     }
 
     def "variable updated with compound operand tracks lhs updates"() {
         given:
-        def origin = property()
-        def lhs = origin
-        def intermediate = SupportsCompoundAssignment.wrap(lhs) + value("a")
-        lhs = intermediate
-        SupportsCompoundAssignment.unwrap(intermediate)
+        def origin = new Origin()
+        def lhs = origin.value
 
         when:
-        addValue(origin, "b")
+        lhs += value("a")
+        addValue(origin.value, "b")
 
         then:
         // note that lhs += "a" results in lhs + ["a"], so adding "b" to lhs effectively prepends it to the result.
@@ -86,47 +93,18 @@ abstract class CompoundAssignmentPropertySpec<T extends LazyGroovySupport & Prov
     }
 
     def "special compound handling only applies inside the compound assignment expression"() {
-        // It is possible to snatch the result of the compound assignment and assign it back to the LHS property instance.
-        // For example, here origin is a field. In plain Groovy code it looks like:
-        // def lhs = owner.origin
-        // lhs += ["a"] // lhs now is the sum provider.
-        // owner.origin = lhs // there is no special handling when assigning this provider even though it originates from compound assignment involving this property.
+        // It is possible to snatch the result of the compound assignment and assign it back to the LHS property instance outside of += expression.
         given:
-        final def origin = property()
-        def lhs = origin
-        def intermediate = SupportsCompoundAssignment.wrap(lhs) + value("a")
-        lhs = intermediate
-        SupportsCompoundAssignment.unwrap(intermediate)
+        def origin = new Origin()
+        def lhs = origin.value
+        lhs += value("a")
+        origin.value = lhs
 
         when:
-        origin.setFromAnyValue(lhs)
-        origin.get()
+        origin.value.get()
 
         then:
         thrown(CircularEvaluationException)
-    }
-
-    def "compound assignment expression with variable has null value"() {
-        given:
-        def lhs = property()
-
-        when:
-        def intermediate = SupportsCompoundAssignment.wrap(lhs) + value("a")
-
-        then:
-        SupportsCompoundAssignment.unwrap(intermediate) == null
-    }
-
-    def "compound assignment expression with field has null value"() {
-        given:
-        def lhs = property()
-
-        when:
-        def intermediate = SupportsCompoundAssignment.wrap(lhs) + value("a")
-        lhs.setFromAnyValue(intermediate)
-
-        then:
-        SupportsCompoundAssignment.unwrap(intermediate) == null
     }
 
     static class CompoundAssignmentListPropertyTest extends CompoundAssignmentPropertySpec<DefaultListProperty<String>> {

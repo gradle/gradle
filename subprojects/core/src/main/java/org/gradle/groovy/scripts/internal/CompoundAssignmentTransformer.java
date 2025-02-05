@@ -17,8 +17,11 @@
 package org.gradle.groovy.scripts.internal;
 
 import com.google.common.collect.ImmutableMap;
+import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.ast.ClassCodeExpressionTransformer;
 import org.codehaus.groovy.ast.ClassHelper;
+import org.codehaus.groovy.ast.ClassNode;
+import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
@@ -50,6 +53,24 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
         source.getAST().getStatementBlock().visit(visitor);
         source.getAST().getClasses().forEach(visitor::visitClass);
         source.getAST().getMethods().forEach(visitor::visitMethod);
+    }
+
+    /**
+     * Transforms a single AST node. This is useful for unit tests that want to apply the transform.
+     *
+     * @param node the ClassNode or the MethodNode
+     * @param source the source unit in which the AST node resides
+     * @throws CompilationFailedException if the transformation cannot be applied.
+     */
+    public void call(ASTNode node, SourceUnit source) throws CompilationFailedException {
+        CompoundAssignmentExpressionRewriter visitor = new CompoundAssignmentExpressionRewriter(source);
+        if (node instanceof ClassNode) {
+            visitor.visitClass((ClassNode) node);
+        } else if (node instanceof MethodNode) {
+            visitor.visitMethod((MethodNode) node);
+        } else {
+            throw new IllegalArgumentException("Cannot apply the transformation to node " + node + " of type " + node.getClass());
+        }
     }
 
     private static class CompoundAssignmentExpressionRewriter extends ClassCodeExpressionTransformer {
