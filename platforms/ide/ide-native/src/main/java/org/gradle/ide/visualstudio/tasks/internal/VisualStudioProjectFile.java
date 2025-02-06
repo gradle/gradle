@@ -102,7 +102,7 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         configNode.appendNode("Platform", configuration.platformName);
         String configCondition = "'$(Configuration)|$(Platform)'=='" + configuration.getName() + "'";
 
-        String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)";
+        String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)\\";
         Node configGroup = getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props")
             .parent().appendNode(
                 "PropertyGroup",
