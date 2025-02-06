@@ -224,7 +224,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     @SuppressWarnings("DataFlowIssue")
     @Override
     public Object get() {
-        Preconditions.checkState(value != null, "value should never be null when get() is called");
+        Preconditions.checkState(value != null, "When calling get() value should never be null");
         return value.isolate();
     }
 

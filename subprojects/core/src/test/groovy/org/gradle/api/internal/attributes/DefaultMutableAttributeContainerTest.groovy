@@ -29,6 +29,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.util.AttributeTestUtil
+
 /**
  * Unit tests for the {@link DefaultMutableAttributeContainer} class.
  */

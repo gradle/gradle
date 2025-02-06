@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import java.util.Map;
 
 public interface AttributeContainerInternal extends AttributeContainer {
+
     /**
      * Returns an immutable copy of this attribute set. Implementations are not required to return a distinct instance for each call.
      * Changes to this set are <em>not</em> reflected in the immutable copy.
