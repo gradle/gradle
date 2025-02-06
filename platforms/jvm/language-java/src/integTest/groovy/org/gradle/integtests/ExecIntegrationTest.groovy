@@ -865,6 +865,51 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/32213")
+    def "execOperations.#method process is stopped when build is cancelled"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            tasks.register("appStart") {
+                def execOperations = services.get(ExecOperations)
+                doLast {
+                    // Using a new Thread is important to reproduce the issue to escape the task lifecycle
+                    Thread.start {
+                        execOperations.${method} {
+                            ${configuration(getHttpServerInfoFile())}
+                        }
+                    }.join()
+                }
+            }
+        """
+
+        when:
+        executer
+            .requireDaemon()
+            .requireIsolatedDaemons()
+            .withStackTraceChecksDisabled()
+            // Needed to get client pid
+            .withArgument("--debug")
+            .withTasks("appStart")
+        def client = new DaemonClientFixture(executer.start())
+
+        then:
+        long port = waitForHttpServerPort()
+        callGet("http://127.0.0.1:$port/test").statusLine.statusCode == 200
+
+        when:
+        client.kill()
+        callGet("http://127.0.0.1:$port/test")
+
+        then:
+        def e = thrown(ConnectException)
+        e.message.contains("Connection refused")
+
+        where:
+        method     | configuration
+        "exec"     | { File serverInfoFile -> execSpecWithHttpServerExecutable(serverInfoFile) }
+        "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
+    }
+
     private static def execSpec(def owner = "") {
         "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
     }
