@@ -205,6 +205,11 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Override
     public InternalProblemBuilder taskPathLocation(String buildTreePath) {
+        for (ProblemLocation cl : this.contextLocations) {
+            if (cl instanceof TaskPathLocation) {
+                return this; // TODO (donat) investigate: don't store task path location twice; JavaCompileProblemsIntegrationTest fails wo/this
+            }
+        }
         this.contextLocations.add(new DefaultTaskPathLocation(buildTreePath));
         return this;
     }

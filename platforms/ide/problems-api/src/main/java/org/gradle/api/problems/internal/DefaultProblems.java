@@ -39,6 +39,7 @@ public class DefaultProblems implements InternalProblems {
     private final ExceptionAnalyser exceptionAnalyser;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
+    private final TaskProvider taskProvider;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -47,7 +48,8 @@ public class DefaultProblems implements InternalProblems {
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        TaskProvider taskProvider
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -56,6 +58,7 @@ public class DefaultProblems implements InternalProblems {
         this.exceptionAnalyser = exceptionAnalyser;
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
+        this.taskProvider = taskProvider;
         this.internalReporter = createReporter();
     }
 
@@ -74,7 +77,8 @@ public class DefaultProblems implements InternalProblems {
             exceptionProblemRegistry,
             exceptionAnalyser,
             instantiator,
-            payloadSerializer);
+            payloadSerializer,
+            taskProvider);
     }
 
     @Override

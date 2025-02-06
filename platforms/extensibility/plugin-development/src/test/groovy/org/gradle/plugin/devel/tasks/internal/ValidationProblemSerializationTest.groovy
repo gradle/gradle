@@ -30,6 +30,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.ProblemSummarizer
+import org.gradle.api.problems.internal.TaskProvider
 import org.gradle.api.problems.internal.TypeValidationData
 import org.gradle.api.problems.internal.TypeValidationDataSpec
 import org.gradle.internal.exception.ExceptionAnalyser
@@ -43,14 +44,15 @@ class ValidationProblemSerializationTest extends Specification {
 
     Gson gson = ValidationProblemSerialization.createGsonBuilder().create()
     InternalProblemReporter problemReporter = new DefaultProblemReporter(
-        Stub(ProblemSummarizer),
-        null,
-        CurrentBuildOperationRef.instance(),
-        new AdditionalDataBuilderFactory(),
-        new ExceptionProblemRegistry(),
-        Mock(ExceptionAnalyser),
-        null,
-        Mock(PayloadSerializer)
+            Stub(ProblemSummarizer),
+            null,
+            CurrentBuildOperationRef.instance(),
+            new AdditionalDataBuilderFactory(),
+            new ExceptionProblemRegistry(),
+            Mock(ExceptionAnalyser),
+            null,
+            Mock(PayloadSerializer),
+            Mock(TaskProvider)
     )
 
     def "can serialize and deserialize a validation problem"() {

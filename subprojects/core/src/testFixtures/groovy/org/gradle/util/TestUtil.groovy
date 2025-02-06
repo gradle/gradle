@@ -52,6 +52,7 @@ import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.api.problems.internal.ProblemSummarizer
+import org.gradle.api.problems.internal.TaskProvider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.tasks.util.internal.PatternSets
@@ -406,7 +407,12 @@ class TestProblems implements InternalProblems {
             new ExceptionProblemRegistry(),
             null,
             new MockInstantiator(),
-            null
+            null,
+            new TaskProvider() {
+                String currentTaskPath(OperationIdentifier id) {
+                    return null;
+                }
+            }
         )
     }
 
