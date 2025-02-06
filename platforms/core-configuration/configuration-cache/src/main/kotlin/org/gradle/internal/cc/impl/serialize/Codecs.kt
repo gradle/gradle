@@ -233,7 +233,7 @@ class Codecs(
             bind(CapabilitySerializer())
 
             bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, objectFactory, instantiator, fileSystemOperations))
-            bind(DestinationRootCopySpecCodec(fileResolver))
+            bind(DestinationRootCopySpecCodec(fileResolver, objectFactory))
 
             bind(TaskReferenceCodec)
 

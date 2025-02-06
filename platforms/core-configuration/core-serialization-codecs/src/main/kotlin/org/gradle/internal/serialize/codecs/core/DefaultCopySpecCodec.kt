@@ -18,6 +18,7 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.Action
 import org.gradle.api.file.ConfigurableFilePermissions
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileCopyDetails
@@ -27,7 +28,9 @@ import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.Factory
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -35,10 +38,9 @@ import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
 import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readList
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
-import org.gradle.internal.Factory
 import org.gradle.internal.serialize.graph.writeEnum
-import org.gradle.internal.reflect.Instantiator
 
 
 class DefaultCopySpecCodec(
@@ -51,7 +53,7 @@ class DefaultCopySpecCodec(
 
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         encodePreservingIdentityOf(value) {
-            writeNullableString(value.destinationDir?.path)
+            write(value.destinationDir)
             write(value.sourceRootsForThisSpec)
             write(value.patterns)
             writeEnum(value.duplicatesStrategyForThisSpec)
@@ -67,7 +69,6 @@ class DefaultCopySpecCodec(
 
     override suspend fun ReadContext.decode(): DefaultCopySpec {
         return decodePreservingIdentity { id ->
-            val destPath = readNullableString()
             val sourceFiles = read() as FileCollection
             val patterns = read() as PatternSet
             val duplicatesStrategy = readEnum<DuplicatesStrategy>()
@@ -78,7 +79,9 @@ class DefaultCopySpecCodec(
             val fileMode = readNullableSmallInt()
             val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
-            val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
+            val copySpec = DefaultCopySpec(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, sourceFiles, patterns, actions, children)
+            val dir = readNonNull<DirectoryProperty>()
+            copySpec.destinationDir.set(dir)
             copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
             copySpec.isCaseSensitive = isCaseSensitive

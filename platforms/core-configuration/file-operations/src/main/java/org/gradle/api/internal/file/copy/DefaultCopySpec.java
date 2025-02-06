@@ -27,6 +27,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFilePermissions;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
@@ -40,6 +41,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -83,7 +85,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private final Property<ConfigurableFilePermissions> dirPermissions;
     private final Property<ConfigurableFilePermissions> filePermissions;
-    private Object destDir;
+    private final DirectoryProperty destinationDir;
     private boolean hasCustomActions;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
@@ -106,12 +108,12 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.patternSet = patternSet;
         this.filePermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = objectFactory.property(ConfigurableFilePermissions.class);
+        this.destinationDir = objectFactory.directoryProperty();
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
         this(fileCollectionFactory, objectFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
-        destDir = destPath;
         this.copyActions.addAll(copyActions);
         for (CopySpecInternal child : children) {
             addChildSpec(child);
@@ -245,22 +247,19 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Nullable
     public String getDestPath() {
-        return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+        return getDestinationDir().isPresent()
+            ? PATH_NOTATION_PARSER.parseNotation(getDestinationDir().getAsFile().get())
+            : null;
     }
 
     @Override
-    @Nullable
-    public File getDestinationDir() {
-        if (destDir instanceof File) {
-            return (File) destDir;
-        } else {
-            return destDir == null ? null : new File(PATH_NOTATION_PARSER.parseNotation(destDir));
-        }
+    public DirectoryProperty getDestinationDir() {
+        return destinationDir;
     }
 
     @Override
     public CopySpec into(Object destDir) {
-        this.destDir = destDir;
+        getDestinationDir().fileProvider(Providers.changing(() -> new File(PATH_NOTATION_PARSER.parseNotation(destDir))));
         return this;
     }
 

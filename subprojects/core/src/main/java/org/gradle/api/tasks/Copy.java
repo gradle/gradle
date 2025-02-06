@@ -17,12 +17,13 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import java.io.File;
@@ -73,10 +74,10 @@ public abstract class Copy extends AbstractCopyTask {
 
     @Override
     protected CopyAction createCopyAction() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir == null) {
+        if (!getDestinationDir().isPresent()) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
+        File destinationDir = getDestinationDir().getAsFile().get();
         return new FileCopyAction(getFileLookup().getFileResolver(destinationDir));
     }
 
@@ -97,17 +98,8 @@ public abstract class Copy extends AbstractCopyTask {
      * @return The destination dir.
      */
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
-    public File getDestinationDir() {
+    @ReplacesEagerProperty
+    public DirectoryProperty getDestinationDir() {
         return getRootSpec().getDestinationDir();
-    }
-
-    /**
-     * Sets the directory to copy files into. This is the same as calling {@link #into(Object)} on this task.
-     *
-     * @param destinationDir The destination directory. Must not be null.
-     */
-    public void setDestinationDir(File destinationDir) {
-        into(destinationDir);
     }
 }

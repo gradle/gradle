@@ -72,7 +72,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
     }
 
     private String buildFormattedOutputPath(RelativePath relativePath) {
-        return TextUtil.toPlatformLineSeparators(spec.getDestinationDir() == null ? relativePath.getPathString() : new File(spec.getDestinationDir(), relativePath.getPathString()).getPath());
+        return TextUtil.toPlatformLineSeparators(!spec.getDestinationDir().isPresent() ? relativePath.getPathString() : new File(spec.getDestinationDir().getAsFile().get(), relativePath.getPathString()).getPath());
     }
 
     private void failWithIncorrectDuplicatesStrategySetup(RelativePath relativePath) {
