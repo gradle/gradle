@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,21 @@
 
 package org.gradle.api.problems.internal;
 
-import java.io.Serializable;
-
-/**
- * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
- */
-public class DefaultTaskPathLocation implements TaskPathLocation, Serializable {
+public class TaskIdentity {
 
     private final String buildTreePath;
+    private final String taskPath;
 
-    public DefaultTaskPathLocation(String buildTreePath) {
+    public TaskIdentity(String buildTreePath, String taskPath) {
         this.buildTreePath = buildTreePath;
+        this.taskPath = taskPath;
     }
 
-    @Override
     public String getBuildTreePath() {
         return buildTreePath;
     }
 
+    public String getTaskPath() {
+        return taskPath;
+    }
 }
