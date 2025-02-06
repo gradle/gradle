@@ -80,9 +80,6 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         InternalProblems problemsService = validationContext.getProblemsService();
         InternalProblemReporter reporter = problemsService.getInternalReporter();
         List<InternalProblem> problems = validationContext.getProblems();
-        for (InternalProblem problem : problems) {
-            reporter.report(problem);
-        }
 
         Map<Severity, ImmutableList<InternalProblem>> problemsMap = problems.stream()
             .collect(
@@ -92,6 +89,9 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         List<InternalProblem> errors = problemsMap.getOrDefault(ERROR, ImmutableList.of());
 
         if (!warnings.isEmpty()) {
+            for (InternalProblem warning : warnings) {
+                reporter.report(warning);
+            }
             warningReporter.recordValidationWarnings(work, warnings);
         }
 
@@ -169,9 +169,11 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
         Set<String> uniqueErrors = validationErrors.stream()
             .map(TypeValidationProblemRenderer::renderMinimalInformationAbout)
             .collect(toImmutableSet());
-        throw WorkValidationException.forProblems(uniqueErrors)
+        WorkValidationException workValidationException = WorkValidationException.forProblems(uniqueErrors)
             .withSummaryForContext(work.getDisplayName(), validationContext)
             .get();
+        InternalProblemReporter reporter = validationContext.getProblemsService().getInternalReporter();
+        throw reporter.throwing(workValidationException, validationErrors);
     }
 
     @ServiceScope(Scope.Global.class)

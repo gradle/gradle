@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -36,7 +37,8 @@ public class ProblemsTaskPathTrackingTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         try {
-            ProblemTaskPathTracker.setTaskIdentityPath(task.getIdentityPath().getPath());
+            TaskIdentity<?> taskIdentity = task.getTaskIdentity();
+            ProblemTaskPathTracker.setTaskIdentity(taskIdentity.getBuildPath(), taskIdentity.getTaskPath());
             return taskExecuter.execute(task, state, context);
         } finally {
             ProblemTaskPathTracker.clear();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,33 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
-
-import org.gradle.api.Incubating;
+package org.gradle.operations.problems;
 
 /**
  * A basic location pointing to a specific part of a file using a global offset and length for coordinates.
  * <p>
  * The coordinates are expected to be zero indexed.
  *
- * @since 8.13
+ * @since 8.14
  */
-@Incubating
 public interface OffsetInFileLocation extends FileLocation {
 
     /**
      * The global offset from the beginning of the file.
      *
      * @return the zero-indexed the offset
-     * @since 8.13
+     * @since 8.14
      */
     int getOffset();
 
     /**
      * The length of the content starting from {@link #getOffset()}.
      *
-     * @return the length
-     * @since 8.13
+     * @since 8.14
      */
     int getLength();
+
 }

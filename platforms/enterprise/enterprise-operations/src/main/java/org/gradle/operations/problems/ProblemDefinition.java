@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems;
-
-import org.gradle.api.Incubating;
+package org.gradle.operations.problems;
 
 import javax.annotation.Nullable;
 
 /**
- * Describes a specific problem without context.
+ * Describes a specific problem without a concrete usage.
  * <p>
  * For example, in the domain of Java compilation problems, an unused variable warning could be described as such:
  * <ul>
@@ -31,35 +29,44 @@ import javax.annotation.Nullable;
  *     <li>...</li>
  * </ul>
  * <p>
- * The category and the label uniquely identify the problem definition, the remaining fields only supply additional information.
+ * The group and the name uniquely identify the problem definition, the remaining fields only supply additional information.
  *
- * @since 8.13
+ * @since 8.14
  */
-@Incubating
 public interface ProblemDefinition {
 
     /**
-     * The problem id.
+     * The name of the problem.
+     * <p>
+     * The name should be used to categorize a set of problems.
+     * The name itself does not need to be unique, the uniqueness is determined the name and the group hierarchy.
      *
-     * @since 8.13
+     * @since 8.14
      */
-    ProblemId getId();
+    String getName();
 
     /**
-     * Problem severity.
+     * A human-readable label describing the problem ID.
      * <p>
-     * The severity of a problem is a hint to the user about how important the problem is.
-     * ERROR will fail the build, WARNING will not.
+     * The display name should be used to present the problem to the user.
      *
-     * @since 8.13
+     * @since 8.14
      */
-    Severity getSeverity();
+    String getDisplayName();
+
+    /**
+     * The group of the problem.
+     *
+     * @since 8.14
+     */
+    ProblemGroup getGroup();
 
     /**
      * A link to the documentation for this problem.
      *
-     * @since 8.13
+     * @since 8.14
      */
     @Nullable
-    DocLink getDocumentationLink();
+    DocumentationLink getDocumentationLink();
+
 }
