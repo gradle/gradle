@@ -253,6 +253,9 @@ public interface JvmInstallationMetadata {
             if (getToolByExecutable("javadoc").exists()) {
                 capabilities.add(JavaInstallationCapability.JAVADOC_TOOL);
             }
+            if (getToolByExecutable("jar").exists()) {
+                capabilities.add(JavaInstallationCapability.JAR_TOOL);
+            }
             boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
