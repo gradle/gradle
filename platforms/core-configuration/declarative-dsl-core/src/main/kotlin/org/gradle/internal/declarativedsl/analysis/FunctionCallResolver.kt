@@ -63,7 +63,16 @@ class FunctionCallResolverImpl(
         functionCall: FunctionCall,
         expectedType: ExpectedTypeData
     ): TypedOrigin? = with(context) {
-        val singleMatchingFunction = lookupSingleFunctionByName(functionCall)
+        // Avoid resolving the receiver more than once by resolving it here lazily.
+        // This prevents unwanted duplicate resolution side effects, e.g., in `id("com.example").version("1.0")`, resolving `id(...)` twice would otherwise record multiple objects produced by `id`.
+        val lazyReceiverResolution = lazy {
+            functionCall.receiver?.let { receiver ->
+                expressionResolver.doResolveExpression(context, receiver, NoExpectedType)
+            }
+        }
+
+        // First, try to resolve a single function. If there is just one, we can use its signature for expected types and generic type substitution.
+        val singleMatchingFunction = lookupSingleFunctionByName(lazyReceiverResolution, functionCall)
 
         val typeSubstitution = singleMatchingFunction?.let {
             // Type substitution in DCL is simplistic: it is only computed based on the expected type and does not infer types from arguments
@@ -72,7 +81,7 @@ class FunctionCallResolverImpl(
 
         val expectedArgTypesNoSubstitution = expectedArgTypesForFunction(singleMatchingFunction).mapValues { (_, type) -> applyTypeSubstitution(resolveRef(type), typeSubstitution) }
 
-        val argResolutions = lazy {
+        val lazyArgResolutions = lazy {
             var hasErrors = false
             val result = buildMap<FunctionArgument.SingleValueArgument, TypedOrigin> {
                 functionCall.args.filterIsInstance<FunctionArgument.SingleValueArgument>().forEach { arg ->
@@ -100,9 +109,9 @@ class FunctionCallResolverImpl(
             return null
         }
 
-        val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(functionCall, ArgumentData.BoundArguments(argResolutions), typeSubstitution)
+        val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(lazyReceiverResolution, functionCall, ArgumentData.BoundArguments(lazyArgResolutions), typeSubstitution)
 
-        val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, argResolutions, typeSubstitution)?.also {
+        val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, lazyArgResolutions, typeSubstitution)?.also {
             val function = it.function
             val receiver = it.receiver
             if (function is DataMemberFunction && function.isDirectAccessOnly && receiver != null) {
@@ -155,12 +164,13 @@ class FunctionCallResolverImpl(
      * If there is a single matching overload, then its parameter types contribute to the expected argument types.
      * If there is more than one overload, the process stops, as the overload resolution needs argument types anyway.
      */
-    private fun AnalysisContext.lookupSingleFunctionByName(functionCall: FunctionCall): FunctionResolutionAndBinding? =
-        lookupFunctions(functionCall, ArgumentData.NoResolvedArguments, emptyMap()).singleOrNull()
+    private fun AnalysisContext.lookupSingleFunctionByName(receiver: Lazy<TypedOrigin?>, functionCall: FunctionCall): FunctionResolutionAndBinding? =
+        lookupFunctions(receiver, functionCall, ArgumentData.NoResolvedArguments, emptyMap()).singleOrNull()
 
     // TODO: check the resolution order with the Kotlin spec
     private
     fun AnalysisContext.lookupFunctions(
+        receiverResolution: Lazy<TypedOrigin?>,
         functionCall: FunctionCall,
         argResolutions: ArgumentData,
         typeSubstitution: Map<TypeVariableUsage, DataType>
@@ -169,7 +179,7 @@ class FunctionCallResolverImpl(
         val overloads: List<FunctionResolutionAndBinding> = buildList {
             when (functionCall.receiver) {
                 is Expr -> {
-                    val receiver = expressionResolver.doResolveExpression(this@lookupFunctions, functionCall.receiver, NoExpectedType)
+                    val receiver = receiverResolution.value
                     if (receiver != null) {
                         addAll(findMemberFunction(receiver.objectOrigin, functionCall, argResolutions, typeSubstitution))
                     } else {
