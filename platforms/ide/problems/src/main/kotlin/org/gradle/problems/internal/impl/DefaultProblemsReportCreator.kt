@@ -116,7 +116,7 @@ class JsonProblemWriter(private val problem: InternalProblem, private val failur
                         jsonObjectList(fileLocations) { location ->
                             when (location) {
                                 is FileLocation -> fileLocation(location)
-                                is PluginIdLocation -> property("pluginId", location.pluginId!!)
+                                is PluginIdLocation -> property("pluginId", location.pluginId)
                                 is TaskPathLocation -> property("taskPath", location.buildTreePath)
                             }
                         }

@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
+package org.gradle.api.artifacts;
 
-
-import org.gradle.api.problems.ProblemLocation;
+import org.gradle.api.Incubating;
 
 /**
- * Plugin ID location.
+ * A {@link Configuration} with a mutable role, that can potentially perform
+ * behavior of a {@link ConsumableConfiguration}, a {@link ResolvableConfiguration},
+ * or a {@link DependencyScopeConfiguration}.
+ *
+ * @since 8.14
  */
-public interface PluginIdLocation extends ProblemLocation {
-
-    /**
-     * The plugin ID.
-     *
-     * @return the plugin ID
-     */
-    String getPluginId();
+@Incubating
+public interface LegacyConfiguration extends Configuration {
 }

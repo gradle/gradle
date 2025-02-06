@@ -51,7 +51,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
             with(oneLocation(TaskPathLocation)) {
                 buildTreePath == ':reportProblem'
@@ -95,7 +95,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     length == -1
                     column == -1
                     line == 10
-                    path == "build file '$buildFile.absolutePath'"
+                    path == buildFile.absolutePath
                 }
             }
         }
@@ -122,7 +122,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
 
@@ -168,7 +168,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
     }
@@ -198,7 +198,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
     }
@@ -317,7 +317,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == -1
                 column == -1
                 line == 13
-                path == "build file '$buildFile.absolutePath'"
+                path == buildFile.absolutePath
             }
         }
     }

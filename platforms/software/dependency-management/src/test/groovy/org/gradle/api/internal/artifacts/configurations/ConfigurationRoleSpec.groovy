@@ -25,7 +25,7 @@ class ConfigurationRoleSpec extends Specification {
 
         where:
         role                                            || usages
-        ConfigurationRoles.LEGACY                       || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
+        ConfigurationRoles.ALL                          || [UsageDescriber.CONSUMABLE, UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]
         ConfigurationRoles.CONSUMABLE                   || [UsageDescriber.CONSUMABLE]
         ConfigurationRoles.RESOLVABLE                   || [UsageDescriber.RESOLVABLE]
         ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || [UsageDescriber.RESOLVABLE, UsageDescriber.DECLARABLE_AGAINST]

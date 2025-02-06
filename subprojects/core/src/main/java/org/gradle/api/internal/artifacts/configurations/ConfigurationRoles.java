@@ -42,7 +42,7 @@ public final class ConfigurationRoles {
      * the default role for configurations created when another more specific role is <strong>not</strong> specified.
      */
     @Deprecated
-    public static final ConfigurationRole LEGACY = createNonDeprecatedRole("Legacy", true, true, true);
+    public static final ConfigurationRole ALL = createNonDeprecatedRole("Legacy", true, true, true);
 
     /**
      * Meant to be used only for consumption by other projects.
@@ -84,8 +84,8 @@ public final class ConfigurationRoles {
         return new DefaultConfigurationRole(name, consumable, resolvable, declarable, false, false, false);
     }
 
-    private static final Set<ConfigurationRole> ALL = ImmutableSet.of(
-        LEGACY, CONSUMABLE, RESOLVABLE, RESOLVABLE_DEPENDENCY_SCOPE, CONSUMABLE_DEPENDENCY_SCOPE, DEPENDENCY_SCOPE
+    private static final Set<ConfigurationRole> ALL_ROLES = ImmutableSet.of(
+        ALL, CONSUMABLE, RESOLVABLE, RESOLVABLE_DEPENDENCY_SCOPE, CONSUMABLE_DEPENDENCY_SCOPE, DEPENDENCY_SCOPE
     );
 
     /**
@@ -98,7 +98,7 @@ public final class ConfigurationRoles {
      * @return the role enum token with matching usage characteristics, if one exists; otherwise {@link Optional#empty()}
      */
     public static Optional<ConfigurationRole> byUsage(boolean consumable, boolean resolvable, boolean declarable) {
-        for (ConfigurationRole role : ALL) {
+        for (ConfigurationRole role : ALL_ROLES) {
             if (role.isConsumable() == consumable && role.isResolvable() == resolvable && role.isDeclarable() == declarable) {
                 return Optional.of(role);
             }
