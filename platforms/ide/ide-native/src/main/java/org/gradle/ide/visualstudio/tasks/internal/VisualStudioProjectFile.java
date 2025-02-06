@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio.tasks.internal;
 
 import groovy.util.Node;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -38,7 +37,6 @@ import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 
-@NonNullApi
 public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     private final Transformer<String, File> fileLocationResolver;
     private String gradleCommand = "gradle";
@@ -168,7 +166,6 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         return fileLocationResolver.transform(file);
     }
 
-    @NonNullApi
     public static class ConfigurationSpec {
         @Input
         public final String name;

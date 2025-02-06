@@ -17,7 +17,6 @@
 package org.gradle.ide.visualstudio.tasks.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 
 import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID;
 
-@NonNullApi
 public class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
 
     private final List<Action<? super TextProvider>> actions = new ArrayList<>();
