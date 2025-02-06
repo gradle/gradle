@@ -187,16 +187,19 @@ public abstract class VisualStudioPlugin extends IdePlugin {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private Task createSolutionTask(VisualStudioSolution solution) {
         return project.getTasks().create(solution.getName() + "VisualStudioSolution", GenerateSolutionFileTask.class, solution);
     }
 
+    @SuppressWarnings("deprecation")
     private Task createProjectsFileTask(VisualStudioProject vsProject) {
         GenerateProjectFileTask task = project.getTasks().create(vsProject.getName() + "VisualStudioProject", GenerateProjectFileTask.class, vsProject);
         task.initGradleCommand();
         return task;
     }
 
+    @SuppressWarnings("deprecation")
     private Task createFiltersFileTask(VisualStudioProject vsProject) {
         return project.getTasks().create(vsProject.getName() + "VisualStudioFilters", GenerateFiltersFileTask.class, vsProject);
     }
