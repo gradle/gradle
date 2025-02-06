@@ -204,18 +204,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                             .additionalData(SomeData.class, d -> d.getName().set("someData"))
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );
-
-//                    // Write the current build operation id to a file
-//                    // This needs to be Java 6 compatible, as we are in a worker
-//                    // Backslashes need to be escaped, so test works on Windows
-//                    File buildOperationIdFile = new File("");
-//                    try {
-//                        FileWriter writer = new FileWriter(buildOperationIdFile);
-//                        writer.write(CurrentBuildOperationRef.instance().get().getId().toString());
-//                        writer.close();
-//                    } catch (Exception e) {
-//                        throw new RuntimeException(e);
-//                    }
                 }
             }
         """
