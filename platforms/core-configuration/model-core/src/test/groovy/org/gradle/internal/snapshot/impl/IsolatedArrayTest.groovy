@@ -31,15 +31,41 @@ final class IsolatedArrayTest extends Specification {
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
     def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
 
-    def "can coerce back to array"() {
+    def "can coerce array back to same type of array with #arrayType"() {
         given:
-        def array = ["a", "b", "c"] as String[]
+        //noinspection GroovyAssignabilityCheck
         def isolated = isolatableFactory.isolate(array)
 
         when:
-        def result = isolated.coerce(String[].class)
+        def result = isolated.coerce(arrayType)
 
         then:
         result == array
+
+        where:
+        arrayType   | array
+        String[]    | ["a", "b", "c"] as String[]
+        Integer[]   | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[] // Note that Integer is necessary here, as primitive ints isolate to a different type
+    }
+
+    def "can't coerce array to invalid type #arrayType -> #invalidType"() {
+        given:
+        //noinspection GroovyAssignabilityCheck
+        def isolated = isolatableFactory.isolate(array)
+
+        when:
+        def result = isolated.coerce(invalidType)
+
+        then:
+        result == null
+
+        where:
+        arrayType   | invalidType   | array
+        String[]    | String        | ["a", "b", "c"] as String[]
+        String[]    | Integer       | ["a", "b", "c"] as String[]
+        String[]    | Integer[]     | ["a", "b", "c"] as String[]
+        String[]    | ArrayList     | ["a", "b", "c"] as String[]
+        Integer[]   | List          | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[]
+        Integer[]   | String[]      | [Integer.valueOf(1), Integer.valueOf(2), Integer.valueOf(3)] as Integer[]
     }
 }
