@@ -78,7 +78,7 @@ public class DefaultExecActionFactory implements ExecFactory {
         this.instantiator = instantiator;
         this.externalProcessStartedListener = externalProcessStartedListener;
         // Create execHandleFactory bound to this instance that uses fileResolver, executor and buildCancellationToken passed to this factory,
-        // this is important so that process working directory is resolved correctly and processes are stopped in the same scope
+        // this is important so that process directories are resolved correctly and process is stopped in the same scope
         this.execHandleFactory = DefaultClientExecHandleBuilderFactory.of(fileResolver, executor, buildCancellationToken);
     }
 
