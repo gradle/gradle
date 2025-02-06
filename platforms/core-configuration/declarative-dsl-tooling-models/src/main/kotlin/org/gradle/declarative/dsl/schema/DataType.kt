@@ -42,7 +42,9 @@ sealed interface DataType : Serializable {
         LongDataType::class,
         StringDataType::class,
         BooleanDataType::class,
-        TypeVariableUsage::class
+        TypeVariableUsage::class,
+        UnitType::class,
+        NullType::class
     ])
     sealed interface PrimitiveType : DataType
 
