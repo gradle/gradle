@@ -76,7 +76,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         return this;
     }
 
-    private <T> void doInsertion(@Nullable Attribute<T> key, T value) {
+    private <T> void doInsertion(Attribute<T> key, T value) {
         assertAttributeValueIsNotNull(value);
         assertAttributeTypeIsValid(value.getClass(), key);
         immutableValue = null;
@@ -84,7 +84,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         removeLazyAttributeIfPresent(key);
     }
 
-    private <T> void removeLazyAttributeIfPresent(@Nullable Attribute<T> key) {
+    private <T> void removeLazyAttributeIfPresent(Attribute<T> key) {
         lazyAttributes.remove(key);
     }
 
@@ -125,8 +125,8 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
      * @param valueType the value type to check
      * @param attribute the attribute containing a type to check against
      */
-    private <T> void assertAttributeTypeIsValid(Class<?> valueType, @Nullable Attribute<T> attribute) {
-        if (attribute != null && !attribute.getType().isAssignableFrom(valueType)) {
+    private <T> void assertAttributeTypeIsValid(Class<?> valueType, Attribute<T> attribute) {
+        if (!attribute.getType().isAssignableFrom(valueType)) {
             throw new IllegalArgumentException(String.format("Unexpected type for attribute '%s' provided. Expected a value of type %s but found a value of type %s.", attribute.getName(), attribute.getType().getName(), valueType.getName()));
         }
     }
@@ -208,7 +208,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
         attributes.remove(key);
     }
 
-    private <T> T realizeLazyAttribute(@Nullable Attribute<T> key) {
+    private <T> T realizeLazyAttribute(Attribute<T> key) {
         @SuppressWarnings("unchecked") final T value = (T) lazyAttributes.get(key).get();
         doInsertion(key, value);
         return value;
