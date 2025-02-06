@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,17 @@
 
 package org.gradle.api.problems.internal;
 
-import java.io.Serializable;
+import org.gradle.internal.operations.OperationIdentifier;
 
 /**
- * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
+ * Abstraction to query currently running tasks.
  */
-public class DefaultTaskPathLocation implements TaskPathLocation, Serializable {
-
-    private final String buildTreePath;
-
-    public DefaultTaskPathLocation(String buildTreePath) {
-        this.buildTreePath = buildTreePath;
-    }
-
-    @Override
-    public String getBuildTreePath() {
-        return buildTreePath;
-    }
-
+public interface TaskProvider {
+    /**
+     * Retrieves the identity path for the currently running task.
+     *
+     * @param id the current operation id
+     * @return the task identity path or {@code null}, if the operation is not running in the context  of a task
+     */
+    String currentTaskPath(OperationIdentifier id);
 }

@@ -40,6 +40,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     private final ExceptionAnalyser exceptionAnalyser;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
+    private final TaskProvider taskProvider;
 
     public DefaultProblemReporter(
         ProblemSummarizer problemSummarizer,
@@ -49,7 +50,8 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        TaskProvider taskProvider
     ) {
         this.problemSummarizer = problemSummarizer;
         this.problemStream = problemStream;
@@ -59,6 +61,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         this.exceptionAnalyser = exceptionAnalyser;
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
+        this.taskProvider = taskProvider;
     }
 
     @Override
@@ -162,6 +165,9 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     @Override
     public void report(Problem problem, OperationIdentifier id) {
         String taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
+        if (taskPath == null) {
+            taskPath =  taskProvider.currentTaskPath(id);
+        }
         InternalProblem internalProblem = taskPath == null ? (InternalProblem) problem : getBuilder(problem).taskPathLocation(taskPath).build();
         Throwable exception = internalProblem.getException();
         if (exception != null) {
