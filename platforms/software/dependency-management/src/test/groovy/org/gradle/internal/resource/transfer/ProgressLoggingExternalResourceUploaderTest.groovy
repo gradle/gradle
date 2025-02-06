@@ -46,8 +46,8 @@ class ProgressLoggingExternalResourceUploaderTest extends Specification {
         1 * resource.contentLength >> 1072
         1 * delegate.upload(_, location) >> { resource, destination ->
             def stream = resource.open();
-            assert stream.read(new byte[1024]) == 1024
-            assert stream.read(new byte[1024]) == 48
+            assert stream.readFile(new byte[1024]) == 1024
+            assert stream.readFile(new byte[1024]) == 48
         }
         1 * inputStream.read(_, 0, 1024) >> 1024
         1 * inputStream.read(_, 0, 1024) >> 48

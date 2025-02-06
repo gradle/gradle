@@ -339,6 +339,14 @@ class ConfigurationCacheFingerprintCheckerTest {
             values.add(value)
         }
 
+        override fun writeFile(file: File) {
+            values.add(file)
+        }
+
+        override suspend fun writeFileSystemTree() {
+            undefined()
+        }
+
         override val tracer: Tracer?
             get() = null
 
@@ -446,6 +454,12 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun readSmallInt(): Int = next()
 
         override suspend fun read(): Any? = next()
+
+        override fun readFile(): File = next()
+
+        override suspend fun readFileSystemTree() {
+            undefined()
+        }
 
         override suspend fun <T : Any> readSharedObject(decode: suspend ReadContext.() -> T): T = next()
 

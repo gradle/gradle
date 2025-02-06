@@ -92,7 +92,7 @@ class DefaultClassEncoder(
     }
 
     private
-    fun Encoder.writeClassLoaderScopeOf(classLoader: ClassLoader?): Boolean {
+    fun WriteContext.writeClassLoaderScopeOf(classLoader: ClassLoader?): Boolean {
         val scope = classLoader?.let { scopeLookup.scopeFor(it) }
         if (scope == null) {
             writeBoolean(false)
@@ -106,7 +106,7 @@ class DefaultClassEncoder(
     }
 
     private
-    fun Encoder.writeScope(scope: ClassLoaderScopeSpec) {
+    fun WriteContext.writeScope(scope: ClassLoaderScopeSpec) {
         val id = scopes.getId(scope)
         if (id != null) {
             writeSmallInt(id)
