@@ -56,6 +56,9 @@ public interface AttributeValue<T> {
 
     /**
      * Returns the value of this attribute.
+     * <p>
+     * This should <strong>NOT</strong> be called on {@link AttributeValue#MISSING}.
+     *
      * @return the value of this attribute. Throws an error if called on a missing or unknown attribute value.
      */
     T get();
@@ -63,7 +66,10 @@ public interface AttributeValue<T> {
     /**
      * Coerces this value to the type of the other attribute, so it can be compared
      * to a value of that other attribute.
+     * <p>
+     * This should <strong>NOT</strong> be called on {@link AttributeValue#MISSING}.
      *
+     * @param otherAttribute the other attribute to attempt to coerce the this attribute to
      * @throws IllegalArgumentException if this attribute is not compatible with the other one
      */
     <S> S coerce(Attribute<S> otherAttribute);

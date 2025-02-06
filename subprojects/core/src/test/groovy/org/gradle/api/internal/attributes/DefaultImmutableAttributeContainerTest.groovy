@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes
 
+import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.util.AttributeTestUtil
 
@@ -31,5 +32,18 @@ final class DefaultImmutableAttributeContainerTest extends AbstractAttributeCont
             container = AttributeTestUtil.attributesFactory().concat(container, key, value)
         }
         return container
+    }
+
+    // This lenient coercing behavior is only available in the immutable container.  The mutable containers shouldn't ever need it
+    def "if there is a string in the container, and you ask for it as a Named, you get back the same value do to coercion"() {
+        given:
+        def container = getContainer([(Attribute.of("test", String)): "value"])
+
+        when:
+        //noinspection GroovyAssignabilityCheck
+        def result = (String) container.getAttribute(Attribute.of("test", Named))
+
+        then:
+        result == "value"
     }
 }

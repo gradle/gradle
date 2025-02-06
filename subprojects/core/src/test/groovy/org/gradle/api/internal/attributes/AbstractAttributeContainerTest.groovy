@@ -28,6 +28,7 @@ import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
+
 /**
  * Abstract base class for testing functionality common to all {@link AbstractAttributeContainer} implementations.
  */

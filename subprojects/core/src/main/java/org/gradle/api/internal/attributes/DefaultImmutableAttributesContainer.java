@@ -34,6 +34,11 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Note: The fact that this type is both a <em>container</em> and a <em>value stored in a container</em> is strange.  This is
+ * probably something that ought to be addressed, this shouldn't implement {@link AttributeValue}, but it does it in order to
+ * build "linked lists" of immutable containers through concatenation to save memory.
+ */
 public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<Object> {
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
@@ -139,32 +144,44 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
             return null;
         }
 
-        /*
-        * We want to check here for one specific case - when a request for a key with type X1
-        * is being made in a container holding an attribute with type X2, where X1 and X2 are
-        * actually THE SAME CLASS loaded by 2 different classloaders.  In this case we want to both
-        * 1) find a match and return the value and 2) coerce this returned attribute value to the requested X1 type.
-        *
-        * This avoids the confusing situation where a build author can request an attribute
-        * from a resolved variant of an external dep and have a typed attribute request succeed (because the external attribute is
-        * desugared internally); but then if the build author replaces the external dep with an included build
-        * generating the same exact variants, the same typed attribute request fails, since the desugaring
-        * now doesn't happen and the attribute is typed with the non-identical class with the same name loaded
-        * from a different classloader.  This is seriously confusing and unintuitive to a build
-        * author.  When we detect this case, we want to coerce the value of X2 to X1 here, instead of returning
-        * null.
-        *
-        * We want to avoid doing this coercion when the requested type is Object because if this
-        * if an attribute is contained here using a more-specific type, we don't want to try to
-        * coerce the value to Object - this is unnecessary and breaks
-        * DefaultAttributesFactoryTest#"can detect incompatible attributes with different types when merging"().
-        */
         T value = isolatable.isolate();
-        if (value != null && value.getClass() != key.getType() && key.getType() != Object.class) {
+        if (isClassWithSameNameButDifferentType(value, key)) {
             return isolatable.coerce(key.getType());
         } else {
             return value;
         }
+    }
+
+    /**
+     * Determines if we have a potential case of confusion caused by different classloaders
+     * loading the same type.
+     * <p>
+     * We check here for one specific case - when a request for a key with type X1
+     * is being made in a container holding an attribute with type X2, where X1 and X2 are
+     * actually THE SAME CLASS loaded by 2 different classloaders.  In this case we want to both
+     * 1) find a match and return the value and 2) coerce this returned attribute value, typed as X2,
+     * to the requested X1 type.
+     * <p>
+     * This avoids the confusing situation where a build author can request an attribute
+     * from a resolved variant of an external dep and have a typed attribute request succeed (because the external attribute is
+     * desugared internally); but then if the build author replaces the external dep with an included build
+     * generating the same exact variants, the same typed attribute request fails, since the desugaring
+     * now doesn't happen and the attribute is typed with the non-identical class with the same name loaded
+     * from a different classloader.  This is seriously confusing and unintuitive to a build
+     * author.  When we detect this case, we want to coerce the value of X2 to X1 here, instead of returning
+     * {@code null}.
+     * <p>
+     * We want to avoid doing this coercion when the requested type is {@code Object} because if
+     * an attribute is contained here using a more-specific type, we don't want to try to
+     * coerce the value to {@code Object} - this is unnecessary and breaks
+     * {@code DefaultAttributesFactoryTest#"can detect incompatible attributes with different types when merging"()}.
+     *
+     * @param value the value stored in this container for a key with the same name as the given key
+     * @param key the given key
+     * @return {@code true} if so; {@code false} otherwise
+     */
+    private boolean isClassWithSameNameButDifferentType(@Nullable Object value, Attribute<?> key) {
+        return value != null && value.getClass() != key.getType() && value.getClass().getName().equals(key.getType().getName()) && key.getType() != Object.class;
     }
 
     /**
@@ -235,6 +252,7 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
 
     @Override
     public <S> S coerce(Attribute<S> otherAttribute) {
+        Preconditions.checkState(value != null, "When coercing, value should never be null");
         S s = Cast.uncheckedCast(coercionCache.get(otherAttribute));
         if (s == null) {
             s = uncachedCoerce(otherAttribute);
