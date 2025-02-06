@@ -29,49 +29,83 @@ plugins {
 
 description = "Generates a public API jar and corresponding component to publish it"
 
-// Defines configurations used to resolve external dependencies
-// that the public API depends on.
-// TODO: We should be able to derive these dependencies automatically.
-//       In fact, our public API should have no external dependencies.
+// External API configurations remain unchanged
 val externalApi = configurations.dependencyScope("externalApi") {
     description = "External dependencies that the public Gradle API depends on"
 }
+
 val externalRuntimeOnly = configurations.dependencyScope("externalRuntimeOnly") {
     dependencies.add(project.dependencies.create(project.dependencies.platform(project(":distributions-dependencies"))))
 }
+
 val externalRuntimeClasspath = configurations.resolvable("externalRuntimeClasspath") {
     extendsFrom(externalApi.get())
     extendsFrom(externalRuntimeOnly.get())
     configureAsRuntimeJarClasspath(objects)
 }
 
-// Defines configurations used to resolve the public Gradle API.
+// Distribution configurations
 val distribution = configurations.dependencyScope("distribution") {
     description = "Dependencies to extract the public Gradle API from"
 }
+
 val distributionClasspath = configurations.resolvable("distributionClasspath") {
     extendsFrom(distribution.get())
     attributes {
-        attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
+        attribute(ImplementationCompletenessAttribute.attribute, ImplementationCompletenessAttribute.STUBS)
     }
 }
+
+// Enhanced filtering for API classes
+val publicApiPatterns = setOf(
+    // Core API packages
+    "org/gradle/api/**",
+    "org/gradle/external/javadoc/**",
+    "org/gradle/process/**",
+    // Include package-info files but handle duplicates
+    "**/package-info.class",
+    // Exclude internal implementations
+    "!org/gradle/api/internal/**",
+    "!org/gradle/internal/**"
+)
 
 val task = tasks.register<Jar>("jarGradleApi") {
     from(distributionClasspath.map { configuration ->
         configuration.incoming.artifactView {
-            componentFilter { componentId -> componentId is ProjectComponentIdentifier }
+            componentFilter { componentId -> 
+                componentId is ProjectComponentIdentifier 
+            }
         }.files
     }) {
-        // TODO Use better filtering
-        include("**/*.class")
+        include(publicApiPatterns)
+        
+        // Handle package-info duplicates by keeping only the first occurrence
+        eachFile {
+            if (name == "package-info.class") {
+                duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            }
+        }
+        
+        // Exclude any test classes that might have slipped through
+        exclude("**/*Test.class", "**/*Spec.class")
+        
+        // Preserve directory structure
+        includeEmptyDirs = false
     }
+    
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
-    // This is needed because of the duplicate package-info.class files
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    // Add manifest entries for API identification
+    manifest {
+        attributes(
+            "Implementation-Title" to "Gradle API",
+            "Implementation-Version" to project.version,
+            "Automatic-Module-Name" to "org.gradle.api"
+        )
+    }
 }
 
-// The consumable configuration containing the public Gradle API artifact
-// and its external dependencies.
+// Configuration and component setup remains unchanged
 val gradleApiElements = configurations.consumable("gradleApiElements") {
     extendsFrom(externalApi.get())
     outgoing.artifact(task)
@@ -83,7 +117,6 @@ val softwareComponentFactory = project.objects.newInstance(SoftwareComponentFact
 val gradleApiComponent = softwareComponentFactory.adhoc("gradleApi")
 components.add(gradleApiComponent)
 
-// Published component containing the public Gradle API
 gradleApiComponent.addVariantsFromConfiguration(gradleApiElements.get()) {
     mapToMavenScope("compile")
 }
