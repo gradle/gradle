@@ -58,8 +58,44 @@ class StringPrefixedTree {
         return indexes
     }
 
-    // no compression yet
-    fun compress(): Node = root
+    fun compress(): Node = compressFrom(root)
+
+    private fun compressFrom(node: Node): Node {
+        if (node.isFinal) {
+            return node.copy(children = node.children.compress())
+        }
+
+        val segmentsToCompress = mutableListOf<String>()
+        var current = node
+
+        while (current.children.size == 1 && current.children[0].isIntermediate) {
+            segmentsToCompress.add(current.segment)
+            current = current.children[0]
+        }
+
+        if (current.isIntermediate) {
+            segmentsToCompress.add(current.segment)
+        }
+
+        return when (current.children.size) {
+            0 -> Node(current.index, segmentsToCompress.compress(), mutableListOf())
+            // final child
+            1 -> when (current.children[0].children.size) {
+                0 -> {
+                    segmentsToCompress.add(current.children[0].segment)
+                    Node(current.children[0].index, segmentsToCompress.compress(), mutableListOf())
+                }
+
+                else -> Node(current.index, segmentsToCompress.compress(), current.children.compress())
+            }
+
+            else -> Node(current.children[0].index, segmentsToCompress.compress(), current.children.compress())
+        }
+    }
+
+    private fun List<String>.compress() = filter { it.isNotEmpty() }.joinToString("/")
+
+    private fun MutableList<Node>.compress() = map(::compressFrom).toMutableList()
 
     private fun buildIndexFor(node: Node, segments: MutableList<String>, indexes: MutableMap<Int, File>) {
         segments.add(node.segment)
@@ -79,6 +115,8 @@ class StringPrefixedTree {
     ) {
         val isIntermediate
             get() = index == null
+
+        val isFinal
+            get() = !isIntermediate
     }
 }
-

@@ -88,7 +88,6 @@ class StringPrefixedTreeTest {
     }
 
     @Test
-    @Ignore("wip")
     fun `tree is compressable`() {
         val prefixedTree = StringPrefixedTree()
         prefixedTree.insert(File("org/example/company/foo/Foo"))
@@ -107,18 +106,23 @@ class StringPrefixedTreeTest {
     }
 
     @Test
-    @Ignore("wip")
     fun `inserted dirs are not compressable`() {
         val prefixedTree = StringPrefixedTree()
         prefixedTree.insert(File("org/example/company/foo"))
         prefixedTree.insert(File("org/example/company/foo/bar/zum/Zum"))
 
         val expectedCompressedTree = StringPrefixedTree.Node(
-            null,
-            "org/example/company",
+            null, "org/example/company",
             mutableListOf(
-                StringPrefixedTree.Node(0, "foo", mutableListOf()),
-                StringPrefixedTree.Node(1, "bar/zum/Zum", mutableListOf())
+                StringPrefixedTree.Node(
+                    0, "foo",
+                    mutableListOf(
+                        StringPrefixedTree.Node(
+                            1, "bar/zum/Zum",
+                            mutableListOf()
+                        )
+                    )
+                ),
             )
         )
 
