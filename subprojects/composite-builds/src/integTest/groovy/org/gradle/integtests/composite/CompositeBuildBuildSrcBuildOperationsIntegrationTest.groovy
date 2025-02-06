@@ -28,7 +28,6 @@ import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.operations.lifecycle.RunRequestedWorkBuildOperationType
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import spock.lang.Ignore
 
 import java.util.regex.Pattern
 
@@ -150,7 +149,6 @@ class CompositeBuildBuildSrcBuildOperationsIntegrationTest extends AbstractCompo
         "rootProject.name='someLib'" | "configured root project name"
     }
 
-    @Ignore('wip')
     @Requires(value = IntegTestPreconditions.NotConfigCached, reason = "Also covered by tests in configuration cache project")
     def "generates configure, task graph and run tasks operations when all builds have buildSrc with #display"() {
         given:
