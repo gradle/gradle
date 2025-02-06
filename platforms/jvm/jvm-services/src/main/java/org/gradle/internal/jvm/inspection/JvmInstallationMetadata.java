@@ -242,7 +242,7 @@ public interface JvmInstallationMetadata {
 
         @Override
         public Set<JavaInstallationCapability> getCapabilities() {
-            return capabilities.get();
+            return capabilities.get();46
         }
 
         private Set<JavaInstallationCapability> gatherCapabilities() {
@@ -252,6 +252,9 @@ public interface JvmInstallationMetadata {
             }
             if (getToolByExecutable("javadoc").exists()) {
                 capabilities.add(JavaInstallationCapability.JAVADOC_TOOL);
+            }
+            if (getToolByExecutable("jar").exists()) {
+                capabilities.add(JavaInstallationCapability.JAR_TOOL);
             }
             boolean isJ9vm = jvmName.contains("J9");
             if (isJ9vm) {
