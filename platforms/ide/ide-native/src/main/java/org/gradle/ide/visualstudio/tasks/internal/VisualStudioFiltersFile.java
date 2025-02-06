@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 import java.io.File;
-import java.util.List;
 
 import static java.util.Collections.singletonMap;
 
@@ -40,40 +39,21 @@ public class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
     }
 
     public void addSource(File sourceFile) {
-        getSources()
+        getItemGroupForLabel("Sources")
             .appendNode("ClCompile", singletonMap("Include", toPath(sourceFile)))
             .appendNode("Filter", "Source Files");
     }
 
     public void addHeader(File headerFile) {
-        getHeaders()
+        getItemGroupForLabel("Headers")
             .appendNode("ClInclude", singletonMap("Include", toPath(headerFile)))
             .appendNode("Filter", "Header Files");
     }
 
-    public Node getFilters() {
-        return getItemGroups()
-            .stream()
-            .filter(node -> node.attribute("Label").equals("Filters"))
+    private Node getItemGroupForLabel(String label) {
+        return getChildren(getXml(), "ItemGroup").stream()
+            .filter(node -> node.attribute("Label").equals(label))
             .findFirst().get();
-    }
-
-    private Node getSources() {
-        return getItemGroups()
-            .stream()
-            .filter(node -> node.attribute("Label").equals("Sources"))
-            .findFirst().get();
-    }
-
-    private Node getHeaders() {
-        return getItemGroups()
-            .stream()
-            .filter(node -> node.attribute("Label").equals("Headers"))
-            .findFirst().get();
-    }
-
-    private List<Node> getItemGroups() {
-        return getChildren(getXml(), "ItemGroup");
     }
 
     private String toPath(File file) {
