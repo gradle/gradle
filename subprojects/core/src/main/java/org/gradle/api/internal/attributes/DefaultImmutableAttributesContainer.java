@@ -34,7 +34,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<Object> {
+public final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<Object> {
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
     // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
@@ -127,7 +127,6 @@ final class DefaultImmutableAttributesContainer extends AbstractAttributeContain
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 
-    @SuppressWarnings({"ConstantValue"})
     @Override
     @Nullable
     public <T> T getAttribute(Attribute<T> key) {
@@ -140,14 +139,42 @@ final class DefaultImmutableAttributesContainer extends AbstractAttributeContain
             return null;
         }
 
+        /*
+        * We want to check here for one specific case - when a request for a key with type X1
+        * is being made in a container holding an attribute with type X2, where X1 and X2 are
+        * actually THE SAME CLASS loaded by 2 different classloaders.  In this case we want to both
+        * 1) find a match and return the value and 2) coerce this returned attribute value to the requested X1 type.
+        *
+        * This avoids the confusing situation where a build author can request an attribute
+        * from a resolved variant of an external dep and have a typed attribute request succeed (because the external attribute is
+        * desugared internally); but then if the build author replaces the external dep with an included build
+        * generating the same exact variants, the same typed attribute request fails, since the desugaring
+        * now doesn't happen and the attribute is typed with the non-identical class with the same name loaded
+        * from a different classloader.  This is seriously confusing and unintuitive to a build
+        * author.  When we detect this case, we want to coerce the value of X2 to X1 here, instead of returning
+        * null.
+        *
+        * We want to avoid doing this coercion when the requested type is Object because if this
+        * if an attribute is contained here using a more-specific type, we don't want to try to
+        * coerce the value to Object - this is unnecessary and breaks
+        * DefaultAttributesFactoryTest#"can detect incompatible attributes with different types when merging"().
+        */
         T value = isolatable.isolate();
-        if (key != null && value != null && value.getClass() != key.getType() && key.getType() != Object.class) {
+        if (value != null && value.getClass() != key.getType() && key.getType() != Object.class) {
             return isolatable.coerce(key.getType());
         } else {
             return value;
         }
     }
 
+    /**
+     * We lookup by name here to avoid issues with attributes with the type class from different classloaders.  This
+     * can only happen with immutable attribute containers, as mutable containers will not cross classloader boundaries
+     * when included builds are used.
+     * <p>
+     * This lookup requires that only a single attribute with a given name is present in this container, this invariant
+     * is enforced by the immutable factory construction logic and verified by
+     */
     @Nullable
     /* package */ <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
         DefaultImmutableAttributesContainer attributes = hierarchyByName.get(key.getName());

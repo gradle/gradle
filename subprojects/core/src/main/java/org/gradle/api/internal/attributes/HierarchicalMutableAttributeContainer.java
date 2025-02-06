@@ -33,7 +33,7 @@ import java.util.TreeMap;
  * container will override attributes in the fallback container. All mutation operations are
  * forwarded to the primary container.
  */
-final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
+public final class HierarchicalMutableAttributeContainer extends AbstractAttributeContainer {
     private final AttributesFactory attributesFactory;
     private final AttributeContainerInternal fallback;
     private final AttributeContainerInternal primary;

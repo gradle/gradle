@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-final class DefaultMutableAttributeContainer extends AbstractAttributeContainer {
+public final class DefaultMutableAttributeContainer extends AbstractAttributeContainer {
     private final Map<Attribute<?>, Isolatable<?>> attributes = new LinkedHashMap<>(); // Need to maintain insertion order here, this is indirectly tested
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;

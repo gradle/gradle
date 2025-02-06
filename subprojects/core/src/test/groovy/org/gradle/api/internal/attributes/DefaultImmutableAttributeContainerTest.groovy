@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
+import org.gradle.util.AttributeTestUtil
 
 /**
  * Unit tests for the {@link DefaultImmutableAttributesContainer} class.
@@ -26,8 +27,8 @@ final class DefaultImmutableAttributeContainerTest extends AbstractAttributeCont
     @Override
     protected <T> DefaultImmutableAttributesContainer getContainer(Map<Attribute<T>, T> attributes = [:]) {
         DefaultImmutableAttributesContainer container = new DefaultImmutableAttributesContainer()
-        container.asMap().forEach { (key, T value) ->
-            container = AttributesFactory.concat(container, key, value)
+        attributes.forEach { key, value ->
+            container = AttributeTestUtil.attributesFactory().concat(container, key, value)
         }
         return container
     }
