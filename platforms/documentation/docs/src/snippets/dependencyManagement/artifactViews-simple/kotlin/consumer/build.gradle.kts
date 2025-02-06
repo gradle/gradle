@@ -1,3 +1,4 @@
+// tag::artifact-views-app[]
 plugins {
     id("application")
 }
@@ -10,6 +11,7 @@ repositories {
 dependencies {
     implementation(project(":producer"))
 }
+// end::artifact-views-app[]
 
 tasks.register("checkResolvedVariant") {
     println("RuntimeClasspath Configuration:")
@@ -29,56 +31,45 @@ tasks.register("checkResolvedVariant") {
     resolvedArtifacts.get().forEach { artifact ->
         println("- Artifact: ${artifact.file}")
     }
-
 }
 
+// tag::artifact-views-sel[]
 tasks.register("artifactWithAttributeAndView") {
     val configuration = configurations.runtimeClasspath.get()
-    println("Attributes used to resolve '${configuration.name}':")
-    configuration.attributes.keySet().forEach { attribute ->
-        val value = configuration.attributes.getAttribute(attribute)
-        println("  - ${attribute.name} = $value")
-    }
-
-    println("\nAttributes in ArtifactView for 'LibraryElements = classes:'")
+    println("\nArtifactView with attribute 'libraryelements = classes' for ${configuration.name}:")
     val artifactView = configuration.incoming.artifactView {
         attributes {
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("classes"))
         }
     }
-
-    artifactView.artifacts.artifactFiles.files.forEach {
-        println("- Artifact: ${it.name}")
-    }
-
+    println("- Attributes:")
     artifactView.attributes.keySet().forEach { attribute ->
         val value = artifactView.attributes.getAttribute(attribute)
         println("  - ${attribute.name} = $value")
     }
+    artifactView.artifacts.artifactFiles.files.forEach {
+        println("- Artifact: ${it.name}")
+    }
 }
+// end::artifact-views-sel[]
 
+// tag::artifact-views-resel[]
 tasks.register("artifactWithAttributeAndVariantReselectionView") {
     val configuration = configurations.runtimeClasspath.get()
-    println("Attributes used to resolve '${configuration.name}':")
-    configuration.attributes.keySet().forEach { attribute ->
-        val value = configuration.attributes.getAttribute(attribute)
-        println("  - ${attribute.name} = $value")
-    }
-
-    println("\nAttributes in ArtifactView for 'Category = production:'")
+    println("\nArtifactView with attribute 'category = production' for ${configuration.name}:")
     val artifactView = configuration.incoming.artifactView {
         withVariantReselection()
         attributes {
             attribute(Category.CATEGORY_ATTRIBUTE, objects.named("production"))
         }
     }
-
-    artifactView.artifacts.artifactFiles.files.forEach {
-        println("- Artifact: ${it.name}")
-    }
-
+    println("- Attributes:")
     artifactView.attributes.keySet().forEach { attribute ->
         val value = artifactView.attributes.getAttribute(attribute)
         println("  - ${attribute.name} = $value")
     }
+    artifactView.artifacts.artifactFiles.files.forEach {
+        println("- Artifact: ${it.name}")
+    }
 }
+// end::artifact-views-resel[]
