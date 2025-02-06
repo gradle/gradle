@@ -73,32 +73,44 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     }
 
     public void addSourceFile(File file) {
-        getItemGroupForLabel("Sources").appendNode("ClCompile", singletonMap("Include", toPath(file)));
+        getItemGroupForLabel("Sources").appendNode(
+            "ClCompile",
+            singletonMap("Include", toPath(file))
+        );
     }
 
     public void addResource(File file) {
-        getItemGroupForLabel("References").appendNode("ResourceCompile", singletonMap("Include", toPath(file)));
+        getItemGroupForLabel("References").appendNode(
+            "ResourceCompile",
+            singletonMap("Include", toPath(file))
+        );
     }
 
     public void addHeaderFile(File file) {
-        getItemGroupForLabel("Headers").appendNode("ClInclude", singletonMap("Include", toPath(file)));
+        getItemGroupForLabel("Headers").appendNode(
+            "ClInclude",
+            singletonMap("Include", toPath(file))
+        );
     }
 
     public void addConfiguration(ConfigurationSpec configuration) {
-        Node configNode = getItemGroupForLabel("ProjectConfigurations")
-            .appendNode("ProjectConfiguration", singletonMap("Include", configuration.getName()));
+        Node configNode = getItemGroupForLabel("ProjectConfigurations").appendNode(
+            "ProjectConfiguration",
+            singletonMap("Include", configuration.getName())
+        );
         configNode.appendNode("Configuration", configuration.configurationName);
         configNode.appendNode("Platform", configuration.platformName);
         String configCondition = "'$(Configuration)|$(Platform)'=='" + configuration.getName() + "'";
 
         String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)";
-        Node configGroup = getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props").parent()
-            .appendNode("PropertyGroup", new HashMap<String, String>() {
-                {
+        Node configGroup = getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props")
+            .parent().appendNode(
+                "PropertyGroup",
+                new HashMap<String, String>() {{
                     put("Label", "Configuration");
                     put("Condition", configCondition);
-                }
-            });
+                }}
+            );
         configGroup.appendNode("ConfigurationType", configuration.type);
         if (configuration.buildable) {
             configGroup.appendNode("UseDebugLibraries", configuration.debuggable);
@@ -112,13 +124,14 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         }
 
         String includePath = String.join(";", toPath(configuration.buildable ? configuration.includeDirs : emptySet()));
-        Node nMakeGroup = getPropertyGroupForLabel("UserMacros").parent()
-            .appendNode("PropertyGroup", new HashMap<String, String>() {
-                {
+        Node nMakeGroup = getPropertyGroupForLabel("UserMacros")
+            .parent().appendNode(
+                "PropertyGroup",
+                new HashMap<String, String>() {{
                     put("Label", "NMakeConfiguration");
                     put("Condition", configCondition);
-                }
-            });
+                }}
+            );
         if (configuration.buildable) {
             nMakeGroup.appendNode("NMakeBuildCommandLine", gradleCommand + " " + configuration.buildTaskPath);
             nMakeGroup.appendNode("NMakeCleanCommandLine", gradleCommand + " " + configuration.cleanTaskPath);
@@ -127,9 +140,10 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
             nMakeGroup.appendNode("NMakeIncludeSearchPath", includePath);
             nMakeGroup.appendNode("NMakeOutput", toPath(configuration.outputFile));
         } else {
-            nMakeGroup.appendNode("NMakeBuildCommandLine", "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42");
-            nMakeGroup.appendNode("NMakeCleanCommandLine", "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42");
-            nMakeGroup.appendNode("NMakeReBuildCommandLine", "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42");
+            String errorCommand = "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42";
+            nMakeGroup.appendNode("NMakeBuildCommandLine", errorCommand);
+            nMakeGroup.appendNode("NMakeCleanCommandLine", errorCommand);
+            nMakeGroup.appendNode("NMakeReBuildCommandLine", errorCommand);
         }
 
         if (configuration.languageStandard != null && configuration.languageStandard != VisualStudioTargetBinary.LanguageStandard.NONE) {
