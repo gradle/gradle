@@ -1126,13 +1126,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         runActionInHierarchy(conf -> {
             if (!conf.isObserved()) {
-                conf.configurationAttributes.freeze();
-                conf.outgoing.preventFromFurtherMutation();
-                conf.preventUsageMutation();
                 conf.observationReason = () -> {
                     String target = conf == this ? "it" : "it's child " + this.getDisplayName();
                     return target + " has been " + reason;
                 };
+
+                conf.configurationAttributes.freeze();
+                conf.outgoing.preventFromFurtherMutation(conf.observationReason);
+                conf.preventUsageMutation();
             }
         });
     }
