@@ -42,6 +42,7 @@ dependencies {
     api(projects.daemonProtocol)
     api(projects.serviceLookup)
     api(projects.serialization)
+    api(projects.snapshots)
 
     api(testFixtures(projects.core)) {
         because("HttpServer leaks PortAllocator to spock AST transformer")

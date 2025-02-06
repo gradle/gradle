@@ -28,6 +28,8 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
 import org.gradle.internal.code.UserCodeSource;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.Location;
 import org.gradle.problems.ProblemDiagnostics;
@@ -48,7 +50,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@SuppressWarnings("unused")
 public class DefaultProblemBuilder implements InternalProblemBuilder {
+    private final NewIsolatableSerializer isolatableSerializer;
     @Nullable
     private ProblemStream problemStream;
 
@@ -61,28 +65,30 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private DocLink docLink;
     private List<String> solutions;
     private Throwable exception;
-    //TODO Reinhold make private again
     private AdditionalData additionalData;
     private boolean collectLocation = false;
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
+    public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer, IsolatableFactory isolatableFactory, NewIsolatableSerializer isolatableSerializer) {
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.instantiator = instantiator;
         this.payloadSerializer = payloadSerializer;
+        this.isolatableFactory = isolatableFactory;
+        this.isolatableSerializer = isolatableSerializer;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
     }
 
-    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
-        this(additionalDataBuilderFactory, instantiator, payloadSerializer);
+    public DefaultProblemBuilder(@Nullable ProblemStream problemStream, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer, IsolatableFactory isolatableFactory, NewIsolatableSerializer isolatableSerializer) {
+        this(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer);
         this.problemStream = problemStream;
     }
 
-    public DefaultProblemBuilder(InternalProblem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
-        this(additionalDataBuilderFactory, instantiator, payloadSerializer);
+    public DefaultProblemBuilder(InternalProblem problem, AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer, IsolatableFactory isolatableFactory, NewIsolatableSerializer isolatableSerializer) {
+        this(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
@@ -324,15 +330,19 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
+    @SuppressWarnings("unused")
     public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
-        validateMethods(type);
+//        validateMethods(type);
 
         AdditionalData additionalDataInstance = createAdditionalData(type, config);
         Map<String, Object> methodValues = getAdditionalDataMap(type, additionalDataInstance);
+        Isolatable<AdditionalData> isolated = isolatableFactory.isolate(additionalDataInstance);
 
-        SerializedPayload payload = getPayloadSerializer().serialize(type);
+        SerializedPayload serializedBaseClass = getPayloadSerializer().serialize(type);
+        byte[] serialized = this.isolatableSerializer.serialize(isolated);
 
-        this.additionalData = new DefaultTypedAdditionalData(methodValues, payload);
+        this.additionalData = new DefaultTypedAdditionalData(serializedBaseClass, serialized);
+//        this.additionalData = ;
         return this;
     }
 

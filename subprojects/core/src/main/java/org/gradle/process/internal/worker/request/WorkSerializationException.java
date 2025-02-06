@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.problem;
+package org.gradle.process.internal.worker.request;
 
-public interface InternalPayloadSerializedAdditionalData extends InternalAdditionalData {
-    Object getSerializedType();
+import org.gradle.internal.exceptions.Contextual;
 
-    byte[] getIsolatable();
+@Contextual
+class WorkSerializationException extends RuntimeException {
+    WorkSerializationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

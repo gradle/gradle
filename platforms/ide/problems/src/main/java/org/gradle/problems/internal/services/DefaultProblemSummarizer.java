@@ -39,7 +39,6 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
-    private final int threshold;
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
 
@@ -56,8 +55,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
-        this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
-        this.summarizerStrategy = new SummarizerStrategy(threshold);
+        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOption(THRESHOLD_OPTION).get());
         this.problemReportCreator = problemReportCreator;
     }
 

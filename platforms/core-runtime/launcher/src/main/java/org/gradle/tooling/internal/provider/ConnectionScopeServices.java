@@ -23,22 +23,30 @@ import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory;
+import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClientExecuter;
 import org.gradle.launcher.daemon.client.NotifyDaemonClientExecuter;
 import org.gradle.launcher.exec.BuildExecutor;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
+
+import javax.annotation.Nullable;
 
 /**
  * Shared services for a tooling API provider connection.
@@ -66,6 +74,34 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    IsolatableSerializerRegistry createIsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
+        return new IsolatableSerializerRegistry(new ClassLoaderHierarchyHasher() {
+            @Nullable
+            @Override
+            public HashCode getClassLoaderHash(ClassLoader classLoader) {
+                throw new UnsupportedOperationException();
+            }
+        }, managedFactoryRegistry);
+    }
+
+//    @Provides
+//    protected ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory) {
+//        return new DefaultManagedFactoryRegistry(null).withFactories(namedObjectInstantiator, instantiatorFactory.getManagedFactory());
+//    }
+
+    @Provides
+    IsolatableFactory createIsolatableFactory(
+        ManagedFactoryRegistry managedFactoryRegistry
+    ) {
+        return new DefaultIsolatableFactory(new ClassLoaderHierarchyHasher() {
+            @Nullable
+            @Override
+            public HashCode getClassLoaderHash(ClassLoader classLoader) {
+                throw new UnsupportedOperationException();
+            }
+        }, managedFactoryRegistry);
+    }
+    @Provides
     ProviderConnection createProviderConnection(
         BuildExecutor buildActionExecuter,
         DaemonClientFactory daemonClientFactory,
@@ -75,7 +111,9 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         GlobalUserInputReceiver userInput,
         UserInputReader userInputReader,
         ShutdownCoordinator shutdownCoordinator,
-        NotifyDaemonClientExecuter notifyDaemonClientExecuter
+        NotifyDaemonClientExecuter notifyDaemonClientExecuter,
+        IsolatableFactory isolatableFactory,
+        IsolatableSerializerRegistry isolatableSerializerRegistry
     ) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
@@ -96,7 +134,9 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
             userInput,
             userInputReader,
             shutdownCoordinator,
-            notifyDaemonClientExecuter
+            notifyDaemonClientExecuter,
+            isolatableFactory,
+            isolatableSerializerRegistry
         );
     }
 

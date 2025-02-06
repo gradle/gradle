@@ -28,7 +28,7 @@ public class DefaultInternalProxiedAdditionalData extends DefaultInternalPayload
     private final Object proxy;
 
     public DefaultInternalProxiedAdditionalData(Map<String, Object> additionalData, Object proxy, SerializedPayload payload) {
-        super(additionalData, payload);
+        super(null, payload);
         this.proxy = proxy;
     }
 
