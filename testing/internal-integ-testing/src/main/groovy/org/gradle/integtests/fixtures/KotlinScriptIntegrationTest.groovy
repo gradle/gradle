@@ -16,15 +16,17 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.test.fixtures.file.TestFile
+
 abstract class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
 
     @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
+    TestFile getBuildFile() {
+        return super.getBuildKotlinFile()
     }
 
     def setup() {
-        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        settingsFile << "rootProject.buildFileName = '${buildFile.name}'"
     }
 
     protected void withKotlinBuildSrc() {
