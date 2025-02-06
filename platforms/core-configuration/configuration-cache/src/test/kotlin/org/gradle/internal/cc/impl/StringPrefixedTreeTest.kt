@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.serialize.graph.StringPrefixedTree
 import org.junit.Assert.assertEquals
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 
