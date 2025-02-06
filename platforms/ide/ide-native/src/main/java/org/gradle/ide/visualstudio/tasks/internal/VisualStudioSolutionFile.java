@@ -111,13 +111,11 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
                 "\tGlobalSection(SolutionConfigurationPlatforms) = preSolution"
         );
 
-        Set<String> configurationNames = new TreeSet<String>(
-            projectConfigurations.values().stream()
-                .flatMap(set -> set.stream().map(spec -> spec.name))
-                .collect(Collectors.toList())
-        );
+        Set<String> configurationNames = projectConfigurations.values().stream()
+            .flatMap(set -> set.stream().map(spec -> spec.name))
+            .collect(Collectors.toCollection(TreeSet::new));
         for (String configurationName : configurationNames) {
-            builder.append("\n\t\t" + configurationName + " = " + configurationName);
+            builder.append("\n\t\t").append(configurationName).append(" = ").append(configurationName);
         }
         builder.append(
             "\n" +
@@ -146,7 +144,7 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
                 })
                 .collect(Collectors.toList());
             for (String configuration : configurations) {
-                builder.append("\n\t\t" + getUUID(projectFile) + "." + configuration);
+                builder.append("\n\t\t").append(getUUID(projectFile)).append(".").append(configuration);
             }
         }
 
