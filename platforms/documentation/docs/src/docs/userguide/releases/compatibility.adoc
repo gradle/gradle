@@ -109,43 +109,28 @@ Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Grad
 Gradle is tested with Android Gradle Plugin 7.3 through 8.8.
 Alpha and beta versions may or may not work.
 
-== Platform Targets
+== Target Platforms
 
 Gradle supports a defined set of platform targets, which are combinations of:
 
 - Operating system and version
 - Architecture
-- File system compatibility
+- File system watching compatibility
 
 The following table lists the officially supported platforms for Gradle:
 
 .Supported Platforms
 |===
-| OS | Architecture | Officially Gradle supported?
+| OS | Architecture
 
-| Ubuntu 22 | `amd64` | Yes
-| Ubuntu 22 | `aarch64` | No
-
-| Windows 10 | `amd64` | Yes
-| Windows 10 | `aarch64` | No
-
-| macOS 12 | `amd64` | Yes
-| macOS 12 | `aarch64` | Yes
-
-| Ubuntu 16 | `amd64` | No
-| Ubuntu 16 | `aarch64` | No
-
-| Alpine 3.20 | `amd64` | No
-| Alpine 3.20 | `aarch64` | No
-
-| CentOS 9 | `amd64` | No
-| CentOS 9 | `aarch64` | No
-
-| Amazon Linux | `amd64` | No
-| Amazon Linux | `aarch64` | No
-
-| FreeBSD | `amd64` | No
-| FreeBSD | `aarch64` | No
+| Ubuntu 22 | `amd64`
+| Windows 10 | `amd64`
+| macOS 12 | `amd64`
+|  | `aarch64`
+| Ubuntu 16 | `amd64`
+|  | `aarch64`
+| Alpine 3.20 | `amd64`
+| CentOS 9 | `amd64`
 |===
 
 NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
