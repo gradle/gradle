@@ -13,46 +13,70 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.ide.visualstudio.tasks.internal
+package org.gradle.ide.visualstudio.tasks.internal;
 
-import org.gradle.api.Transformer
-import org.gradle.internal.xml.XmlTransformer
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
+import groovy.util.Node;
+import org.gradle.api.Transformer;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
-class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
-    private final Transformer<String, File> fileLocationResolver
+import java.io.File;
+import java.util.List;
 
-    VisualStudioFiltersFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
-        super(xmlTransformer)
-        this.fileLocationResolver = fileLocationResolver
+import static java.util.Collections.singletonMap;
+
+public class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
+
+    private final Transformer<String, File> fileLocationResolver;
+
+    public VisualStudioFiltersFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
+        super(xmlTransformer);
+        this.fileLocationResolver = fileLocationResolver;
     }
 
+    @Override
     protected String getDefaultResourceName() {
-        'default.vcxproj.filters'
+        return "default.vcxproj.filters";
     }
 
-    def addSource(File sourceFile) {
-        sources.appendNode("ClCompile", [Include: toPath(sourceFile)]).appendNode('Filter', 'Source Files')
+    public void addSource(File sourceFile) {
+        getSources()
+            .appendNode("ClCompile", singletonMap("Include", toPath(sourceFile)))
+            .appendNode("Filter", "Source Files");
     }
 
-    def addHeader(File headerFile) {
-        headers.appendNode("ClInclude", [Include: toPath(headerFile)]).appendNode('Filter', 'Header Files')
+    public void addHeader(File headerFile) {
+        getHeaders()
+            .appendNode("ClInclude", singletonMap("Include", toPath(headerFile)))
+            .appendNode("Filter", "Header Files");
     }
 
-    def getFilters() {
-        return xml.ItemGroup.findAll({ it.'@Label' == 'Filters' })[0]
+    public Node getFilters() {
+        return getItemGroups()
+            .stream()
+            .filter(node -> node.attribute("Label").equals("Filters"))
+            .findFirst().get();
     }
 
     private Node getSources() {
-        return xml.ItemGroup.find({ it.'@Label' == 'Sources' }) as Node
+        return getItemGroups()
+            .stream()
+            .filter(node -> node.attribute("Label").equals("Sources"))
+            .findFirst().get();
     }
 
     private Node getHeaders() {
-        return xml.ItemGroup.find({ it.'@Label' == 'Headers' }) as Node
+        return getItemGroups()
+            .stream()
+            .filter(node -> node.attribute("Label").equals("Headers"))
+            .findFirst().get();
     }
 
-    private String toPath(File it) {
-        fileLocationResolver.transform(it)
+    private List<Node> getItemGroups() {
+        return getChildren(getXml(), "ItemGroup");
     }
 
+    private String toPath(File file) {
+        return fileLocationResolver.transform(file);
+    }
 }
