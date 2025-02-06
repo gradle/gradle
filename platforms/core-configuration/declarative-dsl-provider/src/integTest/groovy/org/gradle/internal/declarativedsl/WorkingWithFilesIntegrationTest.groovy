@@ -51,6 +51,32 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | false                 | "default"
     }
 
+    def 'file-based properties and accessing project layout work in Kotlin DSL too'() {
+        given:
+        withSoftwareTypePlugins(
+            extensionClassContent,
+            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
+            settingsPluginThatRegistersSoftwareType
+        ).prepareToExecute()
+
+        file("settings.gradle.kts") << pluginsFromIncludedBuild
+
+        file("a/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(overwriteDefaults)
+        file("b/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(overwriteDefaults)
+
+        when:
+        run("printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        assertThatDeclaredValuesAreSetProperly("a", expectedNamePrefix)
+        assertThatDeclaredValuesAreSetProperly("b", expectedNamePrefix)
+
+        where:
+        extensionClassContent                           | name                                                  | overwriteDefaults     | expectedNamePrefix
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true                  | "some"
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | false                 | "default"
+    }
+
     static String getWithFileSystemLocationProperties() {
         """
                 package org.gradle.test;
