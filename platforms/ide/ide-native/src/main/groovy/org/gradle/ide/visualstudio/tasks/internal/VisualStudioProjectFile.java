@@ -14,183 +14,222 @@
  * limitations under the License.
  */
 
-package org.gradle.ide.visualstudio.tasks.internal
+package org.gradle.ide.visualstudio.tasks.internal;
 
-import org.gradle.api.NonNullApi
-import org.gradle.api.Transformer
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.Optional
-import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
-import org.gradle.internal.xml.XmlTransformer
-import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
-import org.gradle.util.internal.VersionNumber
+import groovy.util.Node;
+import org.gradle.api.NonNullApi;
+import org.gradle.api.Transformer;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
+import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary;
+import org.gradle.internal.xml.XmlTransformer;
+import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
+import org.gradle.util.internal.VersionNumber;
 
-import javax.annotation.Nullable
+import javax.annotation.Nullable;
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
+import static java.util.Collections.emptySet;
+import static java.util.Collections.singletonMap;
+import static java.util.stream.Collectors.toList;
 
 @NonNullApi
-class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
-    private final Transformer<String, File> fileLocationResolver
-    String gradleCommand = 'gradle'
-    VersionNumber visualStudioVersion
+public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
+    private final Transformer<String, File> fileLocationResolver;
+    private String gradleCommand = "gradle";
+    private VersionNumber visualStudioVersion;
 
-    VisualStudioProjectFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
-        super(xmlTransformer)
-        this.fileLocationResolver = fileLocationResolver
+    public VisualStudioProjectFile(XmlTransformer xmlTransformer, Transformer<String, File> fileLocationResolver) {
+        super(xmlTransformer);
+        this.fileLocationResolver = fileLocationResolver;
     }
 
+    @Override
     protected String getDefaultResourceName() {
-        'default.vcxproj'
+        return "default.vcxproj";
     }
 
-    def setProjectUuid(String uuid) {
-        Node globals = xml.PropertyGroup.find({ it.'@Label' == 'Globals' }) as Node
-        globals.appendNode("ProjectGUID", uuid)
+    public void setGradleCommand(String gradleCommand) {
+        this.gradleCommand = gradleCommand;
     }
 
-    def setVisualStudioVersion(VersionNumber version) {
-        visualStudioVersion = version
-        xml.attributes().ToolsVersion = version.major >= 12 ? "${version.major}.0" : "4.0"
+    public void setProjectUuid(String uuid) {
+        getPropertyGroupForLabel("Globals").appendNode("ProjectGUID", uuid);
     }
 
-    def setSdkVersion(VersionNumber version) {
-        Node globals = xml.PropertyGroup.find({ it.'@Label' == 'Globals' }) as Node
-        globals.appendNode("WindowsTargetPlatformVersion", version.micro != 0 ? version : "${version.major}.${version.minor}")
+    @SuppressWarnings("unchecked")
+    public void setVisualStudioVersion(VersionNumber version) {
+        visualStudioVersion = version;
+        getXml().attributes().put("ToolsVersion", version.getMajor() >= 12 ? version.getMajor() + ".0" : "4.0");
     }
 
-    def addSourceFile(File it) {
-        def sources = xml.ItemGroup.find({ it.'@Label' == 'Sources' }) as Node
-        sources.appendNode("ClCompile", [Include: toPath(it)])
+    public void setSdkVersion(VersionNumber version) {
+        getPropertyGroupForLabel("Globals").appendNode(
+            "WindowsTargetPlatformVersion",
+            version.getMicro() != 0 ? version : version.getMajor() + "." + version.getMinor()
+        );
     }
 
-    def addResource(File it) {
-        def resources = xml.ItemGroup.find({ it.'@Label' == 'References' }) as Node
-        resources.appendNode("ResourceCompile", [Include: toPath(it)])
+    public void addSourceFile(File file) {
+        getItemGroupForLabel("Sources").appendNode("ClCompile", singletonMap("Include", toPath(file)));
     }
 
-    def addHeaderFile(File it) {
-        def headers = xml.ItemGroup.find({ it.'@Label' == 'Headers' }) as Node
-        headers.appendNode("ClInclude", [Include: toPath(it)])
+    public void addResource(File file) {
+        getItemGroupForLabel("References").appendNode("ResourceCompile", singletonMap("Include", toPath(file)));
     }
 
-    def addConfiguration(ConfigurationSpec configuration) {
-        def configNode = configurations.appendNode("ProjectConfiguration", [Include: configuration.name])
-        configNode.appendNode("Configuration", configuration.configurationName)
-        configNode.appendNode("Platform", configuration.platformName)
-        final configCondition = "'\$(Configuration)|\$(Platform)'=='${configuration.name}'"
+    public void addHeaderFile(File file) {
+        getItemGroupForLabel("Headers").appendNode("ClInclude", singletonMap("Include", toPath(file)));
+    }
 
-        def vsOutputDir = ".vs\\${configuration.projectName}\\\$(Configuration)"
-        Node defaultProps = xml.Import.find({ it.'@Project' == '$(VCTargetsPath)\\Microsoft.Cpp.Default.props' }) as Node
-        defaultProps + {
-            PropertyGroup(Label: "Configuration", Condition: configCondition) {
-                ConfigurationType(configuration.type)
-                if (configuration.buildable) {
-                    UseDebugLibraries(configuration.debuggable)
-                    OutDir(vsOutputDir)
-                    IntDir(vsOutputDir)
+    public void addConfiguration(ConfigurationSpec configuration) {
+        Node configNode = getItemGroupForLabel("ProjectConfigurations")
+            .appendNode("ProjectConfiguration", singletonMap("Include", configuration.name));
+        configNode.appendNode("Configuration", configuration.configurationName);
+        configNode.appendNode("Platform", configuration.platformName);
+        String configCondition = "'$(Configuration)|$(Platform)'=='" + configuration.name + "'";
+
+        String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)";
+        Node configGroup = getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props").parent()
+            .appendNode("PropertyGroup", new HashMap<String, String>() {
+                {
+                    put("Label", "Configuration");
+                    put("Condition", configCondition);
                 }
-                if (visualStudioVersion.major > 14) {
-                    PlatformToolset("v141")
-                } else if (visualStudioVersion.major >= 11) {
-                    PlatformToolset("v${visualStudioVersion.major}0")
-                }
-            }
+            });
+        configGroup.appendNode("ConfigurationType", configuration.type);
+        if (configuration.buildable) {
+            configGroup.appendNode("UseDebugLibraries", configuration.debuggable);
+            configGroup.appendNode("OutDir", vsOutputDir);
+            configGroup.appendNode("IntDir", vsOutputDir);
+        }
+        if (visualStudioVersion.getMajor() > 14) {
+            configGroup.appendNode("PlatformToolset", "v141");
+        } else if (visualStudioVersion.getMajor() >= 11) {
+            configGroup.appendNode("PlatformToolset", "v" + visualStudioVersion.getMajor() + "0");
         }
 
-        final includePath = toPath(configuration.buildable ? configuration.includeDirs : [] as Set).join(";")
-        Node userMacros = xml.PropertyGroup.find({ it.'@Label' == 'UserMacros' }) as Node
-        userMacros + {
-            PropertyGroup(Label: "NMakeConfiguration", Condition: configCondition) {
-                if (configuration.buildable) {
-                    NMakeBuildCommandLine("${gradleCommand} ${configuration.buildTaskPath}")
-                    NMakeCleanCommandLine("${gradleCommand} ${configuration.cleanTaskPath}")
-                    NMakeReBuildCommandLine("${gradleCommand} ${configuration.cleanTaskPath} ${configuration.buildTaskPath}")
-                    NMakePreprocessorDefinitions(configuration.compilerDefines.join(";"))
-                    NMakeIncludeSearchPath(includePath)
-                    NMakeOutput(toPath(configuration.outputFile))
-                } else {
-                    NMakeBuildCommandLine("echo '${configuration.projectName}' project is not buildable. && exit /b -42")
-                    NMakeCleanCommandLine("echo '${configuration.projectName}' project is not buildable. && exit /b -42")
-                    NMakeReBuildCommandLine("echo '${configuration.projectName}' project is not buildable. && exit /b -42")
+        String includePath = String.join(";", toPath(configuration.buildable ? configuration.includeDirs : emptySet()));
+        Node nMakeGroup = getPropertyGroupForLabel("UserMacros").parent()
+            .appendNode("PropertyGroup", new HashMap<String, String>() {
+                {
+                    put("Label", "NMakeConfiguration");
+                    put("Condition", configCondition);
                 }
-            }
+            });
+        if (configuration.buildable) {
+            nMakeGroup.appendNode("NMakeBuildCommandLine", gradleCommand + " " + configuration.buildTaskPath);
+            nMakeGroup.appendNode("NMakeCleanCommandLine", gradleCommand + " " + configuration.cleanTaskPath);
+            nMakeGroup.appendNode("NMakeReBuildCommandLine", gradleCommand + " " + configuration.cleanTaskPath + " " + configuration.buildTaskPath);
+            nMakeGroup.appendNode("NMakePreprocessorDefinitions", String.join(";", configuration.compilerDefines));
+            nMakeGroup.appendNode("NMakeIncludeSearchPath", includePath);
+            nMakeGroup.appendNode("NMakeOutput", toPath(configuration.outputFile));
+        } else {
+            nMakeGroup.appendNode("NMakeBuildCommandLine", "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42");
+            nMakeGroup.appendNode("NMakeCleanCommandLine", "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42");
+            nMakeGroup.appendNode("NMakeReBuildCommandLine", "echo '" + configuration.projectName + "' project is not buildable. && exit /b -42");
         }
 
         if (configuration.languageStandard != null && configuration.languageStandard != VisualStudioTargetBinary.LanguageStandard.NONE) {
-            xml.appendNode("ItemDefinitionGroup", [Condition: configCondition]).appendNode("ClCompile").appendNode("LanguageStandard", configuration.languageStandard.value)
+            getXml().appendNode("ItemDefinitionGroup", singletonMap("Condition", configCondition))
+                .appendNode("ClCompile")
+                .appendNode("LanguageStandard", configuration.languageStandard.getValue());
         }
     }
 
-    private Node getConfigurations() {
-        return xml.ItemGroup.find({ it.'@Label' == 'ProjectConfigurations' }) as Node
+    private Node getItemGroupForLabel(String label) {
+        return getChildren(getXml(), "ItemGroup").stream()
+            .filter(node -> node.attribute("Label").equals(label))
+            .findFirst().get();
+    }
+
+    private Node getPropertyGroupForLabel(String label) {
+        return getChildren(getXml(), "PropertyGroup").stream()
+            .filter(node -> node.attribute("Label").equals(label))
+            .findFirst().get();
+    }
+
+    private Node getImportsForProject(String project) {
+        return getChildren(getXml(), "Import").stream()
+            .filter(node -> node.attribute("Project").equals(project))
+            .findFirst().get();
     }
 
     private List<String> toPath(Set<File> files) {
-        return files.collect({ toPath(it) })
+        return files.stream().map(this::toPath).collect(toList());
     }
 
-    private String toPath(File it) {
-        fileLocationResolver.transform(it)
+    private String toPath(File file) {
+        return fileLocationResolver.transform(file);
     }
 
     @NonNullApi
-    static class ConfigurationSpec {
+    public static class ConfigurationSpec {
         @Input
-        final String name
+        public final String name;
         @Input
-        final String configurationName
+        public final String configurationName;
         @Input
-        final String projectName
+        public final String projectName;
         @Input
-        final String platformName
+        public final String platformName;
         @Input
-        final String type
+        public final String type;
         @Input
-        final boolean buildable
+        public final boolean buildable;
         @Input
-        final boolean debuggable
+        public final boolean debuggable;
         @Internal
-        final Set<File> includeDirs
+        public final Set<File> includeDirs;
         @Input
         @Optional
-        final String buildTaskPath
+        public final String buildTaskPath;
         @Input
         @Optional
-        final String cleanTaskPath
+        public final String cleanTaskPath;
         @Input
-        final List<String> compilerDefines
+        public final List<String> compilerDefines;
         @Internal
         @Nullable
-        final File outputFile
+        public final File outputFile;
         @Input
         @Optional
-        final VisualStudioTargetBinary.LanguageStandard languageStandard
+        public final VisualStudioTargetBinary.LanguageStandard languageStandard;
 
-        ConfigurationSpec(String name, String configurationName, String projectName, String platformName, String type, boolean buildable, boolean debuggable, Set<File> includeDirs, @Nullable String buildTaskPath, @Nullable String cleanTaskPath, List<String> compilerDefines, @Nullable File outputFile, @Nullable VisualStudioTargetBinary.LanguageStandard languageStandard) {
-            this.name = name
-            this.configurationName = configurationName
-            this.projectName = projectName
-            this.platformName = platformName
-            this.type = type
-            this.buildable = buildable
-            this.debuggable = debuggable
-            this.includeDirs = includeDirs
-            this.buildTaskPath = buildTaskPath
-            this.cleanTaskPath = cleanTaskPath
-            this.compilerDefines = compilerDefines
-            this.outputFile = outputFile
-            this.languageStandard = languageStandard
+        public ConfigurationSpec(String name, String configurationName, String projectName, String platformName, String type, boolean buildable, boolean debuggable, Set<File> includeDirs, @Nullable String buildTaskPath, @Nullable String cleanTaskPath, List<String> compilerDefines, @Nullable File outputFile, @Nullable VisualStudioTargetBinary.LanguageStandard languageStandard) {
+            this.name = name;
+            this.configurationName = configurationName;
+            this.projectName = projectName;
+            this.platformName = platformName;
+            this.type = type;
+            this.buildable = buildable;
+            this.debuggable = debuggable;
+            this.includeDirs = includeDirs;
+            this.buildTaskPath = buildTaskPath;
+            this.cleanTaskPath = cleanTaskPath;
+            this.compilerDefines = compilerDefines;
+            this.outputFile = outputFile;
+            this.languageStandard = languageStandard;
         }
 
         @Input
-        Collection<String> getIncludeDirPaths() {
-            return includeDirs.collect { it.absolutePath }
+        public Collection<String> getIncludeDirPaths() {
+            return includeDirs.stream().map(File::getAbsolutePath).collect(toList());
         }
 
         @Input
         @Optional
-        String getOutputFilePath() {
-            return outputFile?.absolutePath
+        @Nullable
+        public String getOutputFilePath() {
+            if (outputFile != null) {
+                return outputFile.getAbsolutePath();
+            }
+            return null;
         }
     }
 }
