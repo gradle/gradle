@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl
 
+import com.google.common.collect.ImmutableList
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.state.ManagedFactoryRegistry
@@ -31,16 +32,35 @@ final class IsolatedListTest extends Specification {
     def managedFactoryRegistry = Mock(ManagedFactoryRegistry)
     def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, managedFactoryRegistry)
 
-    def "can coerce back to list"() {
+    def "can coerce back to list #list"() {
         given:
-        def list = ["a", "b", "c"]
         def isolated = isolatableFactory.isolate(list)
 
         when:
-        def result = isolated.coerce(List.class)
+        def result = isolated.coerce(ArrayList)
 
         then:
-        result instanceof List
         result == list
+
+        where:
+        list << [["a", "b", "c"], [1, 2, 3]]
+    }
+
+    def "can't coerce list to non-constructable/populatable list type or other invalid type #list -> #invalidType"() {
+        given:
+        def isolated = isolatableFactory.isolate(list)
+
+        when:
+        def result = isolated.coerce(ImmutableList)
+
+        then:
+        result == null
+
+        where:
+        list                | invalidType
+        ["a", "b", "c"]     | Integer
+        ["a", "b", "c"]     | String
+        ["a", "b", "c"]     | List
+        ["a", "b", "c"]     | ImmutableList
     }
 }
