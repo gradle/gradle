@@ -103,13 +103,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         } else if (location instanceof TaskLocation) {
             return new DevelocityTaskLocation((TaskLocation) location);
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
-            PluginIdLocation pluginIdLocation = (PluginIdLocation) location;
-            if (pluginIdLocation.getPluginId() != null) {
-                return new DevelocityPluginIdLocation(pluginIdLocation.getPluginId());
-            } else {
-                // Ignore "empty" plugin id locations
-                return null;
-            }
+            return new DevelocityPluginIdLocation((PluginIdLocation) location);
         }
         throw new IllegalArgumentException("Unknown location type: " + location.getClass() + ", location: '" + location + "'");
     }
@@ -296,20 +290,20 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
 
     private static class DevelocityPluginIdLocation implements org.gradle.operations.problems.PluginIdLocation {
 
-        private final String pluginId;
+        private final PluginIdLocation pluginId;
 
-        public DevelocityPluginIdLocation(String pluginId) {
+        public DevelocityPluginIdLocation(PluginIdLocation pluginId) {
             this.pluginId = pluginId;
         }
 
         @Override
         public String getPluginId() {
-            return pluginId;
+            return pluginId.getPluginId();
         }
 
         @Override
         public String getDisplayName() {
-            return "plugin '" + pluginId + "'";
+            return "plugin '" + pluginId.getPluginId() + "'";
         }
     }
 }
