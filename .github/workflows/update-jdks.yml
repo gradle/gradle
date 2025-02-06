@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   update-jdks:
+    if: github.repository == 'gradle/gradle'
     permissions:
       contents: write
       pull-requests: write
