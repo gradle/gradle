@@ -20,6 +20,9 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.util.internal.RedirectStdOutAndErr
 import org.junit.Rule
+import spock.lang.Timeout
+
+import java.util.concurrent.TimeUnit
 
 @InspectsBuildOutput
 class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrationTest {
@@ -88,6 +91,19 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         }
     }
 
+    @Timeout(value = 120, unit = TimeUnit.SECONDS)
+    def "can run task with large output without OOM"() {
+        given:
+        buildFile << printsALotTask()
+
+        when:
+        runner('printsALot')
+            .build()
+
+        then:
+        noExceptionThrown()
+    }
+
     def "output is captured if unexpected build exception is thrown"() {
         given:
         Writer standardOutput = new StringWriter()
@@ -121,6 +137,20 @@ class GradleRunnerCaptureOutputIntegrationTest extends BaseGradleRunnerIntegrati
         """
             task helloWorld {
                 doLast {
+                    println '$OUT'
+                    System.err.println '$ERR'
+                }
+            }
+        """
+    }
+
+    static String printsALotTask() {
+        """
+            task printsALot {
+                doLast {
+                    for(int i in 1..1000000) {
+                        println("\${i} aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+                    }
                     println '$OUT'
                     System.err.println '$ERR'
                 }
