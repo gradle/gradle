@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl.serialize
 
+import org.gradle.api.GradleException
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.FileSystemTreeDecoder
@@ -59,8 +60,11 @@ class DefaultFileSystemTreeDecoder(
 
     private val files = mutableMapOf<Int, File>()
 
-    override fun readFile(readContext: ReadContext): File =
-        files[readContext.readSmallInt()]!!
+    override fun readFile(readContext: ReadContext): File {
+        val index = readContext.readSmallInt()
+        val file = files[index] ?: throw GradleException("Cannot read a file with index=$index")
+        return file
+    }
 
     override suspend fun readTree() {
         files.putAll(prefixedTree.buildIndexes(globalContext.readPrefixedTreeNode()))
