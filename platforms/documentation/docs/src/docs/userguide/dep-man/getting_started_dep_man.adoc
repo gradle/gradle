@@ -53,25 +53,25 @@ In this example, Gradle fetches the `guava` and `juneau-marshall` _dependencies_
 
 If you want to understand the basics of dependency management and you are new to Gradle, start <<declaring_dependencies.adoc#one-declaring-dependencies,here>>.
 
-== 1. Declaring Dependencies
+=== 1. Declaring Dependencies
 
 You can add external libraries to your Java project, such as `Guava`.
 These libraries are <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,_dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
 
-== 2. Declaring Repositories
+=== 2. Declaring Repositories
 
 You can <<declaring_repositories_basics.adoc#declaring-repositories-basics,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
 During a build, Gradle locates and downloads the dependencies, a process called _dependency resolution_.
 
-== 3. Centralizing Dependencies
+=== 3. Centralizing Dependencies
 
 To keep dependencies and their versions declared in a <<platforms.adoc#platforms,single, manageable location>> (i.e., centralized), you can use _platforms_ and _version catalogs_.
 
 A _platform_ is a set of modules intended to be used together.
 A _version catalog_ is a centralized list of dependency coordinates that can be referenced in multiple projects.
 
-== 4. Managing Dependencies
+=== 4. Managing Dependencies
 Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
 This usually leads to failing builds.
 
@@ -79,17 +79,6 @@ You can manage conflicts using <<resolution_rules.adoc#using-resolution-rules,re
 
 == Advanced Concepts
 
-== 1. Understanding Dependency Resolution
+=== 1. Understanding Dependency Resolution
 
-In order to influence how Gradle resolves dependencies, it's important to understand <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,how it works>>. This section covers variants, attributes, capabilities and dependency caching.
-
-=== Graph Resolution
-=== Artifact Resolution
-
-== 2. Controlling Dependency Resolution
-
-Once you have a grasp of how dependency resolution works, you can <<dependency_resolution_basics.adoc#dependency-resolution-basics,view, control and influence it>>. This section covers graph and artifact resolution, as well as artifact transforms.
-
-== 3. Publishing Libraries
-
-If you are considering publishing your library for consumption as a dependency, check out our <<publishing_setup.adoc#publishing_components,publishing chapter>>.
+In order to influence how Gradle resolves dependencies, it's important to understand <<dependency_resolution_basics.adoc#dependency-resolution-basics,how it works>>.
