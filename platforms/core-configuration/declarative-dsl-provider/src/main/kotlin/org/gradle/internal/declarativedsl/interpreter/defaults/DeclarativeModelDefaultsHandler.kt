@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator.defaults
+package org.gradle.internal.declarativedsl.interpreter.defaults
 
 import org.gradle.api.Plugin
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -24,9 +24,12 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.defaults.softwareTypeRegistryBasedModelDefaultsRepository
-import org.gradle.internal.declarativedsl.evaluator.DeclarativeDslNotEvaluatedException
+import org.gradle.internal.declarativedsl.interpreter.DeclarativeDslNotEvaluatedException
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
+import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsHandler
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsRepository
+import org.gradle.internal.declarativedsl.evaluator.defaults.ModelDefaultsResolutionResults
 import org.gradle.internal.declarativedsl.evaluator.runner.AbstractAnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.Evaluated
