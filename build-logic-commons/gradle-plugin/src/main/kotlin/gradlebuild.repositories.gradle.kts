@@ -23,8 +23,7 @@ repositories {
             includeGroup("org.gradle.fileevents")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
-            includeModule("org.gradle.buildtool.internal", "configuration-cache-report")
-            includeModule("org.gradle.buildtool.internal", "gradle-ide-starter")
+            includeGroup("org.gradle.buildtool.internal")
         }
     }
     google {
