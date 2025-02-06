@@ -89,7 +89,6 @@ class FunctionalTest(
 
     applyTestDefaults(
         model, this, testTasks,
-        dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
         os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
         arch = testCoverage.arch,

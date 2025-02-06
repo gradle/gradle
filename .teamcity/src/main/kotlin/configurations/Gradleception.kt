@@ -6,7 +6,6 @@ import common.Os
 import common.buildScanTagParam
 import common.buildToolGradleParameters
 import common.customGradle
-import common.dependsOn
 import common.functionalTestParameters
 import common.getBuildScanCustomValueParam
 import common.gradleWrapper
@@ -14,7 +13,6 @@ import common.requiresNotEc2Agent
 import common.requiresNotSharedHost
 import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildSteps
-import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import model.CIBuildModel
@@ -62,11 +60,6 @@ class Gradleception(
         // Gradleception is a heavy build which runs ~40m on EC2 agents but only ~20m on Hetzner agents
         requiresNotEc2Agent()
         requiresNotSharedHost()
-    }
-
-    dependencies {
-        // If SanityCheck fails, Gradleception will definitely fail because the last build step is also sanityCheck
-        dependsOn(RelativeId(SanityCheck.buildTypeId(model)))
     }
 
     /*

@@ -14,7 +14,6 @@ import common.buildToolGradleParameters
 import common.checkCleanM2AndAndroidUserHome
 import common.cleanUpGitUntrackedFilesAndDirectories
 import common.compileAllDependency
-import common.dependsOn
 import common.functionalTestParameters
 import common.gradleWrapper
 import common.killProcessStep
@@ -24,13 +23,11 @@ import jetbrains.buildServer.configs.kotlin.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.RelativeId
 import jetbrains.buildServer.configs.kotlin.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.commitStatusPublisher
 import jetbrains.buildServer.configs.kotlin.buildFeatures.parallelTests
 import jetbrains.buildServer.configs.kotlin.buildFeatures.pullRequests
 import model.CIBuildModel
-import model.StageName
 
 const val GRADLE_RUNNER_STEP_NAME = "GRADLE_RUNNER"
 const val GRADLE_RETRY_RUNNER_STEP_NAME = "GRADLE_RETRY_RUNNER"
@@ -149,7 +146,6 @@ fun applyDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    dependsOnQuickFeedbackLinux: Boolean = false,
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
@@ -169,7 +165,7 @@ fun applyDefaults(
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
-    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
+    applyDefaultDependencies(model, buildType)
 }
 
 private fun BaseGradleBuildType.addRetrySteps(
@@ -190,7 +186,6 @@ fun applyTestDefaults(
     model: CIBuildModel,
     buildType: BaseGradleBuildType,
     gradleTasks: String,
-    dependsOnQuickFeedbackLinux: Boolean = false,
     buildJvm: Jvm = BuildToolBuildJvm,
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
@@ -217,16 +212,10 @@ fun applyTestDefaults(
         checkCleanM2AndAndroidUserHome(os, buildType)
     }
 
-    applyDefaultDependencies(model, buildType, dependsOnQuickFeedbackLinux)
+    applyDefaultDependencies(model, buildType)
 }
 
-fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, dependsOnQuickFeedbackLinux: Boolean) {
-    if (dependsOnQuickFeedbackLinux) {
-        // wait for quick feedback phase to finish successfully
-        buildType.dependencies {
-            dependsOn(RelativeId(stageTriggerId(model, StageName.QUICK_FEEDBACK_LINUX_ONLY)))
-        }
-    }
+fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType) {
     if (buildType !is CompileAll) {
         buildType.dependencies {
             compileAllDependency(CompileAll.buildTypeId(model))

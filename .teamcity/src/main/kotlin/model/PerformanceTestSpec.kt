@@ -24,7 +24,6 @@ interface PerformanceTestBuildSpec {
     val type: PerformanceTestType
     val os: Os
     val arch: Arch
-    val withoutDependencies: Boolean
 
     fun asConfigurationId(model: CIBuildModel, bucket: String): String
     fun channel(): String
@@ -53,7 +52,6 @@ data class PerformanceTestCoverage(
     override val arch: Arch = Arch.AMD64,
     val numberOfBuckets: Int = 40,
     private val oldUuid: String? = null,
-    override val withoutDependencies: Boolean = false,
     override val failsStage: Boolean = true
 ) : PerformanceTestBuildSpec, PerformanceTestProjectSpec {
     override
@@ -66,7 +64,7 @@ data class PerformanceTestCoverage(
 
     override
     fun asName(): String =
-        "${type.displayName} - ${os.asName()}${if (withoutDependencies) " without dependencies" else ""}"
+        "${type.displayName} - ${os.asName()}"
 
     override
     fun channel() =
@@ -119,9 +117,6 @@ data class FlameGraphGeneration(
     ) : PerformanceTestBuildSpec {
         override
         val type: PerformanceTestType = PerformanceTestType.adHoc
-
-        override
-        val withoutDependencies: Boolean = true
 
         override
         fun asConfigurationId(model: CIBuildModel, bucket: String): String =
