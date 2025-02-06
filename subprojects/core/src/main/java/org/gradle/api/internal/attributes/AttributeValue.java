@@ -18,8 +18,6 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 
-import javax.annotation.Nullable;
-
 /**
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:
  * <ul>
@@ -38,7 +36,6 @@ public interface AttributeValue<T> {
             return false;
         }
 
-        @Nullable
         @Override
         public <S> S coerce(Attribute<S> type) {
             throw new UnsupportedOperationException("coerce() should not be called on a missing attribute value");
