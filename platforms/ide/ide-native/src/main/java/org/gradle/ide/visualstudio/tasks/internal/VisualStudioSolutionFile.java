@@ -16,9 +16,9 @@
 
 package org.gradle.ide.visualstudio.tasks.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.ide.visualstudio.TextProvider;
 import org.gradle.plugins.ide.internal.generator.AbstractPersistableConfigurationObject;
@@ -179,29 +179,30 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
     }
 
     public static class ConfigurationSpec {
-        @Input
-        final String name;
-        @Input
-        final boolean buildable;
+        private final String name;
+        private final boolean buildable;
 
         public ConfigurationSpec(String name, boolean buildable) {
             this.name = name;
             this.buildable = buildable;
         }
 
-        @Internal
+        @Input
         String getName() {
             return name;
+        }
+
+        @Input
+        public boolean getBuildable() {
+            return buildable;
         }
     }
 
     public static class ProjectSpec {
-        @Input
-        final String name;
-        @Internal
+        private final String name;
+        @VisibleForTesting
         final File projectFile;
-        @Nested
-        final List<ConfigurationSpec> configurations;
+        private final List<ConfigurationSpec> configurations;
 
         public ProjectSpec(String name, File projectFile, List<ConfigurationSpec> configurations) {
             this.name = name;
@@ -210,8 +211,18 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
         }
 
         @Input
+        public String getName() {
+            return name;
+        }
+
+        @Input
         public String getProjectFilePath() {
             return projectFile.getAbsolutePath();
+        }
+
+        @Nested
+        public List<ConfigurationSpec> getConfigurations() {
+            return configurations;
         }
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.ide.visualstudio.tasks.internal;
 import groovy.util.Node;
 import org.gradle.api.Transformer;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary;
 import org.gradle.internal.xml.XmlTransformer;
@@ -87,10 +86,10 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
 
     public void addConfiguration(ConfigurationSpec configuration) {
         Node configNode = getItemGroupForLabel("ProjectConfigurations")
-            .appendNode("ProjectConfiguration", singletonMap("Include", configuration.name));
+            .appendNode("ProjectConfiguration", singletonMap("Include", configuration.getName()));
         configNode.appendNode("Configuration", configuration.configurationName);
         configNode.appendNode("Platform", configuration.platformName);
-        String configCondition = "'$(Configuration)|$(Platform)'=='" + configuration.name + "'";
+        String configCondition = "'$(Configuration)|$(Platform)'=='" + configuration.getName() + "'";
 
         String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)";
         Node configGroup = getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props").parent()
@@ -167,36 +166,19 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     }
 
     public static class ConfigurationSpec {
-        @Input
-        public final String name;
-        @Input
-        public final String configurationName;
-        @Input
-        public final String projectName;
-        @Input
-        public final String platformName;
-        @Input
-        public final String type;
-        @Input
-        public final boolean buildable;
-        @Input
-        public final boolean debuggable;
-        @Internal
-        public final Set<File> includeDirs;
-        @Input
-        @Optional
-        public final String buildTaskPath;
-        @Input
-        @Optional
-        public final String cleanTaskPath;
-        @Input
-        public final List<String> compilerDefines;
-        @Internal
-        @Nullable
-        public final File outputFile;
-        @Input
-        @Optional
-        public final VisualStudioTargetBinary.LanguageStandard languageStandard;
+        private final String name;
+        private final String configurationName;
+        private final String projectName;
+        private final String platformName;
+        private final String type;
+        private final boolean buildable;
+        private final boolean debuggable;
+        private final Set<File> includeDirs;
+        private final String buildTaskPath;
+        private final String cleanTaskPath;
+        private final List<String> compilerDefines;
+        private final File outputFile;
+        private final VisualStudioTargetBinary.LanguageStandard languageStandard;
 
         public ConfigurationSpec(String name, String configurationName, String projectName, String platformName, String type, boolean buildable, boolean debuggable, Set<File> includeDirs, @Nullable String buildTaskPath, @Nullable String cleanTaskPath, List<String> compilerDefines, @Nullable File outputFile, @Nullable VisualStudioTargetBinary.LanguageStandard languageStandard) {
             this.name = name;
@@ -212,6 +194,67 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
             this.compilerDefines = compilerDefines;
             this.outputFile = outputFile;
             this.languageStandard = languageStandard;
+        }
+
+        @Input
+        public String getName() {
+            return name;
+        }
+
+        @Input
+        public String getConfigurationName() {
+            return configurationName;
+        }
+
+        @Input
+        public String getProjectName() {
+            return projectName;
+        }
+
+        @Input
+        public String getPlatformName() {
+            return platformName;
+        }
+
+        @Input
+        public String getType() {
+            return type;
+        }
+
+        @Input
+        public boolean isBuildable() {
+            return buildable;
+        }
+
+        @Input
+        public boolean isDebuggable() {
+            return debuggable;
+        }
+
+        @Input
+        @Optional
+        @Nullable
+        public String getBuildTaskPath() {
+            return buildTaskPath;
+        }
+
+        @Input
+        @Optional
+        @Nullable
+        public String getCleanTaskPath() {
+            return cleanTaskPath;
+        }
+
+        @Input
+        public List<String> getCompilerDefines() {
+            return compilerDefines;
+        }
+
+        @Input
+        @Optional
+        @Nullable
+        public VisualStudioTargetBinary.LanguageStandard getLanguageStandard() {
+            return languageStandard;
         }
 
         @Input
