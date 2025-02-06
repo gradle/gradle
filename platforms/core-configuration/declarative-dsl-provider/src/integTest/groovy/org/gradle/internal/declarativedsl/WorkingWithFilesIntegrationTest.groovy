@@ -19,7 +19,9 @@ package org.gradle.internal.declarativedsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
 class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
@@ -30,7 +32,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    def 'set #name (overwrite defaults: #overwriteDefaults)'() {
+    def 'set #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
         withSoftwareTypePlugins(
             extensionClassContent,
@@ -38,29 +40,36 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        settingsFile() << pluginsFromIncludedBuild
+        settingsFile() << getPluginsFromIncludedBuild(setDefaults)
 
-        buildFileForProject("a") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(overwriteDefaults)
-        buildFileForProject("b") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(overwriteDefaults)
+        buildFileForProject("a") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setValues)
+        buildFileForProject("b") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setValues)
 
         when:
         run("printTestSoftwareTypeExtensionConfiguration")
 
+
         then:
+        def expectedNamePrefix = setValues ? "some" : "default"
         assertThatDeclaredValuesAreSetProperly("a", expectedNamePrefix)
         assertThatDeclaredValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
-        extensionClassContent                           | name                                                  | overwriteDefaults     | expectedNamePrefix
-        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true                  | "some"
-        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | false                 | "default"
-        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | true                  | "some"
-        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | false                 | "default"
-        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | true                  | "some"
-        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | false                 | "default"
+        extensionClassContent                           | name                                                  | setDefaults | setValues
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | false       | true
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true        | false
+        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true        | true
+        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | false       | true
+        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | true        | false
+        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | true        | true
+        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | false       | true
+        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | true        | false
+        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | true        | true
     }
 
-    def "using a read-only property by mistake gives a helpful error message for #name"() {
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is specific to the Declarative DSL")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is specific to the Declarative DSL")
+    def "using a read-only property by mistake gives a helpful error message for #name (set defaults: #setDefaults)"() {
         given:
         withSoftwareTypePlugins(
             extensionClassContent,
@@ -68,186 +77,197 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << getPluginsFromIncludedBuild(setDefaults)
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFileForProject("a") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(true)
+        buildFileForProject("b") << ""
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        failureCauseContains("Failed to interpret the declarative DSL file '${file("build.gradle.dcl").path}':")
+        failureCauseContains("Failed to interpret the declarative DSL file '${(setDefaults ? settingsFile() : buildFileForProject("a")).path}':")
         failureCauseContains("Failures in resolution:")
         failureCauseContains("assignment to property '$propName' with read-only type '$name'")
 
         where:
-        extensionClassContent                           | name              | propName
-        withReadOnlyDirectoryProperty                   | "Directory"       | "dir"
-        withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"
+        extensionClassContent                           | name              | propName  | setDefaults
+        withReadOnlyDirectoryProperty                   | "Directory"       | "dir"     | true
+        withReadOnlyDirectoryProperty                   | "Directory"       | "dir"     | false
+        withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"    | true
+        withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"    | false
     }
 
     private static String getWithFileSystemLocationProperties() {
         """
-                package org.gradle.test;
+            package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                import org.gradle.api.file.DirectoryProperty;
-                import org.gradle.api.file.RegularFileProperty;
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.file.RegularFileProperty;
+
+            @Restricted
+            public abstract class TestSoftwareTypeExtension {
+                @Restricted
+                public abstract DirectoryProperty getDir();
 
                 @Restricted
-                public abstract class TestSoftwareTypeExtension {
-                    @Restricted
-                    public abstract DirectoryProperty getDir();
+                public abstract RegularFileProperty getFile();
 
-                    @Restricted
-                    public abstract RegularFileProperty getFile();
-
-                    @Override
-                    public String toString() {
-                        return (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
-                            (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "");
-                    }
+                @Override
+                public String toString() {
+                    return (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
+                        (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "");
                 }
-            """
+            }
+        """
     }
 
     private static String getWithReadOnlyDirectoryProperty() {
         """
-                package org.gradle.test;
+            package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFileProperty;
-                import org.gradle.api.provider.Property;
+            import org.gradle.api.file.Directory;
+            import org.gradle.api.file.RegularFileProperty;
+            import org.gradle.api.provider.Property;
+
+            @Restricted
+            public interface TestSoftwareTypeExtension {
+                @Restricted
+                Directory getDir();
 
                 @Restricted
-                public interface TestSoftwareTypeExtension {
-                    @Restricted
-                    Directory getDir();
-
-                    @Restricted
-                    RegularFileProperty getFile();
-                }
-            """
+                RegularFileProperty getFile();
+            }
+        """
     }
 
     private static String getWithReadOnlyRegularFileProperty() {
         """
-                package org.gradle.test;
+            package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                import org.gradle.api.file.DirectoryProperty;
-                import org.gradle.api.file.RegularFile;
-                import org.gradle.api.provider.Property;
+            import org.gradle.api.file.DirectoryProperty;
+            import org.gradle.api.file.RegularFile;
+            import org.gradle.api.provider.Property;
+
+            @Restricted
+            public interface TestSoftwareTypeExtension {
+                @Restricted
+                DirectoryProperty getDir();
 
                 @Restricted
-                public interface TestSoftwareTypeExtension {
-                    @Restricted
-                    DirectoryProperty getDir();
-
-                    @Restricted
-                    RegularFile getFile();
-                }
-            """
+                RegularFile getFile();
+            }
+        """
     }
 
     private static String getWithPropertiesOfFileSystemLocations() {
         """
-                package org.gradle.test;
+            package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFile;
-                import org.gradle.api.model.ObjectFactory;
-                import org.gradle.api.provider.Property;
+            import org.gradle.api.file.Directory;
+            import org.gradle.api.file.RegularFile;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.api.provider.Property;
 
-                import javax.inject.Inject;
+            import javax.inject.Inject;
+
+            @Restricted
+            public abstract class TestSoftwareTypeExtension {
+
+                private final Property<Directory> dir;
+                private final Property<RegularFile> file;
+
+                @Inject
+                public TestSoftwareTypeExtension(ObjectFactory objects) {
+                    dir = objects.directoryProperty();
+                    file = objects.fileProperty();
+                }
 
                 @Restricted
-                public abstract class TestSoftwareTypeExtension {
-
-                    private final Property<Directory> dir;
-                    private final Property<RegularFile> file;
-
-                    @Inject
-                    public TestSoftwareTypeExtension(ObjectFactory objects) {
-                        dir = objects.directoryProperty();
-                        file = objects.fileProperty();
-                    }
-
-                    @Restricted
-                    public Property<Directory> getDir() {
-                        return dir;
-                    }
-
-                    @Restricted
-                    public Property<RegularFile> getFile() {
-                        return file;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return (dir.isPresent() ? "dir = " + dir.getOrNull() + "\\n" : "") +
-                            (file.isPresent() ? "file = " + file.getOrNull() + "\\n" : "");
-                    }
+                public Property<Directory> getDir() {
+                    return dir;
                 }
-            """
+
+                @Restricted
+                public Property<RegularFile> getFile() {
+                    return file;
+                }
+
+                @Override
+                public String toString() {
+                    return (dir.isPresent() ? "dir = " + dir.getOrNull() + "\\n" : "") +
+                        (file.isPresent() ? "file = " + file.getOrNull() + "\\n" : "");
+                }
+            }
+        """
     }
 
     private static String getWithJavaBeanPropertiesOfFileSystemLocations() {
         """
-                package org.gradle.test;
+            package org.gradle.test;
 
-                import org.gradle.declarative.dsl.model.annotations.Restricted;
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
 
-                import org.gradle.api.file.Directory;
-                import org.gradle.api.file.RegularFile;
+            import org.gradle.api.file.Directory;
+            import org.gradle.api.file.RegularFile;
 
-                import javax.inject.Inject;
+            import javax.inject.Inject;
+
+            @Restricted
+            abstract class TestSoftwareTypeExtension {
+
+                private Directory dir;
+                private RegularFile file;
+
+                @Inject
+                public TestSoftwareTypeExtension() {
+                }
 
                 @Restricted
-                abstract class TestSoftwareTypeExtension {
-
-                    private Directory dir;
-                    private RegularFile file;
-
-                    @Inject
-                    public TestSoftwareTypeExtension() {
-                    }
-
-                    @Restricted
-                    public Directory getDir() {
-                        return dir;
-                    }
-
-                    @Restricted
-                    public void setDir(Directory dir) {
-                        this.dir = dir;
-                    }
-
-                    @Restricted
-                    public RegularFile getFile() {
-                        return file;
-                    }
-
-                    @Restricted
-                    public void setFile(RegularFile file) {
-                        this.file = file;
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "dir = " + dir + "\\nfile = " + file;
-                    }
+                public Directory getDir() {
+                    return dir;
                 }
-            """
+
+                @Restricted
+                public void setDir(Directory dir) {
+                    this.dir = dir;
+                }
+
+                @Restricted
+                public RegularFile getFile() {
+                    return file;
+                }
+
+                @Restricted
+                public void setFile(RegularFile file) {
+                    this.file = file;
+                }
+
+                @Override
+                public String toString() {
+                    return "dir = " + dir + "\\nfile = " + file;
+                }
+            }
+        """
     }
 
-    private static String getPluginsFromIncludedBuild() {
+    private static String getPluginsFromIncludedBuild(boolean setDefaults) {
+        def defaultsBlock = setDefaults ? """
+            defaults {
+                testSoftwareType {
+                    dir = layout.projectDirectory.dir("defaultDir")
+                    file = layout.settingsDirectory.file("defaultFile")
+                }
+            }
+        """ : ""
         return """
             pluginManagement {
                 includeBuild("plugins")
@@ -257,12 +277,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             }
             include("a")
             include("b")
-            defaults {
-                testSoftwareType {
-                    dir = layout.projectDirectory.dir("defaultDir")
-                    file = layout.settingsDirectory.file("defaultFile")
-                }
-            }
+            $defaultsBlock
         """
     }
 
