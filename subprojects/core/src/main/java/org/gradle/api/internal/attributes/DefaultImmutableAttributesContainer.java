@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Named;
@@ -148,8 +149,8 @@ final class DefaultImmutableAttributesContainer extends AbstractAttributeContain
     }
 
     @Nullable
-    /* package */ <T> Isolatable<T> getIsolatableAttribute(@Nullable Attribute<T> key) {
-        DefaultImmutableAttributesContainer attributes = key != null ? hierarchyByName.get(key.getName()) : null;
+    /* package */ <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
+        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(key.getName());
         return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
 
@@ -176,13 +177,13 @@ final class DefaultImmutableAttributesContainer extends AbstractAttributeContain
         return attributes == null ? MISSING : attributes;
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
-    @Nullable
     public Object get() {
+        Preconditions.checkState(value != null, "value should never be null when get() is called");
         return value.isolate();
     }
 
-    @SuppressWarnings("DataFlowIssue")
     @Nullable
     private String desugar() {
         // We support desugaring for all non-primitive types supported in GradleModuleMetadataWriter.writeAttributes(), which are:
@@ -206,7 +207,6 @@ final class DefaultImmutableAttributesContainer extends AbstractAttributeContain
     }
 
     @Override
-    @Nullable
     public <S> S coerce(Attribute<S> otherAttribute) {
         S s = Cast.uncheckedCast(coercionCache.get(otherAttribute));
         if (s == null) {
@@ -216,9 +216,6 @@ final class DefaultImmutableAttributesContainer extends AbstractAttributeContain
         return s;
     }
 
-
-    @SuppressWarnings("DataFlowIssue")
-    @Nullable
     private <S> S uncachedCoerce(Attribute<S> otherAttribute) {
         Class<S> otherAttributeType = otherAttribute.getType();
         // If attribute types are already compatible, go with it. There are two cases covered here:
