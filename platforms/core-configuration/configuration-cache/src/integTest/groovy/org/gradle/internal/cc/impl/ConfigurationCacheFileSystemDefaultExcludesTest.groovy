@@ -69,11 +69,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         def excludedByBuildScriptFileCopy = file("build/output/${excludedByBuildScriptFileName}")
         excludedByBuildScriptFile.text = "input"
 
-        if (scriptLanguage == ScriptingLanguages.KOTLIN) {
-            buildKotlinFile << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
-        } else {
-            buildFile << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
-        }
+        getBuildFile(scriptLanguage) << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
 
         when:
         configurationCacheRun spec.copyTask

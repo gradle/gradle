@@ -30,8 +30,8 @@ import spock.lang.Issue
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
-    protected String getDefaultBuildFileName() {
-        return 'build.gradle.kts'
+    TestFile getBuildFile() {
+        return super.getBuildKotlinFile()
     }
 
     def "implementations in nested Action property in Kotlin build script is tracked"() {
