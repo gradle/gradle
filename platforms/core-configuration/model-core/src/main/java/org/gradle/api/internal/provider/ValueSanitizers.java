@@ -67,7 +67,7 @@ public class ValueSanitizers {
             @Nullable
             public Object sanitize(@Nullable Object value) {
                 if (value instanceof CharSequence) {
-                    DeprecationLogger.deprecateBehaviour(String.format("Assigning String value '%s' to property of enum type '%s'.", value, enumType))
+                    DeprecationLogger.deprecateBehaviour(String.format("Assigning String value '%s' to property of enum type '%s'.", value, enumType.getCanonicalName()))
                         .willBecomeAnErrorInGradle10()
                         .withUpgradeGuideSection(8, "deprecated_string_to_enum_coercion_for_rich_properties")
                         .nagUser();
