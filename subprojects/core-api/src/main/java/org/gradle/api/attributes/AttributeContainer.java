@@ -41,7 +41,6 @@ import java.util.Set;
 @HasInternalProtocol
 @UsedByScanPlugin
 public interface AttributeContainer extends HasAttributes {
-
     /**
      * Returns the set of attribute keys of this container.
      * @return the set of attribute keys.
@@ -76,14 +75,17 @@ public interface AttributeContainer extends HasAttributes {
     <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 
     /**
-     * Returns the value of an attribute found in this container, or <code>null</code> if
+     * Returns the value of an attribute found in this container, or {@code null} if
      * this container doesn't have it.
+     * <p>
+     * Supplying a {@code null} argument is deprecated and will return {@code null}.
+     *
      * @param <T> the type of the attribute
-     * @param key the attribute key
-     * @return the attribute value, or null if not found
+     * @param key the attribute key (should not be {@code null})
+     * @return the attribute value, or {@code null} if not found
      */
     @Nullable
-    <T> T getAttribute(@Nullable Attribute<T> key);
+    <T> T getAttribute(Attribute<T> key);
 
     /**
      * Returns true if this container is empty.
@@ -97,5 +99,4 @@ public interface AttributeContainer extends HasAttributes {
      * @return true if this attribute is found in this container.
      */
     boolean contains(Attribute<?> key);
-
 }

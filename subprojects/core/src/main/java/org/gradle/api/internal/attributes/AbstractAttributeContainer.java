@@ -18,7 +18,9 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -51,4 +53,25 @@ public abstract class AbstractAttributeContainer implements AttributeContainerIn
     public abstract boolean equals(Object o);
     @Override
     public abstract int hashCode();
+
+    /**
+     * Verifies that the given key is a valid attribute request.
+     * <p>
+     * Requesting null keys is not allowed, and is deprecated.
+     *
+     * @param key the requested attribute to validate
+     * @return {@code true} is valid request; {@code false} otherwise
+     */
+    protected boolean isValidAttributeRequest(@Nullable Attribute<?> key) {
+        if (key == null) {
+            DeprecationLogger.deprecateInvocation("getAttribute with a null key")
+                .withAdvice("Don't request attributes using null keys.")
+                .willBecomeAnErrorInGradle10()
+                .undocumented()
+                .nagUser();
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

@@ -33,7 +33,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-final class DefaultImmutableAttributesContainer implements ImmutableAttributes, AttributeValue<Object> {
+final class DefaultImmutableAttributesContainer extends AbstractAttributeContainer implements ImmutableAttributes, AttributeValue<Object> {
     private static final Comparator<Attribute<?>> ATTRIBUTE_NAME_COMPARATOR = Comparator.comparing(Attribute::getName);
     // Coercion is an expensive process, so we cache the result of coercing to other attribute types.
     // We can afford using a hashmap here because attributes are interned, and their lifetime doesn't
@@ -84,7 +84,7 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -126,9 +126,14 @@ final class DefaultImmutableAttributesContainer implements ImmutableAttributes, 
         throw new UnsupportedOperationException("Mutation of attributes is not allowed");
     }
 
+    @SuppressWarnings({"ConstantValue"})
     @Override
     @Nullable
-    public <T> T getAttribute(@Nullable Attribute<T> key) {
+    public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
+
         Isolatable<T> isolatable = getIsolatableAttribute(key);
         if (isolatable == null) {
             return null;
