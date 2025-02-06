@@ -19,7 +19,9 @@ package org.gradle.internal.declarativedsl.software
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataConstructor
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultDataMemberFunction
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
@@ -29,12 +31,13 @@ import org.gradle.internal.declarativedsl.evaluationSchema.FixedTypeDiscovery
 import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionComponent
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.evaluator.softwareTypes.SOFTWARE_TYPE_ACCESSOR_PREFIX
-import org.gradle.internal.declarativedsl.InstanceAndPublicType
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeCustomAccessors
 import org.gradle.internal.declarativedsl.schemaBuilder.DataSchemaBuilder
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingContextElement
+import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingHost
 import org.gradle.internal.declarativedsl.schemaBuilder.TypeDiscovery
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import org.gradle.internal.declarativedsl.schemaBuilder.withTag
 import org.gradle.plugin.software.internal.SoftwareFeatureApplicator
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -56,7 +59,7 @@ fun EvaluationSchemaBuilder.softwareTypesComponent(
     softwareTypeRegistry: SoftwareTypeRegistry,
     withDefaultsApplication: Boolean
 ) {
-    val softwareTypeInfo = buildSoftwareTypeInfo(softwareTypeRegistry, schemaTypeToExtend)
+    val softwareTypeInfo: List<SoftwareTypeInfo<*>> = buildSoftwareTypeInfo(softwareTypeRegistry, schemaTypeToExtend)
     registerAnalysisSchemaComponent(SoftwareTypeComponent(schemaTypeToExtend, softwareTypeInfo))
 
     if (withDefaultsApplication) {
@@ -129,28 +132,32 @@ data class SoftwareTypeInfo<T>(
 ) : SoftwareTypeImplementation<T> by delegate {
     val customAccessorId = "$accessorIdPrefix:${delegate.softwareType}"
 
-    val schemaFunction = DefaultDataMemberFunction(
-        schemaTypeToExtend.toDataTypeRef(),
-        delegate.softwareType,
-        emptyList(),
-        isDirectAccessOnly = true,
-        semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
-            accessor = ConfigureAccessorInternal.DefaultCustom(delegate.modelPublicType.kotlin.toDataTypeRef(), customAccessorId),
-            FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
-            FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+    fun schemaFunction(host: SchemaBuildingHost) = host.withTag(softwareConfiguringFunctionTag(delegate.softwareType)) {
+        DefaultDataMemberFunction(
+            host.containerTypeRef(schemaTypeToExtend),
+            delegate.softwareType,
+            emptyList(),
+            isDirectAccessOnly = true,
+            semantics = FunctionSemanticsInternal.DefaultAccessAndConfigure(
+                accessor = ConfigureAccessorInternal.DefaultCustom(host.containerTypeRef(modelPublicType.kotlin), customAccessorId),
+                FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit,
+                FunctionSemanticsInternal.DefaultConfigureBlockRequirement.DefaultRequired
+            )
         )
-    )
+    }
+
+    private fun softwareConfiguringFunctionTag(name: String) = SchemaBuildingContextElement.TagContextElement("configuring function for '$name' software type")
 }
 
 
 private
 fun softwareTypeConfiguringFunctions(typeToExtend: KClass<*>, softwareTypeImplementations: Iterable<SoftwareTypeInfo<*>>): FunctionExtractor = object : FunctionExtractor {
-    override fun memberFunctions(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
-        if (kClass == typeToExtend) softwareTypeImplementations.map(SoftwareTypeInfo<*>::schemaFunction) else emptyList()
+    override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> =
+        if (kClass == typeToExtend) softwareTypeImplementations.map { it.schemaFunction(host) } else emptyList()
 
-    override fun constructors(kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
+    override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
 
-    override fun topLevelFunction(function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex) = null
+    override fun topLevelFunction(host: SchemaBuildingHost, function: KFunction<*>, preIndex: DataSchemaBuilder.PreIndex): DataTopLevelFunction? = null
 }
 
 

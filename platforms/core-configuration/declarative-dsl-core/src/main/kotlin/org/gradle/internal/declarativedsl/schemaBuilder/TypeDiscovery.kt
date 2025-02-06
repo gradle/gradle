@@ -21,6 +21,7 @@ import kotlin.reflect.KClass
 
 interface TypeDiscovery {
     interface TypeDiscoveryServices {
+        val host: SchemaBuildingHost
         val propertyExtractor: PropertyExtractor
     }
 
