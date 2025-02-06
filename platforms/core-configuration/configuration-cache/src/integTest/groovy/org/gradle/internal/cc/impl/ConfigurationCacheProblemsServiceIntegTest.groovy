@@ -52,11 +52,12 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
             definition.documentationLink.url.endsWith("/userguide/configuration_cache.html#config_cache:requirements:build_listeners")
-            originLocations.size() == 2
+            originLocations.size() == 1
             originLocations[0].path == "build file 'build.gradle'"
             originLocations[0].line == 2
-            originLocations[1].path == buildFile.absolutePath
-            originLocations[1].line == 2
+            contextualLocations.size() == 1
+            contextualLocations[0].path == buildFile.absolutePath
+            contextualLocations[0].line == 2
             additionalData.asMap.trace == "build file 'build.gradle': line 2"
         }
 
@@ -71,8 +72,9 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             definition.documentationLink.url.endsWith("/userguide/configuration_cache.html#config_cache:requirements:build_listeners")
             originLocations[0].path == "build file 'build.gradle'"
             originLocations[0].line == 2
-            originLocations[1].path == buildFile.absolutePath
-            originLocations[1].line == 2
+            contextualLocations.size() == 1
+            contextualLocations[0].path == buildFile.absolutePath
+            contextualLocations[0].line == 2
             additionalData.asMap.trace == "build file 'build.gradle': line 2"
 
         }
