@@ -63,7 +63,11 @@ final class HierarchicalMutableAttributeContainer extends AbstractAttributeConta
 
     @Nullable
     @Override
-    public <T> T getAttribute(@Nullable Attribute<T> key) {
+    public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
+
         T attribute = primary.getAttribute(key);
         if (attribute != null) {
             return attribute;

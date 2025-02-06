@@ -81,7 +81,10 @@ public final class FreezableAttributeContainer extends AbstractAttributeContaine
 
     @Nullable
     @Override
-    public <T> T getAttribute(@Nullable Attribute<T> key) {
+    public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
         return delegate.getAttribute(key);
     }
 
