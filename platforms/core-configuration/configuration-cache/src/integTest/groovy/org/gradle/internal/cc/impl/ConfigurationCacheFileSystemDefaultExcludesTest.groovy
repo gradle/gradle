@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.fixtures.DefaultExcludesFixture
+import org.gradle.internal.scripts.ScriptingLanguages
 
 class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -68,7 +69,7 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         def excludedByBuildScriptFileCopy = file("build/output/${excludedByBuildScriptFileName}")
         excludedByBuildScriptFile.text = "input"
 
-        if (scriptLanguage == DefaultExcludesFixture.ScriptLanguage.KOTLIN) {
+        if (scriptLanguage == ScriptingLanguages.KOTLIN) {
             buildKotlinFile << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
         } else {
             buildFile << DefaultExcludesFixture.DefaultExcludesLocation.addDefaultExclude(excludedByBuildScriptFileName)
@@ -93,6 +94,6 @@ class ConfigurationCacheFileSystemDefaultExcludesTest extends AbstractConfigurat
         excludedByBuildScriptFileCopy.exists()
 
         where:
-        scriptLanguage << DefaultExcludesFixture.ScriptLanguage.values().toList()
+        scriptLanguage << [ScriptingLanguages.GROOVY, ScriptingLanguages.KOTLIN]
     }
 }
