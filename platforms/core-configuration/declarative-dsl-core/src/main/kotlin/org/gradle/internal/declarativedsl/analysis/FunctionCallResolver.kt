@@ -12,6 +12,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.NoExpectedType
 import org.gradle.internal.declarativedsl.analysis.FunctionCallResolver.FunctionResolutionAndBinding
 import org.gradle.internal.declarativedsl.language.Expr
@@ -123,7 +124,7 @@ class FunctionCallResolverImpl(
             else listOf(param to argOrVararg)
         }
         ?.associate { (param, arg) ->
-            arg to if (param.isVararg) getElementTypeFromVarargType(param).ref else param.type
+            arg to if (param is VarargParameter) getElementTypeFromVarargType(param).ref else param.type
         } ?: emptyMap()
 
     private
@@ -384,7 +385,7 @@ class FunctionCallResolverImpl(
     fun preFilterSignatures(
         matchingMembers: List<SchemaFunction>,
         args: List<FunctionArgument>,
-    ) = matchingMembers.filter { it.parameters.any(DataParameter::isVararg) || it.parameters.size >= args.filterIsInstance<FunctionArgument.SingleValueArgument>().size }
+    ) = matchingMembers.filter { it.parameters.any { it is VarargParameter } || it.parameters.size >= args.filterIsInstance<FunctionArgument.SingleValueArgument>().size }
 
     private
     fun TypeRefContext.findMemberFunction(
@@ -565,7 +566,7 @@ class FunctionCallResolverImpl(
         val lastPositionalArgIndex =
             arguments.indices.lastOrNull { arguments[it] is FunctionArgument.Positional } ?: arguments.size
 
-        val varargParameter = parameters.singleOrNull { it.isVararg }
+        val varargParameter = parameters.singleOrNull { it is VarargParameter }
         val indexOfVarargParameter = parameters.indexOf(varargParameter)
 
         val bindingMap = mutableMapOf<DataParameter, FunctionArgument.ValueLikeArgument>()
@@ -624,7 +625,7 @@ class FunctionCallResolverImpl(
     ) =
         ParameterValueBinding(
             parameterArgumentBinding.binding.mapValues { (param, arg) ->
-                if (param.isVararg) {
+                if (param is VarargParameter) {
                     val separateArgs = parameterArgumentBinding.binding[param] as FunctionArgument.GroupedVarargs
                     val argValues = separateArgs.elementArgs.map(argResolution::getValue)
                     val type = applyTypeSubstitution(resolveRef(param.type), typeSubstitution) as DataType.ParameterizedTypeInstance

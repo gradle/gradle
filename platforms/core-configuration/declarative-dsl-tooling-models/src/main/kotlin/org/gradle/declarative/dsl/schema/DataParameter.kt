@@ -16,9 +16,10 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
-
+@ToolingModelContract(subTypes = [VarargParameter::class])
 interface DataParameter : Serializable {
 
     val name: String?
@@ -27,7 +28,7 @@ interface DataParameter : Serializable {
 
     val isDefault: Boolean
 
-    val isVararg: Boolean
-
     val semantics: ParameterSemantics
 }
+
+interface VarargParameter : DataParameter, Serializable

@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.schemaBuidler
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument
+import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -35,7 +36,7 @@ class VarargTest {
             val varargParameter = schemaFromTypes.typeFor<Schema>()
                 .singleFunctionNamed("acceptsStringVarargs").function
                 .parameters.single()
-            assertTrue(varargParameter.isVararg)
+            assertTrue(varargParameter is VarargParameter)
             val type = resolveRef(varargParameter.type)
             assertIs<DataType.ParameterizedTypeInstance>(type)
             assertIs<DataType.VarargSignature>(type.typeSignature)
@@ -50,7 +51,7 @@ class VarargTest {
             val varargParameter = schemaFromTypes.typeFor<Schema>()
                 .singleFunctionNamed("acceptsListOfStringVarargs").function
                 .parameters.single()
-            assertTrue(varargParameter.isVararg)
+            assertTrue(varargParameter is VarargParameter)
             val type = resolveRef(varargParameter.type)
             assertIs<DataType.ParameterizedTypeInstance>(type)
             assertIs<DataType.VarargSignature>(type.typeSignature)

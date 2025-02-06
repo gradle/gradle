@@ -29,6 +29,7 @@ import org.gradle.declarative.dsl.schema.FunctionSemantics.Pure
 import org.gradle.declarative.dsl.schema.ParameterSemantics
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 import java.util.Collections
 
@@ -211,9 +212,17 @@ data class DefaultDataParameter(
     @SerialName("privateType")
     override val type: DataTypeRef,
     override val isDefault: Boolean,
-    override val isVararg: Boolean,
     override val semantics: ParameterSemantics
 ) : DataParameter
+
+@Serializable
+data class DefaultVarargParameter(
+    override val name: String?,
+    @SerialName("privateType")
+    override val type: DataTypeRef,
+    override val isDefault: Boolean,
+    override val semantics: ParameterSemantics
+) : VarargParameter
 
 
 object ParameterSemanticsInternal {

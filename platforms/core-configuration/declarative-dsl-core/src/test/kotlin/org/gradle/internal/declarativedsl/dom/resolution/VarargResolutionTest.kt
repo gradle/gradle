@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.dom.resolution
 
 import org.gradle.declarative.dsl.model.annotations.Adding
 import org.gradle.declarative.dsl.model.annotations.Restricted
+import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
@@ -86,7 +87,7 @@ class VarargResolutionTest {
             ?: resolution.assignments.singleOrNull()?.rhs
             ?: fail { "unexpected resolution results" }
         assertIs<ObjectOrigin.FunctionInvocationOrigin>(assigned)
-        val argument = assigned.parameterBindings.bindingMap.entries.single { it.key.isVararg }.value.objectOrigin
+        val argument = assigned.parameterBindings.bindingMap.entries.single { it.key is VarargParameter }.value.objectOrigin
         assertIs<ObjectOrigin.GroupedVarargValue>(argument)
         return argument
     }

@@ -37,6 +37,7 @@ import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberOrigin
+import org.gradle.declarative.dsl.schema.VarargParameter
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
@@ -49,6 +50,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultDataProperty
 import org.gradle.internal.declarativedsl.analysis.DefaultDataTopLevelFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultEnumClass
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
+import org.gradle.internal.declarativedsl.analysis.DefaultVarargParameter
 import org.gradle.internal.declarativedsl.analysis.DefaultVarargSignature
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
@@ -108,6 +110,10 @@ object SchemaSerialization {
             }
             polymorphic(DataParameter::class) {
                 subclass(DefaultDataParameter::class)
+                subclass(DefaultVarargParameter::class)
+            }
+            polymorphic(VarargParameter::class) {
+                subclass(DefaultVarargParameter::class)
             }
             polymorphic(DataProperty::class) {
                 subclass(DefaultDataProperty::class)
