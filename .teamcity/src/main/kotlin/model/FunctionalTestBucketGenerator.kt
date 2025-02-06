@@ -61,7 +61,13 @@ data class FunctionalTestBucket(
     )
 
     fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): SmallSubprojectBucket = SmallSubprojectBucket(
-        subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
+        subprojects.mapNotNull {
+            val subproject = gradleSubprojectProvider.getSubprojectByName(it)
+            if (subproject == null) {
+                println("Subproject $it not found in the model, skipping")
+            }
+            subproject
+        },
         parallelizationMethod
     )
 }
@@ -173,7 +179,7 @@ class FunctionalTestBucketGenerator(private val model: CIBuildModel, testTimeDat
         } else {
             val testCoverages = model.stages.flatMap { it.functionalTests }
             val foundTestCoverage = testCoverages.firstOrNull {
-                it.testType == TestType.platform &&
+                it.testType == TestType.quick &&
                     it.os == testCoverage.os &&
                     it.arch == testCoverage.arch &&
                     it.buildJvm == testCoverage.buildJvm

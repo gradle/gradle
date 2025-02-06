@@ -38,6 +38,10 @@ class IntegTestPreconditions {
         }
     }
 
+    /**
+     * @deprecated Avoid using this precondition. Please refactor your integration test to support regular executor or use a unit test.
+     * */
+    @Deprecated
     static final class IsEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
@@ -48,14 +52,14 @@ class IntegTestPreconditions {
     static final class NotEmbeddedExecutor implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsEmbeddedExecutor)
+            return !GradleContextualExecuter.isEmbedded()
         }
     }
 
     static final class NotEmbeddedExecutorOrNotWindows implements TestPrecondition {
         @Override
         boolean isSatisfied() throws Exception {
-            return notSatisfied(IsEmbeddedExecutor) || notSatisfied(UnitTestPreconditions.Windows)
+            return !GradleContextualExecuter.isEmbedded() || notSatisfied(UnitTestPreconditions.Windows)
         }
     }
 
