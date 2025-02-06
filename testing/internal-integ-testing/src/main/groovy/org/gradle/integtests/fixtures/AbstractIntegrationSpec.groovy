@@ -39,6 +39,8 @@ import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistributio
 import org.gradle.integtests.fixtures.problems.KnownProblemIds
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
+import org.gradle.internal.scripts.ScriptingLanguages
+import org.gradle.scripts.ScriptingLanguage
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -206,7 +208,7 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
      * Want syntax highlighting inside of IntelliJ? Consider using {@link AbstractIntegrationSpec#buildFile(String)}
      */
     TestFile getBuildFile() {
-        testDirectory.file(getDefaultBuildFileName())
+        getBuildFile(ScriptingLanguages.GROOVY)
     }
 
     String getTestJunitCoordinates() {
@@ -214,19 +216,16 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
     }
 
     TestFile getBuildKotlinFile() {
-        testDirectory.file(defaultBuildKotlinFileName)
+        getBuildFile(ScriptingLanguages.KOTLIN)
     }
 
-    protected String getDefaultBuildFileName() {
-        'build.gradle'
+    TestFile getBuildFile(ScriptingLanguage language) {
+        testDirectory.file("build${language.extension}")
     }
 
-    protected String getDefaultBuildKotlinFileName() {
-        'build.gradle.kts'
-    }
 
     protected TestFile getSettingsFile() {
-        testDirectory.file(settingsFileName)
+        getSettingsFile(ScriptingLanguages.GROOVY)
     }
 
     protected TestFile getInitScriptFile() {
@@ -235,7 +234,11 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
 
     protected TestFile getSettingsKotlinFile() {
-        testDirectory.file(settingsKotlinFileName)
+        getSettingsFile(ScriptingLanguages.KOTLIN)
+    }
+
+    protected TestFile getSettingsFile(ScriptingLanguage language) {
+        testDirectory.file(getSettingsFileName(language))
     }
 
     protected TestFile getPropertiesFile() {
@@ -246,12 +249,8 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         testDirectory.file('gradle/libs.versions.toml')
     }
 
-    protected static String getSettingsFileName() {
-        return 'settings.gradle'
-    }
-
-    protected static String getSettingsKotlinFileName() {
-        return 'settings.gradle.kts'
+    private static String getSettingsFileName(ScriptingLanguage language) {
+        return "settings${language.extension}"
     }
 
     protected static String getInitScriptFileName() {
@@ -413,11 +412,11 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         }
         def currentDirectory = testDirectory
         for (; ;) {
-            def settingsFile = currentDirectory.file(settingsFileName)
+            def settingsFile = currentDirectory.file(getSettingsFileName(ScriptingLanguages.GROOVY))
             if (settingsFile.exists()) {
                 return settingsFile
             }
-            settingsFile = currentDirectory.file(settingsKotlinFileName)
+            settingsFile = currentDirectory.file(getSettingsFileName(ScriptingLanguages.KOTLIN))
             if (settingsFile.exists()) {
                 return settingsFile
             }

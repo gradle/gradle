@@ -27,12 +27,12 @@ import org.gradle.test.preconditions.IntegTestPreconditions
 class CachedKotlinTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
     @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
+    TestFile getBuildFile() {
+        return super.getBuildKotlinFile()
     }
 
     def setup() {
-        settingsFile << "rootProject.buildFileName = '$defaultBuildFileName'"
+        settingsFile << "rootProject.buildFileName = '${buildFile.name}'"
 
         file("buildSrc/settings.gradle.kts") << """
             buildCache {

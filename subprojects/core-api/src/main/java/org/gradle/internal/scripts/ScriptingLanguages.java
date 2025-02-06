@@ -28,20 +28,23 @@ import java.util.List;
  */
 public final class ScriptingLanguages {
 
+    public static final ScriptingLanguage GROOVY =
+        scriptingLanguage("Groovy", ".gradle", null);
+
+    public static final ScriptingLanguage KOTLIN =
+        scriptingLanguage("Kotling", ".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory");
+
+    public static final ScriptingLanguage DECLARATIVE =
+        scriptingLanguage("Declarative", ".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory");
+
     private static final List<ScriptingLanguage> ALL =
-        Collections.unmodifiableList(
-            Arrays.asList(
-                scriptingLanguage(".gradle", null),
-                scriptingLanguage(".gradle.kts", "org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory"),
-                scriptingLanguage(".gradle.dcl", "org.gradle.internal.declarativedsl.provider.DeclarativeDslScriptPluginFactory")
-            )
-        );
+        Collections.unmodifiableList(Arrays.asList(GROOVY, KOTLIN, DECLARATIVE));
 
     public static List<ScriptingLanguage> all() {
         return ALL;
     }
 
-    private static ScriptingLanguage scriptingLanguage(final String extension, @Nullable final String scriptPluginFactory) {
+    private static ScriptingLanguage scriptingLanguage(String name, String extension, @Nullable String scriptPluginFactory) {
         return new ScriptingLanguage() {
             @Override
             public String getExtension() {
@@ -51,6 +54,28 @@ public final class ScriptingLanguages {
             @Override
             public String getProvider() {
                 return scriptPluginFactory;
+            }
+
+            @Override
+            public String toString() {
+                return name;
+            }
+
+            @Override
+            public int hashCode() {
+                return extension.hashCode();
+            }
+
+            @Override
+            public boolean equals(Object obj) {
+                if (obj == this) {
+                    return true;
+                }
+                if (obj instanceof ScriptingLanguage) {
+                    ScriptingLanguage other = (ScriptingLanguage) obj;
+                    return extension.equals(other.getExtension());
+                }
+                return false;
             }
         };
     }
