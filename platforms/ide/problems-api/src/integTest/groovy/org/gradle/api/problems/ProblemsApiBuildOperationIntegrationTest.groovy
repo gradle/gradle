@@ -40,7 +40,6 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withArgument("--no-problems-report")
         run("reportProblem")
 
         then:
@@ -220,6 +219,57 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 message == 'problem exception'
                 stackTrace.startsWith('java.lang.IllegalArgumentException: problem exception')
             }
+        }
+    }
+
+    def "obtain problems from included builds"() {
+        given:
+        settingsFile << """
+            includeBuild("included")
+        """
+        buildTestFixture
+            .withBuildInSubDir()
+            .multiProjectBuild("included", ['sub1', 'sub2']) {
+                file('sub1').file('build.gradle') << getProblemReportingScript("""
+                    ${problemIdScript()}
+                    problems.getReporter().report(problemId) {
+                    }
+                """)
+            }
+
+        when:
+        run(":included:sub1:reportProblem")
+
+        then:
+        def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
+        with(problem) {
+            with(definition) {
+                name == 'type'
+                displayName == 'label'
+                with(group) {
+                    displayName == 'group label'
+                    name == 'generic'
+                    parent == null
+                }
+                documentationLink == null
+            }
+            severity == Severity.WARNING.name()
+            contextualLabel == null
+            solutions == []
+            details == null
+            originLocations.size() == 1
+            with(originLocations[0]) {
+                path == this.file('included/sub1/build.gradle').absolutePath
+                line == 13
+                column == null
+                length == null
+            }
+            contextualLocations.size() == 1
+            with(contextualLocations[0]) {
+                taskPath == ':sub1:reportProblem'
+                buildPath == ':included'
+            }
+            failure == null
         }
     }
 
