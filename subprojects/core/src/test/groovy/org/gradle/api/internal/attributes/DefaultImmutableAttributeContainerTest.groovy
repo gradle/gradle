@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
+import org.gradle.util.AttributeTestUtil
 
 /**
  * Unit tests for the {@link DefaultImmutableAttributesContainer} class.
