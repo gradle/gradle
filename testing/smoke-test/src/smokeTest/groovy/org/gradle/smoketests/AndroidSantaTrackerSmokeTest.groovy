@@ -122,7 +122,9 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
-        def result = runner.buildAndFail()
+        def result = runner
+            .expectDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes using null keys.", null)
+            .buildAndFail()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -137,7 +139,8 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
-        result = runner.buildAndFail()
+            .expectDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes using null keys.", null)
+            .buildAndFail()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
