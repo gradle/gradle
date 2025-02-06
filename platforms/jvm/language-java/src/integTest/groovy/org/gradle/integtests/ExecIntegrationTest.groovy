@@ -924,7 +924,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     private static def execSpecWithHttpServerExecutable(File serverInfoFile, def owner = "") {
         """
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
-            ${prop(owner, "args")}('-cp',${javaExecHttpServerClasspath()}, '${TestExecHttpServer.name}', '${serverInfoFile.absolutePath}')
+            ${prop(owner, "args")}('-cp',${javaExecHttpServerClasspath()}, '${TestExecHttpServer.name}', '${TextUtil.normaliseFileSeparators(serverInfoFile.absolutePath)}')
         """
     }
 
@@ -947,7 +947,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """
             ${prop(owner, "getMainClass()")}.set("${TestExecHttpServer.name}");
             ${prop(owner, "classpath")}(${javaExecHttpServerClasspath()});
-            ${prop(owner, "args")}("${serverInfo.absolutePath}");
+            ${prop(owner, "args")}("${TextUtil.normaliseFileSeparators(serverInfo.absolutePath)}");
         """
     }
 
@@ -977,7 +977,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
     }
 
-    private long waitForHttpServerPort(int waitTimeSeconds = 5) {
+    private long waitForHttpServerPort(int waitTimeSeconds = 20) {
         // Server needs some time to start so we wait for the server info file with port to be created
         File serverInfoFile = getHttpServerInfoFile()
         long start = System.currentTimeMillis()

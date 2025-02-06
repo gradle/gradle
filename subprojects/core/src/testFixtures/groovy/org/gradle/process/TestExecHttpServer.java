@@ -35,6 +35,7 @@ public class TestExecHttpServer {
             throw new IllegalArgumentException("Expected at least one argument");
         }
 
+        System.out.println("Starting server with server info file: " + args[0]);
         HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
         server.setExecutor(Executors.newCachedThreadPool());
         server.createContext("/test", new TestHandler());
