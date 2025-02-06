@@ -318,7 +318,6 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             import org.gradle.api.Plugin
             import org.gradle.api.Project
             import org.gradle.api.provider.Property
-            import org.gradle.kotlin.dsl.assign
 
             data class MyType(val property: Property<String>)
 
