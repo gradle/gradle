@@ -19,6 +19,7 @@ dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
     api(projects.stdlibJavaExtensions)
+    api(projects.stdlibKotlinExtensions)
     api(projects.buildCacheSpi)
     api(projects.loggingApi)
     api(projects.baseServices)

@@ -20,29 +20,29 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.provider.HasMultipleValues
 import org.gradle.api.provider.MapProperty
-import org.gradle.api.provider.Property
+//import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import java.io.File
 
 
-/**
- * Assign value: T to a property with assign operator
- *
- * @since 8.2
- */
-fun <T> Property<T>.assign(value: T?) {
-    this.set(value)
-}
+///**
+// * Assign value: T to a property with assign operator
+// *
+// * @since 8.2
+// */
+//fun <T> Property<T>.assign(value: T?) {
+//    this.set(value)
+//}
 
 
-/**
- * Assign value: Provider<T> to a property with assign operator
- *
- * @since 8.2
- */
-fun <T> Property<T>.assign(value: Provider<out T?>) {
-    this.set(value)
-}
+///**
+// * Assign value: Provider<T> to a property with assign operator
+// *
+// * @since 8.2
+// */
+//fun <T> Property<T>.assign(value: Provider<out T?>) {
+//    this.set(value)
+//}
 
 
 /**

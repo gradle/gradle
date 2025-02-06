@@ -21,6 +21,7 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.extensions.stdlib.Assignable;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
@@ -79,7 +80,7 @@ import java.util.function.BiFunction;
  */
 @HasInternalProtocol
 @NonExtensible
-public interface Provider<T> {
+public interface Provider<T> extends Assignable.Source<T> {
 
     /**
      * Returns the value of this provider if it has a value present, otherwise throws {@code java.lang.IllegalStateException}.
