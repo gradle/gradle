@@ -89,11 +89,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         this.additionalModuleClassPath = additionalModuleClassPath;
     }
 
-    //    @Override
-//    void configure(ServiceRegistration registration) {
-//        registration.add(PropertyFactory.class, DefaultPropertyFactory.class);
-//    }
-//
     @Provides
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
         return new DefaultCacheFactory(fileLockManager, executorFactory);
