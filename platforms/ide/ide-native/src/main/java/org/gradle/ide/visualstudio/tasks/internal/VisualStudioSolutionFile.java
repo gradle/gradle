@@ -41,8 +41,9 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.toList;
 import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.getUUID;
 
 public class VisualStudioSolutionFile extends AbstractPersistableConfigurationObject {
@@ -113,7 +114,7 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
 
         Set<String> configurationNames = projectConfigurations.values().stream()
             .flatMap(set -> set.stream().map(spec -> spec.name))
-            .collect(Collectors.toCollection(TreeSet::new));
+            .collect(toCollection(TreeSet::new));
         for (String configurationName : configurationNames) {
             builder.append("\n\t\t").append(configurationName).append(" = ").append(configurationName);
         }
@@ -142,7 +143,8 @@ public class VisualStudioSolutionFile extends AbstractPersistableConfigurationOb
                     }
                     return result.stream();
                 })
-                .collect(Collectors.toList());
+                .collect(toList());
+
             for (String configuration : configurations) {
                 builder.append("\n\t\t").append(getUUID(projectFile)).append(".").append(configuration);
             }
