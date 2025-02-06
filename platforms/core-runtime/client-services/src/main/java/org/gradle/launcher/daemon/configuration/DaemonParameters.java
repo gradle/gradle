@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.configuration;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesAccessor;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -131,7 +132,7 @@ public class DaemonParameters {
         JavaLanguageVersion requestedVersion = daemonJvmAccessor.getVersion();
         if (requestedVersion != null) {
             JvmVendorSpec requestedJavaVendor = daemonJvmAccessor.getVendor();
-            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(requestedVersion, requestedJavaVendor, JvmImplementation.VENDOR_SPECIFIC);
+            this.requestedJvmCriteria = new DaemonJvmCriteria.Spec(requestedVersion, requestedJavaVendor, JvmImplementation.VENDOR_SPECIFIC, JavaInstallationCapability.JDK_CAPABILITIES);
             this.toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider(daemonJvmAccessor.getToolchainDownloadUrls());
         }
     }

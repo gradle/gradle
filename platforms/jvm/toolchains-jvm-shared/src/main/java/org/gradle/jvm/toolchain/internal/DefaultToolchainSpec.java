@@ -18,30 +18,37 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     private final Property<JavaLanguageVersion> version;
     private final Property<JvmVendorSpec> vendor;
     private final Property<JvmImplementation> implementation;
+    private final SetProperty<JavaInstallationCapability> capabilities;
 
     public static class Key implements JavaToolchainSpecInternal.Key {
         private final JavaLanguageVersion languageVersion;
         private final JvmVendorSpec vendor;
         private final JvmImplementation implementation;
+        private final Set<JavaInstallationCapability> capabilities;
 
-        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation) {
+        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation, Set<JavaInstallationCapability> capabilities) {
             this.languageVersion = languageVersion;
             this.vendor = vendor;
             this.implementation = implementation;
+            this.capabilities = capabilities;
         }
 
         @Override
@@ -55,12 +62,13 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
             Key that = (Key) o;
             return Objects.equals(languageVersion, that.languageVersion)
                 && Objects.equals(vendor, that.vendor)
-                && Objects.equals(implementation, that.implementation);
+                && Objects.equals(implementation, that.implementation)
+                && Objects.equals(capabilities, that.capabilities);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(languageVersion, vendor, implementation);
+            return Objects.hash(languageVersion, vendor, implementation, capabilities);
         }
 
         @Override
@@ -69,6 +77,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
                 "languageVersion=" + languageVersion +
                 ", vendor=" + vendor +
                 ", implementation=" + implementation +
+                ", capabilities=" + capabilities +
                 '}';
         }
     }
@@ -78,9 +87,11 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         version = propertyFactory.property(JavaLanguageVersion.class);
         vendor = propertyFactory.property(JvmVendorSpec.class);
         implementation = propertyFactory.property(JvmImplementation.class);
+        capabilities = propertyFactory.setProperty(JavaInstallationCapability.class);
 
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
+        getCapabilities().convention(getConventionCapabilities());
     }
 
     @Override
@@ -99,8 +110,13 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     }
 
     @Override
+    public SetProperty<JavaInstallationCapability> getCapabilities() {
+        return capabilities;
+    }
+
+    @Override
     public JavaToolchainSpecInternal.Key toKey() {
-        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull());
+        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull(), getCapabilities().getOrElse(new HashSet<>()));
     }
 
     @Override
@@ -124,7 +140,8 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     private boolean isSecondaryPropertiesUnchanged() {
         return Objects.equals(getConventionVendor(), getVendor().getOrNull()) &&
-            Objects.equals(getConventionImplementation(), getImplementation().getOrNull());
+            Objects.equals(getConventionImplementation(), getImplementation().getOrNull()) &&
+            Objects.equals(getConventionCapabilities(), getCapabilities().getOrNull());
     }
 
     @Override
@@ -138,5 +155,9 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
 
     private static JvmImplementation getConventionImplementation() {
         return JvmImplementation.VENDOR_SPECIFIC;
+    }
+
+    private static Set<JavaInstallationCapability> getConventionCapabilities() {
+        return JavaInstallationCapability.JDK_CAPABILITIES;
     }
 }

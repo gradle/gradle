@@ -18,12 +18,14 @@ package org.gradle.launcher.daemon.toolchain;
 
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Criteria for selecting a JVM for the daemon. This may be as straightforward as a specific Java home, or more complex, such as a specific version of the JVM.
@@ -113,11 +115,13 @@ public interface DaemonJvmCriteria {
         private final JavaLanguageVersion javaVersion;
         private final JvmVendorSpec vendorSpec;
         private final JvmImplementation jvmImplementation;
+        private final Set<JavaInstallationCapability> capabilities; //TODO JavaInstallationCapability is internal
 
-        public Spec(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation) {
+        public Spec(JavaLanguageVersion javaVersion, JvmVendorSpec vendorSpec, JvmImplementation jvmImplementation, Set<JavaInstallationCapability> capabilities) {
             this.javaVersion = javaVersion;
             this.vendorSpec = vendorSpec;
             this.jvmImplementation = jvmImplementation;
+            this.capabilities = capabilities;
         }
 
         public JavaLanguageVersion getJavaVersion() {
@@ -132,16 +136,20 @@ public interface DaemonJvmCriteria {
             return jvmImplementation;
         }
 
+        public Set<JavaInstallationCapability> getCapabilities() {
+            return capabilities;
+        }
+
         public boolean isCompatibleWith(Jvm other) {
             Integer javaVersionMajor = other.getJavaVersionMajor();
             if (javaVersionMajor == null) {
                 return false;
             }
-            return isCompatibleWith(JavaLanguageVersion.of(javaVersionMajor), other.getVendor());
+            return isCompatibleWith(JavaLanguageVersion.of(javaVersionMajor), other.getVendor(), JavaInstallationCapability.gatherJdkCapabilities(other.getJavaHome()));
         }
 
-        public boolean isCompatibleWith(JavaLanguageVersion javaVersion, String javaVendor) {
-            return javaVersion.equals(getJavaVersion()) && vendorSpec.matches(javaVendor);
+        public boolean isCompatibleWith(JavaLanguageVersion javaVersion, String javaVendor, Set<JavaInstallationCapability> capabilities) {
+            return javaVersion.equals(getJavaVersion()) && vendorSpec.matches(javaVendor) && capabilities.equals(getCapabilities());
         }
 
         @Override
