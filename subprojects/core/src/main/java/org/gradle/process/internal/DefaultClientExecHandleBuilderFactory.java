@@ -54,11 +54,6 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
     }
 
-    @Override
-    public ClientExecHandleBuilderFactory withFileResolver(PathToFileResolver fileResolver) {
-        return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
-    }
-
     public static DefaultClientExecHandleBuilderFactory root(File gradleUserHome) {
         requireNonNull(gradleUserHome, "gradleUserHome");
         return of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
@@ -70,6 +65,14 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         BuildCancellationToken buildCancellationToken
     ) {
         ManagedExecutor executor = executorFactory.create("Exec process");
+        return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
+    }
+
+    public static DefaultClientExecHandleBuilderFactory of(
+        PathToFileResolver fileResolver,
+        Executor executor,
+        BuildCancellationToken buildCancellationToken
+    ) {
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
     }
 

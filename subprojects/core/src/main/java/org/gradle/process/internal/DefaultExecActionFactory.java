@@ -75,10 +75,11 @@ public class DefaultExecActionFactory implements ExecFactory {
         this.javaModuleDetector = javaModuleDetector;
         this.buildCancellationToken = buildCancellationToken;
         this.executor = executor;
-        // Use the same file resolver for low level process operations
-        this.execHandleFactory = execHandleFactory.withFileResolver(fileResolver);
         this.instantiator = instantiator;
         this.externalProcessStartedListener = externalProcessStartedListener;
+        // Create execHandleFactory bound to this instance that uses fileResolver, executor and buildCancellationToken passed to this factory,
+        // this is important so that process working directory is resolved correctly and processes are stopped in the same scope
+        this.execHandleFactory = DefaultClientExecHandleBuilderFactory.of(fileResolver, executor, buildCancellationToken);
     }
 
     public static DefaultExecActionFactory of(
