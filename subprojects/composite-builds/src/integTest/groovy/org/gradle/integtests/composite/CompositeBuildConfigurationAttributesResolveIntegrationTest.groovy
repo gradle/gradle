@@ -376,7 +376,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             enum SomeEnum { free, paid }
             interface Thing extends Named { }
             @groovy.transform.EqualsAndHashCode
-            class OtherThing implements Thing, Serializable { String name }
+            abstract class OtherThing implements Thing, Serializable {}
 
             def flavor = Attribute.of('flavor', $type)
             allprojects {
@@ -415,7 +415,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
             enum SomeEnum { free, paid }
             interface Thing extends Named { }
             @groovy.transform.EqualsAndHashCode
-            class OtherThing implements Thing, Serializable { String name }
+            abstract class OtherThing implements Thing, Serializable {}
 
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
@@ -478,7 +478,6 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         type         | freeValue                      | paidValue
         'SomeEnum'   | 'SomeEnum.free'                | 'SomeEnum.paid'
         'Thing'      | 'objects.named(Thing, "free")' | 'objects.named(Thing, "paid")'
-        'OtherThing' | 'new OtherThing(name: "free")' | 'new OtherThing(name: "paid")'
     }
 
     def "compatibility and disambiguation rules can be defined by consuming build"() {

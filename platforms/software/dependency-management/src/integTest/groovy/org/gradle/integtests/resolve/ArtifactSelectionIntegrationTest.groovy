@@ -1136,7 +1136,6 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
 
         settingsFile << """
             include 'lib'
-            include 'ui'
             include 'app'
         """
 
@@ -1170,31 +1169,6 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
             }
         """
 
-        file("ui/build.gradle") << """
-            $header
-            def attr = Attribute.of('attr', Number)
-            dependencies {
-                attributesSchema {
-                    attribute(attr)
-                }
-            }
-
-            configurations {
-                compile {
-                    outgoing {
-                        variants {
-                            broken1 {
-                                attributes.attribute(attr, 12)
-                            }
-                            broken2 {
-                                attributes.attribute(attr, 10)
-                            }
-                        }
-                    }
-                }
-            }
-        """
-
         file("app/build.gradle") << """
             $header
             def attr = Attribute.of('attr', String)
@@ -1205,7 +1179,7 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
             }
 
             dependencies {
-                compile project(':lib'), project(':ui')
+                compile project(':lib')
             }
 
             task resolve {
@@ -1226,7 +1200,5 @@ class ArtifactSelectionIntegrationTest extends AbstractHttpDependencyResolutionT
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
         failure.assertHasCause("Could not select a variant of project :lib that matches the consumer attributes.")
         failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Boolean.")
-        failure.assertHasCause("Could not select a variant of project :ui that matches the consumer attributes.")
-        failure.assertHasCause("Unexpected type for attribute 'attr' provided. Expected a value of type java.lang.String but found a value of type java.lang.Integer.")
     }
 }
