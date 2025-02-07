@@ -22,8 +22,8 @@ import org.gradle.internal.serialize.graph.CloseableWriteContext
 import org.gradle.internal.serialize.graph.FileSystemTreeDecoder
 import org.gradle.internal.serialize.graph.FileSystemTreeEncoder
 import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.StringPrefixedTree
-import org.gradle.internal.serialize.graph.StringPrefixedTree.Node
+import org.gradle.internal.serialize.graph.FilePrefixedTree
+import org.gradle.internal.serialize.graph.FilePrefixedTree.Node
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.writeCollection
@@ -31,7 +31,7 @@ import java.io.File
 
 class DefaultFileSystemTreeEncoder(
     private val globalContext: CloseableWriteContext,
-    private val prefixedTree: StringPrefixedTree
+    private val prefixedTree: FilePrefixedTree
 ) : FileSystemTreeEncoder {
 
     override fun writeFile(writeContext: WriteContext, file: File) {
@@ -55,7 +55,7 @@ class DefaultFileSystemTreeEncoder(
 
 class DefaultFileSystemTreeDecoder(
     private val globalContext: CloseableReadContext,
-    private val prefixedTree: StringPrefixedTree
+    private val prefixedTree: FilePrefixedTree
 ) : FileSystemTreeDecoder {
 
     private val files = mutableMapOf<Int, File>()

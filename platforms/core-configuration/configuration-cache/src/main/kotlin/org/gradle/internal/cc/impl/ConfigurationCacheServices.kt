@@ -40,7 +40,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.resource.connector.ResourceConnectorFactory
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
 import org.gradle.internal.resource.transfer.ExternalResourceConnector
-import org.gradle.internal.serialize.graph.StringPrefixedTree
+import org.gradle.internal.serialize.graph.FilePrefixedTree
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistrationProvider
@@ -75,7 +75,7 @@ class ConfigurationCacheServices : AbstractGradleModuleServices() {
             addProvider(RemoteScriptUpToDateCheckerProvider)
             addProvider(ExecutionAccessCheckerProvider)
             addProvider(ConfigurationCacheReportProvider)
-            add(StringPrefixedTree::class.java)
+            add(FilePrefixedTree::class.java)
         }
     }
 

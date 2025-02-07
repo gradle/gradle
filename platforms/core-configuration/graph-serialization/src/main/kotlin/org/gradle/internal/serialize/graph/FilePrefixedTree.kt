@@ -16,24 +16,38 @@
 
 package org.gradle.internal.serialize.graph
 
+import org.gradle.internal.file.FilePathUtil
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
 
+/**
+ * A prefixed tree implementation optimized for storage space-wise.
+ *
+ * Can be implemented for any [T] of the hierarchical nature that can be represented as a list of string segments
+ * and be build back from such a list. Common examples of such data are {@link File} and {@link Path}.
+ *
+ * Because of the space optimization focus, the effective lookup is possible only after building indexes table.
+ *
+ * The tree can be compressed. The compressing factor is totally depends on the structure of the tree.
+ */
 @ServiceScope(BuildTree::class)
-class StringPrefixedTree {
+class FilePrefixedTree {
 
     private var currentIndex: Int = 0
 
     val root = Node(null, "", mutableListOf())
 
+    /**
+     * Splitting [item] to segments by using [splitToSegments] method, and hierarchically inserts resulting nodes to the tree.
+     * */
     fun insert(file: File): Int {
-        val segments = file.path.split("/")
+        val segments = FilePathUtil.getPathSegments(file.path)
         var current = root
 
         for (segment in segments) {
             if (segment.isEmpty()) {
-                // leading '/'
+                // leading separator
                 continue
             }
 
@@ -52,12 +66,55 @@ class StringPrefixedTree {
         return current.index!!
     }
 
+    /**
+     * The only way to do effective lookup in the tree.
+     * Indexes are being built by doing a DFS through entire tree to build a mapping between an index and an item.
+     * */
     fun buildIndexes(root: Node): Map<Int, File> {
         val indexes = mutableMapOf<Int, File>()
         buildIndexFor(root, mutableListOf(), indexes)
         return indexes
     }
 
+    /**
+     * Compresses intermediate and, in some cases, final nodes that have only one child.
+     *
+     * Some examples, final node are capitalized:
+     *
+     *                      -> (D)
+     * 1. (a) -> (b) -> (c)
+     *                      -> (F)
+     *
+     * will be compressed to
+     *
+     *             -> (D)
+     * (a / b / c)
+     *             -> (F)
+     *
+     * 2. (a) -> (b) -> (c) -> (D)
+     *
+     * will be compressed to
+     *
+     * (a / b / c / D)
+     *
+     *                      -> (d) -> (E)
+     * 3. (a) -> (b) -> (c)
+     *                      -> (f) -> (G)
+     *
+     * will be compressed to
+     *
+     *             -> (d/E)
+     * (a / b / c)
+     *             -> (f/G)
+     *
+     * 4. (a) -> (b) -> (C) -> (D)
+     *
+     * will be compressed to
+     *
+     * (a / b) -> (C) -> (D)
+     *
+     * Tree should be compressed after the point when all the insertion are completed.
+     * */
     fun compress(): Node = compressFrom(root)
 
     private fun compressFrom(node: Node): Node {

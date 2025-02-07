@@ -72,7 +72,7 @@ import org.gradle.internal.serialize.graph.SpecialDecoders
 import org.gradle.internal.serialize.graph.SpecialEncoders
 import org.gradle.internal.serialize.graph.StringDecoder
 import org.gradle.internal.serialize.graph.StringEncoder
-import org.gradle.internal.serialize.graph.StringPrefixedTree
+import org.gradle.internal.serialize.graph.FilePrefixedTree
 import org.gradle.internal.serialize.graph.Tracer
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readCollection
@@ -107,7 +107,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private val classLoaderScopeRegistryListener: ConfigurationCacheClassLoaderScopeRegistryListener,
     private val classLoaderScopeRegistry: ClassLoaderScopeRegistry,
     private val instantiatorFactory: InstantiatorFactory,
-    private val prefixedTree: StringPrefixedTree
+    private val prefixedTree: FilePrefixedTree
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     private

@@ -16,16 +16,16 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.serialize.graph.StringPrefixedTree
+import org.gradle.internal.serialize.graph.FilePrefixedTree
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.File
 
-class StringPrefixedTreeTest {
+class FilePrefixedTreeTest {
 
     @Test
     fun `prefixed tree humble beginning`() {
-        val prefixedTree = StringPrefixedTree()
+        val prefixedTree = FilePrefixedTree()
         val fooIndex = prefixedTree.insert(File("org/example/foo/Foo"))
         val barIndex = prefixedTree.insert(File("org/example/bar/Bar"))
 
@@ -37,40 +37,40 @@ class StringPrefixedTreeTest {
 
     @Test
     fun `prefixify strings`() {
-        val prefixedTree = StringPrefixedTree()
+        val prefixedTree = FilePrefixedTree()
         prefixedTree.insert(File("org/example/foo/Foo"))
         prefixedTree.insert(File("org/example/bar")) // insert a dir
         prefixedTree.insert(File("org/example/bar/Bar"))
         prefixedTree.insert(File("org/example/bar/Bar1"))
 
-        val expectedTree = StringPrefixedTree.Node(
+        val expectedTree = FilePrefixedTree.Node(
             null,
             "",
             mutableListOf(
-                StringPrefixedTree.Node(
+                FilePrefixedTree.Node(
                     null, "org",
                     mutableListOf(
-                        StringPrefixedTree.Node(
+                        FilePrefixedTree.Node(
                             null, "example",
                             mutableListOf(
-                                StringPrefixedTree.Node(
+                                FilePrefixedTree.Node(
                                     null, "foo",
                                     mutableListOf(
-                                        StringPrefixedTree.Node(
+                                        FilePrefixedTree.Node(
                                             0,
                                             "Foo",
                                             mutableListOf()
                                         )
                                     )
                                 ),
-                                StringPrefixedTree.Node(
+                                FilePrefixedTree.Node(
                                     1, "bar",
                                     mutableListOf(
-                                        StringPrefixedTree.Node(
+                                        FilePrefixedTree.Node(
                                             2, "Bar",
                                             mutableListOf()
                                         ),
-                                        StringPrefixedTree.Node(
+                                        FilePrefixedTree.Node(
                                             3, "Bar1",
                                             mutableListOf()
                                         )
@@ -88,16 +88,16 @@ class StringPrefixedTreeTest {
 
     @Test
     fun `tree is compressable`() {
-        val prefixedTree = StringPrefixedTree()
+        val prefixedTree = FilePrefixedTree()
         prefixedTree.insert(File("org/example/company/foo/Foo"))
         prefixedTree.insert(File("org/example/company/bar/Bar"))
 
-        val expectedCompressedTree = StringPrefixedTree.Node(
+        val expectedCompressedTree = FilePrefixedTree.Node(
             null,
             "org/example/company",
             mutableListOf(
-                StringPrefixedTree.Node(0, "foo/Foo", mutableListOf()),
-                StringPrefixedTree.Node(1, "bar/Bar", mutableListOf())
+                FilePrefixedTree.Node(0, "foo/Foo", mutableListOf()),
+                FilePrefixedTree.Node(1, "bar/Bar", mutableListOf())
             )
         )
 
@@ -106,17 +106,17 @@ class StringPrefixedTreeTest {
 
     @Test
     fun `inserted dirs are not compressable`() {
-        val prefixedTree = StringPrefixedTree()
+        val prefixedTree = FilePrefixedTree()
         prefixedTree.insert(File("org/example/company/foo"))
         prefixedTree.insert(File("org/example/company/foo/bar/zum/Zum"))
 
-        val expectedCompressedTree = StringPrefixedTree.Node(
+        val expectedCompressedTree = FilePrefixedTree.Node(
             null, "org/example/company",
             mutableListOf(
-                StringPrefixedTree.Node(
+                FilePrefixedTree.Node(
                     0, "foo",
                     mutableListOf(
-                        StringPrefixedTree.Node(
+                        FilePrefixedTree.Node(
                             1, "bar/zum/Zum",
                             mutableListOf()
                         )
@@ -130,7 +130,7 @@ class StringPrefixedTreeTest {
 
     @Test
     fun `indexes are valid after compression`() {
-        val prefixedTree = StringPrefixedTree()
+        val prefixedTree = FilePrefixedTree()
         val fooIndex = prefixedTree.insert(File("org/example/foo/Foo"))
         val barIndex = prefixedTree.insert(File("org/example/bar/Bar"))
 
@@ -142,7 +142,7 @@ class StringPrefixedTreeTest {
 
     @Test
     fun `returns the same index for the same file`() {
-        val prefixedTree = StringPrefixedTree()
+        val prefixedTree = FilePrefixedTree()
 
         val foo1Index = prefixedTree.insert(File("org/example/foo/Foo"))
         val foo2Index = prefixedTree.insert(File("org/example/foo/Foo"))
