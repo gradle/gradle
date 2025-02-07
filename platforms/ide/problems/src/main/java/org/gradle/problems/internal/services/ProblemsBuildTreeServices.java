@@ -30,6 +30,7 @@ import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
@@ -55,7 +56,8 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         Instantiator instantiator,
-        PayloadSerializer payloadSerializer
+        PayloadSerializer payloadSerializer,
+        IsolatableFactory isolatableFactory
     ) {
         return new DefaultProblems(
             problemSummarizer,
@@ -64,8 +66,9 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
             exceptionProblemRegistry,
             exceptionAnalyser,
             instantiator,
-            payloadSerializer
-        );
+            payloadSerializer,
+            isolatableFactory,
+            null);
     }
 
     @Provides

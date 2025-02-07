@@ -254,6 +254,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerLogEventListener createWorkerLogEventListener() {
             return new WorkerLogEventListener();
         }
+
+
     }
 
     private static class ContextImpl implements WorkerProcessContext {

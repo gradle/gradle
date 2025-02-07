@@ -50,7 +50,7 @@ class DefaultProblemTest extends Specification {
     }
 
     def InternalProblemBuilder toBuilder(DefaultProblem problem) {
-        problem.toBuilder(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer))
+        problem.toBuilder(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer), isolatbleFactory)
     }
 
     def "unbound builder result with modified #changedAspect is not equal"() {
