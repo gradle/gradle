@@ -27,8 +27,9 @@ import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -103,14 +104,17 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         String configCondition = "'$(Configuration)|$(Platform)'=='" + configuration.getName() + "'";
 
         String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)\\";
-        Node configGroup = getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props")
-            .parent().appendNode(
+        Node configGroup = appendDirectSibling(
+            getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props"),
+            new Node(
+                null,
                 "PropertyGroup",
-                new HashMap<String, String>() {{
+                new LinkedHashMap<String, String>() {{
                     put("Label", "Configuration");
                     put("Condition", configCondition);
                 }}
-            );
+            )
+        );
         configGroup.appendNode("ConfigurationType", configuration.type);
         if (configuration.buildable) {
             configGroup.appendNode("UseDebugLibraries", configuration.debuggable);
@@ -124,14 +128,17 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         }
 
         String includePath = String.join(";", toPath(configuration.buildable ? configuration.includeDirs : emptySet()));
-        Node nMakeGroup = getPropertyGroupForLabel("UserMacros")
-            .parent().appendNode(
+        Node nMakeGroup = appendDirectSibling(
+            getPropertyGroupForLabel("UserMacros"),
+            new Node(
+                null,
                 "PropertyGroup",
-                new HashMap<String, String>() {{
+                new LinkedHashMap<String, String>() {{
                     put("Label", "NMakeConfiguration");
                     put("Condition", configCondition);
                 }}
-            );
+            )
+        );
         if (configuration.buildable) {
             nMakeGroup.appendNode("NMakeBuildCommandLine", gradleCommand + " " + configuration.buildTaskPath);
             nMakeGroup.appendNode("NMakeCleanCommandLine", gradleCommand + " " + configuration.cleanTaskPath);
@@ -154,21 +161,26 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     }
 
     private Node getItemGroupForLabel(String label) {
-        return getChildren(getXml(), "ItemGroup").stream()
-            .filter(node -> node.attribute("Label").equals(label))
-            .findFirst().get();
+        return getSingleNodeWithAttribute("ItemGroup", "Label", label);
     }
 
     private Node getPropertyGroupForLabel(String label) {
-        return getChildren(getXml(), "PropertyGroup").stream()
-            .filter(node -> node.attribute("Label").equals(label))
-            .findFirst().get();
+        return getSingleNodeWithAttribute("PropertyGroup", "Label", label);
     }
 
     private Node getImportsForProject(String project) {
-        return getChildren(getXml(), "Import").stream()
-            .filter(node -> node.attribute("Project").equals(project))
-            .findFirst().get();
+        return getSingleNodeWithAttribute("Import", "Project", project);
+    }
+
+    private Node getSingleNodeWithAttribute(String nodeName, String attributeName, String attributeValue) {
+        return getChildren(getXml(), nodeName).stream()
+            .filter(node -> node.attribute(attributeName).equals(attributeValue))
+            .reduce((a, b) -> {
+                throw new IllegalStateException("Multiple '" + nodeName + "' with attribute '" + attributeName + " = " + attributeValue + "' found");
+            })
+            .orElseThrow(() ->
+                new IllegalStateException("No '" + nodeName + "' with attribute '" + attributeName + " = " + attributeValue + "' found")
+            );
     }
 
     private List<String> toPath(Set<File> files) {
@@ -177,6 +189,26 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
 
     private String toPath(File file) {
         return fileLocationResolver.transform(file);
+    }
+
+    /**
+     * Replicates the behaviour of {@link Node#plus(groovy.lang.Closure)}.
+     */
+    @SuppressWarnings("unchecked")
+    private Node appendDirectSibling(Node node, Node sibling) {
+        if (node.parent() == null) {
+            throw new UnsupportedOperationException("Adding sibling nodes to the root node is not supported");
+        }
+        // Grab tail
+        List<?> parentChildren = node.parent().children();
+        int afterIndex = parentChildren.indexOf(node);
+        List<?> tail = new ArrayList<>(parentChildren.subList(afterIndex + 1, parentChildren.size()));
+        parentChildren.subList(afterIndex + 1, parentChildren.size()).clear();
+        // Add sibling
+        node.parent().appendNode(sibling.name(), sibling.attributes(), sibling.value());
+        // Restore tail
+        node.parent().children().addAll(tail);
+        return sibling;
     }
 
     public static class ConfigurationSpec {
