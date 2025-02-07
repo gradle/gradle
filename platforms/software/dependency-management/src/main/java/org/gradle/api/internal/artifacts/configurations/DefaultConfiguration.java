@@ -1130,8 +1130,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 conf.outgoing.preventFromFurtherMutation();
                 conf.preventUsageMutation();
                 conf.observationReason = () -> {
-                    String target = conf == this ? "it" : "it's child " + this.getDisplayName();
-                    return target + " has been " + reason;
+                    String target = conf == this ? "the configuration" : "the configuration's child " + this.getDisplayName();
+                    return target + " was " + reason;
                 };
             }
         });
@@ -1374,7 +1374,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // we forbid any mutation that mutates the public state. The resolution strategy does
         // not mutate the public state of the configuration, so we allow it.
         if (observationReason != null && type != MutationType.STRATEGY) {
-            DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after %s.", typeDescription, this.getDisplayName(), observationReason.get()))
+            String verb = type.isPlural() ? "were" : "was";
+            DeprecationLogger.deprecateBehaviour("Mutating a Configuration after it has been observed.")
+                .withContext(String.format("The %s of %s %s mutated after %s.", typeDescription, this.getDisplayName(), verb, observationReason.get()))
                 .withAdvice("After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
