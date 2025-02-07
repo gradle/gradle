@@ -59,15 +59,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             contextualLabel == null
             solutions == []
             details == null
-            originLocations.size() == 1
-            with(originLocations[0]) {
+            originLocations.empty
+            contextualLocations.size() == 2
+            with(contextualLocations[0]) {
                 path == this.buildFile.absolutePath
                 line == 13
                 column == null
                 length == null
             }
-            contextualLocations.size() == 1
-            with(contextualLocations[0]) {
+            with(contextualLocations[1]) {
                 taskPath == ':reportProblem'
                 buildPath == ':'
             }
@@ -116,8 +116,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 taskPath == ':reportProblem'
                 buildPath == ':'
             }
-            // TODO: IMO the failure should be null...
-            failure != null
+            failure == null
         }
     }
 
@@ -257,15 +256,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             contextualLabel == null
             solutions == []
             details == null
-            originLocations.size() == 1
-            with(originLocations[0]) {
+            originLocations.empty
+            contextualLocations.size() == 2
+            with(contextualLocations[0]) {
                 path == this.file('included/sub1/build.gradle').absolutePath
                 line == 13
                 column == null
                 length == null
             }
-            contextualLocations.size() == 1
-            with(contextualLocations[0]) {
+            with(contextualLocations[1]) {
                 taskPath == ':sub1:reportProblem'
                 buildPath == ':included'
             }

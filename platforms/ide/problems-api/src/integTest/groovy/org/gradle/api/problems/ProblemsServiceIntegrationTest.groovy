@@ -178,7 +178,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 13
                 path == buildFile.absolutePath
             }
-            with(contextualLocations[1] as TaskPathLocation) {
+            with(contextualLocations[1] as TaskLocation) {
                 buildTreePath == ':reportProblem'
             }
         }
@@ -212,7 +212,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 line == 13
                 path == buildFile.absolutePath
             }
-            with(contextualLocations.get(1) as TaskPathLocation) {
+            with(contextualLocations.get(1) as TaskLocation) {
                 it.buildTreePath == ':reportProblem'
             }
         }
