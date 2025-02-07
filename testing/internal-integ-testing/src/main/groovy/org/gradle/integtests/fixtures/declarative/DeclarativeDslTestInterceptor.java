@@ -39,8 +39,9 @@ public class DeclarativeDslTestInterceptor extends AbstractMultiTestInterceptor 
 
     @Override
     protected void createExecutions() {
-        add(new DslExecution(GradleDsl.DECLARATIVE));
-        add(new DslExecution(GradleDsl.KOTLIN));
+        for (GradleDsl dsl : GradleDsl.values()) {
+            add(new DslExecution(dsl));
+        }
     }
 
     private static class DslExecution extends Execution {
