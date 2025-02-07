@@ -17,21 +17,25 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.inject.Inject;
-import java.io.File;
 
 public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     private final PathToFileResolver fileResolver;
     private final CopySpecInternal delegate;
-
-    private Object destinationDir;
+    private final DirectoryProperty destinationDir;
 
     @Inject
-    public DestinationRootCopySpec(PathToFileResolver fileResolver, CopySpecInternal delegate) {
+    public DestinationRootCopySpec(PathToFileResolver fileResolver, ObjectFactory objectFactory, CopySpecInternal delegate) {
         this.fileResolver = fileResolver;
+        this.destinationDir = objectFactory.directoryProperty();
         this.delegate = delegate;
     }
 
@@ -42,13 +46,25 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     @Override
     public CopySpec into(Object destinationDir) {
-        this.destinationDir = destinationDir;
+        if (destinationDir instanceof DirectoryProperty) {
+            getDestinationDir().set((DirectoryProperty) destinationDir);
+        } else if (destinationDir instanceof Provider) {
+            getDestinationDir().fileProvider(((Provider<?>) destinationDir).map(file -> {
+                if (file instanceof FileSystemLocation) {
+                    return ((FileSystemLocation) file).getAsFile();
+                } else {
+                    return fileResolver.resolve(file);
+                }
+            }));
+        } else {
+            getDestinationDir().fileProvider(Providers.changing(() -> fileResolver.resolve(destinationDir)));
+        }
         return this;
     }
 
     @Override
-    public File getDestinationDir() {
-        return destinationDir == null ? null : fileResolver.resolve(destinationDir);
+    public DirectoryProperty getDestinationDir() {
+        return destinationDir;
     }
 
     // TODO:configuration-cache - remove this
