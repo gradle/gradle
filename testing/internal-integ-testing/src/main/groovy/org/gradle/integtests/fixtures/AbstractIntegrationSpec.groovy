@@ -217,6 +217,10 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
         testDirectory.file(defaultBuildKotlinFileName)
     }
 
+    TestFile getBuildFile(GradleDsl dsl, Object... path) {
+        testDirectory.file(*path, dsl.fileNameFor("build"))
+    }
+
     protected String getDefaultBuildFileName() {
         'build.gradle'
     }
@@ -236,6 +240,10 @@ abstract class AbstractIntegrationSpec extends Specification implements Language
 
     protected TestFile getSettingsKotlinFile() {
         testDirectory.file(settingsKotlinFileName)
+    }
+
+    protected TestFile getSettingsFile(GradleDsl dsl) {
+        testDirectory.file(dsl.fileNameFor("settings"))
     }
 
     protected TestFile getPropertiesFile() {
