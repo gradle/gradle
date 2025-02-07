@@ -111,7 +111,8 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
                 return new DevelocityFileLocation((org.gradle.api.problems.FileLocation) location);
             }
         } else if (location instanceof TaskLocation) {
-            return new DevelocityTaskLocation((TaskLocation) location);
+            // The Develocity plugin will infer the task location from the build operation hierarchy - no need to send this contextual information
+            return null;
         } else if (location instanceof org.gradle.api.problems.internal.PluginIdLocation) {
             return new DevelocityPluginIdLocation((PluginIdLocation) location);
         }
@@ -271,30 +272,6 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         @Override
         public String getDisplayName() {
             return "offset in file '" + getPath() + ":" + getOffset() + ":" + getLength() + "'";
-        }
-    }
-
-    private static class DevelocityTaskLocation implements org.gradle.operations.problems.TaskLocation {
-
-        private final TaskLocation taskLocation;
-
-        public DevelocityTaskLocation(TaskLocation taskLocation) {
-            this.taskLocation = taskLocation;
-        }
-
-        @Override
-        public String getBuildPath() {
-            return taskLocation.getBuildPath();
-        }
-
-        @Override
-        public String getTaskPath() {
-            return taskLocation.getTaskPath();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "task '" + taskLocation.getBuildTreePath() + "'";
         }
     }
 

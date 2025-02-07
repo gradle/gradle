@@ -60,16 +60,12 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             solutions == []
             details == null
             originLocations.empty
-            contextualLocations.size() == 2
+            contextualLocations.size() == 1
             with(contextualLocations[0]) {
                 path == this.buildFile.absolutePath
                 line == 13
                 column == null
                 length == null
-            }
-            with(contextualLocations[1]) {
-                taskPath == ':reportProblem'
-                buildPath == ':'
             }
             failure == null
         }
@@ -111,11 +107,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 column == null
                 length == null
             }
-            contextualLocations.size() == 1
-            with(contextualLocations[0]) {
-                taskPath == ':reportProblem'
-                buildPath == ':'
-            }
+            contextualLocations.empty
             failure == null
         }
     }
@@ -208,12 +200,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
                 length == 20
                 displayName == "offset in file '${location4}:55:20'"
             }
-            contextualLocations.size() == 1
-            with(contextualLocations[0]) {
-                buildPath == ':'
-                taskPath == ':reportProblem'
-                displayName == "task ':reportProblem'"
-            }
+            contextualLocations.empty
             with(failure) {
                 message == 'problem exception'
                 stackTrace.startsWith('java.lang.IllegalArgumentException: problem exception')
@@ -257,16 +244,12 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             solutions == []
             details == null
             originLocations.empty
-            contextualLocations.size() == 2
+            contextualLocations.size() == 1
             with(contextualLocations[0]) {
                 path == this.file('included/sub1/build.gradle').absolutePath
                 line == 13
                 column == null
                 length == null
-            }
-            with(contextualLocations[1]) {
-                taskPath == ':sub1:reportProblem'
-                buildPath == ':included'
             }
             failure == null
         }
