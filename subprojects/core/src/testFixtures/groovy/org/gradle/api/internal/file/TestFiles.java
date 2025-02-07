@@ -243,8 +243,7 @@ public class TestFiles {
             new DefaultExecutorFactory(),
             NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
             new DefaultBuildCancellationToken(),
-            objectFactory(),
-            execHandleFactory()
+            objectFactory()
         );
     }
 
@@ -253,7 +252,6 @@ public class TestFiles {
             .withFileResolver(resolver(baseDir))
             .withFileCollectionFactory(fileCollectionFactory(baseDir))
             .withInstantiator(TestUtil.instantiatorFactory().inject())
-            .withExecHandleFactory(execHandleFactory(baseDir))
             .withObjectFactory(objectFactory())
             .build();
     }
