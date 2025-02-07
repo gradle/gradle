@@ -35,13 +35,10 @@ public interface ProblemUsageProgressDetails {
 
     /**
      * The severity of the problem.
-     * <p>
-     * The severity of a problem is a hint to the user about how important the problem is.
-     * ERROR will fail the build, WARNING will not.
      *
      * @since 8.14
      */
-    String getSeverity();
+    ProblemSeverity getSeverity();
 
     /**
      * Declares a short, but usage-dependent message for this problem.

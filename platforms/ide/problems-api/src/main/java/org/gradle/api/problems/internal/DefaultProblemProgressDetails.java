@@ -24,6 +24,7 @@ import org.gradle.operations.problems.OffsetInFileLocation;
 import org.gradle.operations.problems.ProblemDefinition;
 import org.gradle.operations.problems.ProblemGroup;
 import org.gradle.operations.problems.ProblemLocation;
+import org.gradle.operations.problems.ProblemSeverity;
 import org.gradle.operations.problems.ProblemUsageProgressDetails;
 
 import javax.annotation.Nonnull;
@@ -47,8 +48,17 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
     }
 
     @Override
-    public String getSeverity() {
-        return problem.getDefinition().getSeverity().name();
+    public ProblemSeverity getSeverity() {
+        switch (problem.getDefinition().getSeverity()) {
+            case ADVICE:
+                return ProblemSeverity.ADVICE;
+            case WARNING:
+                return ProblemSeverity.WARNING;
+            case ERROR:
+                return ProblemSeverity.ERROR;
+            default:
+                throw new IllegalArgumentException("Unknown severity: " + problem.getDefinition().getSeverity());
+        }
     }
 
     @Nullable
