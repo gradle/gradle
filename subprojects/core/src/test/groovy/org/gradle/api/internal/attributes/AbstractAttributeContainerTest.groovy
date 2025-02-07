@@ -62,7 +62,7 @@ import spock.lang.Specification
         and:
         def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
         events.size() == 1
-        events[0].message.startsWith('Using method getAttribute with a null key has been deprecated.')
+        events[0].message.startsWith('Calling getAttribute() with a null key has been deprecated.')
 
         where:
         containerStatus                 | preppedContainer

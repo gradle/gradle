@@ -65,7 +65,7 @@ public abstract class AbstractAttributeContainer implements AttributeContainerIn
     protected boolean isValidAttributeRequest(@Nullable Attribute<?> key) {
         if (key == null) {
             DeprecationLogger.deprecateInvocation("getAttribute with a null key")
-                .withAdvice("Don't request attributes using null keys.")
+                .withAdvice("Don't request attributes from attribute containers using null keys.")
                 .willBecomeAnErrorInGradle10()
                 .undocumented()
                 .nagUser();
