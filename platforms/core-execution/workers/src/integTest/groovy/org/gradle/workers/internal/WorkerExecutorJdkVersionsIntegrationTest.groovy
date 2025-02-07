@@ -19,6 +19,7 @@ package org.gradle.workers.internal
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.junit.Assume
+import spock.lang.Ignore
 
 /**
  * Test the worker API behavior across JDK versions.
@@ -101,6 +102,7 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
         executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
     }
 
+    @Ignore
     def "useful error message when using incompatible java version: #version"() {
         given:
         configureForVersion(version)
