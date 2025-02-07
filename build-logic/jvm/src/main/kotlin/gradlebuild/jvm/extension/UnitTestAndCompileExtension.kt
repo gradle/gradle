@@ -64,24 +64,24 @@ abstract class UnitTestAndCompileExtension {
         get() = targetVersionProperty
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Enforces **Java 8** compatibility.
      */
     fun usedInWorkers() {
-        targetVersionProperty = 6
+        targetVersionProperty = 8
     }
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Enforces **Java 8** compatibility.
      */
     fun usedForStartup() {
         targetVersionProperty = 6
     }
 
     /**
-     * Enforces **Java 7** compatibility.
+     * Enforces **Java 8** compatibility.
      */
     fun usedInToolingApi() {
-        targetVersionProperty = 7
+        targetVersionProperty = 8
     }
 
     /**
