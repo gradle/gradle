@@ -107,14 +107,11 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         String vsOutputDir = ".vs\\" + configuration.projectName + "\\$(Configuration)\\";
         Node configGroup = appendDirectSibling(
             getImportsForProject("$(VCTargetsPath)\\Microsoft.Cpp.Default.props"),
-            new Node(
-                null,
-                "PropertyGroup",
-                new LinkedHashMap<String, String>() {{
-                    put("Label", "Configuration");
-                    put("Condition", configCondition);
-                }}
-            )
+            "PropertyGroup",
+            new LinkedHashMap<String, String>() {{
+                put("Label", "Configuration");
+                put("Condition", configCondition);
+            }}
         );
         configGroup.appendNode("ConfigurationType", configuration.type);
         if (configuration.buildable) {
@@ -131,14 +128,11 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         String includePath = String.join(";", toPath(configuration.buildable ? configuration.includeDirs : emptySet()));
         Node nMakeGroup = appendDirectSibling(
             getPropertyGroupForLabel("UserMacros"),
-            new Node(
-                null,
-                "PropertyGroup",
-                new LinkedHashMap<String, String>() {{
-                    put("Label", "NMakeConfiguration");
-                    put("Condition", configCondition);
-                }}
-            )
+            "PropertyGroup",
+            new LinkedHashMap<String, String>() {{
+                put("Label", "NMakeConfiguration");
+                put("Condition", configCondition);
+            }}
         );
         if (configuration.buildable) {
             nMakeGroup.appendNode("NMakeBuildCommandLine", gradleCommand + " " + configuration.buildTaskPath);
@@ -192,7 +186,7 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
      * Replicates the behaviour of {@link Node#plus(groovy.lang.Closure)}.
      */
     @SuppressWarnings("unchecked")
-    private Node appendDirectSibling(Node node, Node sibling) {
+    private static Node appendDirectSibling(Node node, String siblingName, LinkedHashMap<String, String> siblingAttributes) {
         if (node.parent() == null) {
             throw new UnsupportedOperationException("Adding sibling nodes to the root node is not supported");
         }
@@ -202,7 +196,7 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         List<?> tail = new ArrayList<>(parentChildren.subList(afterIndex + 1, parentChildren.size()));
         parentChildren.subList(afterIndex + 1, parentChildren.size()).clear();
         // Add sibling
-        node.parent().appendNode(sibling.name(), sibling.attributes(), sibling.value());
+        Node sibling = node.parent().appendNode(siblingName, siblingAttributes);
         // Restore tail
         node.parent().children().addAll(tail);
         return sibling;
