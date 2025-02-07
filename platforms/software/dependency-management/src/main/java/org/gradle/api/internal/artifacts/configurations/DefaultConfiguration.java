@@ -51,6 +51,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.DomainObjectContext;
@@ -216,6 +217,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
@@ -251,6 +253,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
@@ -263,6 +266,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     ) {
         super(taskDependencyFactory);
         this.userCodeApplicationContext = userCodeApplicationContext;
+        this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
         this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
@@ -474,18 +478,18 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         warnOnDeprecatedUsage("defaultDependencies(Action)", ProperMethodUsage.DECLARABLE_AGAINST);
         validateMutation(MutationType.DEPENDENCIES);
-        defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
+        defaultDependencyActions = defaultDependencyActions.add(collectionCallbackActionDecorator.decorate(dependencies -> {
             if (dependencies.isEmpty()) {
                 action.execute(dependencies);
             }
-        });
+        }));
         return this;
     }
 
     @Override
     public Configuration withDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationType.DEPENDENCIES);
-        withDependencyActions = withDependencyActions.add(action);
+        withDependencyActions = withDependencyActions.add(collectionCallbackActionDecorator.decorate(action));
         return this;
     }
 
