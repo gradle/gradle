@@ -13,6 +13,7 @@ dependencies {
     api(projects.jvmServices)
     api(projects.modelCore)
     api(projects.native)
+    api(projects.problemsApi)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 

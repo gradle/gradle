@@ -28,6 +28,7 @@ import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
+import org.gradle.util.GradleVersion
 
 import java.util.stream.Stream
 
@@ -384,13 +385,14 @@ tasks.named("updateDaemonJvm") {
     toolchainPlatforms = []
 }
 """)
+        executer.expectDeprecationWarning("The UpdateDaemonJvm.jvmVendor property has been deprecated. This is scheduled to be removed in Gradle 9.0. Executing the 'updateDaemonJvm' task will fail with this usage present Please use the vendor property instead. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/dsl/org.gradle.buildconfiguration.tasks.UpdateDaemonJvm.html#org.gradle.buildconfiguration.tasks.UpdateDaemonJvm:jvmVendor in the Gradle documentation.")
 
         when:
         fails "updateDaemonJvm"
 
         then:
         failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Configuring 'jvmVendor' is no longer supported, replace its usage with 'vendor'")
+        failureHasCause("Configuring 'jvmVendor' is no longer supported")
     }
 
     def "can hardcode download URLs in task configuration for generation and then it does not require a toolchain provider configured"() {

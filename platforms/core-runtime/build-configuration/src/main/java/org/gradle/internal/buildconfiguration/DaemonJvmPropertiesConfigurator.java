@@ -17,10 +17,13 @@
 package org.gradle.internal.buildconfiguration;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.Problems;
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.Pair;
 import org.gradle.internal.buildconfiguration.resolvers.UnconfiguredToolchainRepositoriesResolver;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainDownload;
@@ -51,6 +54,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
     public void execute(ProjectInternal project) {
         // Only useful for the root project
         if (project.getParent() == null) {
+            ProblemReporter reporter = project.getServices().get(Problems.class).getReporter();
             project.getTasks().register(TASK_NAME, UpdateDaemonJvm.class, task -> {
                 task.setGroup("Build Setup");
                 task.setDescription("Generates or updates the Gradle Daemon JVM criteria.");
@@ -75,7 +79,12 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
                             JavaToolchainResolverService resolverService = project.getServices().get(JavaToolchainResolverService.class);
                             if (!resolverService.hasConfiguredToolchainRepositories()) {
-                                throw new UnconfiguredToolchainRepositoriesResolver();
+                                UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
+                                throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
+                                    problemSpec -> {
+                                        problemSpec.contextualLabel(exception.getLocalizedMessage());
+                                        exception.getResolutions().forEach(problemSpec::solution);
+                                    });
                             }
                             Map<BuildPlatform, Optional<URI>> buildPlatformOptionalUriMap = platforms.stream()
                                 .collect(Collectors.toMap(platform -> platform,
@@ -84,7 +93,13 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 .filter(e -> e.getValue().isPresent())
                                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
                             if (platformToDownloadUri.isEmpty()) {
-                                throw new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms);
+                                String message = "Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms;
+                                throw reporter.throwing(new IllegalStateException(message), UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
+                                    problemSpec -> {
+                                        problemSpec.contextualLabel(message);
+                                        problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms");
+                                        problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
+                                    });
                             }
                             return platformToDownloadUri;
                         }));

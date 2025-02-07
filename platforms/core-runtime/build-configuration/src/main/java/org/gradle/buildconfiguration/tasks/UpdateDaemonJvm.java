@@ -20,6 +20,10 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemReporter;
+import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -33,6 +37,7 @@ import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -58,8 +63,16 @@ import java.util.stream.Collectors;
 @Incubating
 public abstract class UpdateDaemonJvm extends DefaultTask {
 
+    /**
+     * The problem id for task configuration problems.
+     *
+     * @since 8.13
+     */
+    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create("task-configuration", "Invalid task configuration", GradleCoreProblemGroup.daemonToolchain().configurationGeneration());
+
     private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
-    private final Property<String> jvmVendor;
+    private final Property<String> jvmVendorDeprecated;
+    private final ProblemReporter problemsReporter;
 
     /**
      * Constructor.
@@ -67,9 +80,10 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.8
      */
     @Inject
-    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier, PropertyFactory propertyFactory) {
+    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier, PropertyFactory propertyFactory, Problems problems) {
         this.daemonJvmPropertiesModifier = daemonJvmPropertiesModifier;
-        jvmVendor = propertyFactory.property(String.class);
+        jvmVendorDeprecated = propertyFactory.property(String.class);
+        problemsReporter = problems.getReporter();
     }
 
     @TaskAction
@@ -78,25 +92,31 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
 
         handleDeprecatedJvmVendor();
 
-        final String jvmVendor;
+        final String jvmVendorCriteria;
         if (getVendor().isPresent()) {
-            jvmVendor = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
+            jvmVendorCriteria = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
         } else {
-            jvmVendor = null; // any vendor is acceptable
+            jvmVendorCriteria = null; // any vendor is acceptable
         }
         daemonJvmPropertiesModifier.updateJvmCriteria(
             getPropertiesFile().get().getAsFile(),
             getLanguageVersion().get(),
-            jvmVendor,
+            jvmVendorCriteria,
             getToolchainDownloadUrls().get()
         );
     }
 
     @SuppressWarnings("Deprecated")
     private void handleDeprecatedJvmVendor() {
-        if (getJvmVendor().isPresent()) {
-            // TODO Improve error message with upgrade guide link
-            throw new IllegalStateException("Configuring 'jvmVendor' is no longer supported, replace its usage with 'vendor'");
+        if (jvmVendorDeprecated.isPresent()) {
+            String message = "Configuring 'jvmVendor' is no longer supported.";
+            throw problemsReporter.throwing(new IllegalStateException(message),
+                TASK_CONFIGURATION_PROBLEM_ID,
+                problemSpec -> {
+                    problemSpec.documentedAt(Documentation.upgradeGuide(8, "#todo").getUrl());
+                    problemSpec.solution("Replace the usage of `UpdateDaemonJvm.jvmVendor` with 'vendor'");
+                    problemSpec.contextualLabel(message);
+                });
         }
     }
 
@@ -156,7 +176,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             .willBeRemovedInGradle9()
             .withDslReference()
             .nagUser();
-        return jvmVendor;
+        return jvmVendorDeprecated;
     };
 
     /**
