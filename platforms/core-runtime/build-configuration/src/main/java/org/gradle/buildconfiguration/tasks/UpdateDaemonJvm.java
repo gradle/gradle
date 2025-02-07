@@ -16,10 +16,10 @@
 
 package org.gradle.buildconfiguration.tasks;
 
-import com.google.errorprone.annotations.InlineMe;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -32,6 +32,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.options.OptionValues;
 import org.gradle.internal.buildconfiguration.DaemonJvmPropertiesDefaults;
 import org.gradle.internal.buildconfiguration.tasks.DaemonJvmPropertiesModifier;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.inspection.JvmVendor;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
@@ -58,6 +59,7 @@ import java.util.stream.Collectors;
 public abstract class UpdateDaemonJvm extends DefaultTask {
 
     private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
+    private final Property<String> jvmVendor;
 
     /**
      * Constructor.
@@ -65,8 +67,9 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * @since 8.8
      */
     @Inject
-    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier) {
+    public UpdateDaemonJvm(DaemonJvmPropertiesModifier daemonJvmPropertiesModifier, PropertyFactory propertyFactory) {
         this.daemonJvmPropertiesModifier = daemonJvmPropertiesModifier;
+        jvmVendor = propertyFactory.property(String.class);
     }
 
     @TaskAction
@@ -77,7 +80,6 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
 
         final String jvmVendor;
         if (getVendor().isPresent()) {
-            // TODO We need to serialize the spec by using either the enum name or the match value
             jvmVendor = getVendor().map(v -> ((DefaultJvmVendorSpec)v).toCriteria()).get();
         } else {
             jvmVendor = null; // any vendor is acceptable
@@ -118,8 +120,11 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @Internal
     @Deprecated
-    @InlineMe(replacement = "this.getLanguageVersion()")
     public final Property<JavaLanguageVersion> getJvmVersion() {
+        DeprecationLogger.deprecateProperty(UpdateDaemonJvm.class, "jvmVersion").replaceWith("languageVersion")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
         return getLanguageVersion();
     }
 
@@ -145,8 +150,14 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      */
     @Internal
     @Deprecated
-    // TODO Add deprecation warning
-    public abstract Property<String> getJvmVendor();
+    public Property<String> getJvmVendor() {
+        DeprecationLogger.deprecateProperty(UpdateDaemonJvm.class, "jvmVendor").replaceWith("vendor")
+            .withContext("Executing the 'updateDaemonJvm' task will fail with this usage present")
+            .willBeRemovedInGradle9()
+            .withDslReference()
+            .nagUser();
+        return jvmVendor;
+    };
 
     /**
      * Configures the vendor spec for the daemon toolchain properties generation.
