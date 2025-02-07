@@ -216,6 +216,8 @@ public abstract class Actions {
         };
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public static <T> Action<T> set(Action<T>... actions) {
         return ImmutableActionSet.of(actions);
     }

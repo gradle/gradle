@@ -37,6 +37,8 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         this.specs = uncheckedCast(EMPTY);
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     protected CompositeSpec(Spec<? super T>... specs) {
         if (specs.length == 0) {
             this.specs = uncheckedCast(EMPTY);

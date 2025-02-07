@@ -39,10 +39,14 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         this(property, null, Collections.<V>emptyList());
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public AbstractBuildOption(String property, String deprecatedProperty, V... commandLineOptionConfiguration) {
         this(property, deprecatedProperty, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public AbstractBuildOption(String property, V... commandLineOptionConfiguration) {
         this(property, null, commandLineOptionConfiguration != null ? Arrays.asList(commandLineOptionConfiguration) : Collections.<V>emptyList());
     }

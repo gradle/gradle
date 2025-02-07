@@ -58,7 +58,9 @@ public class CachingDirectedGraphWalker<N, T> {
     /**
      * Adds some start nodes.
      */
-    public CachingDirectedGraphWalker<N, T> add(N... values) {
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public final CachingDirectedGraphWalker<N, T> add(N... values) {
         add(Arrays.asList(values));
         return this;
     }
