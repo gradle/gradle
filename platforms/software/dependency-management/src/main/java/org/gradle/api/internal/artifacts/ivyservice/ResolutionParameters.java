@@ -31,7 +31,6 @@ import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Thread safe description of what and how to resolve. This type is almost entirely deeply immutable,
@@ -285,9 +284,10 @@ public class ResolutionParameters {
 
         /**
          * Provide resolutions to add to a failure to assist the user on resolving the provided
-         * version conflicts.
+         * version conflict.
          */
-        List<String> forVersionConflict(Set<Conflict> conflicts);
+        List<String> forVersionConflict(Conflict conflict);
+
     }
 
     /**
