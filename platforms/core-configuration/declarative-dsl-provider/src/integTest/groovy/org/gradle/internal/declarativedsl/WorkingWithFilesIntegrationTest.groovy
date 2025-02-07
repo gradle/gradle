@@ -17,9 +17,15 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.declarative.DeclarativeDslOnly
+import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
+import org.gradle.internal.declarativedsl.settings.PolyglotBuildFilesFixture
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
-class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+@DeclarativeDslTest
+class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotBuildFilesFixture {
+
+    @DeclarativeDslOnly(because = "Support for project layout in defaults block not yet implemented for Kotlin & Groovy DSL") // TODO
     def 'set #name'() {
         given:
         withSoftwareTypePlugins(
@@ -28,9 +34,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
