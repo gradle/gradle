@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.internal.declarativedsl.settings
 
-import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
 import org.gradle.integtests.fixtures.declarative.DeclarativeDslTestInterceptor
 import org.gradle.test.fixtures.file.TestFile
 
-@DeclarativeDslTest
-class AbstractDeclarativeIntegrationSpec extends AbstractIntegrationSpec {
+trait PolyglotBuildFilesFixture {
 
-    protected TestFile buildFile() {
+    TestFile buildFile() {
         getBuildFile(DeclarativeDslTestInterceptor.currentDsl)
     }
 
-    protected TestFile buildFileForProject(String project) {
+    TestFile buildFileForProject(String project) {
         getBuildFile(DeclarativeDslTestInterceptor.currentDsl, project)
     }
 
-    protected TestFile settingsFile() {
+    TestFile settingsFile() {
         getSettingsFile(DeclarativeDslTestInterceptor.currentDsl)
     }
+
 }

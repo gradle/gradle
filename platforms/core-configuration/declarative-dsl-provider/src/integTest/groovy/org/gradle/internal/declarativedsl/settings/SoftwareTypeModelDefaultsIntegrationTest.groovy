@@ -17,11 +17,13 @@
 package org.gradle.internal.declarativedsl.settings
 
 import groovy.test.NotYetImplemented
-import org.gradle.integtests.fixtures.AbstractDeclarativeIntegrationSpec
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.declarative.DeclarativeDslOnly
+import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
 
-class SoftwareTypeModelDefaultsIntegrationTest extends AbstractDeclarativeIntegrationSpec implements SoftwareTypeFixture {
+@DeclarativeDslTest
+class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotBuildFilesFixture {
     def setup() {
         file("gradle.properties") << """
             org.gradle.kotlin.dsl.dcl=true
