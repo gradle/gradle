@@ -19,7 +19,6 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.StartParameter;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
@@ -59,8 +58,7 @@ public class RunBuildDependenciesTaskBuilder implements ParameterizedToolingMode
             StartParameter startParameter = rootGradle.getStartParameter();
             List<String> taskPaths = new ArrayList<>(startParameter.getTaskNames());
             String parentTaskName = parentTaskName(rootProject, "eclipseClosedDependencies");
-            Task task = rootProject.task(parentTaskName);
-            task.dependsOn(buildDependencies.toArray(new Object[0]));
+            rootProject.getTasks().register(parentTaskName, task -> task.dependsOn(buildDependencies.toArray(new Object[0])));
             taskPaths.add(parentTaskName);
             startParameter.setTaskNames(taskPaths);
         }

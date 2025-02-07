@@ -673,7 +673,7 @@ plugins {
 dependencies {
     implementation project(':a')
 }
-task resolve {
+tasks.register("resolve") {
     def compileClasspath = configurations.compileClasspath
     doLast {
         compileClasspath.files
@@ -687,7 +687,7 @@ plugins {
 dependencies {
     implementation project(':b')
 }
-task resolve {
+tasks.register("resolve") {
     def compileClasspath = configurations.compileClasspath
     doLast {
         compileClasspath.files
