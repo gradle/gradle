@@ -43,7 +43,7 @@ public interface ProblemUsageProgressDetails {
     /**
      * Declares a short, but usage-dependent message for this problem.
      *
-     * @return the contextual label, or null if not available.
+     * @return the contextual label, or {@code null} if not specified. Then the display name from the definition should be used.
      * @since 8.14
      */
     @Nullable
@@ -61,6 +61,8 @@ public interface ProblemUsageProgressDetails {
      * <p>
      * Details can elaborate on the problem, and provide more information about the problem.
      * They can be multiple lines long, but should not detail solutions; for that, use {@link #getSolutions()}.
+     * <p>
+     * {@code null} if no details have been specified.
      *
      * @since 8.14
      */
