@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import static java.util.Collections.emptySet;
@@ -173,14 +174,10 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
     }
 
     private Node getSingleNodeWithAttribute(String nodeName, String attributeName, String attributeValue) {
-        return getChildren(getXml(), nodeName).stream()
-            .filter(node -> node.attribute(attributeName).equals(attributeValue))
-            .reduce((a, b) -> {
-                throw new IllegalStateException("Multiple '" + nodeName + "' with attribute '" + attributeName + " = " + attributeValue + "' found");
-            })
-            .orElseThrow(() ->
-                new IllegalStateException("No '" + nodeName + "' with attribute '" + attributeName + " = " + attributeValue + "' found")
-            );
+        return Objects.requireNonNull(
+            findFirstChildWithAttributeValue(getXml(), nodeName, attributeName, attributeValue),
+            "No '" + nodeName + "' with attribute '" + attributeName + " = " + attributeValue + "' found"
+        );
     }
 
     private List<String> toPath(Set<File> files) {

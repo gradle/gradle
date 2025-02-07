@@ -21,6 +21,7 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
 import java.io.File;
+import java.util.Objects;
 
 import static java.util.Collections.singletonMap;
 
@@ -51,9 +52,10 @@ public class VisualStudioFiltersFile extends XmlPersistableConfigurationObject {
     }
 
     private Node getItemGroupForLabel(String label) {
-        return getChildren(getXml(), "ItemGroup").stream()
-            .filter(node -> node.attribute("Label").equals(label))
-            .findFirst().get();
+        return Objects.requireNonNull(
+            findFirstChildWithAttributeValue(getXml(), "ItemGroup", "Label", label),
+            "No 'ItemGroup' with attribute 'Label = " + label + "' found"
+        );
     }
 
     private String toPath(File file) {
