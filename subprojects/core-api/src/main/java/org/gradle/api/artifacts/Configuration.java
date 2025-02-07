@@ -32,6 +32,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -166,14 +167,44 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
     Configuration setExtendsFrom(Iterable<Configuration> superConfigs);
 
     /**
-     * Adds the given configurations to the set of configuration which this configuration extends from.
+     * Adds the configuration from the given provider to the set of configuration which this configuration extends from.
      * <p>
-     * Configurations are only allowed to extend from other configurations in the same project.
+     * Configurations are only allowed to extend from other configurations in the same project.  Note that this method
+     * will retrieve the configuration from the provider at the time this method is called, not lazily.
+     *
+     * @param configProvider Provider of the super configuration.
+     * @return this configuration
+     *
+     * @since 8.11
+     */
+    @Incubating
+    default Configuration setExtendsFrom(Provider<Configuration> configProvider) {
+        return setExtendsFrom(Collections.singletonList(configProvider.get()));
+    }
+
+    /**
+     * Adds the given configurations to the set of configurations which this configuration extends from.
      *
      * @param superConfigs The super configurations.
      * @return this configuration
      */
     Configuration extendsFrom(Configuration... superConfigs);
+
+    /**
+     * Adds the configuration available via the given provider to the set of configurations which this
+     * configuration extends from.
+     * <p>
+     * Note that this method will retrieve the configuration from the provider at the time this method is called, not lazily.
+     *
+     * @param configProvider Provider of the super configuration.
+     * @return this configuration
+     *
+     * @since 8.11
+     */
+    @Incubating
+    default Configuration extendsFrom(Provider<Configuration> configProvider) {
+        return extendsFrom(configProvider.get());
+    }
 
     /**
      * Returns the transitivity of this configuration. A transitive configuration contains the transitive closure of its
