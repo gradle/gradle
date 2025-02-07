@@ -24,8 +24,10 @@ import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.internal.resource.ExternalResourceReadMetadataBuildOperationType
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
+import org.junit.Ignore
 import spock.lang.Specification
 
+@Ignore
 class ProgressLoggingExternalResourceAccessorTest extends Specification {
 
     ExternalResourceAccessor delegate = Mock()

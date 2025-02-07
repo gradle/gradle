@@ -24,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
+import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
 
@@ -60,7 +61,7 @@ class ParallelStringDecoder(stream: InputStream) : StringDecoder, AutoCloseable 
 
     private
     val reader = thread(isDaemon = true) {
-        Input(stream).use { input ->
+        Input(GZIPInputStream(stream)).use { input ->
             while (true) {
                 val id = input.readVarInt(true)
                 if (id == 0) break

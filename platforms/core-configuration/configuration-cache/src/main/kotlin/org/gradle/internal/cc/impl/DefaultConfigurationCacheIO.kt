@@ -282,7 +282,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun fileSystemTreeEncoderFor(fileSystemTreeFile: ConfigurationCacheStateFile): FileSystemTreeEncoder =
-        if (true) {
+        if (false) {
             val (globalContext, _) = writeContextFor(fileSystemTreeFile, SpecialEncoders()) { "files" }
             globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
             DefaultFileSystemTreeEncoder(globalContext, prefixedTree)
@@ -293,7 +293,7 @@ class DefaultConfigurationCacheIO internal constructor(
 
     private
     fun fileSystemTreeDecoderFor(fileSystemTreeFile: ConfigurationCacheStateFile): FileSystemTreeDecoder =
-        if (true) {
+        if (false) {
             val (globalContext, _) = readContextFor(fileSystemTreeFile)
             globalContext.push(IsolateOwners.OwnerGradle(host.currentBuild.gradle))
             DefaultFileSystemTreeDecoder(globalContext, prefixedTree)
