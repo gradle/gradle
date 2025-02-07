@@ -1375,9 +1375,9 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // not mutate the public state of the configuration, so we allow it.
         if (observationReason != null && type != MutationType.STRATEGY) {
             String verb = type.isPlural() ? "were" : "was";
-            DeprecationLogger.deprecateBehaviour("Mutating a Configuration after it has been observed.")
+            DeprecationLogger.deprecateBehaviour("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.")
                 .withContext(String.format("The %s of %s %s mutated after %s.", typeDescription, this.getDisplayName(), verb, observationReason.get()))
-                .withAdvice("After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified.")
+                .withAdvice("After a configuration has been observed, it should not be modified.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
                 .nagUser();
