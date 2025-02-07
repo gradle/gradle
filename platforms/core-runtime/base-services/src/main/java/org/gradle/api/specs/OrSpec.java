@@ -30,6 +30,8 @@ public class OrSpec<T> extends CompositeSpec<T> {
         super();
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public OrSpec(Spec<? super T>... specs) {
         super(specs);
     }
@@ -52,6 +54,7 @@ public class OrSpec<T> extends CompositeSpec<T> {
         return false;
     }
 
+    @SuppressWarnings({"varargs", "unchecked"})
     public OrSpec<T> or(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return this;
