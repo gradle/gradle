@@ -77,7 +77,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 '''
 
         executer.expectDocumentedDeprecationWarning(
-            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+            "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                 "This is scheduled to be removed in Gradle 10.0. Use assignment ('description = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
         )
@@ -85,8 +85,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("test")
         verifyAll(receivedProblem(0)) {
-            definition.id.fqid == 'deprecation:space-assignment-syntax-in-groovy-dsl'
-            definition.id.displayName == 'Space-assignment syntax in Groovy DSL has been deprecated.'
+            definition.id.fqid == 'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl'
+            definition.id.displayName == """Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."""
             def locations = allLocations(LineInFileLocation)
             //guarantee no duplicate locations
             locations.size() == 1

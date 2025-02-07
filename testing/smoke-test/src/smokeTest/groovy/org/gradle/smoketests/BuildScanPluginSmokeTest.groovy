@@ -419,7 +419,7 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
                     "Use getBuildPath() to get a unique identifier for the build. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
             ).maybeExpectLegacyDeprecationWarning(
-            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+            "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                 "This is scheduled to be removed in Gradle 10.0. " +
                 "Use assignment ('url = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
