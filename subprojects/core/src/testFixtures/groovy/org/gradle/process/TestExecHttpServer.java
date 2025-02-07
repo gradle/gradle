@@ -58,7 +58,7 @@ public class TestExecHttpServer {
 
     public static String getClassLocation() {
         try {
-            return new File(TestJavaMain.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getAbsolutePath();
+            return new File(TestExecHttpServer.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getAbsolutePath();
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }

@@ -826,7 +826,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         file("a/build.gradle") << """
             tasks.register("appStart") {
                 doLast {
-                    // Using a new Thread is important to reproduce the issue to escape the task lifecycle
+                    // Using a new Thread is important to escape the task lifecycle and reproduce the issue
                     Thread.start {
                         project.${method} {
                             ${configuration(getHttpServerInfoFile())}
@@ -872,7 +872,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("appStart") {
                 def execOperations = services.get(ExecOperations)
                 doLast {
-                    // Using a new Thread is important to reproduce the issue to escape the task lifecycle
+                    // Using a new Thread is important to escape the task lifecycle and reproduce the issue
                     Thread.start {
                         execOperations.${method} {
                             ${configuration(getHttpServerInfoFile())}
