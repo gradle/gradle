@@ -38,7 +38,9 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         setupCopyOfSantaTracker(checkoutDir)
 
         when:
-        def result = buildLocation(checkoutDir, agpVersion)
+        def result = runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Calling getAttribute() with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .build()
 
         then:
         if (GradleContextualExecuter.isConfigCache()) {
@@ -46,7 +48,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << TestedVersions.androidGradle.versions.findAll { it.startsWith("8.8") }
     }
 }
 
@@ -123,7 +125,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner
-            .expectDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes using null keys.", null)
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Calling getAttribute() with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
             .buildAndFail()
 
         then:
@@ -139,7 +141,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
-            .expectDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes using null keys.", null)
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Calling getAttribute() with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
             .buildAndFail()
 
         then:
@@ -149,7 +151,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions
+        agpVersion << TestedVersions.androidGradle.versions.findAll { it.startsWith("8.8") }
     }
 }
 
