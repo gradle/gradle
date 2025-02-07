@@ -88,7 +88,6 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
                                 throw reporter.throwing(exception, UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        problemSpec.contextualLabel(exception.getLocalizedMessage());
                                         exception.getResolutions().forEach(problemSpec::solution);
                                     });
                             }
@@ -99,10 +98,9 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                                 .filter(e -> e.getValue().isPresent())
                                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
                             if (platformToDownloadUri.isEmpty()) {
-                                String message = "Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms;
-                                throw reporter.throwing(new IllegalStateException(message), UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
+                                throw reporter.throwing(new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms),
+                                    UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID,
                                     problemSpec -> {
-                                        problemSpec.contextualLabel(message);
                                         problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms");
                                         problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
                                     });
