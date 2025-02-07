@@ -97,6 +97,7 @@ dependencies {
     implementation(projects.io)
     implementation(projects.messaging)
     implementation(projects.modelCore)
+    implementation(projects.modelReflect)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.time)

@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
+    implementation(projects.modelReflect)
     implementation(projects.platformJvm)
     implementation(projects.publish)
     implementation(projects.serialization)

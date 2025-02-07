@@ -158,6 +158,7 @@ val core = platform("core") {
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
+        subproject("model-reflect")
         subproject("model-groovy")
     }
 
