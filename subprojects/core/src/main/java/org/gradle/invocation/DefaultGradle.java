@@ -52,7 +52,6 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.SettingsState;
 import org.gradle.internal.Cast;
-import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
@@ -92,9 +91,9 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
     private List<IncludedBuildInternal> includedBuilds;
     private final MutableActionSet<Project> rootProjectActions = new MutableActionSet<>();
+    private final MutableActionSet<GradleInternal> baseProjectClassLoaderLockedActions = new MutableActionSet<>();
     private final IsolatedProjectEvaluationListenerProvider isolatedProjectEvaluationListenerProvider;
     private GradleLifecycle lifecycle;
-    private boolean projectsLoaded;
     private Path identityPath;
     private Supplier<? extends ClassLoaderScope> classLoaderScope;
     private ClassLoaderScope baseProjectClassLoaderScope;
@@ -108,22 +107,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.gradleLifecycleActionExecutor = services.get(GradleLifecycleActionExecutor.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
-
-        buildListenerBroadcast.add(new InternalBuildAdapter() {
-            @Override
-            public void projectsLoaded(Gradle gradle) {
-                ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
-
-                if (!rootProjectActions.isEmpty()) {
-                    gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
-                    services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
-                }
-                if (isolatedListener != null) {
-                    projectEvaluationListenerBroadcast.add(isolatedListener);
-                }
-                projectsLoaded = true;
-            }
-        });
 
         if (parent == null) {
             services.get(GradleEnterprisePluginManager.class).registerMissingPluginWarning(this);
@@ -170,6 +153,24 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     @Override
+    public void executeRootProjectActions() {
+        if (!isBaseProjectClassLoaderLocked()) {
+            throw new IllegalStateException("Root project actions may be executed only after base project classloader scope has been locked");
+        }
+
+        ProjectEvaluationListener isolatedListener = isolatedProjectEvaluationListenerProvider.isolateFor(DefaultGradle.this);
+
+        if (!rootProjectActions.isEmpty()) {
+            gradleLifecycleActionExecutor.executeBeforeProjectFor(rootProject);
+            services.get(CrossProjectConfigurator.class).rootProject(rootProject, rootProjectActions);
+        }
+        if (isolatedListener != null) {
+            projectEvaluationListenerBroadcast.add(isolatedListener);
+        }
+        baseProjectClassLoaderLockedActions.execute(this);
+    }
+
+    @Override
     public boolean isRootBuild() {
         return parent == null;
     }
@@ -188,6 +189,11 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     public File getGradleHomeDir() {
         GradleInstallation gradleInstallation = getCurrentGradleInstallation().getInstallation();
         return gradleInstallation == null ? null : gradleInstallation.getGradleHome();
+    }
+
+    @Override
+    public void baseProjectClassLoaderLocked(Action<? super GradleInternal> action) {
+        baseProjectClassLoaderLockedActions.add(action);
     }
 
     @Override
@@ -214,8 +220,8 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         baseProjectClassLoaderScope = null;
         rootProject = null;
         defaultProject = null;
-        projectsLoaded = false;
         includedBuilds = null;
+        baseProjectClassLoaderLockedActions.clear();
         rootProjectActions.clear();
         isolatedProjectEvaluationListenerProvider.clear();
         buildListenerBroadcast.removeAll();
@@ -290,7 +296,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void rootProject(String registrationPoint, Action<? super Project> action) {
-        if (projectsLoaded) {
+        if (isBaseProjectClassLoaderLocked()) {
             assert rootProject != null;
             action.execute(rootProject);
         } else {
@@ -615,6 +621,10 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         return services.get(ObjectFactory.class).newInstance(DefaultGradleLifecycle.class, this);
     }
 
+    private boolean isBaseProjectClassLoaderLocked() {
+        return baseProjectClassLoaderScope != null && baseProjectClassLoaderScope.isLocked();
+    }
+
     static class DefaultGradleLifecycle implements GradleLifecycle {
 
         private final DefaultGradle gradle;
@@ -626,18 +636,18 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
         @Override
         public void beforeProject(IsolatedAction<? super Project> action) {
-            assertBeforeProjectsLoaded("beforeProject");
+            assertBeforeBaseProjectClassLoaderLocked("beforeProject");
             gradle.isolatedProjectEvaluationListenerProvider.beforeProject(action);
         }
 
         @Override
         public void afterProject(IsolatedAction<? super Project> action) {
-            assertBeforeProjectsLoaded("afterProject");
+            assertBeforeBaseProjectClassLoaderLocked("afterProject");
             gradle.isolatedProjectEvaluationListenerProvider.afterProject(action);
         }
 
-        private void assertBeforeProjectsLoaded(String methodName) {
-            if (gradle.projectsLoaded) {
+        private void assertBeforeBaseProjectClassLoaderLocked(String methodName) {
+            if (gradle.isBaseProjectClassLoaderLocked()) {
                 throw new IllegalStateException("GradleLifecycle#" + methodName + " cannot be called after settings have been evaluated.");
             }
         }
