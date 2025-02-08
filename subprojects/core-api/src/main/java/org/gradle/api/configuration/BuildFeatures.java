@@ -33,14 +33,17 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface BuildFeatures {
 
     /**
-     * State of the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature in the build.
+     * Status of the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature configuration in the build.
+     * <p>
+     * Note that the status only describes whether the feature is "on" or "off".
+     * It does not provide information on whether there was a cache hit or a miss.
      *
      * @since 8.5
      */
     BuildFeature getConfigurationCache();
 
     /**
-     * State of the <a href="https://docs.gradle.org/current/userguide/isolated_projects.html">Isolated Projects</a> feature in the build.
+     * Status of the <a href="https://docs.gradle.org/current/userguide/isolated_projects.html">Isolated Projects</a> feature configuration in the build.
      *
      * @since 8.5
      */

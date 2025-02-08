@@ -31,30 +31,43 @@ import org.gradle.api.provider.Provider;
 public interface BuildFeature {
 
     /**
-     * Whether the feature was requested for the build.
+     * Status of the feature flag with three possibilities:
+     * <ul>
+     *     <li>true - requested to opt in
+     *     <li>false - requested to opt out
+     *     <li>null - no request (default behavior)
+     * </ul>
+     *
+     * Use {@link Provider#getOrNull()} to safely retrieve a nullable value or check {@link Provider#isPresent()}
+     * as the provider <b>can be undefined</b> in the case of no request.
      * <p>
-     * The provider <b>can be undefined</b> if the user did not explicitly opt in or opt out from a feature.
-     * Use {@link Provider#getOrNull()} to safely retrieve a nullable value or check {@link Provider#isPresent()}.
+     * Using Configuration Cache as an example, it's possible to opt in via {@code --configuration-cache} flag,
+     * and opt out via {@code --no-configuration-cache}.
      * <p>
-     * This method is primarily useful for gathering feature usage statistics, as it corresponds to the user intention.
+     * Note that opt-ins can be dismissed when flags for other features take precedence.
+     * For instance, running with {@code --export-keys} flag always disables Configuration Cache.
      * <p>
-     * Note that the requested state does not always imply that the feature is active in the build.
-     * In case an effective status is needed, use {@link #getActive()}.
+     * Use {@link #getActive()} to get the effective status of the feature.
      *
      * @since 8.5
      */
     Provider<Boolean> getRequested();
 
     /**
-     * Whether the feature is active in the build.
+     * Effective status of the feature with two possibilities:
+     * <ul>
+     *     <li>true - the feature is taking effect, it is "on"
+     *     <li>false - the feature is not taking any effect, it is "off"
+     * </ul>
+     *
+     * Using Configuration Cache as an example, opting in via {@code --configuration-cache} turns it on.
+     * However, when combined with {@code --export-keys} flag, the latter always take precedence
+     * and turns Configuration Cache off.
+     * Configuration Cache is also automatically turned on, when Isolated Projects are turned on.
      * <p>
-     * The provider is always defined and its value denotes the effective status of a feature in a build.
-     * <p>
-     * This method is primarily useful for conditional logic in plugins or build scripts.
-     * For instance, optional features of a plugin could be disabled if they are incompatible with a given build feature.
-     * <p>
-     * Note that a feature may be not active even it was requested.
-     * This can be caused by other build features or build options requested for the build.
+     * Note, that this method provides generic information about the status of the feature.
+     * It does not provide any information about the behavior that is specific for any given feature.
+     * For instance, it <b>does not</b> say whether Configuration Cache got a hit or a miss for a given invocation.
      *
      * @since 8.5
      */
