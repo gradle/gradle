@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal;
-
-import java.io.Serializable;
+package org.gradle.internal.lazy;
 
 /**
- * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
+ * A {@link Lazy} value that always returns the given {@link #value}.
  */
-public class DefaultTaskPathLocation implements TaskPathLocation, Serializable {
+public class FixedLazy<V> implements Lazy<V> {
+    private final V value;
 
-    private final String buildTreePath;
-
-    public DefaultTaskPathLocation(String buildTreePath) {
-        this.buildTreePath = buildTreePath;
+    public FixedLazy(V value) {
+        this.value = value;
     }
 
     @Override
-    public String getBuildTreePath() {
-        return buildTreePath;
+    public V get() {
+        return value;
     }
-
 }

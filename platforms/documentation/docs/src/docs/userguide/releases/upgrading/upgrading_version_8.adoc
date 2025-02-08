@@ -86,6 +86,10 @@ Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, th
 Please ensure that you are not relying on this behavior when upgrading to Gradle 8.13.
 If system properties needs to be overridden, `BuildLauncher#setJvmArguments` should be used instead.
 
+==== Upgrade to ASM 9.7.1
+
+ASM was upgraded from 9.6 to https://asm.ow2.io/versions.html[9.7.1] to ensure earlier compatibility for Java 24.
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider

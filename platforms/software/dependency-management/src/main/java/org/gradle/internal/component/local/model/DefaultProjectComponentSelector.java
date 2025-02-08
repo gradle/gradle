@@ -32,13 +32,14 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.Path;
 
 import java.util.List;
-import java.util.Objects;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelectorInternal {
 
     private final ProjectIdentity projectIdentity;
     private final ImmutableAttributes attributes;
     private final ImmutableSet<CapabilitySelector> capabilitySelectors;
+
+    private final int hashCode;
 
     public DefaultProjectComponentSelector(
         ProjectIdentity projectIdentity,
@@ -48,6 +49,18 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         this.projectIdentity = projectIdentity;
         this.attributes = attributes;
         this.capabilitySelectors = capabilitySelectors;
+        this.hashCode = computeHashCode(attributes, capabilitySelectors, projectIdentity);
+    }
+
+    private static int computeHashCode(
+        ImmutableAttributes attributes,
+        ImmutableSet<CapabilitySelector> capabilitySelectors,
+        ProjectIdentity projectIdentity
+    ) {
+        int result = projectIdentity.hashCode();
+        result = 31 * result + attributes.hashCode();
+        result = 31 * result + capabilitySelectors.hashCode();
+        return result;
     }
 
     @Override
@@ -122,22 +135,19 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         if (this == o) {
             return true;
         }
-        if (!(o instanceof DefaultProjectComponentSelector)) {
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
+
         DefaultProjectComponentSelector that = (DefaultProjectComponentSelector) o;
-        if (!projectIdentity.equals(that.projectIdentity)) {
-            return false;
-        }
-        if (!attributes.equals(that.attributes)) {
-            return false;
-        }
-        return capabilitySelectors.equals(that.capabilitySelectors);
+        return projectIdentity.equals(that.projectIdentity) &&
+            attributes.equals(that.attributes) &&
+            capabilitySelectors.equals(that.capabilitySelectors);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(projectIdentity, attributes, capabilitySelectors);
+        return hashCode;
     }
 
     @Override

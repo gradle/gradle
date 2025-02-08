@@ -27,6 +27,7 @@ import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
+import org.gradle.util.GradleVersion
 
 import static org.gradle.internal.cc.impl.ConfigurationCacheProblemsCrossVersionTest.buildFileLocation
 
@@ -84,7 +85,7 @@ class ConfigurationCacheProblemsTapi813PlusCrossVersionTest extends ToolingApiSp
             definition.id.group.name == "configuration-cache"
             definition.severity == Severity.ERROR
             (originLocations[0] as LineInFileLocation).path == "build file 'build.gradle'" // FIXME: the path should not contain a prefix nor extra quotes
-            (originLocations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
+            ((targetVersion.baseVersion >= GradleVersion.version("8.14") ? contextualLocations[0] : originLocations[1]) as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
             additionalData instanceof DefaultAdditionalData
             additionalData.asMap.isEmpty()
         }

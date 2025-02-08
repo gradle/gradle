@@ -21,10 +21,3 @@ plugins {
 description = "Provides plugins for Configuration Cache usage adjustments"
 
 group = "gradlebuild"
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-        vendor = JvmVendorSpec.ADOPTIUM
-    }
-}
