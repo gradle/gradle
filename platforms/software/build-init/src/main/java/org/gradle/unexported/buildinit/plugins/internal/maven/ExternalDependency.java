@@ -16,6 +16,8 @@
 
 package org.gradle.unexported.buildinit.plugins.internal.maven;
 
+import org.gradle.buildinit.plugins.internal.DependencyExclusion;
+
 import java.util.Collection;
 
 public class ExternalDependency extends Dependency {
@@ -23,15 +25,15 @@ public class ExternalDependency extends Dependency {
     private final String module;
     private final String version;
     private final String classifier;
-    private final Collection<String> excludedModules;
+    private final Collection<DependencyExclusion> exclusions;
 
-    public ExternalDependency(String configuration, String group, String module, String version, String classifier, Collection<String> excludedModules) {
+    public ExternalDependency(String configuration, String group, String module, String version, String classifier, Collection<DependencyExclusion> exclusions) {
         super(configuration);
         this.group = group;
         this.module = module;
         this.version = version;
         this.classifier = classifier;
-        this.excludedModules = excludedModules;
+        this.exclusions = exclusions;
     }
 
     public String getGroupId() {
@@ -50,7 +52,7 @@ public class ExternalDependency extends Dependency {
         return classifier;
     }
 
-    public Collection<String> getExcludedModules() {
-        return excludedModules;
+    public Collection<DependencyExclusion> getExclusions() {
+        return exclusions;
     }
 }
