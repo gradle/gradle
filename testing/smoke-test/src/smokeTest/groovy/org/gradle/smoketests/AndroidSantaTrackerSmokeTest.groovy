@@ -39,7 +39,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
 
         when:
         def result = runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
-            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Calling getAttribute() with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
             .build()
 
         then:
@@ -125,7 +125,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner
-            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Calling getAttribute() with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
             .buildAndFail()
 
         then:
@@ -141,7 +141,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
-            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Calling getAttribute() with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
             .buildAndFail()
 
         then:
