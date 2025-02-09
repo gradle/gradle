@@ -3,6 +3,11 @@
 # ```
 # stopGradleDaemons=true
 # ```
+# To verify the change, run the build with:
+# @bot-gradle test ReadyForNightly
+# ```
+# stopGradleDaemons=true
+# ```
 version: "v1"
 jdks:
   - params:
