@@ -116,7 +116,6 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtracti
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractor;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionStrategy;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractor;
-import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.health.memory.DefaultJvmMemoryInfo;
@@ -304,8 +303,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         ObjectFactory objectFactory,
         ExecutorFactory executorFactory,
         TemporaryFileProvider temporaryFileProvider,
-        BuildCancellationToken buildCancellationToken,
-        ClientExecHandleBuilderFactory execHandleFactory
+        BuildCancellationToken buildCancellationToken
     ) {
         return DefaultExecActionFactory.of(
             fileResolver,
@@ -314,8 +312,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
             executorFactory,
             temporaryFileProvider,
             buildCancellationToken,
-            objectFactory,
-            execHandleFactory
+            objectFactory
         );
     }
 
