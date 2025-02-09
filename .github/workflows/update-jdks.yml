@@ -26,6 +26,7 @@ jobs:
       - name: Add verification comment
         # https://github.com/gradle/gradle-private/issues/4518
         run: |
+          # Create new file with comment
           cat << 'EOF' > .teamcity/jdks.yaml.tmp
           # To verify the change, run the build with:
           # @bot-gradle test ReadyForNightly
@@ -33,7 +34,8 @@ jobs:
           # stopGradleDaemons=true
           # ```
           EOF
-          cat .teamcity/jdks.yaml >> .teamcity/jdks.yaml.tmp
+          # Append everything from "version:" onwards
+          sed -n '/^version:/,$p' .teamcity/jdks.yaml >> .teamcity/jdks.yaml.tmp
           mv .teamcity/jdks.yaml.tmp .teamcity/jdks.yaml
       - name: Create Pull Request
         id: create-pull-request
