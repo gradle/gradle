@@ -2,19 +2,23 @@
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="TO DO">
+<meta property="og:description" content="Gradle @version@: Daemon JVM auto-provisioning. Enhanced deprecation warning messages. Updated APIs, refined plugins, and a new task. Improved JUnit test reporting">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="TO DO">
+<meta name="twitter:description" content="Gradle @version@: Daemon JVM auto-provisioning. Enhanced deprecation warning messages. Updated APIs, refined plugins, and a new task. Improved JUnit test reporting">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release introduces several enhancements for [build authors and plugin developers](#build-authoring), including updates to the `ProjectLayout` and `TestEventReporting` APIs, a new `artifactTransforms` task, the `distribution-base` plugin, and support for explicit Scala version declaration in the `scala` extension.
+This release introduces [Daemon JVM auto-provisioning](#toolchain), which automatically downloads a JVM compatible with the daemon requested one when necessary.
 
-Finally, [deprecation warning messages](#error-warning) have been corrected to provide accurate guidance on enabling full stack traces.
+[Deprecation warning messages](#error-warning) have been corrected to provide accurate instructions for enabling full stack traces.
+
+Gradle @version@ brings several enhancements for [build authors and plugin developers](#build-authoring), including updates to the `ProjectLayout` and `TestEventReporting` APIs, a new `artifactTransforms` task, the `distribution-base` plugin, and support for explicitly declaring the Scala version in the `scala` extension.
+
+Additionally, JUnit XML timestamps now include [millisecond precision](#other).
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/adam-enko),
@@ -40,7 +44,7 @@ We would like to thank the following community members for their contributions t
 [tg-freigmbh](https://github.com/tg-freigmbh),
 [TheGoesen](https://github.com/TheGoesen),
 [Tony Robalik](https://github.com/autonomousapps),
-[Zongle Wang](https://github.com/Goooler)
+[Zongle Wang](https://github.com/Goooler).
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org/) for insight into what's planned for future releases.
 
@@ -58,6 +62,85 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 
 ## New features and usability improvements
 
+<a name="toolchain"></a>
+### Toolchain support
+
+Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of JDK versions required for building projects.
+
+#### Daemon toolchain auto-provisioning
+
+Gradle now supports [auto-provisioning](userguide/toolchains.html#sec:provisioning) for the Gradle Daemon JVM, enabling automatic detection of locally installed Java toolchains from known paths that match project requirements or downloading them when necessary.
+
+For projects with this functionality already integrated, the `gradle-daemon-jvm.properties` file will contain the download URLs for the JDKs:
+
+```text
+toolchainUrl.LINUX.AARCH64=https\://server.com/jdk
+toolchainUrl.LINUX.X86_64=https\://server.com/jdk
+...
+toolchainVendor=adoptium
+toolchainVersion=17
+```
+
+If the required JDK matching the specified version or vendor is not found, Gradle will automatically download it:
+
+![Daemon JVM Criteria Console Example](release-notes-assets/DJVMC_auto_provisioning_console.png)
+
+IntelliJ IDEA support is available starting from version [2025.1 EAP](https://blog.jetbrains.com/idea/2025/01/intellij-idea-2025-1-eap/) or later:
+
+![Daemon JVM Criteria IDE Example](release-notes-assets/DJVMC_auto_provisioning_ide.png)
+
+To enable auto-provisioning, the latest version of the `foojay` plugin (or a custom implementation) is required:
+
+```kotlin
+plugins {
+    // Apply the foojay-resolver plugin to allow automatic download of JDKs
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.9.0"
+}
+```
+
+Once the plugin is applied, running the [`updateDaemonJvm` task](userguide/gradle_daemon.html#sec:daemon_jvm_criteria):
+
+```text
+./gradlew updateDaemonJvm --jvm-version=17 --jvm-vendor=adoptium
+```
+
+Populates `gradle/gradle-daemon-jvm.properties` with additional JDK download information:
+
+```text
+toolchainUrl.LINUX.AARCH64=https\://api.foojay.io/disco/v3.0/ids/ff8d269e2495c538cfa04b4b52d22286/redirect
+toolchainUrl.LINUX.X86_64=https\://api.foojay.io/disco/v3.0/ids/4dfe7aab2abf71db71537e9dca36c154/redirect
+...
+toolchainVendor=adoptium
+toolchainVersion=17
+```
+
+The JVM vendors and URLs are customizable.
+For more details, see the [Daemon JVM criteria documentation](userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
+
+<a name="error-warning"></a>
+### Error and warning reporting improvements
+
+Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
+
+#### Corrected deprecation warning messages for full stack trace flag
+
+[Deprecations](userguide/feature_lifecycle.html#sec:deprecated) indicate features or APIs that will be removed or replaced in future versions of Gradle.
+These warnings help guide users to update their build scripts accordingly.
+
+The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces.
+
+The console properly prints out:
+
+```text
+Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.
+```
+
+Previously, the console printed the incorrect suggestion:
+
+```text
+Run with --stacktrace to get the full stack trace of this deprecation warning.
+```
+
 <a name="build-authoring"></a>
 ### Build authoring improvements
 
@@ -71,14 +154,14 @@ Starting with this version of Gradle, it can also access the settings directory 
 While the settings directory is not specific to any project, some use cases require resolving file paths relative to it:
 
 ```kotlin
-val versionFilePath = project.layout.settingsDirectory.file("version.txt").asFile.path
+val versionFile = layout.settingsDirectory.file("version.txt")
 ```
-    
+
 Previously, accessing the settings directory required using `rootProject.layout.projectDirectory`.
 This approach involved accessing the `rootProject` object, which is discouraged, and then manually resolving paths to the settings directory:
 
 ```kotlin
-val versionFilePath = project.rootDir.toString() + "/version.txt"
+val versionFile = rootProject.layout.projectDirectory.file("version.text")
 ```
 
 The new capability addresses a common scenario: resolving files shared across all projects in a build, such as linting configurations or `version.txt` files in the root folder.
@@ -87,8 +170,11 @@ Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLay
 
 #### New `artifactTransforms` report task
 
-A new `artifactTransforms` report is available by default, providing information about all the registered [Artifact Transforms](userguide/artifact_transforms.html) in a project.
-This report helps build authors identify the transforms registered by build scripts and plugins in their projects. 
+[Artifact Transforms](userguide/artifact_transforms.html) modify or transform the artifacts of dependencies during the dependency resolution process.
+
+A new `artifactTransforms` task is available, providing information about all the registered [Artifact Transforms](userguide/artifact_transforms.html) in a project.
+
+The report produced by the task helps build authors identify the transforms registered by build scripts and plugins in their projects.
 Viewing the list of registered transforms is particularly useful for debugging [ambiguous transform failures](userguide/variant_model.html#sec:transform-ambiguity).
 
 ![Artifact Transforms Report Example](release-notes-assets/AT_report_example.png)
@@ -111,9 +197,9 @@ Plugin authors and platform providers can now leverage the [Test Event Reporting
 
 ```java
 public abstract class CustomTest extends DefaultTask {
-
+    
     @Inject
-    public abstract ProjectLayout getLayout();
+    protected abstract ProjectLayout getLayout();
 
     @Inject
     protected abstract TestEventReporterFactory getTestEventReporterFactory();
@@ -144,6 +230,8 @@ public abstract class CustomTest extends DefaultTask {
 This integration allows custom test frameworks to generate rich HTML test reports consistent with Gradle's built-in reporting format, enhancing visibility and usability.
 
 You can find additional details and sample code in [Test Reporting API](userguide/test_reporting_api.html).
+
+The following sections highlight two key features of this API.
 
 ##### Metadata support
 
@@ -181,7 +269,9 @@ Nested events are reflected in the HTML test reports, providing clear traceabili
 
 #### Explicit Scala version declaration in the `scala` extension
 
-Starting in this version of Gradle, when applying the [`scala-base` or `scala`](userguide/scala_plugin.html) plugins, you can now explicitly declare the Scala version on the `scala` extension.
+The [Scala plugin](userguide/scala_plugin.html) provides support for compiling, testing, and packaging Scala projects.
+
+Starting in this version of Gradle, when applying the `scala-base` or `scala` plugins, you can now explicitly declare the Scala version on the `scala` extension.
 This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
 It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
 
@@ -221,9 +311,14 @@ dependencies {
 }
 ```
 
+For more details on using the Scala plugin, see the [documentation](userguide/scala_plugin.html#sec:scala_version).
+
 #### New `distribution-base` plugin for custom distributions
 
-Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the [Distribution Plugin](userguide/distribution_plugin.html) but does not add a default distribution.
+The [Distribution Plugin](userguide/distribution_plugin.html) simplifies the packaging and distribution of project binaries, scripts, and other resources.
+It creates a distributable archive (ZIP or TAR) containing specified project outputs and provides tasks for assembling and installing the distribution.
+
+Gradle now includes a `distribution-base` plugin, which mirrors the functionality of the Distribution Plugin but does not add a default distribution.
 Instead, the existing `distribution` plugin acts as a wrapper for the `distribution-base` plugin, adding a default `main` distribution.
 
 The `distribution-base` plugin is particularly useful for plugin developers who want the capabilities of the Distribution Plugin without a `main` distribution:
@@ -241,34 +336,26 @@ distributions {
         }
     }
 }
-
-assert(distributions.findByName("main") == null)
 ```
+For more details, see the [Distribution Plugin documentation](userguide/distribution_plugin.html#sec:distribution_base).
+
+<a name="other"></a>
+### Other improvements
 
 #### Additional precision in JUnit XML timestamps
+Gradle provides built-in support for running JUnit tests and generating detailed reports.
+The [JUnit XML report](userguide/java_testing.html#test_reporting) generated by the `test` task now includes millisecond precision in test event timestamps:
 
-The JUnit XML report generated by `Test` tasks now include milliseconds in the timestamp for test events.
-
-<a name="error-warning"></a>
-### Error and warning reporting improvements
-
-Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
-
-#### Corrected deprecation warnings messages for full stack trace flag
-
-The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces.
-
-The console properly prints out:
-
-```text
-Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.
+```xml
+<testsuite name="ExampleTest" tests="1" failures="0" errors="0" timestamp="2024-02-03T12:34:56.789" time="1.234">
+    <testcase name="testExample" classname="com.example.ExampleTest" time="1.234">
+    </testcase>
+</testsuite>
 ```
 
-Previously, the console printed the incorrect suggestion:
+This change improves accuracy when analyzing test execution times, particularly in environments where precise timing is critical.
 
-```text
-Run with --stacktrace to get the full stack trace of this deprecation warning.
-```
+For more details on JUnit test reporting in Gradle, see [Testing in JVM Projects](userguide/java_testing.html).
 
 ## Promoted features
 
@@ -285,10 +372,10 @@ The API to asynchronously send data to the client, which includes the [`BuildAct
 
 ### Strongly-typed `dependencies` block API
 
-The [strongly-typed `dependencies` block API](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) introduced in Gradle 7.6 is now partially stable. 
+The [strongly-typed `dependencies` block API](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) introduced in Gradle 7.6 is now partially stable.
 Version catalog dependencies remain under review for potential changes.
 
-This API enables plugin authors to create custom DSL-like `dependencies` blocks, similar to the top-level `dependencies` block in a build script.
+The [`Dependencies` API](javadoc/org/gradle/api/artifacts/dsl/Dependencies.html) enables plugin authors to create custom DSL-like `dependencies` blocks, similar to the top-level `dependencies` block in a build script.
 
 ## Fixed issues
 
