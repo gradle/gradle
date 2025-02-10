@@ -109,9 +109,10 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.workers.WorkParameters
             import org.gradle.internal.nativeintegration.services.NativeServices
             import org.gradle.internal.nativeintegration.NativeCapabilities
+            import org.gradle.api.internal.project.ProjectInternal
 
             tasks.register("doWork", WorkerTask)
-            println("Uses native integration in daemon: " + NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
+            println("Uses native integration in daemon: " + ((ProjectInternal) project).getServices().get(NativeCapabilities).useNativeIntegrations())
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
@@ -124,8 +125,17 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             abstract class NoOpWorkAction implements WorkAction<WorkParameters.None> {
+
+                interface NativeCapabilitiesProvider {
+                    @Inject
+                    NativeCapabilities getNativeCapabilities()
+                }
+
+                @Inject
+                abstract ObjectFactory getObjectFactory()
+
                 void execute() {
-                    println("Uses native integration in worker: " + NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
+                    println("Uses native integration in worker: " + getObjectFactory().newInstance(NativeCapabilitiesProvider).getNativeCapabilities().useNativeIntegrations())
                 }
             }
         """)
@@ -203,7 +213,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
                     buildFile << \"""
                         println("Build inside a test executor initialized Native services: " + new File("${nativeDirOverride}").exists())
                         println("Build inside a test executor uses Native services: " +
-                            org.gradle.internal.nativeintegration.services.NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
+                            ((org.gradle.api.internal.project.ProjectInternal) project).getServices()
+                                .get(org.gradle.internal.nativeintegration.NativeCapabilities)
+                                .useNativeIntegrations())
                     \"""
 
                     when:
