@@ -410,45 +410,87 @@ trait ValidationMessageChecker {
             .render(renderSolutions)
     }
 
-    String dummyValidationProblem(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
-        display(SimpleMessage, 'dummy') {
-            type(onType).property(onProperty)
-            description(desc)
-            reason(testReason)
-        }.render()
+    static class DummyInvalidTask {
+        static String name = "invalid"
+        static String className = "InvalidTask"
+        static String property = "dummy"
+        static String problemDescription = "has @Input annotation used on type \'java.net.URL\' or a property of this type."
+        static String problemReason = 'Type \'java.net.URL\' is not supported on properties annotated with @Input because Java Serialization can be inconsistent for this type.'
+        static String documentationId = "validation_problems"
+        static String documentationSection = "unsupported_value_type"
+
+        static String invalidProperty() {
+            """
+                @Input
+                abstract Property<URL> get${property.capitalize()}()
+            """
+        }
+
+        static String setDummyProperty() {
+            """
+                ${property}.set(new URL("http://example.com"))
+            """
+        }
+
+        static String definition(String parentClass = "DefaultTask") {
+            """
+            @CacheableTask
+            abstract class $className extends $parentClass {
+                ${invalidProperty()}
+
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @TaskAction
+                void doSomething() {
+                    output.get().asFile.text = get${property.capitalize()}().get()
+                }
+            }
+            """
+        }
+
+        static String registration(String projectReceiver = null) {
+            def dottedReceiver = projectReceiver ? "${projectReceiver}." : ""
+            """
+            ${dottedReceiver}tasks.register("${name}", ${className}) {
+                ${setDummyProperty()}
+                output = ${dottedReceiver}file("out.txt")
+            }
+            """
+        }
+
+        static String source(String parentClass = "DefaultTask") {
+            """
+            ${definition(parentClass)}
+
+            ${registration()}
+            """
+        }
     }
 
-    String dummyPropertyValidationProblemWithLink(String onType = 'InvalidTask', String onProperty = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
+    String dummyValidationProblem(
+        @DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}
+    ) {
         display(SimpleMessage, 'dummy') {
-            type(onType).property(onProperty)
-            description(desc)
-            reason(testReason)
-            includeLink()
-            documentationId("id")
-            documentationSection("section")
-        }.render()
-    }
-
-    String dummyFunctionValidationProblemWithLink(String onType = 'InvalidTask', String onMethod = 'dummy', String desc = 'test problem', String testReason = 'this is a test.') {
-        display(SimpleMessage, 'dummy') {
-            type(onType).method(onMethod)
-            description(desc)
-            reason(testReason)
-            includeLink()
-            documentationId("id")
-            documentationSection("section")
-        }.render()
-    }
-
-    String dummyValidationProblem(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
-        display(SimpleMessage, 'dummy') {
-            type('InvalidTask')
-            property('dummy')
-            description('test problem')
-            reason('this is a test')
+            type(DummyInvalidTask.className)
+            property(DummyInvalidTask.property)
+            description(DummyInvalidTask.problemDescription)
+            reason(DummyInvalidTask.problemReason)
             spec.delegate = delegate
             spec()
         }.render()
+    }
+
+    String dummyValidationProblemWithLink(
+        @DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}
+    ) {
+        dummyValidationProblem {
+            includeLink()
+            documentationId(DummyInvalidTask.documentationId)
+            documentationSection(DummyInvalidTask.documentationSection)
+            spec.delegate = delegate
+            spec()
+        }
     }
 
     String unsupportedValueType(@DelegatesTo(value = UnsupportedValueType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
@@ -493,10 +535,12 @@ trait ValidationMessageChecker {
             .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types.")
     }
 
-    void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
-                                                                   String message,
-                                                                   String docId = "incremental_build",
-                                                                   String section = "") {
+    void expectThatExecutionOptimizationDisabledWarningIsDisplayed(
+        GradleExecuter executer,
+        String message,
+        String docId = DummyInvalidTask.documentationId,
+        String section = DummyInvalidTask.documentationSection
+    ) {
         String asSingleLine = convertToSingleLine(message)
         String deprecationMessage = asSingleLine + (asSingleLine.endsWith(" ") ? '' : ' ') +
             "This behavior has been deprecated. " +

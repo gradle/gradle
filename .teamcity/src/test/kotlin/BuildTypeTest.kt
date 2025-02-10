@@ -76,7 +76,7 @@ class BuildTypeTest {
             "TestFunctionalTest",
             "Test Functional Test",
             "Test Functional Test",
-            TestCoverage(4, TestType.platform, Os.WINDOWS, JvmVersion.java23, JvmVendor.openjdk),
+            TestCoverage(4, TestType.quick, Os.WINDOWS, JvmVersion.java23, JvmVendor.openjdk),
             buildModel.stages[2]
         )
         val gradleStep = functionalTest.steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
@@ -90,7 +90,7 @@ class BuildTypeTest {
                 "%additional.gradle.parameters%",
                 "--daemon",
                 "--continue",
-                "-DbuildScan.PartOf=PlatformJava23AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
+                "-DbuildScan.PartOf=QuickJava23AdoptiumWindowsAmd64,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
                 "-PtestJavaVersion=23",
                 "-PtestJavaVendor=openjdk",
                 "-Dscan.tag.FunctionalTest",

@@ -54,10 +54,9 @@ class FlakyTestQuarantine(model: CIBuildModel, stage: Stage, os: Os, arch: Arch 
             buildToolGradleParameters(true) +
                 listOf(
                     "-PflakyTests=only",
-                    "-x", ":docs:platformTest",
+                    "-x", ":docs:quickTest",
                     "-x", ":docs:configCacheTest",
                     "-x", ":distributions-integ-tests:quickTest",
-                    "-x", ":distributions-integ-tests:platformTest",
                     "-x", ":distributions-integ-tests:configCacheTest"
                 ) +
                 listOf(extraParameters) +
