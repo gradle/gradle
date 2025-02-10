@@ -259,54 +259,69 @@ $ ./gradlew updateDaemonJvm --jvm-version=17 --jvm-vendor=adoptium
 
 List of recognized vendors:
 
-[cols="1,3"]
+[cols="1,3,1"]
 |===
-|Known Vendors |Acceptable Strings
+|Known Vendors |Acceptable Strings |`toolchainVendor` value
 
+|Adoptium / Eclipse Temurin
+|`adoptium`, `temurin`, `eclipse foundation`
 |ADOPTIUM
-|`ADOPTIUM`, `adoptium`, `Adoptium`
 
+|AdoptOpenJDK
+|`adoptopenjdk`, `aoj`
 |ADOPTOPENJDK
-|`ADOPTOPENJDK`, `adoptopenjdk`, `Adoptopenjdk`
 
+|Amazon Corretto
+|`amazon`, `corretto`
 |AMAZON
-|`AMAZON`, `amazon`, `Amazon`
 
+|Apple
+|`apple`
 |APPLE
-|`APPLE`, `apple`, `Apple`
 
+|Azul Zulu
+|`azul`, `zulu`
 |AZUL
-|`AZUL`, `azul`, `Azul`
 
+|BellSoft
+|`bellsoft`, `liberica`
 |BELLSOFT
-|`BELLSOFT`, `bellsoft`, `Bellsoft`
 
+|GraalVM
+|`graalvm`, `graal vm`
 |GRAAL_VM
-|`GRAAL_VM`, `graal_vm`, `Graal_vm`
 
+|Hewlett Packard
+|`hp`, `hewlett`
 |HEWLETT_PACKARD
-|`HEWLETT_PACKARD`, `hewlett_packard`, `Hewlett_packard`
 
 |IBM
-|`IBM`, `ibm`, `Ibm`
+|`ibm`, `semeru`, `international business machines corporation`
+|IBM
 
+|JetBrains
+|`jetbrains`, `jbr`
 |JETBRAINS
-|`JETBRAINS`, `jetbrains`, `Jetbrains`
 
+|Microsoft
+|`microsoft`
 |MICROSOFT
-|`MICROSOFT`, `microsoft`, `Microsoft`
 
+|Oracle
+|`oracle`
 |ORACLE
-|`ORACLE`, `oracle`, `Oracle`
 
 |SAP
-|`SAP`, `sap`, `Sap`
+|`sap`
+|SAP
 
+|Tencent
+|`tencent`, `kona`
 |TENCENT
-|`TENCENT`, `tencent`, `Tencent`
 |===
 
-Gradle recognizes some JVM vendor strings as equivalent, such as "Adoptium" and "Temurin."
+Some vendors will be recognized from more than one set of characters.
+All vendor strings are case-insensitive.
 You can view the list of recognized vendors by running `./gradlew help --task updateDaemonJvm`.
 
 If the specified vendor is not one of the recognized equivalents, Gradle will match it exactly.
