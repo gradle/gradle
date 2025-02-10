@@ -31,7 +31,6 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -77,7 +76,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformedVariantFactory;
@@ -279,7 +277,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ResolutionStrategyFactory.class);
             registration.add(DefaultLocalComponentRegistry.class);
             registration.add(ProjectDependencyResolver.class);
-            registration.add(ConsumerProvidedVariantFinder.class);
             registration.add(DefaultConfigurationFactory.class);
             registration.add(DefaultComponentSelectorConverter.class);
             registration.add(DefaultArtifactResolutionQueryFactory.class);
@@ -291,6 +288,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             registration.add(ResolutionExecutor.class);
             registration.add(ArtifactTypeRegistry.class);
             registration.add(GlobalDependencyResolutionRules.class);
+            registration.add(VariantTransformRegistry.class, DefaultVariantTransformRegistry.class);
         }
 
         @Provides
@@ -377,18 +375,6 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 actionScheme,
                 internalServices
             );
-        }
-
-        @Provides
-        VariantTransformRegistry createVariantTransformRegistry(
-            InstantiatorFactory instantiatorFactory,
-            AttributesFactory attributesFactory,
-            ServiceRegistry services,
-            TransformRegistrationFactory transformRegistrationFactory,
-            TransformParameterScheme parameterScheme,
-            DocumentationRegistry documentationRegistry
-        ) {
-            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme(), documentationRegistry);
         }
 
         @Provides
