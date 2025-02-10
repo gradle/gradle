@@ -25,11 +25,14 @@ import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
+import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
+import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.cc.impl.problems.BuildNameProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.execution.WorkExecutionTracker;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
@@ -74,13 +77,26 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         CurrentBuildOperationRef currentBuildOperationRef,
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator
+        ProblemReportCreator problemReportCreator,
+        WorkExecutionTracker workExecutionTracker
     ) {
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
             ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter)),
             internalOptions,
-            problemReportCreator);
+            problemReportCreator,
+            id -> {
+                TaskIdentity taskIdentity = ProblemTaskIdentityTracker.getTaskIdentity();
+                if (taskIdentity != null) {
+                    return taskIdentity;
+                } else {
+                    return workExecutionTracker
+                        .getCurrentTask(id)
+                        .map(task -> new TaskIdentity(task.getTaskIdentity().getBuildPath(), task.getTaskIdentity().getTaskPath()))
+                        .orElse(null);
+                }
+            }
+        );
     }
 
     @Provides

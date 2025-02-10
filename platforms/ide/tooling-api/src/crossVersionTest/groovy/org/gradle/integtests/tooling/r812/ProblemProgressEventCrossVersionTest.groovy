@@ -41,6 +41,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
+import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.buildFileLocation
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
@@ -93,7 +94,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
             definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
             definition.severity == Severity.WARNING
-            locations(it).find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
+            locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
         }
     }
 

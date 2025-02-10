@@ -403,7 +403,7 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         def property = property().value(upstream)
 
         when:
-        property.replace { it.map { v -> v.reverse() }}
+        property.replace { it.map { v -> v.reverse() } }
         upstream.set(someOtherValue())
 
         then:
@@ -442,5 +442,28 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
 
         then:
         1 * transform.transform(_)
+    }
+
+    def "value coercion is applied to #description after configuration cache round-trip"() {
+        given:
+        GString gstring = "${'value'}"
+
+        def value = property().with {
+            it.set(valueProducer(gstring))
+            return it.calculateExecutionTimeValue()
+        }
+
+        when:
+        def restoredProperty = property()
+        restoredProperty.provider(value.toProvider())
+
+        then:
+        assert restoredProperty.get() instanceof String
+
+        where:
+        description               | valueProducer
+        "fixed value"             | { GString s -> s }
+        "fixed value provider"    | { GString s -> Providers.of(s).map { it } } // map {} here hides the fact that provider returns a GString
+        "changing value provider" | { GString s -> Providers.changing { s } }
     }
 }

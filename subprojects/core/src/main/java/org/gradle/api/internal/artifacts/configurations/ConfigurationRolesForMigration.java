@@ -44,13 +44,13 @@ public final class ConfigurationRolesForMigration {
      * A legacy configuration that will become a resolvable dependency scope configuration in the next major version.
      */
     @Deprecated
-    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
+    public static final ConfigurationRole LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE = difference(ConfigurationRoles.ALL, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE);
 
     /**
      * A legacy configuration that will become a consumable configuration in the next major version.
      */
     @SuppressWarnings("deprecation")
-    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE);
+    public static final ConfigurationRole LEGACY_TO_CONSUMABLE = difference(ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE);
 
     /**
      * A resolvable dependency scope that will become a resolvable configuration in the next major version.

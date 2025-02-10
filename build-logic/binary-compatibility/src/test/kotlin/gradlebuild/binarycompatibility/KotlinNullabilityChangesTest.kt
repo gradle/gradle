@@ -18,39 +18,10 @@ package gradlebuild.binarycompatibility
 import org.junit.Test
 
 
-class NullabilityChangesTest : AbstractBinaryCompatibilityTest() {
+class KotlinNullabilityChangesTest : AbstractBinaryCompatibilityTest() {
 
     @Test
-    fun `from non-null returning to null returning is breaking (java)`() {
-
-        checkNotBinaryCompatibleJava(
-            v1 = """
-                public class Source {
-                    public String nonFinalField = "some";
-                    public final String finalField = "some";
-                    public String foo() { return "bar"; }
-                }
-            """,
-            v2 = """
-                public class Source {
-                    @Nullable public String nonFinalField = null;
-                    @Nullable public final String finalField = null;
-                    @Nullable public String foo() { return "bar"; }
-                }
-            """
-        ) {
-            assertHasErrors(
-                "Field nonFinalField: Nullability breaking change.",
-                "Field finalField: From non-nullable to nullable breaking change.",
-                "Method com.example.Source.foo(): From non-null returning to null returning breaking change."
-            )
-            assertHasNoWarning()
-            assertHasNoInformation()
-        }
-    }
-
-    @Test
-    fun `from non-null returning to null returning is breaking (kotlin)`() {
+    fun `from non-null returning to null returning is breaking`() {
 
         checkNotBinaryCompatibleKotlin(
             v1 = """
@@ -81,36 +52,7 @@ class NullabilityChangesTest : AbstractBinaryCompatibilityTest() {
     }
 
     @Test
-    fun `from null accepting to non-null accepting is breaking (java)`() {
-
-        checkNotBinaryCompatibleJava(
-            v1 = """
-                public class Source {
-                    public Source(@Nullable String some) {}
-                    @Nullable public String nonFinalField = null;
-                    public String foo(@Nullable String bar) { return "some"; }
-                }
-            """,
-            v2 = """
-                public class Source {
-                    public Source(String some) {}
-                    public String nonFinalField = "some";
-                    public String foo(String bar) { return bar; }
-                }
-            """
-        ) {
-            assertHasErrors(
-                "Field nonFinalField: Nullability breaking change.",
-                "Method com.example.Source.foo(java.lang.String): Parameter 0 from null accepting to non-null accepting breaking change.",
-                "Constructor com.example.Source(java.lang.String): Parameter 0 from null accepting to non-null accepting breaking change."
-            )
-            assertHasNoWarning()
-            assertHasNoInformation()
-        }
-    }
-
-    @Test
-    fun `from null accepting to non-null accepting is breaking (kotlin)`() {
+    fun `from null accepting to non-null accepting is breaking`() {
 
         checkNotBinaryCompatibleKotlin(
             v1 = """
@@ -139,33 +81,7 @@ class NullabilityChangesTest : AbstractBinaryCompatibilityTest() {
     }
 
     @Test
-    fun `from null returning to non-null returning is not breaking (java)`() {
-
-        checkBinaryCompatibleJava(
-            v1 = """
-                public class Source {
-                    @Nullable public final String finalField = null;
-                    @Nullable public String foo(String bar) { return bar; }
-                }
-            """,
-            v2 = """
-                public class Source {
-                    public final String finalField = null;
-                    public String foo(String bar) { return bar; }
-                }
-            """
-        ) {
-            assertHasNoError()
-            assertHasWarnings(
-                "Field finalField: Nullability changed from nullable to non-nullable",
-                "Method com.example.Source.foo(java.lang.String): Return nullability changed from nullable to non-nullable"
-            )
-            assertHasNoInformation()
-        }
-    }
-
-    @Test
-    fun `from null returning to non-null returning is not breaking (kotlin)`() {
+    fun `from null returning to non-null returning is not breaking`() {
 
         checkBinaryCompatibleKotlin(
             v1 = """
@@ -191,33 +107,7 @@ class NullabilityChangesTest : AbstractBinaryCompatibilityTest() {
     }
 
     @Test
-    fun `from non-null accepting to null accepting is not breaking (java)`() {
-
-        checkBinaryCompatibleJava(
-            v1 = """
-                public class Source {
-                    public Source(String some) {}
-                    public String foo(String bar) { return bar; }
-                }
-            """,
-            v2 = """
-                public class Source {
-                    public Source(@Nullable String some) {}
-                    public String foo(@Nullable String bar) { return "some"; }
-                }
-            """
-        ) {
-            assertHasNoError()
-            assertHasWarnings(
-                "Method com.example.Source.foo(java.lang.String): Parameter 0 nullability changed from non-nullable to nullable",
-                "Constructor com.example.Source(java.lang.String): Parameter 0 nullability changed from non-nullable to nullable"
-            )
-            assertHasNoInformation()
-        }
-    }
-
-    @Test
-    fun `from non-null accepting to null accepting is not breaking (kotlin)`() {
+    fun `from non-null accepting to null accepting is not breaking`() {
 
         checkBinaryCompatibleKotlin(
             v1 = """

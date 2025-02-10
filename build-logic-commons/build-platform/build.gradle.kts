@@ -33,7 +33,6 @@ dependencies {
         api("org.asciidoctor:asciidoctor-gradle-jvm:4.0.2")
         api("org.jetbrains.kotlin:kotlin-gradle-plugin") { version { strictly(kotlinVersion) } }
         api(kotlin("compiler-embeddable")) { version { strictly(kotlinVersion) } }
-        api("org.jlleitschuh.gradle:ktlint-gradle:10.3.0")
         api("com.autonomousapps:dependency-analysis-gradle-plugin:1.33.0")
         api("com.squareup.okio:okio:3.4.0") {
             because("Bump version brought in by dependency-analysis-gradle-plugin, to resolve CVE-2022-3635")
@@ -55,6 +54,7 @@ dependencies {
             because("Flexmark 0.34.60 brings in a vulnerable version of pdfbox")
         }
         api("com.google.code.findbugs:jsr305:3.0.2")
+        api("org.jspecify:jspecify:1.0.0")
         api("commons-io:commons-io:2.14.0")
         api("commons-lang:commons-lang:2.6")
         api("javax.activation:activation:1.1.1")
@@ -77,7 +77,7 @@ dependencies {
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
         api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
-        api("org.javassist:javassist:3.27.0-GA")
+        api("org.javassist:javassist:3.30.2-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
         api("org.jsoup:jsoup:1.15.3")
         api("org.junit.jupiter:junit-jupiter:5.8.2")

@@ -25,26 +25,26 @@ import javax.annotation.Nullable;
  *
  * @see <a href="https://github.com/gradle/gradle/issues/31430">https://github.com/gradle/gradle/issues/31430</a>
  */
-public class ProblemTaskPathTracker {
+public class ProblemTaskIdentityTracker {
 
-    private static final ThreadLocal<String> TASK_NAME = new ThreadLocal<String>();
+    private static final ThreadLocal<TaskIdentity> TASK_IDENTITY = new ThreadLocal<TaskIdentity>();
 
-    public static void setTaskIdentityPath(String path) {
-        TASK_NAME.set(path);
+    public static void setTaskIdentity(TaskIdentity taskIdentity) {
+        TASK_IDENTITY.set(taskIdentity);
     }
 
     /**
-     * Returns the identity path of the currently executed task.
+     * Returns the identity of the currently executed task.
      *
-     * @return the identity path of the currently executed task or null if no task is currently executed on the current thread.
+     * @return the identity of the currently executed task or null if no task is currently executed on the current thread.
      */
     @Nullable
-    public static String getTaskIdentityPath() {
-        return TASK_NAME.get();
+    public static TaskIdentity getTaskIdentity() {
+        return TASK_IDENTITY.get();
     }
 
     public static void clear() {
-        TASK_NAME.remove();
+        TASK_IDENTITY.remove();
     }
 
 }

@@ -531,7 +531,12 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
                 out.text("---------------------");
                 out.println();
                 out.style(Normal);
-                for (ResolvedVariantResult variant : dependency.getAllVariants()) {
+
+                List<ResolvedVariantResult> sortedVariants = dependency.getAllVariants().stream()
+                    .sorted(Comparator.comparing(ResolvedVariantResult::getDisplayName))
+                    .collect(Collectors.toList());
+
+                for (ResolvedVariantResult variant : sortedVariants) {
                     if (selectedVariantNames.contains(variant.getDisplayName())) {
                         continue;
                     }

@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
@@ -44,7 +43,7 @@ class ScalaBasePluginTest extends AbstractProjectBuilderSpec {
         def configuration = project.configurations.getByName(ScalaBasePlugin.ZINC_CONFIGURATION_NAME)
 
         then:
-        Configurations.getNames(configuration.extendsFrom).empty
+        configuration.extendsFrom.empty
         !configuration.visible
         configuration.transitive
     }

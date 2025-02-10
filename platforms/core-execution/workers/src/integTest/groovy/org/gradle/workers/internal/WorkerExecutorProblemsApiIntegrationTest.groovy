@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.problems.internal.TaskPathLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -132,6 +133,8 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             operationId == Long.parseLong(buildOperationIdFile.text)
             exception.message == "Exception message"
             exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
+            contextualLocations.size() == 1
+            (contextualLocations[0] as TaskPathLocation).buildTreePath == ":reportProblem"
         }
 
         where:

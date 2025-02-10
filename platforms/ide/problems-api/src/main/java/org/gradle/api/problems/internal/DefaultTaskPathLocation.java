@@ -16,10 +16,12 @@
 
 package org.gradle.api.problems.internal;
 
+import java.io.Serializable;
+
 /**
  * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
  */
-public class DefaultTaskPathLocation implements TaskPathLocation {
+public class DefaultTaskPathLocation implements TaskPathLocation, Serializable {
 
     private final String buildTreePath;
 
