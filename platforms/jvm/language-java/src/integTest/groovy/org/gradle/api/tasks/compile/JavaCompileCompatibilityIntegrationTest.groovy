@@ -558,6 +558,119 @@ class JavaCompileCompatibilityIntegrationTest extends AbstractIntegrationSpec im
         classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_17
     }
 
+    def sourceUsingLanguageFeaturePreviewFromJava21() {
+        """
+            public class Main {
+                public static void main(String[] args) {
+                    String version = System.getProperty("java.version").toString();
+                    System.out.println("Main: java " + version);
+
+                    // Error to use '_' name since Java 9, and supported as "unnamed variable" in Java 21 as Preview
+                    int _ = version.length();
+                }
+            }
+        """
+    }
+
+    def "preview features are not allowed #description"() {
+        def jdk = AvailableJavaHomes.getJdk21()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava {
+                $configureCompilation
+            }
+        """
+
+        file("src/main/java/Main.java") << sourceUsingLanguageFeaturePreviewFromJava21()
+
+        when:
+        withInstallations(jdk).fails(":compileJava")
+
+        then:
+        failure.assertHasErrorOutput("Main.java:8: error: unnamed variables are a preview feature")
+        failure.assertHasErrorOutput("(use --enable-preview to enable unnamed variables)")
+        javaClassFile("Main.class").assertDoesNotExist()
+
+        where:
+        description     | configureCompilation
+        "by default"    | ""
+        "when disabled" | "options.enablePreview = false"
+    }
+
+    def "preview features are allowed when enabled via #description"() {
+        def jdk = AvailableJavaHomes.getJdk21()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava {
+                $configureCompilation
+            }
+        """
+
+        file("src/main/java/Main.java") << sourceUsingLanguageFeaturePreviewFromJava21()
+
+        when:
+        withInstallations(jdk).succeeds(":compileJava")
+
+        then:
+        executedAndNotSkipped(":compileJava")
+        errorOutput.contains("Main.java uses preview features of Java SE 21.")
+        classJavaVersion(javaClassFile("Main.class")) == JavaVersion.VERSION_21
+
+        where:
+        description          | configureCompilation
+        "compiler flag"      | "options.compilerArgs += '--enable-preview'"
+        "compilation option" | "options.enablePreview = true"
+    }
+
+    def "cannot mix enable-preview compiler flag and enabling the compilation option"() {
+        def jdk = AvailableJavaHomes.getJdk21()
+
+        buildFile << """
+            plugins {
+                id 'java'
+            }
+
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${jdk.javaVersion.majorVersion})
+                }
+            }
+
+            compileJava {
+                options.enablePreview = true
+                options.compilerArgs += '--enable-preview'
+            }
+        """
+
+        file("src/main/java/Main.java") << sourceUsingLanguageFeaturePreviewFromJava21()
+
+        when:
+        withInstallations(jdk).fails(":compileJava")
+
+        then:
+        failureHasCause('Cannot specify --enable-preview via `CompileOptions.compilerArgs` when using `CompileOptions.enablePreview`.')
+    }
+
     private static String currentJavaVersion() {
         return Jvm.current().javaVersion.toString()
     }
