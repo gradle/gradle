@@ -91,6 +91,8 @@ public interface ProblemUsageProgressDetails {
 
     /**
      * The failure associated with the problem.
+     * <p>
+     * {@code null} if the problem is not associated with a failure.
      *
      * @since 8.14
      */
