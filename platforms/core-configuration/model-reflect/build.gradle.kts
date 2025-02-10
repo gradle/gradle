@@ -38,7 +38,6 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 
-    testFixturesApi(testFixtures(projects.core))
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(libs.guava)
 }
