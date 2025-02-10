@@ -21,11 +21,11 @@ import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -105,7 +105,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     @Override
     protected boolean shouldTransform(String className) {
-        return legacyTypesSupport.getClassesToMixInGroovyObject().contains(className) || legacyTypesSupport.getSyntheticClasses().contains(className);
+        return (legacyTypesSupport.getClassesToMixInGroovyObject().contains(className) || legacyTypesSupport.getSyntheticClasses().contains(className)) && !className.startsWith("org.gradle.api.provider.");
     }
 
     @Override

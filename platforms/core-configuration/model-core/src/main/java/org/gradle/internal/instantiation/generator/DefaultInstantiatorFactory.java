@@ -33,6 +33,7 @@ import org.gradle.internal.state.ManagedFactory;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
+import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -51,6 +52,18 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final ManagedFactory managedFactory;
 
     public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler) {
+        System.err.println("Creating object factory " + this);
+
+        String processName = ManagementFactory.getRuntimeMXBean().getName();
+        System.err.println("Process Name: " + processName);
+
+        // Extract PID (works on most OS)
+        String pid = processName.split("@")[0];
+        System.err.println("Current Process ID: " + pid);
+
+        new RuntimeException().printStackTrace();
+
+
         this.cacheFactory = cacheFactory;
         this.annotationHandlers = injectHandlers;
         this.roleHandler = roleAnnotationHandler;

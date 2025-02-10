@@ -18,15 +18,9 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
-import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 
 public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFactory {
     private final IsolatableFactory isolatableFactory;
@@ -39,7 +33,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
 
     @Override
     public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
-        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.getProjectCacheDir(), spec.isInternalServicesRequired());
+        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serializerRegistry.serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.getProjectCacheDir(), spec.isInternalServicesRequired());
     }
 
     @Override
@@ -56,7 +50,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
 
     @Override
     public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
-        T params = Cast.uncheckedCast(deserialize(spec.getSerializedParameters()).isolate());
+        T params = Cast.uncheckedCast(serializerRegistry.deserialize(spec.getSerializedParameters()).isolate());
         return new SimpleActionExecutionSpec<>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, spec.isInternalServicesRequired());
     }
 
@@ -68,24 +62,4 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
         }
     }
 
-    private byte[] serialize(Isolatable<?> isolatable) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
-            serializerRegistry.writeIsolatable(encoder, isolatable);
-            encoder.flush();
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not serialize unit of work.", e);
-        }
-        return outputStream.toByteArray();
-    }
-
-    private Isolatable<?> deserialize(byte[] bytes) {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
-        try {
-            return serializerRegistry.readIsolatable(decoder);
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not deserialize unit of work.", e);
-        }
-    }
 }

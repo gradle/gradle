@@ -71,6 +71,17 @@ public class DefaultObjectFactory implements ObjectFactory, BuildTreeObjectFacto
 
     public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
                                 PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+//        System.err.println("Creating object factory " + this);
+//
+//        String processName = ManagementFactory.getRuntimeMXBean().getName();
+//        System.err.println("Process Name: " + processName);
+//
+//        // Extract PID (works on most OS)
+//        String pid = processName.split("@")[0];
+//        System.err.println("Current Process ID: " + pid);
+//
+//        new RuntimeException().printStackTrace();
+
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;

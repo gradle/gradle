@@ -216,6 +216,28 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
                 .build();
         }
 
+//
+//        @Provides
+//        InternalProblems createInternalProblems(
+//            PayloadSerializer payloadSerializer,
+//            ServiceRegistry serviceRegistry,
+//            IsolatableFactory isolatableFactory,
+//            IsolatableSerializerRegistry isolatableSerializerRegistry,
+//            InstantiatorFactory instantiatorFactory
+//        ) {
+//            return new DefaultProblems(
+//                null,
+//                null,
+//                CurrentBuildOperationRef.instance(),
+//                new ExceptionProblemRegistry(),
+//                null,
+//                instantiatorFactory.decorate(serviceRegistry),
+//                payloadSerializer,
+//                isolatableFactory,
+//                isolatableSerializerRegistry
+//            );
+//        }
+
         @Provides
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory, ServiceRegistry workerProjectScopeServices) {
             return instantiatorFactory.decorateLenient(workerProjectScopeServices);

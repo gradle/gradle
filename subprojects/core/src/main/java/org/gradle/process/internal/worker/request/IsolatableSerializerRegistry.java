@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.workers.internal;
+package org.gradle.process.internal.worker.request;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
@@ -159,6 +159,29 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         }
     }
 
+    @Override
+    public Isolatable<?> deserialize(byte[] bytes) {
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
+        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
+        try {
+            return readIsolatable(decoder);
+        } catch (Exception e) {
+            throw new WorkSerializationException("Could not deserialize unit of work.", e);
+        }
+    }
+
+    @Override
+    public byte[] serialize(Isolatable<?> isolatable) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
+            writeIsolatable(encoder, isolatable);
+            encoder.flush();
+        } catch (Exception e) {
+            throw new WorkSerializationException("Could not serialize unit of work.", e);
+        }
+        return outputStream.toByteArray();
+    }
+
     private Object readState(Decoder decoder) throws Exception {
         byte stateType = decoder.readByte();
         if (stateType == NULL_TYPE) {
@@ -214,29 +237,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry impl
         for (Object o : array) {
             writeState(encoder, o);
         }
-    }
-
-    @Override
-    public Isolatable<?> deserialize(byte[] bytes) {
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes);
-        KryoBackedDecoder decoder = new KryoBackedDecoder(inputStream);
-        try {
-            return readIsolatable(decoder);
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not deserialize unit of work.", e);
-        }
-    }
-
-    @Override
-    public byte[] serialize(Isolatable<?> isolatable) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try (KryoBackedEncoder encoder = new KryoBackedEncoder(outputStream)) {
-            writeIsolatable(encoder, isolatable);
-            encoder.flush();
-        } catch (Exception e) {
-            throw new WorkSerializationException("Could not serialize unit of work.", e);
-        }
-        return outputStream.toByteArray();
     }
 
     private static abstract class IsolatableSerializer<T extends Isolatable<?>> implements Serializer<T> {

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.daemon.client.serialization;
 
-import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.model.internal.asm.AsmConstants;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 import org.objectweb.asm.AnnotationVisitor;
@@ -63,9 +63,40 @@ public class ClientSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             }
         }
 
+//        private final Collection<String> exclusions;
+
         public MixInClassLoader(String name, ClassLoader parent, List<URL> classPath) {
             super(name, parent, classPath);
+//            this.exclusions = exclusions;
         }
+
+//        @Override
+//        protected boolean shouldTransform(String name) {
+//            for (String exclusion : exclusions) {
+//                if (name.startsWith(exclusion)) {
+//                    return false;
+//                }
+//            }
+//            return true;
+//        }
+
+
+        @Override
+        public Class<?> loadClass(String name) throws ClassNotFoundException {
+            if (name.startsWith("org.gradle.api.provider.")) {
+                return getParent().loadClass(name);
+            }
+            return super.loadClass(name);
+        }
+
+//        @Override
+//        @Nullable
+//        protected Class<?> findClass(String name) throws ClassNotFoundException {
+//            if (!name.startsWith("org.gradle.api.provider.")) {
+//                return getParent().loadClass(name);
+//            }
+//            return super.findClass(name);
+//        }
 
         @Override
         protected byte[] transform(String className, byte[] bytes) {

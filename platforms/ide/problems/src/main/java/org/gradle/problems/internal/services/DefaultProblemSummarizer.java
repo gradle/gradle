@@ -42,7 +42,6 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
-    private final int threshold;
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
     private final TaskIdentityProvider taskProvider;
@@ -61,8 +60,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
-        this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
-        this.summarizerStrategy = new SummarizerStrategy(threshold);
+        this.summarizerStrategy = new SummarizerStrategy(internalOptions.getOption(THRESHOLD_OPTION).get());
         this.problemReportCreator = problemReportCreator;
         this.taskProvider = taskProvider;
     }
@@ -94,7 +92,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
         if (taskIdentity != null) {
-            problem = problem.toBuilder(null, null, null).taskLocation(taskIdentity.getTaskPath()).build();
+            problem = problem.toBuilder(null, null, null, null, null).taskLocation(taskIdentity.getTaskPath()).build();
         }
         return problem;
     }

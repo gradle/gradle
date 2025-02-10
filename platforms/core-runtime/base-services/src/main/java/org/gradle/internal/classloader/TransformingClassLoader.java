@@ -47,6 +47,7 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
     }
 
     @Override
+    @Nullable
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         if (!shouldTransform(name)) {
             return super.findClass(name);
@@ -81,6 +82,10 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
             definePackage(packageName, null, null, null, null, null, null, null);
         }
         return defineClass(name, bytes, 0, bytes.length, codeSource);
+    }
+
+    protected Class<?> superFind(String name) throws ClassNotFoundException {
+        return super.findClass(name);
     }
 
     @Nullable

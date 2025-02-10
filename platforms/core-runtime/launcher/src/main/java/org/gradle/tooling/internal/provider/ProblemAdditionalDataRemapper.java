@@ -20,6 +20,13 @@ import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.build.event.types.DefaultInternalProxiedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultProblemDetails;
 import org.gradle.internal.build.event.types.DefaultProblemEvent;
+import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.internal.isolation.Isolatable;
+import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalPayloadSerializedAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
@@ -29,16 +36,24 @@ import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
 
     private final PayloadSerializer payloadSerializer;
     private final BuildEventConsumer delegate;
+    private final IsolatableFactory isolatableFactory;
+    private final IsolatableSerializerRegistry isolatableSerializerRegistry;
 
-    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate) {
+    public ProblemAdditionalDataRemapper(PayloadSerializer payloadSerializer, BuildEventConsumer delegate, IsolatableFactory isolatableFactory, IsolatableSerializerRegistry isolatableSerializerRegistry) {
         this.payloadSerializer = payloadSerializer;
         this.delegate = delegate;
+        this.isolatableFactory = isolatableFactory;
+        this.isolatableSerializerRegistry = isolatableSerializerRegistry;
     }
 
     @Override
@@ -47,6 +62,7 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         delegate.dispatch(message);
     }
 
+    @SuppressWarnings("unused")
     private void remapAdditionalData(Object message) {
         if (!(message instanceof DefaultProblemEvent)) {
             return;
@@ -64,14 +80,46 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         InternalPayloadSerializedAdditionalData serializedAdditionalData = (InternalPayloadSerializedAdditionalData) additionalData;
         SerializedPayload serializedType = (SerializedPayload) serializedAdditionalData.getSerializedType();
         Map<String, Object> state = serializedAdditionalData.getAsMap();
+
         Class<?> type = (Class<?>) payloadSerializer.deserialize(serializedType);
         if (type == null) {
             return;
         }
 
-        Object proxy = createProxy(type, state);
+        byte[] isolatableBytes = serializedAdditionalData.getIsolatable();
 
-        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, proxy, serializedType));
+
+//        new ClasspathInferer().getClassPathFor(type, classPath);
+
+
+        ClassLoader typeClassLoader = type.getClassLoader();
+        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        filterSpec.allowClass(type);
+        FilteringClassLoader filteringClassLoader = new FilteringClassLoader(typeClassLoader, filterSpec);
+
+        List<URL> classPath = new ArrayList<>();
+
+        ((VisitableURLClassLoader) typeClassLoader).visit(new ClassLoaderVisitor() {
+            @Override
+            public void visitClassPath(URL[] urls) {
+                for (URL url : urls) {
+                    classPath.add(url);
+                }
+            }
+        });
+
+        VisitableURLClassLoader visitableURLClassLoader = new VisitableURLClassLoader("name", getClass().getClassLoader(), classPath);
+        Object o = ClassLoaderUtils.executeInClassloader(visitableURLClassLoader, () -> {
+            Isolatable<?> deserialize = isolatableSerializerRegistry.deserialize(isolatableBytes);
+            return deserialize.coerce(type);
+        });
+//        Isolatable<?> deserialize = isolatableSerializerRegistry.deserialize(isolatableBytes);
+//        deserialize.coerce(type);
+
+//        Object object = isolatableBytes.coerce(type);
+//        Object proxy = createProxy(type, state);
+
+        ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(state, o, serializedType));
     }
 
     @SuppressWarnings("unchecked")

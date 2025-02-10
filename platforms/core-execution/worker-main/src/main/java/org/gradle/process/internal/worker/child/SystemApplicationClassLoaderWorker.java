@@ -108,7 +108,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         ObjectConnection connection = null;
         try {
             // Read server address and start connecting
-            connection = basicWorkerServices.get(MessagingClient.class).getConnection(config.getServerAddress());
+            connection = workerServices.get(MessagingClient.class).getConnection(config.getServerAddress());
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
             configureLogging(loggingManager, connection, workerLogEventListener);
             // start logging now that the logging manager is connected

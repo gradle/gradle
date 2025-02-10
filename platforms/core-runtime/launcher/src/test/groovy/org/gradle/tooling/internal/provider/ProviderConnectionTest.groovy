@@ -35,7 +35,7 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"), payloadSerializer)
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("12.7"), payloadSerializer, isolatableFactory, isolatableSerializerRegistry)
 
         then:
         !configuration.clientSubscriptions.anyOperationTypeRequested
@@ -50,7 +50,7 @@ class ProviderConnectionTest extends Specification {
         }
 
         when:
-        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"), payloadSerializer)
+        def configuration = ProviderConnection.ProgressListenerConfiguration.from(parameters, GradleVersion.version("5.0"), payloadSerializer, isolatableFactory, isolatableSerializerRegistry)
 
         then:
         configuration.clientSubscriptions.anyOperationTypeRequested
