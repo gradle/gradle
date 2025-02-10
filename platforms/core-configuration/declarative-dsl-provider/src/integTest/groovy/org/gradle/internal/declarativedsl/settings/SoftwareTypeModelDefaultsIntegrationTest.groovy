@@ -19,8 +19,9 @@ package org.gradle.internal.declarativedsl.settings
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.declarative.DeclarativeDslOnly
 import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
+import org.gradle.integtests.fixtures.declarative.SkipDsl
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 @DeclarativeDslTest
 class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotBuildFilesFixture {
@@ -55,7 +56,8 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
-    @DeclarativeDslOnly(because = "Kotlin DSL does accept re-assigning values")
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL does accept re-assigning values")
     def "sensible error when defaults are set more than once (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -276,7 +278,8 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         outputContains("(foo is configured)")
     }
 
-    @DeclarativeDslOnly(because = "Test is written with build files for specific DSLs in mind")
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
     def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -308,7 +311,8 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "kotlin" | ".kts"
     }
 
-    @DeclarativeDslOnly(because = "Test is written with build files for specific DSLs in mind")
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
     def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -339,6 +343,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "kotlin" | ".kts"
     }
 
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined") // TODO
     def "can configure defaults for named domain object container elements"() {
         given:
         withSoftwareTypePluginWithNdoc().prepareToExecute()

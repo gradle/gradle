@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.integtests.fixtures.declarative.DeclarativeDslTestInterceptor
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 trait PolyglotBuildFilesFixture {
@@ -31,6 +32,10 @@ trait PolyglotBuildFilesFixture {
 
     TestFile settingsFile() {
         getSettingsFile(DeclarativeDslTestInterceptor.currentDsl)
+    }
+
+    GradleDsl currentDsl() {
+        DeclarativeDslTestInterceptor.currentDsl
     }
 
 }

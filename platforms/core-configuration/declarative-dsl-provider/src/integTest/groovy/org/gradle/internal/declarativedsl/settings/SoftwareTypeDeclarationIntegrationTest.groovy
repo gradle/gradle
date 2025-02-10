@@ -18,6 +18,8 @@ package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
+import org.gradle.integtests.fixtures.declarative.SkipDsl
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -31,6 +33,11 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
     @Rule
     MavenHttpPluginRepository mavenHttpRepo = new MavenHttpPluginRepository(mavenRepo)
+
+    def setup() {
+        // enable DCL support to have KTS accessors generated
+        propertiesFile << "org.gradle.kotlin.dsl.dcl=true"
+    }
 
     def 'can declare and configure a custom software type from included build'() {
         given:
@@ -154,6 +161,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom software type with different public and implementation model types'() {
         given:
         withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
@@ -177,8 +185,14 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":printTestSoftwareTypeExtensionImplConfiguration")
 
         then:
-        failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
-        failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublic'"))
+        if (GradleDsl.KOTLIN == currentDsl()) {
+            failure.assertThatDescription(Matchers.containsString("Unresolved reference: nonPublic"))
+        } else if (GradleDsl.DECLARATIVE == currentDsl()) {
+            failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
+            failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublic'"))
+        } else {
+            throw new RuntimeException("Test wasn't meant to be run with " + currentDsl().languageCodeName + " DSL")
+        }
     }
 
     def 'can declare and configure a custom software type from a parent class'() {

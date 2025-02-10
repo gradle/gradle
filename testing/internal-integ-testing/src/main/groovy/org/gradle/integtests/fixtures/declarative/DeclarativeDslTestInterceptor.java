@@ -16,11 +16,15 @@
 
 package org.gradle.integtests.fixtures.declarative;
 
+import org.apache.commons.lang3.stream.Streams;
 import org.gradle.integtests.fixtures.extensions.AbstractMultiTestInterceptor;
 import org.gradle.test.fixtures.dsl.GradleDsl;
 import org.spockframework.runtime.extension.IMethodInvocation;
 
+import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class DeclarativeDslTestInterceptor extends AbstractMultiTestInterceptor {
     private final static String DSL_LANGUAGE = "org.gradle.internal.runner.dsl";
@@ -73,8 +77,19 @@ public class DeclarativeDslTestInterceptor extends AbstractMultiTestInterceptor 
 
         @Override
         public boolean isTestEnabled(TestDetails testDetails) {
-            boolean declarativeOnly = Arrays.stream(testDetails.getAnnotations()).anyMatch(annotation -> annotation instanceof DeclarativeDslOnly);
-            return !declarativeOnly || dsl == GradleDsl.DECLARATIVE;
+            Annotation[] annotations = testDetails.getAnnotations();
+            return Arrays.stream(annotations)
+                .flatMap((Function<Annotation, Stream<?>>) a -> {
+                    if (a instanceof SkipDsl) {
+                        return Streams.of(a);
+                    } else if (a instanceof SkipDsl.List) {
+                        SkipDsl.List al = (SkipDsl.List) a;
+                        return Arrays.stream(al.value());
+                    } else {
+                        return null;
+                    }
+                })
+                .noneMatch(annotation -> dsl == ((SkipDsl) annotation).dsl());
         }
     }
 }
