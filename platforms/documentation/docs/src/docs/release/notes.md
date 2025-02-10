@@ -2,21 +2,21 @@
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="Gradle @version@: Daemon JVM auto-provisioning. Enhanced deprecation warning messages. Updated APIs, refined plugins, and a new task. Improved JUnit test reporting">
+<meta property="og:description" content="Gradle @version@: Daemon JVM auto-provisioning. Enhanced developer experience. Improvements for build authors and plugin developers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="Gradle @version@: Daemon JVM auto-provisioning. Enhanced deprecation warning messages. Updated APIs, refined plugins, and a new task. Improved JUnit test reporting">
+<meta name="twitter:description" content="Gradle @version@: Daemon JVM auto-provisioning. Enhanced developer experience. Improvements for build authors and plugin developers.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release introduces [Daemon JVM auto-provisioning](#toolchain), which automatically downloads a JVM compatible with the daemon requested one when necessary.
+This release introduces [Daemon JVM auto-provisioning](#toolchain), which automatically downloads the JVM used by the Gradle Daemon to build projects.
 
-Gradle @version@ brings several enhancements for [build authors and plugin developers](#build-authoring), including updates to the `ProjectLayout` and `TestEventReporting` APIs, a new `artifactTransforms` task, the `distribution-base` plugin, and support for explicitly declaring the Scala version in the `scala` extension.
+Gradle @version@ includes several enhancements for [software developers](#developers), such as explicit Scala version configuration and JUnit XML timestamps with millisecond precision.
 
-Additionally, JUnit XML timestamps now include [millisecond precision](#other).
+For [build authors and plugin developers](#build-authoring), this release adds improved access to the settings directory in build scripts, a new artifact transform report, custom test report generation, and the new `distribution-base` plugin.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [Adam](https://github.com/adam-enko),
@@ -63,13 +63,16 @@ For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility
 <a name="toolchain"></a>
 ### Toolchain support
 
-Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of JDK versions required for building projects.
+Gradle's [toolchain support](userguide/toolchains.html#sec:provisioning) allows provisioning and selection of JDK versions required for building projects (compiling code, running tests, etc) and running Gradle itself.
 
 #### Daemon toolchain auto-provisioning
 
-Gradle now supports [auto-provisioning](userguide/toolchains.html#sec:provisioning) for the Gradle Daemon JVM, enabling automatic detection of locally installed Java toolchains from known paths that match project requirements or downloading them when necessary.
+Since Gradle 8.8, users can specify a different JVM for building their project than the one used to run Gradle by configuring the [Daemon JVM criteria](userguide/gradle_daemon.html#sec:daemon_jvm_criteria).  
+Gradle first attempts to locate a compatible Java toolchain from installed versions—this process is known as [Daemon JVM auto-detection](userguide/gradle_daemon.html#sec:detect_provision).
 
-For projects with this functionality already integrated, the `gradle-daemon-jvm.properties` file will contain the download URLs for the JDKs:
+With the introduction of [Daemon JVM auto-provisioning](userguide/gradle_daemon.html#sec:detect_provision), Gradle can now also download a matching Java toolchain when none is found locally.
+
+Running the `updateDaemonJvm` task generates the `gradle/gradle-daemon-jvm.properties` file, which now includes download URLs for the required JDKs:
 
 ```text
 toolchainUrl.LINUX.AARCH64=https\://server.com/jdk
@@ -79,11 +82,11 @@ toolchainVendor=adoptium
 toolchainVersion=17
 ```
 
-If the required JDK matching the specified version or vendor is not found, Gradle will automatically download it:
+If no installed JDK matches the specified version or vendor, Gradle automatically downloads the required version:
 
 ![Daemon JVM Criteria Console Example](release-notes-assets/DJVMC_auto_provisioning_console.png)
 
-IntelliJ IDEA support is available starting from version [2025.1 EAP](https://blog.jetbrains.com/idea/2025/01/intellij-idea-2025-1-eap/) or later:
+IntelliJ IDEA support is available starting from version [2025.1 EAP](https://blog.jetbrains.com/idea/2025/01/intellij-idea-2025-1-eap/) or later and includes the configurable values in the Settings menu:
 
 ![Daemon JVM Criteria IDE Example](release-notes-assets/DJVMC_auto_provisioning_ide.png)
 
@@ -102,7 +105,7 @@ Once the plugin is applied, running the [`updateDaemonJvm` task](userguide/gradl
 ./gradlew updateDaemonJvm --jvm-version=17 --jvm-vendor=adoptium
 ```
 
-Populates `gradle/gradle-daemon-jvm.properties` with additional JDK download information:
+Populates `gradle/gradle-daemon-jvm.properties` with the JDK download information:
 
 ```text
 toolchainUrl.LINUX.AARCH64=https\://api.foojay.io/disco/v3.0/ids/ff8d269e2495c538cfa04b4b52d22286/redirect
@@ -112,8 +115,74 @@ toolchainVendor=adoptium
 toolchainVersion=17
 ```
 
-The JVM vendors and URLs are customizable.
+The resolved platforms and URLs are customizable.
 For more details, see the [Daemon JVM criteria documentation](userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
+
+<a name="developers"></a>
+### Developer experience improvements
+
+Gradle provides [build scripts](userguide/getting_started_eng.html) to help software developers efficiently define their build logic.
+
+#### Explicit Scala version declaration in the `scala` extension
+
+The [Scala plugin](userguide/scala_plugin.html) provides support for compiling, testing, and packaging Scala projects.
+
+Starting in this version of Gradle, when applying the `scala-base` or `scala` plugins, you can now explicitly declare the Scala version on the `scala` extension.
+This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
+It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
+
+Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
+
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+scala {
+    scalaVersion = "2.13.12"
+    // OR 
+    scalaVersion = "3.6.3"
+}
+```
+
+Previously, you had to declare a `scala-library` dependency, like this:
+
+```kotlin
+plugins {
+    id("scala")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.scala-lang:scala-library:2.13.12")
+    // OR
+    implementation("org.scala-lang:scala3-library_3:3.6.3")
+}
+```
+
+For more details on using the Scala plugin, see the [documentation](userguide/scala_plugin.html#sec:scala_version).
+
+#### Additional precision in JUnit XML timestamps
+Gradle provides built-in support for running JUnit tests and generating detailed reports.
+The [JUnit XML report](userguide/java_testing.html#test_reporting) generated by the `test` task now includes millisecond precision in test event timestamps:
+
+```xml
+<testsuite name="ExampleTest" tests="1" failures="0" errors="0" timestamp="2024-02-03T12:34:56.789" time="1.234">
+    <testcase name="testExample" classname="com.example.ExampleTest" time="1.234">
+    </testcase>
+</testsuite>
+```
+
+This change improves accuracy when analyzing test execution times, particularly in environments where precise timing is critical.
+
+For more details on JUnit test reporting in Gradle, see [Testing in JVM Projects](userguide/java_testing.html).
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
@@ -122,7 +191,7 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin autho
 
 #### `ProjectLayout` API improvement
 
-The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
+The [`ProjectLayout`](javadoc/org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
 Starting with this version of Gradle, it can also access the settings directory (the location of the `settings.gradle(.kts)` file).
 
 While the settings directory is not specific to any project, some use cases require resolving file paths relative to it:
@@ -140,7 +209,7 @@ val versionFile = rootProject.layout.projectDirectory.file("version.text")
 
 The new capability addresses a common scenario: resolving files shared across all projects in a build, such as linting configurations or `version.txt` files in the root folder.
 
-Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
+Refer to [`ProjectLayout.getSettingsDirectory()`](javadoc/org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
 
 #### New `artifactTransforms` report task
 
@@ -171,10 +240,10 @@ Plugin authors and platform providers can now leverage the [Test Event Reporting
 
 ```java
 public abstract class CustomTest extends DefaultTask {
-    
+
     @Inject
     protected abstract ProjectLayout getLayout();
-
+    
     @Inject
     protected abstract TestEventReporterFactory getTestEventReporterFactory();
 
@@ -189,7 +258,7 @@ public abstract class CustomTest extends DefaultTask {
             test.started(Instant.now());
 
             // Execute custom test...
-
+            
             // Report test outcome
             if (testFailureCount > 0) {
                 test.failed(Instant.now());
@@ -241,52 +310,6 @@ try (GroupTestEventReporter outer = root.reportTestGroup("OuterNestingSuite")) {
 
 Nested events are reflected in the HTML test reports, providing clear traceability.
 
-#### Explicit Scala version declaration in the `scala` extension
-
-The [Scala plugin](userguide/scala_plugin.html) provides support for compiling, testing, and packaging Scala projects.
-
-Starting in this version of Gradle, when applying the `scala-base` or `scala` plugins, you can now explicitly declare the Scala version on the `scala` extension.
-This allows Gradle to automatically resolve the required Scala toolchain dependencies, eliminating the need for the user to declare them manually.
-It also removes the need to infer the Scala version from the production runtime classpath, which was error-prone.
-
-Now, you can explicitly set the Scala version in the `scala` extension, and the `scala-library` dependency is no longer required:
-
-```kotlin
-plugins {
-    id("scala")
-}
-
-repositories {
-    mavenCentral()
-}
-
-scala {
-    scalaVersion = "2.13.12"
-    // OR 
-    scalaVersion = "3.6.3"
-}
-```
-
-Previously, you had to declare a `scala-library` dependency, like this:
-
-```kotlin
-plugins {
-    id("scala")
-}
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("org.scala-lang:scala-library:2.13.12")
-    // OR
-    implementation("org.scala-lang:scala3-library_3:3.6.3")
-}
-```
-
-For more details on using the Scala plugin, see the [documentation](userguide/scala_plugin.html#sec:scala_version).
-
 #### New `distribution-base` plugin for custom distributions
 
 The [Distribution Plugin](userguide/distribution_plugin.html) simplifies the packaging and distribution of project binaries, scripts, and other resources.
@@ -312,24 +335,6 @@ distributions {
 }
 ```
 For more details, see the [Distribution Plugin documentation](userguide/distribution_plugin.html#sec:distribution_base).
-
-<a name="other"></a>
-### Other improvements
-
-#### Additional precision in JUnit XML timestamps
-Gradle provides built-in support for running JUnit tests and generating detailed reports.
-The [JUnit XML report](userguide/java_testing.html#test_reporting) generated by the `test` task now includes millisecond precision in test event timestamps:
-
-```xml
-<testsuite name="ExampleTest" tests="1" failures="0" errors="0" timestamp="2024-02-03T12:34:56.789" time="1.234">
-    <testcase name="testExample" classname="com.example.ExampleTest" time="1.234">
-    </testcase>
-</testsuite>
-```
-
-This change improves accuracy when analyzing test execution times, particularly in environments where precise timing is critical.
-
-For more details on JUnit test reporting in Gradle, see [Testing in JVM Projects](userguide/java_testing.html).
 
 ## Promoted features
 
