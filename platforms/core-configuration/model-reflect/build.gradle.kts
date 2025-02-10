@@ -36,8 +36,6 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.inject)
 
-    compileOnly(libs.errorProneAnnotations)
-
     testFixturesApi(projects.internalIntegTesting)
     testFixturesImplementation(libs.guava)
 }
