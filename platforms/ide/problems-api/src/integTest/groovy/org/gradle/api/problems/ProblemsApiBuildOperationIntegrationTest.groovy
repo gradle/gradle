@@ -43,7 +43,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
+        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             with(definition) {
                 name == 'type'
@@ -84,7 +84,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
+        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             with(definition) {
                 name == 'type'
@@ -145,7 +145,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         run('reportProblem')
 
         then:
-        def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
+        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             with(definition) {
                 name == 'type'
@@ -227,7 +227,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         run(":included:sub1:reportProblem")
 
         then:
-        def problem = Iterables.getOnlyElement(buildOperations.progress(ProblemUsageProgressDetails)).details
+        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             with(definition) {
                 name == 'type'
@@ -258,5 +258,11 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     static String problemIdScript() {
         """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
            ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""
+    }
+
+    static Collection<Map<String, ?>> filteredProblemDetails(BuildOperationsFixture buildOperations) {
+        List<Map<String, ?>> details = buildOperations.progress(ProblemUsageProgressDetails).details
+        details
+            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower'}
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.collect.Iterables
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.operations.problems.ProblemUsageProgressDetails
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -140,7 +141,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             (contextualLocations[0] as TaskLocation).buildTreePath == ":reportProblem"
         }
 
-        def problem = Iterables.getOnlyElement(buildOperationsFixture.progress(ProblemUsageProgressDetails)).details
+        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
         with(problem) {
             with(definition) {
                 name == 'type'
@@ -164,6 +165,12 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+    }
+
+    static Collection<Map<String, ?>> filteredProblemDetails(BuildOperationsFixture buildOperations) {
+        List<Map<String, ?>> details = buildOperations.progress(ProblemUsageProgressDetails).details
+        details
+            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower'}
     }
 
 }
