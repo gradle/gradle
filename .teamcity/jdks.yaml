@@ -50,6 +50,18 @@ jdks:
     version: "jdk-23.0.2+7"
     sha256: "870ac8c05c6fe563e7a3878a47d0234b83c050e83651d2c47e8b822ec74512dd"
   - params:
+      - "linux.java24.openjdk.aarch64"
+    os: "linux"
+    arch: "aarch64"
+    vendor: "temurin"
+    version: "jdk-24+33-ea-beta"
+  - params:
+      - "linux.java24.openjdk.64bit"
+    os: "linux"
+    arch: "amd64"
+    vendor: "temurin"
+    version: "jdk-24+33-ea-beta"
+  - params:
       - "linux.java8.openjdk.aarch64"
       - "linux.java8.oracle.aarch64"
     os: "linux"
@@ -117,6 +129,12 @@ jdks:
     version: "jdk-23.0.2+7"
     sha256: "2171b4660d3e1056fb4a5f4b7e515fff986b8e7e0cf06c9f3e1f79d435ec7d18"
   - params:
+      - "windows.java24.openjdk.64bit"
+    os: "windows"
+    arch: "amd64"
+    vendor: "temurin"
+    version: "jdk-24+33-ea-beta"
+  - params:
       - "macos.java8.openjdk.64bit"
     os: "macos"
     arch: "amd64"
@@ -180,3 +198,15 @@ jdks:
     vendor: "temurin"
     version: "jdk-23.0.2+7"
     sha256: "749993e751f085c7ae713140066a90800075e4aeedfac50a5ed0c5457131c5a0"
+  - params:
+      - "macos.java24.openjdk.amd64"
+    os: "macos"
+    arch: "amd64"
+    vendor: "temurin"
+    version: "jdk-24+33-ea-beta"
+  - params:
+      - "macos.java24.openjdk.aarch64"
+    os: "macos"
+    arch: "aarch64"
+    vendor: "temurin"
+    version: "jdk-24+33-ea-beta"
