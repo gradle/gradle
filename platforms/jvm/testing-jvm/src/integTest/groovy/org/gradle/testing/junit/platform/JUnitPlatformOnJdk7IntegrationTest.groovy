@@ -60,6 +60,6 @@ class JUnitPlatformOnJdk7IntegrationTest extends AbstractIntegrationSpec {
         def failure = fails('test')
 
         then:
-        failure.assertHasCause('Running tests with JUnit platform requires a Java 8+ toolchain.')
+        failure.assertHasCause('Support for test execution using Java 7 or earlier was removed in Gradle 9.0.')
     }
 }

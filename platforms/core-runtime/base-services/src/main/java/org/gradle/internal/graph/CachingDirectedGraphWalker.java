@@ -58,6 +58,7 @@ public class CachingDirectedGraphWalker<N, T> {
     /**
      * Adds some start nodes.
      */
+    @SuppressWarnings("unchecked")
     public CachingDirectedGraphWalker<N, T> add(N... values) {
         add(Arrays.asList(values));
         return this;

@@ -701,14 +701,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             throw new UnsupportedJavaRuntimeException("Support for test execution using Java 5 or earlier was removed in Gradle 3.0.");
         }
         if (!javaVersion.isJava8Compatible()) {
-            if (testFramework.get() instanceof JUnitPlatformTestFramework) {
-                throw new UnsupportedJavaRuntimeException("Running tests with JUnit platform requires a Java 8+ toolchain.");
-            } else {
-                DeprecationLogger.deprecate("Running tests on Java versions earlier than 8")
-                    .willBecomeAnErrorInGradle9()
-                    .withUpgradeGuideSection(8, "minimum_test_jvm_version")
-                    .nagUser();
-            }
+            throw new UnsupportedJavaRuntimeException("Support for test execution using Java 7 or earlier was removed in Gradle 9.0.");
         }
 
         if (getDebug()) {

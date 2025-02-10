@@ -101,7 +101,7 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
         executer.withArgument("-Porg.gradle.java.installations.paths=" + target.javaHome.absolutePath)
     }
 
-    def "useful error message when using incompatible java version: #version"() {
+    def "fails when using incompatible java version: #version"() {
         given:
         configureForVersion(version)
 
@@ -110,7 +110,7 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
         fails("runInDaemon")
 
         then:
-        errorOutput.contains("Unsupported worker JDK version. Required: 8. Current: ${version.majorVersion}")
+        outputContains("Unsupported major.minor version 52.0")
 
         where:
         // We can't test against Java 6 since the gradleApi dependencies are compiled to java 8.

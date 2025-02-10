@@ -22,7 +22,10 @@ plugins {
 
 description = "Tools to handle classloaders"
 
-gradlebuildJava.usedInWorkers()
+gradlebuildJava{
+    usedInWorkers()
+    usesFutureStdlib = true
+}
 
 dependencies {
     api(projects.hashing)

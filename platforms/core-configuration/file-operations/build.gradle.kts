@@ -62,6 +62,8 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.wrapperShared)
+
     implementation(libs.ant)
     implementation(libs.commonsIo)
     implementation(libs.groovyTemplates)
