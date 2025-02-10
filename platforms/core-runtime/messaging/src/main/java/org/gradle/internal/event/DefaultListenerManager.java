@@ -42,6 +42,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.gradle.util.internal.ArrayUtils.contains;
 import static org.gradle.util.internal.CollectionUtils.join;
@@ -53,7 +54,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
     private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
     private final List<Registration> pendingServices = new ArrayList<Registration>();
     private final List<Registration> pendingRegistrations = new ArrayList<Registration>();
-    private final Object lock = new Object();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final Class<? extends Scope> scope;
     private final DefaultListenerManager parent;
 
@@ -79,7 +80,8 @@ public class DefaultListenerManager implements ScopedListenerManager {
 
     @Override
     public void whenRegistered(Class<? extends Annotation> annotation, Registration registration) {
-        synchronized (lock) {
+        lock.writeLock().lock();
+        try {
             if (annotation == ListenerService.class) {
                 pendingServices.add(registration);
             } else {
@@ -90,11 +92,14 @@ public class DefaultListenerManager implements ScopedListenerManager {
                     }
                 }
             }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
     private void maybeAddPendingRegistrations(Class<?> type) {
-        synchronized (lock) {
+        lock.writeLock().lock();
+        try {
             for (Registration registration : pendingServices) {
                 addListener(registration.getInstance());
             }
@@ -110,6 +115,8 @@ public class DefaultListenerManager implements ScopedListenerManager {
                     i++;
                 }
             }
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -124,26 +131,24 @@ public class DefaultListenerManager implements ScopedListenerManager {
 
     @Override
     public void addListener(Object listener) {
-        ListenerDetails details = null;
-        synchronized (lock) {
-            if (!allListeners.containsKey(listener)) {
-                details = new ListenerDetails(listener);
-                allListeners.put(listener, details);
-            }
+        ListenerDetails details = addListener(listener, allListeners);
+        if (details == null) {
+            return;
         }
-        if (details != null) {
-            details.useAsListener();
-        }
+        details.useAsListener();
     }
 
     @Override
     public void removeListener(Object listener) {
         ListenerDetails details;
-        synchronized (lock) {
+        lock.writeLock().lock();
+        try {
             details = allListeners.remove(listener);
             if (details != null) {
                 details.disconnect();
             }
+        } finally {
+            lock.writeLock().unlock();
         }
         if (details != null) {
             details.remove();
@@ -152,16 +157,34 @@ public class DefaultListenerManager implements ScopedListenerManager {
 
     @Override
     public void useLogger(Object logger) {
-        ListenerDetails details = null;
-        synchronized (lock) {
-            if (!allLoggers.containsKey(logger)) {
-                details = new ListenerDetails(logger);
-                allLoggers.put(logger, details);
-            }
-        }
+        ListenerDetails details = addListener(logger, allLoggers);
         if (details != null) {
             details.useAsLogger();
         }
+    }
+
+    @Nullable
+    private ListenerDetails addListener(Object listener, Map<Object, ListenerDetails> listeners) {
+        lock.readLock().lock();
+        try {
+            if (listeners.containsKey(listener)) {
+                return null;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
+
+        ListenerDetails details = null;
+        lock.writeLock().lock();
+        try {
+            if (!listeners.containsKey(listener)) {
+                details = new ListenerDetails(listener);
+                listeners.put(listener, details);
+            }
+        } finally {
+            lock.writeLock().unlock();
+        }
+        return details;
     }
 
     @Override
@@ -183,24 +206,32 @@ public class DefaultListenerManager implements ScopedListenerManager {
     }
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
-        synchronized (lock) {
+        lock.readLock().lock();
+        try {
             EventBroadcast<T> broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
-            if (broadcaster == null) {
-                if (listenerClass.getAnnotation(StatefulListener.class) != null) {
-                    broadcaster = new ParallelEventBroadcast<T>(listenerClass);
-                } else {
-                    broadcaster = new ExclusiveEventBroadcast<T>(listenerClass);
-                }
+            if (broadcaster != null) {
+                return broadcaster;
+            }
+        } finally {
+            lock.readLock().unlock();
+        }
 
-                broadcasters.put(listenerClass, broadcaster);
-                for (ListenerDetails listener : allListeners.values()) {
-                    broadcaster.maybeAdd(listener);
-                }
-                for (ListenerDetails logger : allLoggers.values()) {
-                    broadcaster.maybeSetLogger(logger);
-                }
+        lock.writeLock().lock();
+        try {
+            EventBroadcast<T> broadcaster = listenerClass.getAnnotation(StatefulListener.class) != null
+                ? new ParallelEventBroadcast<T>(listenerClass)
+                : new ExclusiveEventBroadcast<T>(listenerClass);
+
+            broadcasters.put(listenerClass, broadcaster);
+            for (ListenerDetails listener : allListeners.values()) {
+                broadcaster.maybeAdd(listener);
+            }
+            for (ListenerDetails logger : allLoggers.values()) {
+                broadcaster.maybeSetLogger(logger);
             }
             return broadcaster;
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
@@ -236,7 +267,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
      * A broadcaster. Manages all state and registered listener implementations for a given
      * listener interface.
      */
-    private abstract class EventBroadcast<T>  {
+    private abstract class EventBroadcast<T> {
         protected final Class<T> type;
         private final ListenerDispatch dispatch;
         private final ListenerDispatch dispatchNoLogger;
@@ -533,7 +564,7 @@ public class DefaultListenerManager implements ScopedListenerManager {
         }
 
         @Override
-        protected void endDispatch() { }
+        protected void endDispatch() {}
 
         @Override
         protected void assertMutable(String operation) {
