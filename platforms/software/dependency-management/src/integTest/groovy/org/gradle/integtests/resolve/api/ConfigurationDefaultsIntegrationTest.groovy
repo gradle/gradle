@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.api
 
-import org.gradle.api.artifacts.DependencyScopeConfiguration
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
@@ -273,11 +273,10 @@ project.status = 'foo'
             import org.gradle.api.Plugin;
             import org.gradle.api.Project;
             import ${DeprecationLogger.name};
-            import ${DependencyScopeConfiguration.name};
 
             public class ExamplePlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    project.getConfigurations().withType(DependencyScopeConfiguration.class).configureEach(conf -> {
+                    project.getConfigurations().configureEach(conf -> {
                         conf.defaultDependencies(deps -> {
                             DeprecationLogger.deprecate("foo")
                                 .willBecomeAnErrorInGradle10()
@@ -295,16 +294,21 @@ project.status = 'foo'
             }
 
             configurations {
-                dependencyScope("deps")
+                create("deps")
             }
 
-            // triggers `defaultDependencies`
-            configurations.deps.incoming.dependencies
+            task resolve {
+                // triggers `defaultDependencies`
+                def root = configurations.deps.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get()
+                }
+            }
         """
 
         when:
         executer.noDeprecationChecks()
-        succeeds("help")
+        succeeds("resolve")
 
         then:
         def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
