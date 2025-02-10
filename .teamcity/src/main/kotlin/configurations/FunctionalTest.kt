@@ -1,7 +1,8 @@
 package configurations
 
-import com.alibaba.fastjson.JSONObject
-import com.alibaba.fastjson.annotation.JSONField
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
 import common.functionalTestExtraParameters
 import common.getBuildScanCustomValueParam
 import jetbrains.buildServer.configs.kotlin.BuildSteps
@@ -16,12 +17,13 @@ const val functionalTestTag = "FunctionalTest"
 
 sealed class ParallelizationMethod {
     open val extraBuildParameters: String
-        @JSONField(serialize = false)
+        @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
         get() = ""
 
     val name: String = this::class.simpleName!!
 
     object None : ParallelizationMethod()
+
     object TestDistribution : ParallelizationMethod() {
         override val extraBuildParameters: String = "-DenableTestDistribution=%enableTestDistribution% -DtestDistributionPartitionSizeInSeconds=%testDistributionPartitionSizeInSeconds%"
     }
@@ -38,14 +40,19 @@ sealed class ParallelizationMethod {
     class TeamCityParallelTests(val numberOfBatches: Int) : ParallelizationMethod()
 
     companion object {
-        fun fromJson(jsonObject: JSONObject): ParallelizationMethod {
-            val methodJsonObject = jsonObject.getJSONObject("parallelizationMethod") ?: return None
-            return when (methodJsonObject.getString("name")) {
+        private val objectMapper = ObjectMapper()
+
+        fun fromJson(jsonObject: Map<String, Any>): ParallelizationMethod {
+            val methodJsonNode =
+                (jsonObject["parallelizationMethod"] as? Map<*, *>)?.let { objectMapper.valueToTree<JsonNode>(it) }
+                    ?: return None
+
+            return when (methodJsonNode.get("name")?.asText()) {
                 null -> None
                 None::class.simpleName -> None
                 TestDistribution::class.simpleName -> TestDistribution
                 TestDistributionAlpine::class.simpleName -> TestDistributionAlpine
-                TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonObject.getIntValue("numberOfBatches"))
+                TeamCityParallelTests::class.simpleName -> TeamCityParallelTests(methodJsonNode.get("numberOfBatches").asInt())
                 else -> throw IllegalArgumentException("Unknown parallelization method")
             }
         }
@@ -63,7 +70,7 @@ class FunctionalTest(
     subprojects: List<String> = listOf(),
     extraParameters: String = "",
     extraBuildSteps: BuildSteps.() -> Unit = {},
-    preBuildSteps: BuildSteps.() -> Unit = {}
+    preBuildSteps: BuildSteps.() -> Unit = {},
 ) : OsAwareBaseGradleBuildType(os = testCoverage.os, stage = stage, init = {
     this.name = name
     this.description = description
@@ -88,8 +95,9 @@ class FunctionalTest(
     }
 
     applyTestDefaults(
-        model, this, testTasks,
-        dependsOnQuickFeedbackLinux = !testCoverage.withoutDependencies && stage.stageName > StageName.PULL_REQUEST_FEEDBACK,
+        model,
+        this,
+        testTasks,
         os = testCoverage.os,
         buildJvm = testCoverage.buildJvm,
         arch = testCoverage.arch,
@@ -97,7 +105,7 @@ class FunctionalTest(
         timeout = testCoverage.testType.timeout,
         maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
         extraSteps = extraBuildSteps,
-        preSteps = preBuildSteps
+        preSteps = preBuildSteps,
     )
 
     failureConditions {

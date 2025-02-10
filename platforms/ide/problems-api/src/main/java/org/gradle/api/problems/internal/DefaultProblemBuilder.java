@@ -202,8 +202,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public InternalProblemBuilder taskPathLocation(String buildTreePath) {
-        this.contextLocations.add(new DefaultTaskPathLocation(buildTreePath));
+    public InternalProblemBuilder taskLocation(String buildTreePath) {
+        this.contextLocations.add(new DefaultTaskLocation(buildTreePath));
         return this;
     }
 

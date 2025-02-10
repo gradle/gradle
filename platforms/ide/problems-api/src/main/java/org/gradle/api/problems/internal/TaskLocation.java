@@ -16,22 +16,17 @@
 
 package org.gradle.api.problems.internal;
 
-import java.io.Serializable;
+import org.gradle.api.problems.ProblemLocation;
 
 /**
- * A problem location that stores a task path if the problem was emitted meanwhile executing a task.
+ * Task location.
  */
-public class DefaultTaskPathLocation implements TaskPathLocation, Serializable {
+public interface TaskLocation extends ProblemLocation {
 
-    private final String buildTreePath;
-
-    public DefaultTaskPathLocation(String buildTreePath) {
-        this.buildTreePath = buildTreePath;
-    }
-
-    @Override
-    public String getBuildTreePath() {
-        return buildTreePath;
-    }
-
+    /**
+     * Returns the absolute build tree path of the task reporting the problem.
+     *
+     * @return the build tree path
+     */
+    String getBuildTreePath();
 }

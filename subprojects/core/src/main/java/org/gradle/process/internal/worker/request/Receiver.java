@@ -44,7 +44,7 @@ import java.util.concurrent.BlockingQueue;
 public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailureHandler {
     private static final Object NULL = new Object();
     private static final Object END = new Object();
-    private final BlockingQueue<Object> received = new ArrayBlockingQueue<Object>(10);
+    private final BlockingQueue<Object> received = new ArrayBlockingQueue<>(10);
     private final String baseName;
     private Object next;
 

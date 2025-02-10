@@ -16,9 +16,13 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.problems.internal.TaskPathLocation
+import com.google.common.collect.Iterables
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.jvm.Jvm
+import org.gradle.operations.problems.ProblemUsageProgressDetails
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
@@ -134,11 +138,39 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             exception.message == "Exception message"
             exception.stacktrace.contains("Caused by: java.lang.Exception: Wrapped cause")
             contextualLocations.size() == 1
-            (contextualLocations[0] as TaskPathLocation).buildTreePath == ":reportProblem"
+            (contextualLocations[0] as TaskLocation).buildTreePath == ":reportProblem"
+        }
+
+        def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperationsFixture))
+        with(problem) {
+            with(definition) {
+                name == 'type'
+                displayName == 'label'
+                with(group) {
+                    displayName == 'Generic'
+                    name == 'generic'
+                    parent == null
+                }
+                documentationLink == null
+            }
+            severity == Severity.WARNING.name()
+            contextualLabel == null
+            solutions == []
+            details == null
+            // TODO: Should have the stack location
+            originLocations.empty
+            contextualLocations.empty
+            failure != null
         }
 
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+    }
+
+    static Collection<Map<String, ?>> filteredProblemDetails(BuildOperationsFixture buildOperations) {
+        List<Map<String, ?>> details = buildOperations.progress(ProblemUsageProgressDetails).details
+        details
+            .findAll { it.definition.name != 'executing-gradle-on-jvm-versions-and-lower'}
     }
 
 }

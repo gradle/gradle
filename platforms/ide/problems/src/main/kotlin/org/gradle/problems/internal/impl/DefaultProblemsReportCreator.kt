@@ -28,7 +28,7 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
-import org.gradle.api.problems.internal.TaskPathLocation
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.cc.impl.problems.BuildNameProvider
 import org.gradle.internal.cc.impl.problems.JsonSource
@@ -117,7 +117,7 @@ class JsonProblemWriter(private val problem: InternalProblem, private val failur
                             when (location) {
                                 is FileLocation -> fileLocation(location)
                                 is PluginIdLocation -> property("pluginId", location.pluginId)
-                                is TaskPathLocation -> property("taskPath", location.buildTreePath)
+                                is TaskLocation -> property("taskPath", location.buildTreePath)
                             }
                         }
                     }

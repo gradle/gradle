@@ -110,7 +110,7 @@ object EvaluationFailureMessageGenerator {
         is ErrorReason.DuplicateLocalValue -> "duplicate local 'val ${errorReason.name}'"
         is ErrorReason.ExternalReassignment -> "assignment to external property"
         ErrorReason.MissingConfigureLambda -> "a configuring block expected but not found"
-        is ErrorReason.ReadOnlyPropertyAssignment -> "assignment to read-only property '${errorReason.property.name}"
+        is ErrorReason.ReadOnlyPropertyAssignment -> "assignment to property '${errorReason.property.name}' with read-only type '${errorReason.property.valueType}'"
         ErrorReason.UnitAssignment -> "assignment of a Unit value"
         ErrorReason.UnresolvedAssignmentLhs -> "unresolved assignment target"
         ErrorReason.UnresolvedAssignmentRhs -> "unresolved assigned value"
