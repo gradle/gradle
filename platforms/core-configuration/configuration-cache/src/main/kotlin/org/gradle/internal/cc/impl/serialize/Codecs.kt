@@ -175,7 +175,7 @@ class Codecs(
     transformStepNodeFactory: TransformStepNodeFactory,
     val parallelStore: Boolean = true,
     val parallelLoad: Boolean = true,
-    problems: InternalProblems
+    problems: InternalProblems,
 ) {
     private
     val userTypesBindings: Bindings
@@ -375,7 +375,7 @@ class Codecs(
         artifactSetConverter: ArtifactSetToFileCollectionFactory,
         fileOperations: FileOperations,
         fileFactory: FileFactory,
-        patternSetFactory: Factory<PatternSet>
+        patternSetFactory: Factory<PatternSet>,
     ) {
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
