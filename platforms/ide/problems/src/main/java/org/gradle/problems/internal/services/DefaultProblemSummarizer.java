@@ -94,7 +94,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
         if (taskIdentity != null) {
-            problem = problem.toBuilder(null, null, null).taskPathLocation(taskIdentity.getTaskPath()).build();
+            problem = problem.toBuilder(null, null, null).taskLocation(taskIdentity.getTaskPath()).build();
         }
         return problem;
     }

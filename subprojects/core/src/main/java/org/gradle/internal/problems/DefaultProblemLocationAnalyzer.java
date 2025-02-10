@@ -146,6 +146,6 @@ public class DefaultProblemLocationAnalyzer implements ProblemLocationAnalyzer, 
             return null;
         }
 
-        return new Location(source.getLongDisplayName(), source.getShortDisplayName(), frame.getFileName(), lineNumber);
+        return new Location(source.getLongDisplayName(), source.getShortDisplayName(), source.getFileName(), lineNumber);
     }
 }

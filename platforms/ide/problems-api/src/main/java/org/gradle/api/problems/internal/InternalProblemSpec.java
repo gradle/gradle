@@ -54,7 +54,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param buildTreePath the absolute path of the task within the build tree
      * @return this
      */
-    InternalProblemSpec taskPathLocation(String buildTreePath);
+    InternalProblemSpec taskLocation(String buildTreePath);
 
     /**
      * Declares the documentation for this problem.
