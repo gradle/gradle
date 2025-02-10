@@ -208,6 +208,8 @@ class DefaultConfigurationCache internal constructor(
             is ConfigurationCacheAction.Update -> {
                 val invalidProjects = cacheAction.invalidProjects
                 val entryDetails = readEntryDetails()
+                val sideEffects = buildTreeModelSideEffects.restoreFromCacheEntry(entryDetails.sideEffects)
+                loadedSideEffects += sideEffects
                 intermediateModels.restoreFromCacheEntry(entryDetails.intermediateModels, invalidProjects)
                 projectMetadata.restoreFromCacheEntry(entryDetails.projectMetadata, invalidProjects)
             }
