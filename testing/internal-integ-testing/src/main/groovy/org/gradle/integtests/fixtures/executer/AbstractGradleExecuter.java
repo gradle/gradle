@@ -203,6 +203,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
+    private boolean useInternalDeprecationStackTraceFlag = true;
     private boolean checkDeprecations = true;
     private boolean filterJavaVersionDeprecation = true;
     private boolean checkDaemonCrash = true;
@@ -384,6 +385,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         if (fullDeprecationStackTrace) {
             executer.withFullDeprecationStackTraceEnabled();
+        }
+        if (!useInternalDeprecationStackTraceFlag) {
+            executer.withoutInternalDeprecationStackTraceFlag();
         }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
@@ -1199,7 +1203,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
+        if (useInternalDeprecationStackTraceFlag) {
+            properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
+        }
 
         boolean useCustomGradleUserHomeDir = gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir());
         if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
@@ -1542,6 +1548,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withFullDeprecationStackTraceEnabled() {
         fullDeprecationStackTrace = true;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withoutInternalDeprecationStackTraceFlag() {
+        useInternalDeprecationStackTraceFlag = false;
         return this;
     }
 
