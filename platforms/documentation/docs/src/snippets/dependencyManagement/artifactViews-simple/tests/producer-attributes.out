@@ -1,0 +1,32 @@
+Configuration: apiElements
+Attributes:
+  - org.gradle.category -> library
+  - org.gradle.usage -> java-api
+  - org.gradle.libraryelements -> jar
+  - org.gradle.dependency.bundling -> external
+Artifacts:
+  - producer.jar
+
+Configuration: apiProductionElements
+Attributes:
+  - org.gradle.category -> production
+Artifacts:
+  - production.jar
+
+Configuration: mainSourceElements
+Attributes:
+  - org.gradle.dependency.bundling -> external
+  - org.gradle.category -> verification
+  - org.gradle.verificationtype -> main-sources
+Artifacts:
+  - /src/main/resources
+  - /src/main/java
+
+Configuration: runtimeElements
+Attributes:
+  - org.gradle.category -> library
+  - org.gradle.usage -> java-runtime
+  - org.gradle.libraryelements -> jar
+  - org.gradle.dependency.bundling -> external
+Artifacts:
+  - producer.jar

@@ -17,6 +17,8 @@
 
 After constructing a dependency graph, Gradle can perform *artifact resolution* on the resolved graph.
 
+image::dep-man-adv-4.png[]
+
 Gradle APIs can be used to influence the process of *artifact selection* -- the mapping of a graph to a set of artifacts.
 
 Gradle can then expose the results of artifact selection as an `ArtifactCollection`.
@@ -39,7 +41,7 @@ For more details on the attribute matching process, see the <<variant_attributes
 == Implicit artifact selection
 
 By default, the attributes used for artifact selection are the same as those used for variant selection during graph resolution.
-These attributes are specified by the link:{javadocPath}/org/gradle/api/attributes/HasAttributes.html#getAttributes()[`Configuration#getAttributes()`] property.
+These attributes are specified by the link:{javadocPath}/org/gradle/api/attributes/HasAttributes.html#getAttributes()[`Configuration.getAttributes()`] property.
 
 To perform artifact selection (and implicitly, graph resolution) using these default attributes, use the `FileCollection` and `ArtifactCollection` APIs.
 
@@ -58,7 +60,7 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 
 Then, we can wire up a resolvable configuration's files to the task's input.
 The `Configuration` directly implements `FileCollection` and can be wired directly.
-Alternatively, wiring through `Configuration#getIncoming()` is a more explicit approach:
+Alternatively, wiring through `Configuration.getIncoming()` is a more explicit approach:
 
 ====
 include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=implicit-file-resolution]"]
@@ -95,14 +97,19 @@ Running this task, we can see that file metadata is included in the output:
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-artifacts.out[]
 ----
 
-[[sec:customizing-artifact-selection]]
-== Customizing artifact selection
+*[[sec:customizing-artifact-selection]]
+== `ArtifactView` API
 
-An `ArtifactView` operates on top of the resolved dependency graph (i.e., `ResolutionResult`) but allows you to apply _different attributes_.
+An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] API operates on top of the resolved graph, defined by the link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`].
 
-When you call a configuration's `getFiles()`, Gradle selects artifacts based on the attributes used during graph resolution.
-However, an `ArtifactView` is more flexible.
-It allows you to resolve artifacts from the graph with _custom attributes_.
+The API provides flexible ways to access the resolved artifacts:
+
+- link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`] - A flat list of files, which is the most commonly way to work with resolved artifacts.
+- link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] - Offers access to both the metadata and the files of resolved artifacts, allowing for more advanced artifact handling.
+
+When you call a configuration's `getFiles()`, Gradle selects *artifacts* based on the *attributes* used during _graph resolution_.
+However, the  `ArtifactView` API is more flexible.
+It allows you to resolve *artifacts* from the graph with _custom_ *attributes*.
 
 An `ArtifactView` allows you to:
 
@@ -113,9 +120,61 @@ An `ArtifactView` allows you to:
 3. *Avoid side effects*:
 * Using an `ArtifactView` allows you to extract artifacts without changing the underlying dependency resolution logic or configuration state.
 
-In the following example, a producer project creates a library with the following variants and their attributes:
+In the following example, a producer project creates a library with typical Java library *variants* (`runtimeElements`, `apiElements`).
+We also create a custom *variant* called `apiProductionElements` with the artifact `production.jar` and attribute `org.gradle.category:production`:
 
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/kotlin",files="producer/build.gradle.kts[tags=artifact-views-lib]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/groovy",files="producer/build.gradle[tags=artifact-views-lib]"]
+====
 
+We can view the available *variants* of this library as well as their corresponding *artifacts* and *attributes* with a custom task called `checkProducerAttributes`.
+Here is an abridged output showing the relevant *variants* of this library, along with their corresponding *artifacts* and *attributes*:
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactViews-simple/tests/producer-attributes.out[]
+----
 
-[.text-right]
-**Next Step:** <<artifact_views.adoc#artifact-views,Learn about Artifact Views>> >>
+A Java application is a consumer of this Java library:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/kotlin",files="consumer/build.gradle.kts[tags=artifact-views-app]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/groovy",files="consumer/build.gradle[tags=artifact-views-app]"]
+====
+
+By default, the application, as the consumer, will consume the expected variant when it is run.
+We can verify this with another custom task called `checkResolvedVariant` that prints out the following:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactViews-simple/tests/consumer-attributes.out[]
+----
+
+As expected, for the `runtimeClasspath`, the application consumes the `runtimeElements` *variant* of the library which is available as the *artifact* `producer.jar`.
+It uses the *attributes* `org.gradle.category:library` and `org.gradle.usage:java-runtime` to select this *variant*.
+
+Now, let's create an `ArtifactView` to select one of the other *artifacts* provided by the library.
+We do this by using an `ArtifactView` with the *attribute* `org.gradle.category:classes` so that instead of the jar file, we get the sources:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/kotlin",files="consumer/build.gradle.kts[tags=artifact-views-sel]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/groovy",files="consumer/build.gradle[tags=artifact-views-sel]"]
+====
+
+We run the task `artifactWithAttributeAndView` to see that we get the main *artifact* instead:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactViews-simple/tests/artifactview-attributes.out[]
+----
+
+Now, let's create an `ArtifactView` to select our custom *variant* `apiProductionElements` by specifying the attribute `org.gradle.category:production` and forcing Gradle to reselect a new *variant*:
+
+====
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/kotlin",files="consumer/build.gradle.kts[tags=artifact-views-resel]"]
+include::sample[dir="snippets/dependencyManagement/performingResolution-artifactViews-simple/groovy",files="consumer/build.gradle[tags=artifact-views-resel]"]
+====
+
+As expected, the `apiProductionElements` variant is selected along with the `production.jar` artifact:
+
+----
+include::{snippetsPath}/dependencyManagement/performingResolution-artifactViews-simple/tests/artifactview-attributes.out[]
+----
+
