@@ -136,6 +136,23 @@ public class NativeServices implements ServiceRegistrationProvider {
                 }
                 return false;
             }
+
+            @Override
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {
+                // We still need to provide an implementation of FileEventFunctionsProvider,
+                // even if file watching is disabled, otherwise the service registry will throw an exception for a missing service.
+                builder.provider(new ServiceRegistrationProvider() {
+                    @Provides
+                    FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                        return new FileEventFunctionsProvider() {
+                            @Override
+                            public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                                throw new UnsupportedOperationException("File system watching is disabled.");
+                            }
+                        };
+                    }
+                });
+            }
         },
         JANSI {
             @Override
@@ -144,9 +161,13 @@ public class NativeServices implements ServiceRegistrationProvider {
                 LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
                 return true;
             }
+            @Override
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {
+            }
         };
 
         public abstract boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
+        public abstract void doWhenDisabled(ServiceRegistryBuilder builder);
     }
 
     public enum NativeServicesMode {
@@ -288,9 +309,11 @@ public class NativeServices implements ServiceRegistrationProvider {
                 }
             });
 
-        for (NativeFeatures requestedFeature : requestedFeatures) {
-            if (requestedFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
-                enabledFeatures.add(requestedFeature);
+        for (NativeFeatures nativeFeature : NativeFeatures.values()) {
+            if (requestedFeatures.contains(nativeFeature) && nativeFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
+                enabledFeatures.add(nativeFeature);
+            } else {
+                nativeFeature.doWhenDisabled(builder);
             }
         }
 
