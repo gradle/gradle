@@ -22,7 +22,6 @@ import org.gradle.internal.serialize.graph.StringEncoder
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.zip.GZIPOutputStream
 
 
 /**
@@ -38,7 +37,7 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
     var nextId = AtomicInteger(1)
 
     private
-    val output = Output(GZIPOutputStream(stream))
+    val output = Output(stream)
 
     override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
         if (string == null) {
