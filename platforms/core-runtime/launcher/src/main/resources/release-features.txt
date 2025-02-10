@@ -1,0 +1,4 @@
+ - Daemon JVM auto-provisioning
+ - Enhanced deprecation warning messages
+ - Updated APIs, refined plugins, and a new task
+ - Improved JUnit test reporting

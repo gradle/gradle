@@ -108,3 +108,31 @@ Gradle plugins written in Groovy must use Groovy 3.x for compatibility with Grad
 
 Gradle is tested with Android Gradle Plugin 7.3 through 8.8.
 Alpha and beta versions may or may not work.
+
+== Target Platforms
+
+Gradle supports a defined set of platform targets, which are combinations of:
+
+- Operating system and version
+- Architecture
+- File system watching compatibility
+
+The following table lists the officially supported platforms for Gradle:
+
+.Supported Platforms
+|===
+| OS | Architecture
+
+| Ubuntu 22 | `amd64`
+| Windows 10 | `amd64`
+| macOS 12 | `amd64`
+|  | `aarch64`
+| Ubuntu 16 | `amd64`
+|  | `aarch64`
+| Alpine 3.20 | `amd64`
+| CentOS 9 | `amd64`
+|===
+
+NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
+
+Platforms not listed above may work with Gradle but are not actively tested.

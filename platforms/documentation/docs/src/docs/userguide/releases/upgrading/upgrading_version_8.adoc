@@ -80,11 +80,17 @@ reporting {
 Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
 Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
 
-==== Changed behavior when calling `BuildLauncher#addJvmArguments`
+==== Changed behavior when calling `BuildLauncher.addJvmArguments`
 
-Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, that caused `BuildLauncher#addJvmArguments` to override flags coming from the `org.gradle.jvmargs` system property.
+Issue (link:https://github.com/gradle/gradle/issues/31462[#31426]) was fixed, that caused `BuildLauncher.addJvmArguments` to override flags coming from the `org.gradle.jvmargs` system property.
 Please ensure that you are not relying on this behavior when upgrading to Gradle 8.13.
-If system properties needs to be overridden, `BuildLauncher#setJvmArguments` should be used instead.
+If system properties needs to be overridden, `BuildLauncher.setJvmArguments` should be used instead.
+
+[source,kotlin]
+----
+val buildLauncher: BuildLauncher = connector.connect().newBuild()
+buildLauncher.setJvmArguments("-Xmx2048m", "-Dmy.custom.property=value")
+----
 
 ==== Upgrade to ASM 9.7.1
 

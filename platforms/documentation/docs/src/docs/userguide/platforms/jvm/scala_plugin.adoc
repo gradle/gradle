@@ -115,6 +115,7 @@ include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle
 include::sample[dir="snippets/scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
 ====
 
+[[sec:scala_version]]
 == Scala version
 
 The Scala version can be declared directly on the `scala` extension.
