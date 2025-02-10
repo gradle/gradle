@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVari
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
@@ -66,7 +67,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ResolvedVariantCache resolvedVariantCache,
         GraphVariantSelector graphVariantSelector,
-        VariantTransformRegistry transformRegistry
+        VariantTransformRegistry transformRegistry,
+        AttributeDesugaring attributeDesugaring
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
@@ -85,7 +87,7 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
             artifactVariantSelector,
             transformedVariantFactory,
             transformUpstreamDependenciesResolverFactory.create(this), // Yuck
-            new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache),
+            new DefaultVariantArtifactResolver(artifactResolver, artifactTypeRegistry, resolvedVariantCache, attributeDesugaring),
             graphVariantSelector,
             consumerSchema,
             transformRegistry

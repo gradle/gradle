@@ -1076,4 +1076,40 @@ testRuntimeClasspath
         expect:
         succeeds("traverse")
     }
+
+    def "attributes on resolved variants can be requested using strongly-typed values"() {
+        settingsFile << """
+            include("producer")
+        """
+
+        file("producer/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation project(":producer")
+            }
+
+            task resolve {
+                def root = configurations.runtimeClasspath.incoming.resolutionResult.rootVariant
+
+                doLast {
+                    def usage = root.get().attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
+                    println usage
+                    println root.get().attributes.keySet()
+                    assert usage == "java-runtime"
+                }
+            }
+        """
+
+        expect:
+        succeeds("resolve")
+    }
 }
