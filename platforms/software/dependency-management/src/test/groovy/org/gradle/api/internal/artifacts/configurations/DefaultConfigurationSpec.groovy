@@ -1779,6 +1779,7 @@ class DefaultConfigurationSpec extends Specification {
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,
+            CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),
