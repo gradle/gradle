@@ -16,9 +16,9 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.problems.internal.TaskLocation
-import org.gradle.api.problems.Severity
 import com.google.common.collect.Iterables
+import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.jvm.Jvm
 import org.gradle.operations.problems.ProblemUsageProgressDetails
@@ -158,7 +158,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             details == null
             // TODO: Should have the stack location
             originLocations.empty
-            // TODO: Should that have the task location?
             contextualLocations.empty
             failure != null
         }
