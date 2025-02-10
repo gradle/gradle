@@ -20,6 +20,8 @@ import org.gradle.internal.file.FilePathUtil
 import org.gradle.internal.service.scopes.Scope.BuildTree
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A prefixed tree implementation optimized for storage space-wise.
@@ -34,9 +36,9 @@ import java.io.File
 @ServiceScope(BuildTree::class)
 class FilePrefixedTree {
 
-    private var currentIndex: Int = 0
+    private var currentIndex = AtomicInteger(0)
 
-    val root = Node(null, "", mutableListOf())
+    val root = Node(null, "")
 
     /**
      * Splitting [item] to segments by using [splitToSegments] method, and hierarchically inserts resulting nodes to the tree.
@@ -51,16 +53,11 @@ class FilePrefixedTree {
                 continue
             }
 
-            var child = current.children.find { it.segment == segment }
-            if (child == null) {
-                child = Node(null, segment, mutableListOf())
-                current.children.add(child)
-            }
-
-            current = child
+            current = current.children.computeIfAbsent(segment) { Node(null, segment) }
         }
+
         if (current.isIntermediate) {
-            current.index = currentIndex++
+            current.index = currentIndex.getAndIncrement()
         }
 
         return current.index!!
@@ -125,9 +122,9 @@ class FilePrefixedTree {
         val segmentsToCompress = mutableListOf<String>()
         var current = node
 
-        while (current.children.size == 1 && current.children[0].isIntermediate) {
+        while (current.children.size == 1 && current.singleChild.isIntermediate) {
             segmentsToCompress.add(current.segment)
-            current = current.children[0]
+            current = current.singleChild
         }
 
         if (current.isIntermediate) {
@@ -135,45 +132,49 @@ class FilePrefixedTree {
         }
 
         return when (current.children.size) {
-            0 -> Node(current.index, segmentsToCompress.compress(), mutableListOf())
+            0 -> Node(current.index, segmentsToCompress.compress())
             // final child
-            1 -> when (current.children[0].children.size) {
+            1 -> when (current.singleChild.children.size) {
                 0 -> {
-                    segmentsToCompress.add(current.children[0].segment)
-                    Node(current.children[0].index, segmentsToCompress.compress(), mutableListOf())
+                    segmentsToCompress.add(current.singleChild.segment)
+                    Node(current.singleChild.index, segmentsToCompress.compress())
                 }
 
                 else -> Node(current.index, segmentsToCompress.compress(), current.children.compress())
             }
 
-            else -> Node(current.children[0].index, segmentsToCompress.compress(), current.children.compress())
+            else -> Node(current.index, segmentsToCompress.compress(), current.children.compress())
         }
     }
 
     private fun List<String>.compress() = filter { it.isNotEmpty() }.joinToString("/")
 
-    private fun MutableList<Node>.compress() = map(::compressFrom).toMutableList()
+    private fun Map<String, Node>.compress() = ConcurrentHashMap(values.map(::compressFrom).associateBy { it.segment })
 
     private fun buildIndexFor(node: Node, segments: MutableList<String>, indexes: MutableMap<Int, File>) {
         segments.add(node.segment)
         node.index?.let { idx ->
             indexes[idx] = File("/${segments.joinToString("/")}")
         }
-        for (child in node.children) {
+        for (child in node.children.values) {
             buildIndexFor(child, segments, indexes)
         }
         segments.removeAt(segments.size - 1) // backtrack
     }
 
     data class Node(
-        var index: Int?,
+        @Volatile var index: Int?,
         val segment: String,
-        val children: MutableList<Node>
+        val children: MutableMap<String, Node> = ConcurrentHashMap()
     ) {
         val isIntermediate
             get() = index == null
 
         val isFinal
             get() = !isIntermediate
+
+        val singleChild
+            get() = children.entries.single().value
+
     }
 }

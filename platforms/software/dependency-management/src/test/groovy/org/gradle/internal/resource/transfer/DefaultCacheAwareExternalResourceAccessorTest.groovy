@@ -37,12 +37,10 @@ import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.BuildCommencedTimeProvider
-import org.junit.Ignore
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 
-@Ignore
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())

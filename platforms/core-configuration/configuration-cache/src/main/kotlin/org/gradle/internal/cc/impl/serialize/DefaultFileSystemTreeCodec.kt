@@ -19,15 +19,14 @@ package org.gradle.internal.cc.impl.serialize
 import org.gradle.api.GradleException
 import org.gradle.internal.serialize.graph.CloseableReadContext
 import org.gradle.internal.serialize.graph.CloseableWriteContext
+import org.gradle.internal.serialize.graph.FilePrefixedTree
+import org.gradle.internal.serialize.graph.FilePrefixedTree.Node
 import org.gradle.internal.serialize.graph.FileSystemTreeDecoder
 import org.gradle.internal.serialize.graph.FileSystemTreeEncoder
 import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.FilePrefixedTree
-import org.gradle.internal.serialize.graph.FilePrefixedTree.Node
 import org.gradle.internal.serialize.graph.WriteContext
-import org.gradle.internal.serialize.graph.readCollectionInto
-import org.gradle.internal.serialize.graph.writeCollection
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 class DefaultFileSystemTreeEncoder(
     private val globalContext: CloseableWriteContext,
@@ -49,7 +48,11 @@ class DefaultFileSystemTreeEncoder(
     private fun WriteContext.writePrefixedTreeNode(node: Node) {
         writeNullableSmallInt(node.index)
         writeString(node.segment)
-        writeCollection(node.children) { writePrefixedTreeNode(it) }
+        writeSmallInt(node.children.size)
+        node.children.forEach { child ->
+            writeString(child.key)
+            writePrefixedTreeNode(child.value)
+        }
     }
 }
 
@@ -74,9 +77,14 @@ class DefaultFileSystemTreeDecoder(
         globalContext.close()
     }
 
-    private fun ReadContext.readPrefixedTreeNode(): Node = Node(
-        readNullableSmallInt(),
-        readString(),
-        readCollectionInto({ mutableListOf() }) { readPrefixedTreeNode() }
-    )
+    private fun ReadContext.readPrefixedTreeNode(): Node {
+        val index = readNullableSmallInt()
+        val segment = readString()
+        val childrenCount = readSmallInt()
+        val children = ConcurrentHashMap<String, Node>()
+        repeat(childrenCount) {
+            children[readString()] = readPrefixedTreeNode()
+        }
+        return Node(index, segment, children)
+    }
 }

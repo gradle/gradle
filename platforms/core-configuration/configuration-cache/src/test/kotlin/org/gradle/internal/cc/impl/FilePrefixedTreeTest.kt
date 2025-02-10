@@ -46,33 +46,32 @@ class FilePrefixedTreeTest {
         val expectedTree = FilePrefixedTree.Node(
             null,
             "",
-            mutableListOf(
-                FilePrefixedTree.Node(
+            mutableMapOf(
+                "org" to FilePrefixedTree.Node(
                     null, "org",
-                    mutableListOf(
-                        FilePrefixedTree.Node(
+                    mutableMapOf(
+                        "example" to FilePrefixedTree.Node(
                             null, "example",
-                            mutableListOf(
-                                FilePrefixedTree.Node(
+                            mutableMapOf(
+                                "foo" to FilePrefixedTree.Node(
                                     null, "foo",
-                                    mutableListOf(
-                                        FilePrefixedTree.Node(
+                                    mutableMapOf(
+                                        "Foo" to FilePrefixedTree.Node(
                                             0,
                                             "Foo",
-                                            mutableListOf()
                                         )
                                     )
                                 ),
-                                FilePrefixedTree.Node(
+                                "bar" to FilePrefixedTree.Node(
                                     1, "bar",
-                                    mutableListOf(
-                                        FilePrefixedTree.Node(
+                                    mutableMapOf(
+                                        "Bar" to FilePrefixedTree.Node(
                                             2, "Bar",
-                                            mutableListOf()
+                                            mutableMapOf()
                                         ),
-                                        FilePrefixedTree.Node(
+                                        "Bar1" to FilePrefixedTree.Node(
                                             3, "Bar1",
-                                            mutableListOf()
+                                            mutableMapOf()
                                         )
                                     )
                                 )
@@ -95,9 +94,9 @@ class FilePrefixedTreeTest {
         val expectedCompressedTree = FilePrefixedTree.Node(
             null,
             "org/example/company",
-            mutableListOf(
-                FilePrefixedTree.Node(0, "foo/Foo", mutableListOf()),
-                FilePrefixedTree.Node(1, "bar/Bar", mutableListOf())
+            mutableMapOf(
+                "foo/Foo" to FilePrefixedTree.Node(0, "foo/Foo"),
+                "bar/Bar" to FilePrefixedTree.Node(1, "bar/Bar")
             )
         )
 
@@ -112,13 +111,12 @@ class FilePrefixedTreeTest {
 
         val expectedCompressedTree = FilePrefixedTree.Node(
             null, "org/example/company",
-            mutableListOf(
-                FilePrefixedTree.Node(
+            mutableMapOf(
+                "foo" to FilePrefixedTree.Node(
                     0, "foo",
-                    mutableListOf(
-                        FilePrefixedTree.Node(
+                    mutableMapOf(
+                        "bar/zum/Zum" to FilePrefixedTree.Node(
                             1, "bar/zum/Zum",
-                            mutableListOf()
                         )
                     )
                 ),
