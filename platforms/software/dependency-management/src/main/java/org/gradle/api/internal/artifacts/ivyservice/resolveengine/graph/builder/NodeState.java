@@ -28,9 +28,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ArtifactSelectionDetailsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
@@ -52,7 +49,6 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.logging.text.TreeFormatter;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,7 +494,7 @@ public class NodeState implements DependencyGraphNode {
             if (isExcluded(spec, dependencyState)) {
                 continue;
             }
-            dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+            dependencyState = dependencyState.maybeSubstitute(resolveState.getDependencySubstitutionApplicator());
 
             if (!isExcluded(spec, dependencyState)) {
                 tmp.add(dependencyState);
@@ -529,9 +525,8 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge = edgesCache.computeIfAbsent(dependencyState, ds -> new EdgeState(this, ds, resolutionFilter, resolveState));
         dependencyEdge.computeSelector(); // the selector changes, if the 'versionProvidedByAncestors' state changes
         outgoingEdges.add(dependencyEdge);
-        dependencyEdge.markUsed();
         discoveredEdges.add(dependencyEdge);
-        dependencyEdge.getSelector().use(deferSelection);
+        dependencyEdge.use(deferSelection);
     }
 
     /**
@@ -546,7 +541,7 @@ public class NodeState implements DependencyGraphNode {
             Collection<DependencyState> dependencyStates = potentiallyActivatedConstraints.get(module);
             if (!dependencyStates.isEmpty()) {
                 for (DependencyState dependencyState : dependencyStates) {
-                    dependencyState = maybeSubstitute(dependencyState, resolveState.getDependencySubstitutionApplicator());
+                    dependencyState = dependencyState.maybeSubstitute(resolveState.getDependencySubstitutionApplicator());
                     createAndLinkEdgeState(dependencyState, discoveredEdges, previousTraversalExclusions, false);
                 }
             }
@@ -599,37 +594,10 @@ public class NodeState implements DependencyGraphNode {
         }
         EdgeState edge = potentialEdge.edge;
         virtualEdges.add(edge);
-        edge.markUsed();
         discoveredEdges.add(edge);
-        edge.getSelector().use(false);
+        edge.use(false);
     }
 
-
-    /**
-     * Execute any dependency substitution rules that apply to this dependency.
-     *
-     * This may be better done as a decorator on ConfigurationMetadata.getDependencies()
-     */
-    static DependencyState maybeSubstitute(DependencyState dependencyState, DependencySubstitutionApplicator dependencySubstitutionApplicator) {
-        DependencySubstitutionApplicator.SubstitutionResult substitutionResult = dependencySubstitutionApplicator.apply(dependencyState.getDependency());
-        if (substitutionResult.hasFailure()) {
-            dependencyState.failure = new ModuleVersionResolveException(dependencyState.getRequested(), substitutionResult.getFailure());
-            return dependencyState;
-        }
-
-        DependencySubstitutionInternal details = substitutionResult.getResult();
-        if (details != null && details.isUpdated()) {
-            // This caching works because our substitutionResult are cached themselves
-            return dependencyState.withSubstitution(substitutionResult, result -> {
-                ArtifactSelectionDetailsInternal artifactSelectionDetails = details.getArtifactSelectionDetails();
-                if (artifactSelectionDetails.isUpdated()) {
-                    return dependencyState.withTargetAndArtifacts(details.getTarget(), artifactSelectionDetails.getTargetSelectors(), details.getRuleDescriptors());
-                }
-                return dependencyState.withTarget(details.getTarget(), details.getRuleDescriptors());
-            });
-        }
-        return dependencyState;
-    }
 
     private boolean isExcluded(ExcludeSpec excludeSpec, DependencyState dependencyState) {
         DependencyMetadata dependency = dependencyState.getDependency();
@@ -1046,7 +1014,7 @@ public class NodeState implements DependencyGraphNode {
     private void disconnectOutgoingEdge(EdgeState outgoingEdge) {
         outgoingEdge.detachFromTargetNodes();
         outgoingEdge.getSelector().getTargetModule().disconnectIncomingEdge(this, outgoingEdge);
-        outgoingEdge.getSelector().release();
+        outgoingEdge.release();
     }
 
     public void restart(ComponentState selected) {
@@ -1157,7 +1125,7 @@ public class NodeState implements DependencyGraphNode {
             // and it can cause a concurrent modification exception
             outgoingEdges.remove(edge);
             edge.markUnused();
-            edge.getSelector().release();
+            edge.release();
         }
     }
 
@@ -1235,7 +1203,7 @@ public class NodeState implements DependencyGraphNode {
             // We can ignore if we are already removing edges anyway
             outgoingEdges.remove(edgeState);
             edgeState.markUnused();
-            edgeState.getSelector().release();
+            edgeState.release();
         }
     }
 

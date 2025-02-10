@@ -24,8 +24,8 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 public interface DependencyGraphSelector {
 
     /**
-     * Returns the requested dependency.
+     * Returns the component selector that this selector is based on.
      */
-    ComponentSelector getRequested();
+    ComponentSelector getComponentSelector();
 
 }
