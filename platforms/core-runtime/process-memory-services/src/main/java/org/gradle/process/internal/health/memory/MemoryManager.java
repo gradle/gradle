@@ -22,12 +22,16 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.Global.class)
 public interface MemoryManager {
 
+    @SuppressWarnings("overloads")
     void addListener(JvmMemoryStatusListener listener);
 
+    @SuppressWarnings("overloads")
     void addListener(OsMemoryStatusListener listener);
 
+    @SuppressWarnings("overloads")
     void removeListener(JvmMemoryStatusListener listener);
 
+    @SuppressWarnings("overloads")
     void removeListener(OsMemoryStatusListener listener);
 
     /**

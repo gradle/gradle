@@ -15,6 +15,8 @@ dependencies {
 
     api(libs.guava)
 
+    implementation(projects.wrapperShared)
+
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.jsr305)

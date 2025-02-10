@@ -105,6 +105,7 @@ dependencies {
     implementation(projects.gradleCli)
     implementation(projects.launcher)
     implementation(projects.clientServices)
+    implementation(projects.wrapperShared)
 
     implementation(testFixtures(projects.buildOperations))
 

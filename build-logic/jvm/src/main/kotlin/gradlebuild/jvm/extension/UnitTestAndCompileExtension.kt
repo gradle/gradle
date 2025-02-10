@@ -64,28 +64,35 @@ abstract class UnitTestAndCompileExtension {
         get() = targetVersionProperty
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Declares that this Gradle module runs within a worker process.
      */
     fun usedInWorkers() {
-        targetVersionProperty = 6
+        targetVersionProperty = 8
     }
 
     /**
-     * Enforces **Java 6** compatibility.
+     * Declare that this Gradle module runs as an entrypoint to user-executed
+     * processes, and therefore should compile to a lower version of Java --
+     * in order to ensure comprehensible error messages when executing Gradle
+     * on an unsupported JVM version.
+     * <p>
+     * This runtime target should only be used by the wrapper and the various
+     * "-main" modules containing main methods.
      */
     fun usedForStartup() {
         targetVersionProperty = 6
     }
 
     /**
-     * Enforces **Java 7** compatibility.
+     * Declares that this Gradle module runs withing a client process, such
+     * as the Tooling API client or CLI client.
      */
     fun usedInToolingApi() {
-        targetVersionProperty = 7
+        targetVersionProperty = 8
     }
 
     /**
-     * Enforces **Java 8** compatibility.
+     * Declares that this Gradle module runs within the Gradle daemon.
      */
     fun usedInDaemon() {
         targetVersionProperty = 8

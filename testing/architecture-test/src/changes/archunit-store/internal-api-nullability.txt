@@ -4857,6 +4857,7 @@ Class <org.gradle.util.internal.VersionNumber$Scheme> is not annotated (directly
 Class <org.gradle.util.internal.VersionNumber$SchemeWithPatchVersion> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (VersionNumber.java:0)
 Class <org.gradle.util.internal.VersionNumber> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (VersionNumber.java:0)
 Class <org.gradle.util.internal.WrapUtil> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WrapUtil.java:0)
+Class <org.gradle.util.internal.WrapperDistributionUrlConverter> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (WrapperDistributionUrlConverter.java:0)
 Class <org.gradle.vcs.git.internal.DefaultGitVersionControlSpec> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (DefaultGitVersionControlSpec.java:0)
 Class <org.gradle.vcs.git.internal.GitVersionControlSystem$DefaultTransportConfigCallback> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GitVersionControlSystem.java:0)
 Class <org.gradle.vcs.git.internal.GitVersionControlSystem> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (GitVersionControlSystem.java:0)
