@@ -191,7 +191,7 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for plugin autho
 
 #### `ProjectLayout` API improvement
 
-The [`ProjectLayout`](org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
+The [`ProjectLayout`](javadoc/org/gradle/api/file/ProjectLayout.html) class provides access to directories and files within a project.
 Starting with this version of Gradle, it can also access the settings directory (the location of the `settings.gradle(.kts)` file).
 
 While the settings directory is not specific to any project, some use cases require resolving file paths relative to it:
@@ -209,7 +209,7 @@ val versionFile = rootProject.layout.projectDirectory.file("version.text")
 
 The new capability addresses a common scenario: resolving files shared across all projects in a build, such as linting configurations or `version.txt` files in the root folder.
 
-Refer to [`ProjectLayout.getSettingsDirectory()`](org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
+Refer to [`ProjectLayout.getSettingsDirectory()`](javadoc/org/gradle/api/file/ProjectLayout.html#getSettingsDirectory()) for additional details.
 
 #### New `artifactTransforms` report task
 
