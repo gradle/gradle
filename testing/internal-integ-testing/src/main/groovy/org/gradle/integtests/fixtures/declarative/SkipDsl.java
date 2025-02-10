@@ -16,17 +16,33 @@
 
 package org.gradle.integtests.fixtures.declarative;
 
+import org.gradle.test.fixtures.dsl.GradleDsl;
+
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
  * Used to mark a test method in a @DeclarativeDslTest as not needing
- * to be run with both KTS and DCL build files, just DCL.
+ * to be run with a certain DSL and specifying the reason.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface DeclarativeDslOnly {
+@Repeatable(SkipDsl.List.class)
+public @interface SkipDsl {
+    GradleDsl dsl();
     String because() default "";
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    @interface List {
+        /**
+         * Return the repeatable annotations.
+         *
+         * @return the repeatable annotations
+         */
+        SkipDsl[] value();
+    }
 }
