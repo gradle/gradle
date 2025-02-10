@@ -32,7 +32,7 @@ import static org.gradle.test.fixtures.FileMetadataTestFixture.maybeRoundLastMod
 class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     @Override
     FileMetadataAccessor getAccessor() {
-        return new NativePlatformBackedFileMetadataAccessor(NativeServices.instance.get(Files.class))
+        return new NativePlatformBackedFileMetadataAccessor(NativeServices.getNative().get(Files.class))
     }
 
     @Override

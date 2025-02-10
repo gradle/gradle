@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.NativeIntegration;
@@ -74,6 +75,7 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
 /**
@@ -345,6 +347,11 @@ public class NativeServices implements ServiceRegistrationProvider {
             throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
         }
         return instance.services;
+    }
+
+    @VisibleForTesting
+    protected static synchronized Native getNative() {
+        return checkNotNull(instance).nativeIntegration;
     }
 
     @Provides
