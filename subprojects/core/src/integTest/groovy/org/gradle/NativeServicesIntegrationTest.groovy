@@ -111,7 +111,7 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.internal.nativeintegration.NativeCapabilities
 
             tasks.register("doWork", WorkerTask)
-            println("Uses native integration in daemon: " + NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
+            println("Uses native integration in daemon: " + NativeServices.instance.get(NativeCapabilities).useNativeIntegrations())
 
             abstract class WorkerTask extends DefaultTask {
                 @Inject
@@ -124,8 +124,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
             }
 
             abstract class NoOpWorkAction implements WorkAction<WorkParameters.None> {
+
                 void execute() {
-                    println("Uses native integration in worker: " + NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
+                    println("Uses native integration in worker: " + NativeServices.instance.get(NativeCapabilities).useNativeIntegrations())
                 }
             }
         """)
@@ -203,7 +204,9 @@ class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
                     buildFile << \"""
                         println("Build inside a test executor initialized Native services: " + new File("${nativeDirOverride}").exists())
                         println("Build inside a test executor uses Native services: " +
-                            org.gradle.internal.nativeintegration.services.NativeServices.INSTANCE.createNativeCapabilities().useNativeIntegrations())
+                            org.gradle.internal.nativeintegration.services.NativeServices.instance
+                                .get(org.gradle.internal.nativeintegration.NativeCapabilities)
+                                .useNativeIntegrations())
                     \"""
 
                     when:
