@@ -99,7 +99,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.toolingApi))
     integTestImplementation(testFixtures(projects.dependencyManagement))
     integTestImplementation(testFixtures(projects.jacoco))
-    integTestImplementation(testFixtures(projects.modelCore))
     integTestImplementation(testFixtures(projects.modelReflect))
 
     crossVersionTestImplementation(projects.cli)

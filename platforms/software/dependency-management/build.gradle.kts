@@ -126,7 +126,6 @@ dependencies {
     }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.signing))
-    integTestImplementation(testFixtures(projects.modelCore))
     integTestImplementation(testFixtures(projects.modelReflect))
 
     testFixturesApi(projects.baseServices) {

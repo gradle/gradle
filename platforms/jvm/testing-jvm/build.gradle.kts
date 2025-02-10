@@ -50,7 +50,6 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.modelReflect))
     testImplementation(testFixtures(projects.time))
 

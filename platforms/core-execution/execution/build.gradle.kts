@@ -50,7 +50,6 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelCore))
     testImplementation(testFixtures(projects.modelReflect))
 
     testFixturesImplementation(libs.guava)

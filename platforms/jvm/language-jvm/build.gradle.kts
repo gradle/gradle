@@ -38,7 +38,6 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(projects.modelCore))
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 

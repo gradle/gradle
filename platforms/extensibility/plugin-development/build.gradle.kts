@@ -66,7 +66,6 @@ dependencies {
 
     integTestImplementation(projects.baseServicesGroovy)
 
-    integTestImplementation(testFixtures(projects.modelCore))
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 

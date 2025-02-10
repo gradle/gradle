@@ -47,11 +47,9 @@ dependencies {
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.modelCore))
     testFixturesImplementation(testFixtures(projects.modelReflect))
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(testFixtures(projects.modelCore))
     integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.javaParser) {
