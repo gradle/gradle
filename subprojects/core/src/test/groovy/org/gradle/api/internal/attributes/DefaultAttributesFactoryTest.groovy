@@ -151,8 +151,8 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can replace attribute with same name and different type"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
-        def set2 = factory.of(BAR, "bar2")
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.of(BAR, "bar2") // String-typed bar
 
         when:
         def concat = factory.concat(set1, set2)
@@ -180,8 +180,8 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can detect incompatible attributes with different types when merging"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
-        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
 
         when:
         factory.safeConcat(set1, set2)

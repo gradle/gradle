@@ -17,6 +17,7 @@ package org.gradle.api.internal.attributes;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
@@ -28,7 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultAttributesFactory implements AttributesFactory {
+public final class DefaultAttributesFactory implements AttributesFactory {
     private final ImmutableAttributes root;
     private final Map<ImmutableAttributes, ImmutableList<DefaultImmutableAttributesContainer>> children;
     private final AttributeValueIsolator attributeValueIsolator;
@@ -84,6 +85,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
     }
 
     ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+        assertAttributeNotAlreadyPresent(node, key);
 
         // Try to retrieve a cached value without locking
         ImmutableList<DefaultImmutableAttributesContainer> cachedChildren = children.get(node);
@@ -139,6 +141,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
             .build();
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public ImmutableAttributes concat(ImmutableAttributes fallback, ImmutableAttributes primary) {
         if (fallback == ImmutableAttributes.EMPTY) {
@@ -160,6 +163,7 @@ public class DefaultAttributesFactory implements AttributesFactory {
         return current;
     }
 
+    @SuppressWarnings("DataFlowIssue")
     @Override
     public ImmutableAttributes safeConcat(ImmutableAttributes attributes1, ImmutableAttributes attributes2) throws AttributeMergingException {
         if (attributes1 == ImmutableAttributes.EMPTY) {
@@ -200,5 +204,24 @@ public class DefaultAttributesFactory implements AttributesFactory {
             result = concat(of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())), result);
         }
         return result;
+    }
+
+    /**
+     * Verifies that an attribute with the same name but different types as the given key is not
+     * already present in the given container.
+     *
+     * @param container the container to check
+     * @param key the attribute to check for
+     * @throws IllegalArgumentException if attribute with same name and different type already exists
+     */
+    public void assertAttributeNotAlreadyPresent(AttributeContainer container, Attribute<?> key) {
+        for (Attribute<?> attribute : container.keySet()) {
+            String name = key.getName();
+            if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
+                throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
+                    + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
+                    + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
+            }
+        }
     }
 }

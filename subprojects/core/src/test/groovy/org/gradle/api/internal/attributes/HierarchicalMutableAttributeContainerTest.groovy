@@ -19,25 +19,29 @@ package org.gradle.api.internal.attributes
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.provider.Providers
 import org.gradle.util.AttributeTestUtil
-import spock.lang.Specification
 
 /**
- * Tests {@link HierarchicalMutableAttributeContainer}.
+ * Unit tests for the {@link HierarchicalMutableAttributeContainer} class.
  */
-class HierarchicalMutableAttributeContainerTest extends Specification {
-    def attributesFactory = AttributeTestUtil.attributesFactory()
+final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeContainerTest {
+    private attributesFactory = AttributeTestUtil.attributesFactory()
 
-    def one = Attribute.of("one", String)
-    def two = Attribute.of("two", String)
+    private one = Attribute.of("one", String)
+    private two = Attribute.of("two", String)
 
-    private DefaultMutableAttributeContainer mutable() {
-        return new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
+    @Override
+    protected <T> DefaultMutableAttributeContainer getContainer(Map<Attribute<T>, T> attributes = [:]) {
+        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
+        attributes.forEach { key, value ->
+            container.attribute(key, value)
+        }
+        return container
     }
 
     def "can override attributes from fallback"() {
         given:
-        def fallback = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def primary = getContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -52,8 +56,8 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "immutable containers are not modified when updating fallback or primary"() {
         given:
-        def fallback = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def primary = getContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         fallback.attributeProvider(one, Providers.of("fallback"))
@@ -89,8 +93,8 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "keySet contains attributes from both fallback and primary"() {
         given:
-        def fallback = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def primary = getContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -120,8 +124,8 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "mutations are passed to primary container"() {
         given:
-        def fallback = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def primary = getContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -143,9 +147,9 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "can chain joined containers"() {
         given:
-        def fallback = mutable()
-        def middle = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def middle = getContainer()
+        def primary = getContainer()
         def chain = new HierarchicalMutableAttributeContainer(attributesFactory, fallback,
             new HierarchicalMutableAttributeContainer(attributesFactory, middle, primary))
 
@@ -170,12 +174,12 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "joined containers are equal if their fallbacks and primaryren are equal"() {
         given:
-        def hasNone = mutable()
-        def hasOne = mutable()
+        def hasNone = getContainer()
+        def hasOne = getContainer()
         hasOne.attribute(one, "one")
-        def hasTwo = mutable()
+        def hasTwo = getContainer()
         hasTwo.attribute(two, "two")
-        def hasBoth = mutable()
+        def hasBoth = getContainer()
         hasBoth.attribute(one, "one").attribute(two, "two")
 
         expect:
@@ -193,8 +197,8 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "has useful toString"() {
         given:
-        def fallback = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def primary = getContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -208,8 +212,8 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
 
     def "can inherit attributes from fallback container"() {
         given:
-        def fallback = mutable()
-        def primary = mutable()
+        def fallback = getContainer()
+        def primary = getContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         expect:
@@ -248,8 +252,8 @@ class HierarchicalMutableAttributeContainerTest extends Specification {
         joined.asImmutable().keySet() == [one, two] as Set
 
         when:
-        def primary2 = mutable()
-        def joined2 = new HierarchicalMutableAttributeContainer(attributesFactory, mutable(), primary2)
+        def primary2 = getContainer()
+        def joined2 = new HierarchicalMutableAttributeContainer(attributesFactory, getContainer(), primary2)
         primary2.attribute(one, "primary")
 
         then:
