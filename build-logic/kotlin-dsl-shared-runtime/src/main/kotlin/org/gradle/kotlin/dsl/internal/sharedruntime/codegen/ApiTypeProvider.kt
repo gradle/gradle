@@ -48,7 +48,6 @@ fun apiTypeProviderFor(
     incubatingAnnotationTypeDescriptor: String,
     classPath: List<File>,
     classPathDependencies: List<File> = emptyList(),
-    parameterNamesSupplier: ParameterNamesSupplier = { null },
 ): ApiTypeProvider =
 
     ApiTypeProvider(
@@ -58,21 +57,12 @@ fun apiTypeProviderFor(
             platformClassLoader,
             classPath,
             classPathDependencies,
-        ),
-        parameterNamesSupplier
+        )
     )
 
 
 private
 typealias ApiTypeSupplier = () -> ApiType
-
-
-typealias ParameterNamesSupplier = (String) -> List<String>?
-
-
-private
-fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
-    this("$typeName.$functionName(${parameterTypeNames.joinToString(",")})")
 
 
 /**
@@ -90,12 +80,11 @@ fun ParameterNamesSupplier.parameterNamesFor(typeName: String, functionName: Str
 class ApiTypeProvider internal constructor(
     private val asmLevel: Int,
     private val incubatingAnnotationTypeDescriptor: String,
-    private val repository: ClassBytesRepository,
-    parameterNamesSupplier: ParameterNamesSupplier
+    private val repository: ClassBytesRepository
 ) : Closeable {
 
     private
-    val context = Context(this, parameterNamesSupplier)
+    val context = Context(this)
 
     private
     val apiTypesBySourceName = mutableMapOf<String, ApiTypeSupplier?>()
@@ -146,13 +135,9 @@ class ApiTypeProvider internal constructor(
     internal
     class Context(
         private val typeProvider: ApiTypeProvider,
-        private val parameterNamesSupplier: ParameterNamesSupplier
     ) {
         fun type(sourceName: String): ApiType? =
             typeProvider.type(sourceName)
-
-        fun parameterNamesFor(typeName: String, functionName: String, parameterTypeNames: List<String>): List<String>? =
-            parameterNamesSupplier.parameterNamesFor(typeName, functionName, parameterTypeNames)
     }
 }
 
@@ -297,7 +282,7 @@ class ApiFunction internal constructor(
     }
 
     val parameters: List<ApiFunctionParameter> by unsafeLazy {
-        context.apiFunctionParametersFor(this, delegate, visitedSignature)
+        context.apiFunctionParametersFor(delegate, visitedSignature)
     }
 
     val returnType: ApiTypeUsage by unsafeLazy {
@@ -415,17 +400,10 @@ fun ApiTypeProvider.Context.apiTypeParametersFor(visitedSignature: BaseSignature
 
 
 private
-fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
+fun ApiTypeProvider.Context.apiFunctionParametersFor(delegate: MethodNode, visitedSignature: MethodSignatureVisitor?) =
     delegate.visibleParameterAnnotations?.map { it.has<Nullable>() }.let { parametersNullability ->
         val parameterTypesBinaryNames = visitedSignature?.parameters?.map { if (it.isArray) "${it.typeArguments.single().binaryName}[]" else it.binaryName }
             ?: Type.getArgumentTypes(delegate.desc).map { it.className }
-        val names by unsafeLazy {
-            parameterNamesFor(
-                function.owner.sourceName,
-                function.name,
-                parameterTypesBinaryNames
-            )
-        }
         parameterTypesBinaryNames.mapIndexed { idx, parameterTypeBinaryName ->
             val isNullable = parametersNullability?.get(idx) == true
             val signatureParameter = visitedSignature?.parameters?.get(idx)
@@ -436,7 +414,7 @@ fun ApiTypeProvider.Context.apiFunctionParametersFor(function: ApiFunction, dele
                 index = idx,
                 isVarargs = idx == parameterTypesBinaryNames.lastIndex && delegate.access.isVarargs,
                 nameSupplier = {
-                    names?.get(idx) ?: delegate.parameters?.get(idx)?.name
+                    delegate.parameters?.get(idx)?.name
                 },
                 typeBinaryName = parameterTypeBinaryName,
                 type = apiTypeUsageFor(parameterTypeName, isNullable, variance, typeArguments)
