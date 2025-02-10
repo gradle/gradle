@@ -23,11 +23,13 @@ import org.gradle.internal.typeconversion.DoubleFromCharSequenceNotationConverte
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
 import org.gradle.internal.typeconversion.IntegerFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.JavaVersionFromCharSequenceNotationConverter;
+import org.gradle.internal.typeconversion.JvmVendorSpecFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.LongFromCharSequenceNotationConverter;
 import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationConverterToNotationParserAdapter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.jvm.toolchain.JvmVendorSpec;
 
 public class OptionValueNotationParserFactory {
     public <T> NotationParser<CharSequence, T> toComposite(Class<T> targetType) throws OptionValidationException {
@@ -35,6 +37,9 @@ public class OptionValueNotationParserFactory {
             return Cast.uncheckedCast(new NoDescriptionValuesJustReturningParser());
         } else if (targetType.isAssignableFrom(JavaLanguageVersion.class)) {
             NotationConverter<CharSequence, JavaLanguageVersion> converter = new JavaVersionFromCharSequenceNotationConverter();
+            return Cast.uncheckedCast(new NotationConverterToNotationParserAdapter<>(converter));
+        } else if (targetType.isAssignableFrom(JvmVendorSpec.class)) {
+            NotationConverter<CharSequence, JvmVendorSpec> converter = new JvmVendorSpecFromCharSequenceNotationConverter();
             return Cast.uncheckedCast(new NotationConverterToNotationParserAdapter<>(converter));
         } else if (targetType.isEnum()) {
             @SuppressWarnings({"rawtypes", "unchecked"})

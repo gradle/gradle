@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.jvm.toolchain.internal;
+package org.gradle.jvm.toolchain.internal.install;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
@@ -24,6 +24,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.JvmImplementation;
 import org.gradle.jvm.toolchain.JvmVendorSpec;
+import org.gradle.jvm.toolchain.internal.DefaultJvmVendorSpec;
 
 import java.util.Set;
 import java.util.function.Predicate;
