@@ -170,20 +170,20 @@ This terminates all Daemon processes started with the same version of Gradle use
 You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.
 
-[[sec:daemon_jvm_criteria]]
 == Configuring the Daemon JVM
 
 NOTE: Daemon JVM discovery and criteria are <<feature_lifecycle.adoc#sec:incubating_state,incubating>> features and are subject to change in a future release.
 
-By default, the Gradle daemon runs with the same JVM installation that started the build.
+By default, the Gradle Daemon runs with the same JVM installation that started the build.
 Gradle defaults to the current shell path and `JAVA_HOME` environment variable to locate a usable JVM.
 
 Alternatively, a different JVM installation can be specified for the build using the <<build_environment.adoc#sec:gradle_configuration_properties,`org.gradle.java.home` Gradle property>> or programmatically through the Tooling API.
 
 Building on the <<toolchains.adoc#toolchains,toolchain feature>>, you can now use declarative criteria to specify the JVM requirements for the build.
 
-If the daemon JVM criteria configuration is provided, it takes precedence over `JAVA_HOME` and `org.gradle.java.home`.
+If the Daemon JVM criteria configuration is provided, it takes precedence over `JAVA_HOME` and `org.gradle.java.home`.
 
+[[sec:daemon_jvm_criteria]]
 === Daemon JVM criteria
 
 The _Daemon JVM criteria_ is controlled by the `updateDaemonJvm` task, similar to how the <<gradle_wrapper.adoc#customizing_wrapper,wrapper task>> updates the wrapper properties file.
@@ -234,16 +234,14 @@ toolchainVersion=17
 ----
 ====
 
-If you run the `updateDaemonJvm` task without any arguments, and the properties file does not exist, then the version of the current JVM used by the daemon will be used.
+If you run the `updateDaemonJvm` task without any arguments, and the properties file does not exist, then the version of the current JVM used by the Daemon will be used.
 
-On the next execution of the build, the Gradle client will use this file to locate a compatible JVM installation and start the daemon with it.
+On the next execution of the build, the Gradle client will use this file to locate a compatible JVM installation and start the Daemon with it.
 
 Similar to the wrapper, the generated `gradle-daemon-jvm.properties` file should be checked into version control.
 This ensures that any developer or CI server running the build will use the same JVM version.
 
-On the next execution of the build, the Gradle client will use this file to locate a compatible JVM installation and start the daemon with it.
-
-[[specifying_a_jvm_vendor]]
+[[sec:specifying_a_jvm_vendor]]
 ==== Specifying a JVM vendor
 
 The JVM vendor, like the JVM version, can be used as a criteria to select a compatible JVM installation for the build.
@@ -259,9 +257,9 @@ $ ./gradlew updateDaemonJvm --jvm-version=17 --jvm-vendor=adoptium
 
 List of recognized vendors:
 
-[cols="1,3,1"]
+[cols="~,~,~"]
 |===
-|Known Vendors |Acceptable Strings |`toolchainVendor` value
+|Known Vendors |Acceptable Strings |`toolchainVendor` Value
 
 |Adoptium / Eclipse Temurin
 |`adoptium`, `temurin`, `eclipse foundation`
@@ -330,11 +328,12 @@ For example, "MyCustomJVM" would require an exact match of the vendor name.
 [[sec:detect_provision]]
 === Auto-detection and auto-provisioning
 
-The daemon JVM is located using the same underlying logic as for <<toolchains.adoc#sec:auto_detection,project JVM toolchains>>.
+The Daemon JVM is _auto-detected_ using the same logic as <<toolchains.adoc#sec:auto_detection,project JVM toolchains>>.
 
-The auto-provisioning is simpler, as Gradle can only look up a download URL matching the current platform inside the `gradle-daemon-jvm.properties` file, which is then used to download a JDK if none can be found locally.
+With _auto-provisioning_, the logic is simpler, as Gradle can only look up a download URL matching the platform inside the `gradle-daemon-jvm.properties` file.
+The URL is then used to download a JDK if none can be found locally.
 
-Both properties for disabling auto-detection and auto-provisioning will impact the daemon toolchain resolution logic.
+The properties used for disabling _auto-detection_ and _auto-provisioning_ affect the Daemon toolchain resolution logic:
 
 [source,properties]
 ----
