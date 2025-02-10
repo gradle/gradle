@@ -10,7 +10,7 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
         org.gradle.platform.Architecture.AARCH64,
         org.gradle.platform.OperatingSystem.MAC_OS
     )
-    toolchainPlatforms.add(myPlatform)
+    toolchainPlatforms.set(myPlatform)
 }
 // end::customized-plat-daemon-jvm-task[]
 
