@@ -170,7 +170,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         capabilities << [
             EnumSet.of(JAVA_COMPILER),
             EnumSet.of(JAVADOC_TOOL),
-            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+            JavaInstallationCapability.JDK_CAPABILITIES
         ]
     }
 
@@ -193,7 +193,7 @@ class JavaToolchainQueryServiceTest extends Specification {
         capabilities << [
             EnumSet.of(JAVA_COMPILER),
             EnumSet.of(JAVADOC_TOOL),
-            EnumSet.of(JAVA_COMPILER, JAVADOC_TOOL)
+            JavaInstallationCapability.JDK_CAPABILITIES
         ]
     }
 

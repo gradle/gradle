@@ -109,7 +109,7 @@ class JavaToolchainDownloadSpiIntegrationTest extends AbstractIntegrationSpec {
                .assertHasCause("Failed to calculate the value of task ':compileJava' property 'javaCompiler'.")
                .assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=11, vendor=any vendor, implementation=vendor-specific}. " +
                    "Some toolchain resolvers had provisioning failures: custom (Unable to download toolchain matching the requirements ({languageVersion=11, vendor=any vendor, implementation=vendor-specific}) " +
-                   "from '$uri', due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=11, vendor=any vendor, implementation=vendor-specific} and must have the executable 'javac' and the executable 'javadoc'.)")
+                   "from '$uri', due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=11, vendor=any vendor, implementation=vendor-specific} and must have the executable 'javac', the executable 'javadoc', and the executable 'jar'.)")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30409")
