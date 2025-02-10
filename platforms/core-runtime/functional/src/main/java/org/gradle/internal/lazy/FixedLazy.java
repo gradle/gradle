@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.smoketests
+package org.gradle.internal.lazy;
 
-import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.testdistribution.LocalOnly
+/**
+ * A {@link Lazy} value that always returns the given {@link #value}.
+ */
+public class FixedLazy<V> implements Lazy<V> {
+    private final V value;
 
-@LocalOnly(because = "Needs Android environment")
-class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractKotlinPluginAndroidSmokeTest {
-    @Override
-    String getSampleName() {
-        return "android-kotlin-example"
+    public FixedLazy(V value) {
+        this.value = value;
     }
 
     @Override
-    GradleDsl getDSL() {
-        return GradleDsl.GROOVY
+    public V get() {
+        return value;
     }
 }

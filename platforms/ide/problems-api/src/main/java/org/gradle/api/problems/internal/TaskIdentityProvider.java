@@ -14,10 +14,23 @@
  * limitations under the License.
  */
 
-plugins {
-    `kotlin-dsl`
+package org.gradle.api.problems.internal;
+
+import org.gradle.internal.operations.OperationIdentifier;
+
+import javax.annotation.Nullable;
+
+/**
+ * Supplies task execution information.
+ */
+public interface TaskIdentityProvider {
+
+    /**
+     * Returns the identity of the task under which the target build operation is running.
+     *
+     * @param id the id of the target build operation
+     * @return the task identity or {@code null}, if the operation is not running in the context  of a task
+     */
+    @Nullable
+    TaskIdentity taskIdentityFor(OperationIdentifier id);
 }
-
-description = "Provides plugins for Configuration Cache usage adjustments"
-
-group = "gradlebuild"

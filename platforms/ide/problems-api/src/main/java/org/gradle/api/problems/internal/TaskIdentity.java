@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.smoketests
+package org.gradle.api.problems.internal;
 
-import org.gradle.test.fixtures.dsl.GradleDsl
-import org.gradle.testdistribution.LocalOnly
+public class TaskIdentity {
 
-@LocalOnly(because = "Needs Android environment")
-class KotlinPluginAndroidGroovyDSLSmokeTest extends AbstractKotlinPluginAndroidSmokeTest {
-    @Override
-    String getSampleName() {
-        return "android-kotlin-example"
+    private final String buildTreePath;
+    private final String taskPath;
+
+    public TaskIdentity(String buildTreePath, String taskPath) {
+        this.buildTreePath = buildTreePath;
+        this.taskPath = taskPath;
     }
 
-    @Override
-    GradleDsl getDSL() {
-        return GradleDsl.GROOVY
+    public String getBuildTreePath() {
+        return buildTreePath;
+    }
+
+    public String getTaskPath() {
+        return taskPath;
     }
 }
