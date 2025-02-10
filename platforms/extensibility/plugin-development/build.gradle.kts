@@ -17,7 +17,7 @@ dependencies {
     api(projects.files)
     api(projects.stdlibJavaExtensions)
     api(projects.logging)
-    api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.resources)
@@ -43,6 +43,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.maven)
     implementation(projects.messaging)
+    implementation(projects.modelCore)
     implementation(projects.modelGroovy)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
@@ -65,7 +66,7 @@ dependencies {
 
     integTestImplementation(projects.baseServicesGroovy)
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.toolingApi))
 
     integTestImplementation(libs.groovyTest)

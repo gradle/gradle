@@ -103,6 +103,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
         "gradle-process-services",
         "gradle-persistent-cache",
         "gradle-model-core",
+        "gradle-model-reflect",
         "gradle-jvm-services",
         "gradle-files",
         "gradle-file-collections",
