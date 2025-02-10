@@ -182,33 +182,39 @@ Alternatively, a different JVM installation can be specified for the build using
 
 Building on the <<toolchains.adoc#toolchains,toolchain feature>>, you can now use declarative criteria to specify the JVM requirements for the build.
 
+If the daemon JVM criteria configuration is provided, it takes precedence over `JAVA_HOME` and `org.gradle.java.home`.
+
 === Daemon JVM criteria
 
 The _Daemon JVM criteria_ is controlled by the `updateDaemonJvm` task, similar to how the <<gradle_wrapper.adoc#customizing_wrapper,wrapper task>> updates the wrapper properties file.
+
+WARNING: This process requires <<toolchains.adoc#sub:download_repositories,toolchain download repositories>> to be configured.
+See <<#sec:configure_provision,below>> for details.
+
+When the task runs, it creates or updates the criteria in the `gradle/gradle-daemon-jvm.properties` file.
+
+To configure the generation, you can use command line options:
 
 [source,bash]
 ----
 $ ./gradlew updateDaemonJvm --jvm-version=17
 ----
 
-When the task runs, it creates or updates the criteria in the `gradle/gradle-daemon-jvm.properties` file.
-
-To configure the task, you can use the build script or pass options via the command line:
+Or configure the task in the build script of the root project:
 
 ====
 include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-daemon-jvm-task]"]
 include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-daemon-jvm-task]"]
 ====
 
-Then run the task:
+And then run the task:
 
 [source,bash]
 ----
 $ ./gradlew updateDaemonJvm
 ----
 
-Similar to the wrapper, the generated `gradle-daemon-jvm.properties` file should be checked into version control.
-This ensures that any developer or CI server running the build will use the same JVM version:
+Both of these actions will produce a file like the following one:
 
 ====
 .gradle/gradle-daemon-jvm.properties
@@ -228,19 +234,23 @@ toolchainVersion=17
 ----
 ====
 
-If the daemon JVM criteria configuration is provided, it takes precedence over `JAVA_HOME` and `org.gradle.java.home`.
-
-If you run the `updateDaemonJvm` task without any arguments, and the properties file does not exist, then the version of the current JVM used by the daemon will be used and the file will be created.
+If you run the `updateDaemonJvm` task without any arguments, and the properties file does not exist, then the version of the current JVM used by the daemon will be used.
 
 On the next execution of the build, the Gradle client will use this file to locate a compatible JVM installation and start the daemon with it.
 
+Similar to the wrapper, the generated `gradle-daemon-jvm.properties` file should be checked into version control.
+This ensures that any developer or CI server running the build will use the same JVM version.
+
+On the next execution of the build, the Gradle client will use this file to locate a compatible JVM installation and start the daemon with it.
+
+[[specifying_a_jvm_vendor]]
 ==== Specifying a JVM vendor
 
 The JVM vendor, like the JVM version, can be used as a criteria to select a compatible JVM installation for the build.
 If no vendor is specified, Gradle considers all vendors compatible.
 
 By default, running `updateDaemonJvm` to create the `gradle-daemon-jvm.properties` file will not generate a JVM vendor criteria.
-To specify a vendor, either configure it in the build script or pass it on the command line using `--jvm-vendor=<value>`:
+To specify a vendor, either configure it in the build script, using <<toolchains.adoc#sec:vendors,the same syntax as the Java toolchain spec>>, or pass it on the command line:
 
 [source,bash]
 ----
@@ -302,41 +312,39 @@ You can view the list of recognized vendors by running `./gradlew help --task up
 If the specified vendor is not one of the recognized equivalents, Gradle will match it exactly.
 For example, "MyCustomJVM" would require an exact match of the vendor name.
 
-The vendor can be configured on the task in the build script using <<toolchains.adoc#sec:vendors,the same syntax as the Java toolchain spec>>.
+[[sec:detect_provision]]
+=== Auto-detection and auto-provisioning
 
-=== Auto-Detection using installed JVMs
+The daemon JVM is located using the same underlying logic as for <<toolchains.adoc#sec:auto_detection,project JVM toolchains>>.
 
-Gradle first attempts to locate a matching JDK using auto-detection.
-It scans system paths for installed toolchains and selects the most suitable one based on <<toolchains.adoc#sec:precedence,predefined precedence rules>>.
+The auto-provisioning is simpler, as Gradle can only look up a download URL matching the current platform inside the `gradle-daemon-jvm.properties` file, which is then used to download a JDK if none can be found locally.
 
-You can disable auto-detection using the `org.gradle.java.installations.auto-detect=false` property:
+Both properties for disabling auto-detection and auto-provisioning will impact the daemon toolchain resolution logic.
 
 [source,properties]
 ----
 org.gradle.java.installations.auto-detect=false
+org.gradle.java.installations.auto-download=false
 ----
 
-=== Auto-Provisioning by downloading missing JVMs
+[[sec:configure_provision]]
+=== Configuring provisioning URLs
 
-If no suitable JDK is found locally, Gradle can automatically download and install a compatible version.
-
-WARNING: This process requires <<toolchains.adoc#sub:download_repositories,toolchain download repositories>> to be configured.
+NOTE: There are currently no CLI options for configuring this.
 
 By default, the `updateDaemonJvm` task attempts to generate download URLs for JDKs on various platforms (OS and architecture) that match the specified criteria.
+Gradle needs to consider more than the current running platform as the build could be run on different platforms.
 
-Gradle considers the following build platforms by default:
+Gradle sets, by convention, build platforms based on architectures `X86_64` and `AARCH64` for the following operating systems:
 
-* [`FREE_BSD`, `AARCH64`]
-* [`LINUX`, `AARCH64`]
-* [`LINUX`, `X86_64`]
-* [`MAC_OS`, `AARCH64`]
-* [`MAC_OS`, `X86_64`]
-* [`UNIX`, `AARCH64`]
-* [`UNIX`, `X86_64`]
-* [`WINDOWS`, `X86_64`]
+* https://www.freebsd.org/[FreeBSD]
+* https://www.linux.org/pages/download/[Linux]
+* https://www.apple.com/macos[macOS]
+* https://www.oracle.com/solaris[Solaris]
+* https://en.wikipedia.org/wiki/List_of_Unix_systems[UNIX]
+* https://www.microsoft.com/en-us/windows[Windows]
 
 These platforms can be configured through the `toolchainPlatforms` property of the `UpdateDaemonJvm` task.
-Note that there is currently no CLI option for configuring this.
 
 ====
 include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gradle.kts[tags=customized-plat-daemon-jvm-task]"]
@@ -344,7 +352,7 @@ include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gr
 ====
 
 Gradle resolves JDK download URLs for these platforms by using the <<toolchains.adoc#sub:download_repositories,configured toolchain download repositories>>.
-If no such repositories are configured or if not explicitly disabled, the `updateDaemonJvm` task will fail.
+If no such repositories are configured and the `toolchainPlatforms` property has at least one value, the `updateDaemonJvm` task will fail.
 
 Alternatively, users can directly configure the JDK URLs for specific platforms using the `toolchainDownloadUrls` property.
 This property is a `Map<BuildPlatform, URI>` and can be configured as shown in the following example:
@@ -354,7 +362,7 @@ include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gr
 include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-uri-daemon-jvm-task]"]
 ====
 
-TIP: A full package name is required for `org.gradle.platform.Architecture` and `org.gradle.platform.OperatingSystem` due to a naming conflict with other types in different packages, which are resolved first alphabetically.
+TIP: A full package name is required for link:{javadocPath}/org/gradle/platform/Architecture.html[`org.gradle.platform.Architecture`] and link:{javadocPath}/org/gradle/platform/OperatingSystem.html[`org.gradle.platform.OperatingSystem`] due to a naming conflict with other types in different packages, which are resolved first alphabetically.
 
 Running `./gradlew updateDaemonJvm` produces the following:
 
@@ -372,12 +380,7 @@ include::sample[dir="snippets/daemon-jvm/customized-task/kotlin",files="build.gr
 include::sample[dir="snippets/daemon-jvm/customized-task/groovy",files="build.gradle[tags=customized-noplat-daemon-jvm-task]"]
 ====
 
-You can disable auto-provisioning using the `org.gradle.java.installations.auto-download=false` property:
-
-[source,properties]
-----
-org.gradle.java.installations.auto-download=false
-----
+Removing all platforms means that there is no longer a need for the <<toolchains.adoc#sub:download_repositories,toolchain download repositories>> to be configured.
 
 [[sec:tools_and_ides]]
 == Tools & IDEs
