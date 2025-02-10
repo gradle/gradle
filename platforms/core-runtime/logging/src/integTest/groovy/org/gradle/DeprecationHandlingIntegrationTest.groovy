@@ -71,6 +71,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
     def 'DeprecatedPlugin and DeprecatedTask - #scenario'() {
         given:
+        executer.beforeExecute {
+            withoutInternalDeprecationStackTraceFlag()
+        }
         buildFile << """
             apply plugin: DeprecatedPlugin // line 2
 
@@ -86,7 +89,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         if (fullStacktraceEnabled) {
-            executer.withFullDeprecationStackTraceEnabled()
+            executer.withStacktraceEnabled()
         }
         if (warningsCount > 0) {
             executer.expectDeprecationWarnings(warningsCount)
