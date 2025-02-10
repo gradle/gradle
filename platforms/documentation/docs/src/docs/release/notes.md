@@ -14,8 +14,6 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 
 This release introduces [Daemon JVM auto-provisioning](#toolchain), which automatically downloads a JVM compatible with the daemon requested one when necessary.
 
-[Deprecation warning messages](#error-warning) have been corrected to provide accurate instructions for enabling full stack traces.
-
 Gradle @version@ brings several enhancements for [build authors and plugin developers](#build-authoring), including updates to the `ProjectLayout` and `TestEventReporting` APIs, a new `artifactTransforms` task, the `distribution-base` plugin, and support for explicitly declaring the Scala version in the `scala` extension.
 
 Additionally, JUnit XML timestamps now include [millisecond precision](#other).
@@ -116,30 +114,6 @@ toolchainVersion=17
 
 The JVM vendors and URLs are customizable.
 For more details, see the [Daemon JVM criteria documentation](userguide/gradle_daemon.html#sec:daemon_jvm_criteria).
-
-<a name="error-warning"></a>
-### Error and warning reporting improvements
-
-Gradle provides a rich set of [error and warning messages](userguide/logging.html) to help you understand and resolve problems in your build.
-
-#### Corrected deprecation warning messages for full stack trace flag
-
-[Deprecations](userguide/feature_lifecycle.html#sec:deprecated) indicate features or APIs that will be removed or replaced in future versions of Gradle.
-These warnings help guide users to update their build scripts accordingly.
-
-The instructions printed under a deprecation warning now correctly indicate how to enable full stack traces.
-
-The console properly prints out:
-
-```text
-Run with -Dorg.gradle.deprecation.trace=true to print the full stack trace for this deprecation warning.
-```
-
-Previously, the console printed the incorrect suggestion:
-
-```text
-Run with --stacktrace to get the full stack trace of this deprecation warning.
-```
 
 <a name="build-authoring"></a>
 ### Build authoring improvements
