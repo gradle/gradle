@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.nativeintegration.services;
 
+import com.google.common.annotations.VisibleForTesting;
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
+import net.rubygrapefruit.platform.NativeIntegration;
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
 import net.rubygrapefruit.platform.Process;
 import net.rubygrapefruit.platform.ProcessLauncher;
@@ -73,6 +75,7 @@ import java.util.EnumSet;
 import java.util.Locale;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallbackHelper.newInstanceOrFallback;
 
 /**
@@ -80,16 +83,18 @@ import static org.gradle.internal.nativeintegration.filesystem.services.JdkFallb
  */
 public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
-    private static final NativeServices INSTANCE = new NativeServices();
+    private static NativeServices instance;
+
+    // TODO All this should be static
+    private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
 
     public static final String NATIVE_SERVICES_OPTION = "org.gradle.native";
     public static final String NATIVE_DIR_OVERRIDE = "org.gradle.native.dir";
 
-    private boolean initialized;
-    private boolean useNativeIntegrations;
-    private File userHomeDir;
-    private File nativeBaseDir;
-    private final EnumSet<NativeFeatures> initializedFeatures = EnumSet.noneOf(NativeFeatures.class);
+    private final boolean useNativeIntegrations;
+    private final File userHomeDir;
+
+    private final Native nativeIntegration;
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
 
     private final ServiceRegistry services;
@@ -97,40 +102,74 @@ public class NativeServices implements ServiceRegistrationProvider {
     public enum NativeFeatures {
         FILE_SYSTEM_WATCHING {
             @Override
-            public boolean initialize(File nativeBaseDir, boolean useNativeIntegrations) {
-                if (useNativeIntegrations) {
-                    OperatingSystem operatingSystem = OperatingSystem.current();
-                    if (operatingSystem.isMacOsX()) {
-                        String version = operatingSystem.getVersion();
-                        if (VersionNumber.parse(version).getMajor() < 12) {
-                            LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
-                            return false;
-                        }
-                    }
-                    try {
-                        FileEvents.init(nativeBaseDir);
-                        LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
-                        return true;
-                    } catch (NativeIntegrationUnavailableException ex) {
-                        logFileSystemWatchingUnavailable(ex);
+            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
+                if (!useNativeIntegrations) {
+                    return false;
+                }
+                OperatingSystem operatingSystem = OperatingSystem.current();
+                if (operatingSystem.isMacOsX()) {
+                    String version = operatingSystem.getVersion();
+                    if (VersionNumber.parse(version).getMajor() < 12) {
+                        LOGGER.info("Disabling file system watching on macOS {}, as it is only supported for macOS 12+", version);
                         return false;
                     }
                 }
+                try {
+                    final FileEvents fileEvents = FileEvents.init(nativeBaseDir);
+                    LOGGER.info("Initialized file system watching services in: {}", nativeBaseDir);
+                    builder.provider(new ServiceRegistrationProvider() {
+                        @Provides
+                        FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                            return new FileEventFunctionsProvider() {
+                                @Override
+                                public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                                    if (fileEvents != null) {
+                                        return fileEvents.get(type);
+                                    } else {
+                                        throw new NativeIntegrationUnavailableException("File events are not available.");
+                                    }
+                                }
+                            };
+                        }
+                    });
+                    return true;
+                } catch (NativeIntegrationUnavailableException ex) {
+                    logFileSystemWatchingUnavailable(ex);
+                }
                 return false;
+            }
+
+            @Override
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {
+                // We still need to provide an implementation of FileEventFunctionsProvider,
+                // even if file watching is disabled, otherwise the service registry will throw an exception for a missing service.
+                builder.provider(new ServiceRegistrationProvider() {
+                    @Provides
+                    FileEventFunctionsProvider createFileEventFunctionsProvider() {
+                        return new FileEventFunctionsProvider() {
+                            @Override
+                            public <T extends NativeIntegration> T getFunctions(Class<T> type) {
+                                throw new UnsupportedOperationException("File system watching is disabled.");
+                            }
+                        };
+                    }
+                });
             }
         },
         JANSI {
             @Override
-            public boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations) {
+            public boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean useNativeIntegrations) {
                 JANSI_BOOT_PATH_CONFIGURER.configure(nativeBaseDir);
                 LOGGER.info("Initialized jansi services in: {}", nativeBaseDir);
                 return true;
             }
+            @Override
+            public void doWhenDisabled(ServiceRegistryBuilder builder) {
+            }
         };
 
-        private static final JansiBootPathConfigurer JANSI_BOOT_PATH_CONFIGURER = new JansiBootPathConfigurer();
-
-        public abstract boolean initialize(File nativeBaseDir, boolean canUseNativeIntegrations);
+        public abstract boolean initialize(File nativeBaseDir, ServiceRegistryBuilder builder, boolean canUseNativeIntegrations);
+        public abstract void doWhenDisabled(ServiceRegistryBuilder builder);
     }
 
     public enum NativeServicesMode {
@@ -180,7 +219,7 @@ public class NativeServices implements ServiceRegistrationProvider {
      * Initializes all the services needed for the Gradle daemon.
      */
     public static void initializeOnDaemon(File userHomeDir, NativeServicesMode mode) {
-        INSTANCE.initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), mode);
+        initialize(userHomeDir, EnumSet.allOf(NativeFeatures.class), mode);
     }
 
     /**
@@ -189,7 +228,7 @@ public class NativeServices implements ServiceRegistrationProvider {
      * Initializes all the services needed for the CLI or the Tooling API.
      */
     public static void initializeOnClient(File userHomeDir, NativeServicesMode mode) {
-        INSTANCE.initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), mode);
+        initialize(userHomeDir, EnumSet.of(NativeFeatures.JANSI), mode);
     }
 
     /**
@@ -198,7 +237,7 @@ public class NativeServices implements ServiceRegistrationProvider {
      * Initializes all the services needed for the CLI or the Tooling API.
      */
     public static void initializeOnWorker(File userHomeDir, NativeServicesMode mode) {
-        INSTANCE.initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), mode);
+        initialize(userHomeDir, EnumSet.noneOf(NativeFeatures.class), mode);
     }
 
     public static void logFileSystemWatchingUnavailable(NativeIntegrationUnavailableException ex) {
@@ -214,13 +253,11 @@ public class NativeServices implements ServiceRegistrationProvider {
      *
      * @param requestedFeatures Whether to initialize additional native libraries like jansi and file-events.
      */
-    private void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
+    private static void initialize(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         checkNativeServicesMode(mode);
-        if (!initialized) {
+        if (instance == null) {
             try {
-                initializeNativeIntegrations(userHomeDir, mode);
-                initialized = true;
-                initializeFeatures(requestedFeatures);
+                instance = new NativeServices(userHomeDir, requestedFeatures, mode);
             } catch (RuntimeException e) {
                 throw new ServiceCreationException("Could not initialize native services.", e);
             }
@@ -233,13 +270,15 @@ public class NativeServices implements ServiceRegistrationProvider {
         }
     }
 
-    private void initializeNativeIntegrations(File userHomeDir, NativeServicesMode nativeServicesMode) {
+    private NativeServices(File userHomeDir, EnumSet<NativeFeatures> requestedFeatures, NativeServicesMode mode) {
         this.userHomeDir = userHomeDir;
-        useNativeIntegrations = nativeServicesMode.isEnabled();
-        nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
+
+        boolean useNativeIntegrations = mode.isEnabled();
+        Native nativeIntegration = null;
+        File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
         if (useNativeIntegrations) {
             try {
-                net.rubygrapefruit.platform.Native.init(nativeBaseDir);
+                nativeIntegration = Native.init(nativeBaseDir);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
@@ -258,18 +297,29 @@ public class NativeServices implements ServiceRegistrationProvider {
             }
             LOGGER.info("Initialized native services in: {}", nativeBaseDir);
         }
-    }
+        this.useNativeIntegrations = useNativeIntegrations;
+        this.nativeIntegration = nativeIntegration;
 
-    private void initializeFeatures(EnumSet<NativeFeatures> requestedFeatures) {
-        if (useNativeIntegrations) {
-            for (NativeFeatures requestedFeature : requestedFeatures) {
-                if (initializedFeatures.add(requestedFeature)) {
-                    if (requestedFeature.initialize(nativeBaseDir, useNativeIntegrations)) {
-                        enabledFeatures.add(requestedFeature);
-                    }
+        ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder()
+            .displayName("native services")
+            .provider(new FileSystemServices())
+            .provider(this)
+            .provider(new ServiceRegistrationProvider() {
+                @SuppressWarnings("unused")
+                public void configure(ServiceRegistration registration) {
+                    registration.add(GradleUserHomeTemporaryFileProvider.class);
                 }
+            });
+
+        for (NativeFeatures nativeFeature : NativeFeatures.values()) {
+            if (requestedFeatures.contains(nativeFeature) && nativeFeature.initialize(nativeBaseDir, builder, useNativeIntegrations)) {
+                enabledFeatures.add(nativeFeature);
+            } else {
+                nativeFeature.doWhenDisabled(builder);
             }
         }
+
+        this.services = builder.build();
     }
 
     private boolean isFeatureEnabled(NativeFeatures feature) {
@@ -291,26 +341,17 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     public static synchronized ServiceRegistry getInstance() {
-        if (!INSTANCE.initialized) {
+        if (instance == null) {
             // If this occurs while running gradle or running integration tests, it is indicative of a problem.
             // If this occurs while running unit tests, then either use the NativeServicesTestFixture or the '@UsesNativeServices' annotation.
             throw new IllegalStateException("Cannot get an instance of NativeServices without first calling initialize().");
         }
-        return INSTANCE.services;
+        return instance.services;
     }
 
-    private NativeServices() {
-        services = ServiceRegistryBuilder.builder()
-            .displayName("native services")
-            .provider(new FileSystemServices())
-            .provider(this)
-            .provider(new ServiceRegistrationProvider() {
-                @SuppressWarnings("unused")
-                public void configure(ServiceRegistration registration) {
-                    registration.add(GradleUserHomeTemporaryFileProvider.class);
-                }
-            })
-            .build();
+    @VisibleForTesting
+    protected static synchronized Native getNative() {
+        return checkNotNull(instance).nativeIntegration;
     }
 
     @Provides
@@ -337,7 +378,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                net.rubygrapefruit.platform.Process process = net.rubygrapefruit.platform.Native.get(Process.class);
+                net.rubygrapefruit.platform.Process process = nativeIntegration.get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform process integration is not available. Continuing with fallback.");
@@ -355,7 +396,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                Terminals terminals = net.rubygrapefruit.platform.Native.get(Terminals.class);
+                Terminals terminals = nativeIntegration.get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
             } catch (NativeIntegrationUnavailableException ex) {
                 LOGGER.debug("Native-platform terminal integration is not available. Continuing with fallback.");
@@ -379,7 +420,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     @Provides
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
         if (useNativeIntegrations && operatingSystem.isWindows()) {
-            return net.rubygrapefruit.platform.Native.get(WindowsRegistry.class);
+            return nativeIntegration.get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class, operatingSystem);
     }
@@ -388,7 +429,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(SystemInfo.class);
+                return nativeIntegration.get(SystemInfo.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform system info is not available. Continuing with fallback.");
             }
@@ -400,7 +441,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected Memory createMemory(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(Memory.class);
+                return nativeIntegration.get(Memory.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform memory integration is not available. Continuing with fallback.");
             }
@@ -412,7 +453,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected ProcessLauncher createProcessLauncher() {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(ProcessLauncher.class);
+                return nativeIntegration.get(ProcessLauncher.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform process launcher is not available. Continuing with fallback.");
             }
@@ -424,7 +465,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected PosixFiles createPosixFiles(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(PosixFiles.class);
+                return nativeIntegration.get(PosixFiles.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
             }
@@ -436,7 +477,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected HostnameLookup createHostnameLookup() {
         if (useNativeIntegrations) {
             try {
-                String hostname = Native.get(SystemInfo.class).getHostname();
+                String hostname = nativeIntegration.get(SystemInfo.class).getHostname();
                 return new FixedHostname(hostname);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform posix files integration is not available. Continuing with fallback.");
@@ -446,6 +487,7 @@ public class NativeServices implements ServiceRegistrationProvider {
         try {
             hostname = InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
+            //noinspection Since15
             hostname = InetAddress.getLoopbackAddress().getHostAddress();
         }
         return new FixedHostname(hostname);
@@ -460,7 +502,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
         if (useNativeIntegrations) {
             try {
-                return new NativePlatformBackedFileMetadataAccessor(net.rubygrapefruit.platform.Native.get(Files.class));
+                return new NativePlatformBackedFileMetadataAccessor(nativeIntegration.get(Files.class));
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform files integration is not available. Continuing with fallback.");
             }
@@ -492,7 +534,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
         if (useNativeIntegrations) {
             try {
-                return net.rubygrapefruit.platform.Native.get(FileSystems.class);
+                return nativeIntegration.get(FileSystems.class);
             } catch (NativeIntegrationUnavailableException e) {
                 LOGGER.debug("Native-platform file systems information is not available. Continuing with fallback.");
             }
@@ -543,5 +585,9 @@ public class NativeServices implements ServiceRegistrationProvider {
         public String getHostname() {
             return hostname;
         }
+    }
+
+    public interface FileEventFunctionsProvider {
+        <T extends NativeIntegration> T getFunctions(Class<T> type);
     }
 }
