@@ -38,19 +38,7 @@ dependencies {
 
     compileOnly(libs.errorProneAnnotations)
 
-    testFixturesApi(testFixtures(projects.baseDiagnostics))
     testFixturesApi(testFixtures(projects.core))
     testFixturesApi(projects.internalIntegTesting)
-    testFixturesImplementation(projects.baseAsm)
     testFixturesImplementation(libs.guava)
-    testFixturesImplementation(libs.groovyAnt)
-    testFixturesImplementation(libs.groovyDatetime)
-    testFixturesImplementation(libs.groovyDateUtil)
-
-    testImplementation(projects.processServices)
-    testImplementation(projects.fileCollections)
-    testImplementation(projects.native)
-    testImplementation(projects.resources)
-    testImplementation(testFixtures(projects.coreApi))
-    testImplementation(testFixtures(projects.languageGroovy))
 }

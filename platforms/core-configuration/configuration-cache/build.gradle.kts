@@ -83,16 +83,17 @@ dependencies {
     testImplementation(libs.mockitoKotlin2)
     testImplementation(libs.kotlinCoroutinesDebug)
 
+    integTestImplementation(projects.cli)
+    integTestImplementation(projects.ide)
     integTestImplementation(projects.jvmServices)
-    integTestImplementation(projects.toolingApi)
+    integTestImplementation(projects.launcher)
     integTestImplementation(projects.platformJvm)
     integTestImplementation(projects.testKit)
-    integTestImplementation(projects.launcher)
-    integTestImplementation(projects.cli)
+    integTestImplementation(projects.toolingApi)
     integTestImplementation(projects.workers)
 
-    integTestImplementation(libs.guava)
     integTestImplementation(libs.ant)
+    integTestImplementation(libs.guava)
     integTestImplementation(libs.inject)
     integTestImplementation("com.microsoft.playwright:playwright:1.20.1")
 
