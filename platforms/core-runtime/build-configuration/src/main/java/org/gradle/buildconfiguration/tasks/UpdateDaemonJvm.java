@@ -113,7 +113,7 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
             throw problemsReporter.throwing(new IllegalStateException(message),
                 TASK_CONFIGURATION_PROBLEM_ID,
                 problemSpec -> {
-                    problemSpec.documentedAt(Documentation.upgradeGuide(8, "#todo").getUrl());
+                    problemSpec.documentedAt(Documentation.upgradeGuide(8, "deprecated_update_daemon_jvm").getUrl());
                     problemSpec.solution("Replace the usage of `UpdateDaemonJvm.jvmVendor` with 'vendor'");
                     problemSpec.contextualLabel(message);
                 });
