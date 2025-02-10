@@ -122,7 +122,6 @@ data class CIBuildModel(
                 SpecificBuild.FlakyTestQuarantineMacOs,
                 SpecificBuild.FlakyTestQuarantineMacOsAppleSilicon,
                 SpecificBuild.FlakyTestQuarantineWindows,
-                SpecificBuild.GradleceptionWithMaxLtsJdk,
             ),
             functionalTests = listOf(
                 TestCoverage(7, TestType.parallel, Os.LINUX, JvmCategory.MAX_LTS_VERSION, DEFAULT_LINUX_FUNCTIONAL_TEST_BUCKET_SIZE),
@@ -149,6 +148,9 @@ data class CIBuildModel(
             StageName.WEEKLY_VALIDATION,
             trigger = Trigger.weekly,
             runsIndependent = true,
+            specificBuilds = listOf(
+                SpecificBuild.GradleceptionWithMaxLtsJdk,
+            ),
             functionalTests = listOf(
                 TestCoverage(37, TestType.configCache, Os.MACOS, JvmCategory.MAX_VERSION, expectedBucketNumber = DEFAULT_MACOS_FUNCTIONAL_TEST_BUCKET_SIZE, arch = Arch.AARCH64),
                 TestCoverage(38, TestType.configCache, Os.WINDOWS, JvmCategory.MAX_VERSION),
