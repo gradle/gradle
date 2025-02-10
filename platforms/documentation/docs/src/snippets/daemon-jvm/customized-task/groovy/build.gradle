@@ -6,11 +6,13 @@ tasks.named("updateDaemonJvm") {
 
 // tag::customized-plat-daemon-jvm-task[]
 tasks.named("updateDaemonJvm") {
-    def myPlatform = BuildPlatformFactory.of(
-        org.gradle.platform.Architecture.AARCH64,
-        org.gradle.platform.OperatingSystem.MAC_OS
-    )
-    toolchainPlatforms.add(myPlatform)
+    def myPlatforms = [
+        BuildPlatformFactory.of(
+            org.gradle.platform.Architecture.AARCH64,
+            org.gradle.platform.OperatingSystem.MAC_OS
+        )
+    ]
+    toolchainPlatforms.set(myPlatforms)
 }
 // end::customized-plat-daemon-jvm-task[]
 

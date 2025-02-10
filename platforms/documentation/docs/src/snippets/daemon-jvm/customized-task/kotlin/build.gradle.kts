@@ -6,11 +6,13 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 
 // tag::customized-plat-daemon-jvm-task[]
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
-    val myPlatform = BuildPlatformFactory.of(
-        org.gradle.platform.Architecture.AARCH64,
-        org.gradle.platform.OperatingSystem.MAC_OS
+    val myPlatforms = mutableListOf(
+        BuildPlatformFactory.of(
+            org.gradle.platform.Architecture.AARCH64,
+            org.gradle.platform.OperatingSystem.MAC_OS
+        )
     )
-    toolchainPlatforms.add(myPlatform)
+    toolchainPlatforms.set(myPlatforms)
 }
 // end::customized-plat-daemon-jvm-task[]
 
