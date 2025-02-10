@@ -27,45 +27,24 @@ import javax.annotation.Nullable;
  */
 public class ProblemTaskPathTracker {
 
-    private static final ThreadLocal<TaskIdentity> TASK_IDENTITY = new ThreadLocal<TaskIdentity>();
+    private static final ThreadLocal<String> TASK_NAME = new ThreadLocal<String>();
 
-    public static void setTaskIdentity(String buildPath, String taskPath) {
-        TASK_IDENTITY.set(new TaskIdentity(buildPath, taskPath));
+    public static void setTaskIdentityPath(String path) {
+        TASK_NAME.set(path);
     }
 
     /**
-     * Returns the task path of the currently executed task.
+     * Returns the identity path of the currently executed task.
      *
-     * @return the task path of the currently executed task or null if no task is currently executed on the current thread.
+     * @return the identity path of the currently executed task or null if no task is currently executed on the current thread.
      */
     @Nullable
-    public static String getTaskPath() {
-        TaskIdentity taskIdentity = TASK_IDENTITY.get();
-        return taskIdentity == null ? null : taskIdentity.taskPath;
-    }
-    /**
-     * Returns the build path of the currently executed task.
-     *
-     * @return the build path of the currently executed task or null if no task is currently executed on the current thread.
-     */
-    @Nullable
-    public static String getBuildPath() {
-        TaskIdentity taskIdentity = TASK_IDENTITY.get();
-        return taskIdentity == null ? null : taskIdentity.buildPath;
+    public static String getTaskIdentityPath() {
+        return TASK_NAME.get();
     }
 
     public static void clear() {
-        TASK_IDENTITY.remove();
-    }
-
-    private static class TaskIdentity {
-        private final String buildPath;
-        private final String taskPath;
-
-        public TaskIdentity(String buildPath, String taskPath) {
-            this.buildPath = buildPath;
-            this.taskPath = taskPath;
-        }
+        TASK_NAME.remove();
     }
 
 }

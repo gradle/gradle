@@ -50,7 +50,6 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
     private final String baseName;
     private Object next;
     private final String taskPath;
-    private final String buildPath;
 
     // Sub-handlers for the different protocols implemented by ResponseProtocol
     private final WorkerLoggingProtocol loggingProtocol;
@@ -60,8 +59,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
         this.loggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
         this.problemProtocol = new DefaultWorkerProblemProtocol();
         this.baseName = baseName;
-        this.buildPath = ProblemTaskPathTracker.getBuildPath();
-        this.taskPath = ProblemTaskPathTracker.getTaskPath();
+        this.taskPath = ProblemTaskPathTracker.getTaskIdentityPath();
     }
 
     public boolean awaitNextResult() {
@@ -129,11 +127,7 @@ public class Receiver implements ResponseProtocol, StreamCompletion, StreamFailu
 
     @Override
     public void reportProblem(Problem problem, OperationIdentifier id) {
-        problem = (taskPath == null || buildPath == null)
-            ? problem
-            : ((InternalProblem) problem)
-            .toBuilder(null, null, null)
-            .taskLocation(buildPath, taskPath).build();
+        problem = this.taskPath == null ? problem : ((InternalProblem) problem).toBuilder(null, null, null).taskLocation(this.taskPath).build();
         problemProtocol.reportProblem(problem, id);
     }
 

@@ -24,19 +24,9 @@ import org.gradle.api.problems.ProblemLocation;
 public interface TaskLocation extends ProblemLocation {
 
     /**
-     * The absolute build tree path of the task reporting the problem.
+     * Returns the absolute build tree path of the task reporting the problem.
+     *
+     * @return the build tree path
      */
     String getBuildTreePath();
-
-    /**
-     * The build path the tasks belongs to.
-     */
-    String getBuildPath();
-
-    /**
-     * The task path.
-     * <p>
-     * This is the task path in the build denoted by {@link #getBuildPath()}.
-     */
-    String getTaskPath();
 }
