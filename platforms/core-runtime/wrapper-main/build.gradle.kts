@@ -64,7 +64,6 @@ val executableJar by tasks.registering(Jar::class) {
     from(sourceSets.main.get().output)
     // Exclude properties files from this project as they are not needed for the executable JAR
     exclude("gradle-*-classpath.properties")
-    exclude("gradle-*-parameter-names.properties")
 }
 
 // Using Gr8 plugin with ProGuard to minify the wrapper JAR.
@@ -81,7 +80,6 @@ gr8 {
         exclude("META-INF/.*")
         // Exclude properties files from dependency subprojects
         exclude("gradle-.*-classpath.properties")
-        exclude("gradle-.*-parameter-names.properties")
     }
 }
 

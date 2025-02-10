@@ -353,7 +353,6 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             apiJars,
             emptyList(),
             { true },
-            fixtureParameterNamesSupplier,
             { null }
         )
 
@@ -431,38 +430,6 @@ class GradleApiExtensionsTest : TestWithClassPath() {
     private
     fun hashTargetTypeSourceName(sourceName: String): String =
         Hashing.hashString(sourceName).toCompactString()
-}
-
-
-private
-val fixtureParameterNamesSupplier = { key: String ->
-    when {
-        key.startsWith("${ClassToKClass::class.qualifiedName}.") -> when {
-            key.contains("Class(") -> listOf("type")
-            key.contains("Classes(") -> listOf("types")
-            else -> null
-        }
-
-        key.startsWith("${GroovyNamedArguments::class.qualifiedName}.") -> when {
-            key.contains("Map(") -> listOf("args")
-            key.contains("Parameters(") -> listOf("args", "foo", "bar")
-            else -> null
-        }
-
-        key.startsWith("${ClassAndGroovyNamedArguments::class.qualifiedName}.") -> when {
-            key.contains("mapAndClass(") -> listOf("args", "type")
-            key.contains("mapAndClassAndVarargs(") -> listOf("args", "type", "options")
-            key.contains("mapAndClassAndSAM(") -> listOf("args", "type", "action")
-            else -> null
-        }
-
-        key.startsWith("${ClassToKClassParameterizedType::class.qualifiedName}.") -> when {
-            key.contains("Class(") -> listOf("type", "list")
-            else -> null
-        }
-
-        else -> null
-    }
 }
 
 

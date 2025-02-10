@@ -22,7 +22,10 @@ plugins {
 
 description = "Java 6-compatible entry point of the `gradle` command. Bootstraps the implementation in :gradle-cli."
 
-gradlebuildJava.usedForStartup()
+gradlebuildJava {
+    usedForStartup()
+    usesIncompatibleDependencies = true
+}
 
 app {
     mainClassName = "org.gradle.launcher.GradleMain"
