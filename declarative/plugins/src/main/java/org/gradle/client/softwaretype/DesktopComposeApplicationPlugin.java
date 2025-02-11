@@ -2,6 +2,7 @@ package org.gradle.client.softwaretype;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.experimental.kmp.StandaloneKmpApplicationPlugin;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 
 @SuppressWarnings("UnstableApiUsage")
@@ -12,7 +13,8 @@ public abstract class DesktopComposeApplicationPlugin implements Plugin<Project>
     public abstract DesktopComposeApplication getDesktopComposeApp();
 
     @Override
-    public void apply(Project target) {
-
+    public void apply(Project project) {
+        DesktopComposeApplication dslModel = getDesktopComposeApp();
+        StandaloneKmpApplicationPlugin.PluginWiring.wirePlugin(project, dslModel.getKotlinApplication());
     }
 }

@@ -8,6 +8,7 @@ gradle-tooling = "8.12-20241009055624+0000"
 declarative-dsl = "8.12-20241009055624+0000"
 sqldelight = "2.0.2"
 ktor = "2.3.12"
+junit-jupiter = "5.11.4"
 
 [libraries]
 kotlin-bom = { module = "org.jetbrains.kotlin:kotlin-bom", version.ref = "kotlin" }
@@ -34,6 +35,7 @@ filekit-compose = { module = "io.github.vinceglb:filekit-compose", version = "0.
 slf4j-api = { module = "org.slf4j:slf4j-api", version = "2.0.14" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version = "1.5.6" }
 junit-junit = { module = "junit:junit", version = "4.13.2" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform" }

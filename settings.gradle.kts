@@ -24,7 +24,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.8.0")
 
     id("org.gradle.experimental.kmp-ecosystem").version("0.1.37")
-
     id("org.gradle.client.ecosystem.custom-ecosystem")
 }
 
