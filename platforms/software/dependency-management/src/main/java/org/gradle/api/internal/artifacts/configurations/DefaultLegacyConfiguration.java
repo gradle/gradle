@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.LegacyConfiguration;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -62,6 +63,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         ResolveExceptionMapper exceptionMapper,
         AttributeDesugaring attributeDesugaring,
         UserCodeApplicationContext userCodeApplicationContext,
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
         WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
@@ -88,6 +90,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             exceptionMapper,
             attributeDesugaring,
             userCodeApplicationContext,
+            collectionCallbackActionDecorator,
             projectStateRegistry,
             workerThreadRegistry,
             domainObjectCollectionFactory,

@@ -15,9 +15,13 @@
  */
 package org.gradle.integtests.resolve.api
 
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
 import spock.lang.Issue
 
 class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -239,6 +243,84 @@ project.status = 'foo'
                 }
             }
         }
+    }
+
+    def "defaultDependencies deprecations are properly attributed to source plugin"() {
+        BuildOperationsFixture buildOps = new BuildOperationsFixture(executer, temporaryFolder)
+
+        settingsFile << """
+            includeBuild("plugin")
+        """
+
+        file("plugin/build.gradle") << """
+            plugins {
+                id("java-gradle-plugin")
+            }
+
+            gradlePlugin {
+                plugins {
+                    transformPlugin {
+                        id = "com.example.plugin"
+                        implementationClass = "com.example.ExamplePlugin"
+                    }
+                }
+            }
+        """
+
+        file("plugin/src/main/java/com/example/ExamplePlugin.java") << """
+            package com.example;
+
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import ${DeprecationLogger.name};
+
+            public class ExamplePlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getConfigurations().configureEach(conf -> {
+                        conf.defaultDependencies(deps -> {
+                            DeprecationLogger.deprecate("foo")
+                                .willBecomeAnErrorInGradle10()
+                                .undocumented()
+                                .nagUser();
+                        });
+                    });
+                }
+            }
+        """
+
+        buildFile.text = """
+            plugins {
+                id("com.example.plugin")
+            }
+
+            configurations {
+                create("deps")
+            }
+
+            task resolve {
+                // triggers `defaultDependencies`
+                def root = configurations.deps.incoming.resolutionResult.rootComponent
+                doLast {
+                    root.get()
+                }
+            }
+        """
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds("resolve")
+
+        then:
+        def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
+        deprecationOperations.findAll { op ->
+            if (!op.details.containsKey("applicationId")) {
+                return false
+            }
+            def pluginId = op.details["applicationId"]
+            def pluginOperations = buildOps.all(org.gradle.api.internal.plugins.ApplyPluginBuildOperationType)
+            def associatedPlugins = pluginOperations.findAll { it.details.applicationId == pluginId }
+            associatedPlugins.size() == 1 && associatedPlugins[0].details.pluginId == "com.example.plugin"
+        }.size() == 1
     }
 
     def "fails if beforeResolve used to add dependencies to observed configuration"() {
