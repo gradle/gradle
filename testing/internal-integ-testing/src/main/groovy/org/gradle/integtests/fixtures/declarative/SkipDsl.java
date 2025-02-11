@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
 @Repeatable(SkipDsl.List.class)
 public @interface SkipDsl {
     GradleDsl dsl();
-    String because() default "";
+    String because();
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.METHOD)
