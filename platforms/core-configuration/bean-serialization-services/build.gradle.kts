@@ -40,6 +40,7 @@ dependencies {
     implementation(projects.coreApi)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.modelReflect)
+    implementation(projects.logging)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibKotlinExtensions)
 
