@@ -34,7 +34,7 @@ import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PluginIdLocation;
 import org.gradle.api.problems.internal.ProblemSummaryData;
-import org.gradle.api.problems.internal.TaskPathLocation;
+import org.gradle.api.problems.internal.TaskLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultContextualLabel;
@@ -190,8 +190,8 @@ public class ProblemsProgressEventUtils {
             } else if (location instanceof PluginIdLocation) {
                 PluginIdLocation pluginLocation = (PluginIdLocation) location;
                 return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
-            } else if (location instanceof TaskPathLocation) {
-                TaskPathLocation taskLocation = (TaskPathLocation) location;
+            } else if (location instanceof TaskLocation) {
+                TaskLocation taskLocation = (TaskLocation) location;
                 return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
             } else {
                 throw new RuntimeException("No mapping defined for " + location.getClass().getName());

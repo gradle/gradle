@@ -91,8 +91,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName == "Deprecation"
             definition.id.group.name == "deprecation"
             definition.severity == Severity.WARNING
-            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : 1)
-            (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
+            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : targetVersion < GradleVersion.version('8.14') ? 1 : 2)
+            (locations[0] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
     }
@@ -121,7 +121,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.documentationLink?.url == expectedDocumentation
             locations.size() >= 2
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
             if (targetVersion >= GradleVersion.version("8.12")) {
                 assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
             }
@@ -323,5 +323,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     static def failureMessage(failure) {
         failure instanceof Failure ? failure?.message : failure?.failure?.message
+    }
+
+    static String buildFileLocation(File buildFile, GradleVersion targetVersion) {
+        targetVersion.baseVersion >= GradleVersion.version("8.14")
+            ? buildFile.path
+            : "build file '$buildFile.path'"
     }
 }

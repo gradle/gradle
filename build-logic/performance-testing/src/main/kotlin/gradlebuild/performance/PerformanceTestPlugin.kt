@@ -190,7 +190,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             reportDir = project.layout.buildDirectory.dir(this@configureEach.name)
             databaseParameters = project.propertiesForPerformanceDb
             branchName = buildBranch
-            channel = project.performanceChannel.get()
+            channel = project.performanceChannel
             val prefix = channel.map { channelName ->
                 val osIndependentPrefix = if (channelName.startsWith("flakiness-detection")) {
                     "flakiness-detection"

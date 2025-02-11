@@ -16,16 +16,15 @@
 
 package model
 
-import com.alibaba.fastjson.JSON
-import com.alibaba.fastjson.JSONArray
-import com.alibaba.fastjson.JSONObject
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import common.Os
 import configurations.PerformanceTest
 import jetbrains.buildServer.configs.kotlin.BuildStep
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 import java.io.File
-import java.nio.charset.StandardCharsets
 import java.util.LinkedList
 import java.util.Locale
 
@@ -40,6 +39,8 @@ const val MAX_TEST_PROJECTS_PER_BUCKET = 10
 data class PerformanceTestSpec(val performanceTestType: PerformanceTestType, val os: Os)
 
 class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildModel, performanceTestDurationsJson: File, performanceTestsCiJson: File) : PerformanceTestBucketProvider {
+    private
+    val objectMapper = ObjectMapper().registerKotlinModule()
     private
     val performanceTestConfigurations = readPerformanceTestConfigurations(performanceTestsCiJson)
     private
@@ -62,46 +63,47 @@ class StatisticsBasedPerformanceTestBucketProvider(private val model: CIBuildMod
         }
     }
 
-    private
-    fun readPerformanceTestDurations(performanceTestDurationsJson: File): OperatingSystemToTestProjectPerformanceTestDurations {
-        val durations = JSON.parseArray(performanceTestDurationsJson.readText(StandardCharsets.UTF_8))
-        val pairs = durations.flatMap { it ->
-            val scenarioDurations = it as JSONObject
-            val scenario = Scenario.fromTestId(scenarioDurations["scenario"] as String)
-            (scenarioDurations["durations"] as JSONArray).flatMap {
-                val duration = it as JSONObject
-                val testProject = duration["testProject"] as String
-                duration.entries
-                    .filter { (key, _) -> key != "testProject" }
-                    .map { (osString, timeInMs) ->
-                        val os = Os.valueOf(osString.uppercase(Locale.US))
-                        val performanceTestDuration = PerformanceTestDuration(scenario, timeInMs as Int)
-                        os to (testProject to performanceTestDuration)
-                    }
+    private fun readPerformanceTestDurations(performanceTestDurationsJson: File): OperatingSystemToTestProjectPerformanceTestDurations {
+        val durations: List<Map<String, Any>> = objectMapper.readValue(performanceTestDurationsJson)
+        val pairs =
+            durations.flatMap { scenarioDurations ->
+                val scenario = Scenario.fromTestId(scenarioDurations["scenario"] as String)
+                (scenarioDurations["durations"] as List<Map<String, Any>>).flatMap { duration ->
+                    val testProject = duration["testProject"] as String
+                    duration.entries
+                        .filter { (key, _) -> key != "testProject" }
+                        .map { (osString, timeInMs) ->
+                            val os = Os.valueOf(osString.uppercase(Locale.US))
+                            val performanceTestDuration = PerformanceTestDuration(scenario, (timeInMs as Number).toInt())
+                            os to (testProject to performanceTestDuration)
+                        }
+                }
             }
-        }
-        return pairs.groupBy({ it.first }, { it.second })
+        return pairs
+            .groupBy({ it.first }, { it.second })
             .mapValues { entry -> entry.value.groupBy({ it.first }, { it.second }) }
     }
 
-    private
-    fun readPerformanceTestConfigurations(performanceTestsCiJson: File): List<PerformanceTestConfiguration> {
-        val performanceTestsCiJsonObj = JSON.parseObject(performanceTestsCiJson.readText(StandardCharsets.UTF_8)) as JSONObject
+    private fun readPerformanceTestConfigurations(performanceTestsCiJson: File): List<PerformanceTestConfiguration> {
+        val performanceTestsCiJsonObj: Map<String, List<Map<String, Any>>> = objectMapper.readValue(performanceTestsCiJson)
 
-        return (performanceTestsCiJsonObj["performanceTests"] as JSONArray).map {
-            val scenarioObj = it as JSONObject
+        return performanceTestsCiJsonObj["performanceTests"]!!.map { scenarioObj ->
             val testId = scenarioObj["testId"] as String
-            val groups = (scenarioObj["groups"] as JSONArray).map {
-                val groupObj = it as JSONObject
-                val testProject = groupObj["testProject"] as String
-                val coverage = (groupObj["coverage"] as JSONObject).map { entry ->
-                    val performanceTestType = PerformanceTestType.valueOf(entry.key as String)
-                    performanceTestType to (entry.value as JSONArray).map {
-                        Os.valueOf((it as String).uppercase(Locale.US))
-                    }.toSet()
-                }.toMap()
-                PerformanceTestGroup(testProject, coverage)
-            }
+            val groups =
+                (scenarioObj["groups"] as List<Map<String, Any>>).map { groupObj ->
+                    val testProject = groupObj["testProject"] as String
+                    val coverage =
+                        (groupObj["coverage"] as Map<String, List<String>>)
+                            .map { (key, value) ->
+                                val performanceTestType = PerformanceTestType.valueOf(key)
+                                performanceTestType to
+                                    value
+                                        .map {
+                                            Os.valueOf(it.uppercase(Locale.US))
+                                        }.toSet()
+                            }.toMap()
+                    PerformanceTestGroup(testProject, coverage)
+                }
             PerformanceTestConfiguration(testId, groups)
         }
     }

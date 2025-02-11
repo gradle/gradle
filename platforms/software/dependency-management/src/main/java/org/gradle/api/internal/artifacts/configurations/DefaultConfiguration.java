@@ -1130,8 +1130,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 conf.outgoing.preventFromFurtherMutation();
                 conf.preventUsageMutation();
                 conf.observationReason = () -> {
-                    String target = conf == this ? "it" : "it's child " + this.getDisplayName();
-                    return target + " has been " + reason;
+                    String target = conf == this ? "the configuration" : "the configuration's child " + this.getDisplayName();
+                    return target + " was " + reason;
                 };
             }
         });
@@ -1374,8 +1374,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         // we forbid any mutation that mutates the public state. The resolution strategy does
         // not mutate the public state of the configuration, so we allow it.
         if (observationReason != null && type != MutationType.STRATEGY) {
-            DeprecationLogger.deprecateBehaviour(String.format("Mutating the %s of %s after %s.", typeDescription, this.getDisplayName(), observationReason.get()))
-                .withAdvice("After a Configuration has been resolved, consumed as a variant, or used for generating published metadata, it should not be modified.")
+            String verb = type.isPlural() ? "were" : "was";
+            DeprecationLogger.deprecateBehaviour("Mutating a configuration after it has been resolved, consumed as a variant, or used for generating published metadata.")
+                .withContext(String.format("The %s of %s %s mutated after %s.", typeDescription, this.getDisplayName(), verb, observationReason.get()))
+                .withAdvice("After a configuration has been observed, it should not be modified.")
                 .willBecomeAnErrorInGradle9()
                 .withUpgradeGuideSection(8, "mutate_configuration_after_locking")
                 .nagUser();
@@ -1567,8 +1569,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @SuppressWarnings("deprecation")
     private void assertUsageIsMutable() {
         if (!usageCanBeMutated) {
-            // Don't print role message for legacy role - users might not have actively chosen this role
-            if (roleAtCreation != ConfigurationRoles.LEGACY) {
+            // Don't print role message for configurations with all usages - users might not have actively chosen this role
+            if (roleAtCreation != ConfigurationRoles.ALL) {
                 throw new GradleException(
                     String.format("Cannot change the allowed usage of %s, as it was locked upon creation to the role: '%s'.\n" +
                             "This role permits the following usage:\n" +
@@ -1599,7 +1601,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
      * thereafter.
      */
     private void maybeWarnOnChangingUsage(String methodName, boolean current, boolean newValue) {
-        if (isInLegacyRole()) {
+        if (hasAllUsages()) {
+            // We currently allow configurations with all usages -- those that are created with
+            // `create` and `register` -- to have mutable roles. This is likely to change in the future
+            // when we deprecate any configuration with mutable roles.
             return;
         }
 
@@ -1634,8 +1639,8 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @SuppressWarnings("deprecation")
-    private boolean isInLegacyRole() {
-        return roleAtCreation == ConfigurationRoles.LEGACY;
+    private boolean hasAllUsages() {
+        return roleAtCreation == ConfigurationRoles.ALL;
     }
 
     @Override

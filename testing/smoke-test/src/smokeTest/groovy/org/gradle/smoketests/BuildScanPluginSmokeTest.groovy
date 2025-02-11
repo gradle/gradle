@@ -35,28 +35,23 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     enum CI {
         TEAM_CITY(
             AbstractSmokeTest.TestedVersions.teamCityGradlePluginRef,
-            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle",
-            "teamCityBuildScanPlugin"
+            "https://raw.githubusercontent.com/etiennestuder/teamcity-build-scan-plugin/%s/agent/src/main/resources/build-scan-init.gradle"
         ),
         JENKINS(
             AbstractSmokeTest.TestedVersions.jenkinsGradlePluginRef,
-            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle",
-            "jenkinsGradlePlugin"
+            "https://raw.githubusercontent.com/jenkinsci/gradle-plugin/%s/src/main/resources/hudson/plugins/gradle/injection/init-script.gradle"
         ),
         BAMBOO(
             AbstractSmokeTest.TestedVersions.bambooGradlePluginRef,
-            "https://raw.githubusercontent.com/gradle/gradle-enterprise-bamboo-plugin/%s/src/main/resources/gradle-enterprise/gradle/gradle-enterprise-init-script.gradle",
-            "ge-plugin"
+            "https://raw.githubusercontent.com/gradle/develocity-bamboo-plugin/refs/tags/%s/src/main/resources/develocity/gradle/develocity-init-script.gradle"
         );
 
         String gitRef
         String urlTemplate
-        String propPrefix
 
-        CI(String gitRef, String urlTemplate, String propPrefix) {
+        CI(String gitRef, String urlTemplate) {
             this.gitRef = gitRef
             this.urlTemplate = urlTemplate
-            this.propPrefix = propPrefix
         }
 
         String getUrl() {
@@ -365,11 +360,20 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
         file(initScript) << getCiInjectionScriptContent(ci)
 
         // URL is not relevant as long as it's valid due to the `-Dscan.dump` parameter
-        file("gradle.properties") << """
-            systemProp.${ci.propPrefix}.gradle-enterprise.plugin.version=$pluginVersion
-            systemProp.${ci.propPrefix}.init-script.name=$initScript
-            systemProp.${ci.propPrefix}.gradle-enterprise.url=http://localhost:5086
-        """.stripIndent()
+        if (ci == CI.TEAM_CITY) { // TeamCity does not support the new style yet
+            file("gradle.properties") << """
+                systemProp.teamCityBuildScanPlugin.gradle-enterprise.plugin.version=$pluginVersion
+                systemProp.teamCityBuildScanPlugin.init-script.name=$initScript
+                systemProp.teamCityBuildScanPlugin.gradle-enterprise.url=http://localhost:5086
+            """.stripIndent()
+        } else {
+            file("gradle.properties") << """
+                systemProp.develocity.plugin.version=$pluginVersion
+                systemProp.develocity.injection.init-script-name=$initScript
+                systemProp.develocity.url=http://localhost:5086
+                systemProp.develocity.injection-enabled=true
+            """.stripIndent()
+        }
 
         setupLocalBuildCache()
         setupJavaProject()
@@ -384,8 +388,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             }
         }
 
-        expect:
-        scanRunner("--init-script", initScript)
+        when:
+        def result = scanRunner("--init-script", initScript)
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin:")
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
@@ -394,33 +398,36 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "WARNING: The following functionality has been deprecated and will be removed in the next major release of the Develocity Gradle plugin. Run with '-Ddevelocity.deprecation.captureOrigin=true' to see where the deprecated functionality is being used. " +
                     "For assistance with migration, see https://gradle.com/help/gradle-plugin-develocity-migration.")
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.server\" API has been replaced by \"develocity.server\"")
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.allowUntrustedServer\" API has been replaced by \"develocity.allowUntrustedServer\"")
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.buildScan.uploadInBackground\" API has been replaced by \"develocity.buildScan.uploadInBackground\"")
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber,
                 "- The deprecated \"gradleEnterprise.buildScan.value\" API has been replaced by \"develocity.buildScan.value\"")
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_UNDER_DEVELOCITY_BRAND <= versionNumber && ci == CI.TEAM_CITY,
                 "- The deprecated \"gradleEnterprise.buildScan.buildScanPublished\" API has been replaced by \"develocity.buildScan.buildScanPublished\"")
-            .expectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+            .maybeExpectLegacyDeprecationWarningIf(FIRST_VERSION_SUPPORTING_CHECK_IN_SERVICE <= versionNumber && versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "Gradle Enterprise plugin $pluginVersion has been deprecated. " +
                     "Starting with Gradle 9.0, only Gradle Enterprise plugin 3.13.1 or newer is supported. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#unsupported_ge_plugin_3.13"
             )
-            .expectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
+            .maybeExpectLegacyDeprecationWarningIf(versionNumber < FIRST_VERSION_CALLING_BUILD_PATH,
                 "The BuildIdentifier.getName() method has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Use getBuildPath() to get a unique identifier for the build. " +
                     "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation"
-            ).expectLegacyDeprecationWarning(
-            "Space-assignment syntax in Groovy DSL has been deprecated. " +
+            ).maybeExpectLegacyDeprecationWarning(
+            "Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated. " +
                 "This is scheduled to be removed in Gradle 10.0. " +
                 "Use assignment ('url = <value>') instead. " +
                 "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#groovy_space_assignment_syntax"
             )
-            .build().output.contains("Build scan written to")
+            .build()
+
+        then:
+        result.output.contains("Build scan written to")
 
         where:
         [ci, pluginVersion] << [CI.values(), SUPPORTED_BY_CI_INJECTION].combinations()

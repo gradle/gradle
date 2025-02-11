@@ -17,21 +17,21 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.NonNullApi;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+/**
+ * A factory for creating low level {@link ClientExecHandleBuilder} instances.
+ *
+ * This is very low level process API factory. It is not intended to be used directly except in very specific cases.
+ * For starting a process prefer using ExecFactory.
+ */
 @NonNullApi
-@ServiceScope({Scope.Global.class, Scope.BuildSession.class})
+@ServiceScope({Scope.Global.class})
 public interface ClientExecHandleBuilderFactory {
 
     /**
      * Returns a new {@link ClientExecHandleBuilder} to build a new {@link ExecHandle}.
      */
     ClientExecHandleBuilder newExecHandleBuilder();
-
-    /**
-     * Returns a new instance of this factory with the given file resolver.
-     */
-    ClientExecHandleBuilderFactory withFileResolver(PathToFileResolver fileResolver);
 }

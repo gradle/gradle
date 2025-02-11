@@ -65,6 +65,15 @@ public class DefaultWorkExecutionTracker implements WorkExecutionTracker, Closea
     }
 
     @Override
+    public Optional<TaskInternal> getCurrentTask(OperationIdentifier id) {
+        return buildOperationAncestryTracker
+            .findClosestExistingAncestor(
+                id,
+                operationListener.runningTasks::get
+            );
+    }
+
+    @Override
     public boolean isExecutingTransformAction() {
         return buildOperationAncestryTracker.findClosestMatchingAncestor(
             currentBuildOperationRef.getId(), operationListener.runningTransformActions::contains

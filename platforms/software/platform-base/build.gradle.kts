@@ -25,6 +25,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
+    implementation(projects.modelReflect)
 
     implementation(libs.commonsLang)
 

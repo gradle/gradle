@@ -138,7 +138,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (location == null) {
             return;
         }
-        deprecationProblemBuilder.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        deprecationProblemBuilder.lineInFileLocation(location.getFilePath(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

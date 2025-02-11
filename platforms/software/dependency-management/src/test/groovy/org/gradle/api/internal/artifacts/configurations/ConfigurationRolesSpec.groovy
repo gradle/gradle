@@ -29,7 +29,7 @@ class ConfigurationRolesSpec extends Specification {
 
         where:
         consumable  | resolvable    | declarable        || role
-        true        | true          | true              || ConfigurationRoles.LEGACY
+        true        | true          | true              || ConfigurationRoles.ALL
         true        | false         | false             || ConfigurationRoles.CONSUMABLE
         false       | true          | false             || ConfigurationRoles.RESOLVABLE
         false       | true          | true              || ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE
@@ -56,6 +56,6 @@ class ConfigurationRolesSpec extends Specification {
         ConfigurationRoles.CONSUMABLE                   || "Consumable"
         ConfigurationRoles.RESOLVABLE                   || "Resolvable"
         ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE  || "Resolvable Dependency Scope"
-        ConfigurationRoles.LEGACY                       || "Legacy"
+        ConfigurationRoles.ALL                          || "Legacy"
     }
 }
