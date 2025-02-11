@@ -23,6 +23,7 @@ import org.spockframework.runtime.extension.IMethodInvocation;
 
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -35,9 +36,7 @@ public class DeclarativeDslTestInterceptor extends AbstractMultiTestInterceptor 
 
     public static GradleDsl getCurrentDsl() {
         String property = System.getProperty(DSL_LANGUAGE);
-        if (property == null) {
-            return null;
-        }
+        Objects.requireNonNull(property, "Should be used from tests marked with @" + DeclarativeDslTest.class.getSimpleName());
         return GradleDsl.valueOf(property);
     }
 
@@ -79,9 +78,9 @@ public class DeclarativeDslTestInterceptor extends AbstractMultiTestInterceptor 
         public boolean isTestEnabled(TestDetails testDetails) {
             Annotation[] annotations = testDetails.getAnnotations();
             return Arrays.stream(annotations)
-                .flatMap((Function<Annotation, Stream<?>>) a -> {
+                .flatMap((Function<Annotation, Stream<SkipDsl>>) a -> {
                     if (a instanceof SkipDsl) {
-                        return Streams.of(a);
+                        return Streams.of((SkipDsl) a);
                     } else if (a instanceof SkipDsl.List) {
                         SkipDsl.List al = (SkipDsl.List) a;
                         return Arrays.stream(al.value());
@@ -89,7 +88,7 @@ public class DeclarativeDslTestInterceptor extends AbstractMultiTestInterceptor 
                         return null;
                     }
                 })
-                .noneMatch(annotation -> dsl == ((SkipDsl) annotation).dsl());
+                .noneMatch(annotation -> dsl == annotation.dsl());
         }
     }
 }

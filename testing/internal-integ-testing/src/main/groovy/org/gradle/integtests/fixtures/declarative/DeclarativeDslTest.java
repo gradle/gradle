@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 
 /**
  * Used to mark a test class as a collection of integration tests
- * that should be work both with KTS and DCL build files.
+ * that should be work both with build files of all DSLs.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
