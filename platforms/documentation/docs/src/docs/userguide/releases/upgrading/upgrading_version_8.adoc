@@ -40,6 +40,12 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Changes to Settings level defaults
+
+The `Settings.getDefaults()` incubating method introduced in 8.10 has been removed.
+Use`Settings.defaults(Action<SharedModelDefaults>)` method, taking a lambda, instead.
+The change is driven by the need to interpret such default values in the scope of individual projects and not at Settings level.
+
 === Deprecations
 
 [[deprecated_string_to_enum_coercion_for_rich_properties]]

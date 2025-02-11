@@ -20,7 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.flow.FlowScope;
-import org.gradle.api.initialization.SharedModelDefaults;
+import org.gradle.api.initialization.SharedModelDefaultsStore;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
@@ -48,7 +48,7 @@ import org.gradle.api.internal.initialization.BuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuilder;
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
-import org.gradle.api.internal.initialization.DefaultSharedModelDefaults;
+import org.gradle.api.internal.initialization.DefaultSharedModelDefaultsStore;
 import org.gradle.api.internal.initialization.ScriptClassPathResolver;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
@@ -808,8 +808,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected SharedModelDefaults createSharedModelDefaults(Instantiator instantiator, SoftwareTypeRegistry softwareTypeRegistry) {
-        return instantiator.newInstance(DefaultSharedModelDefaults.class, softwareTypeRegistry);
+    protected SharedModelDefaultsStore createSharedModelDefaultsStore(Instantiator instantiator) {
+        return instantiator.newInstance(DefaultSharedModelDefaultsStore.class);
     }
 
     @Provides

@@ -23,6 +23,7 @@ import org.gradle.api.file.BuildLayout;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.initialization.SharedModelDefaultsStore;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.internal.FeaturePreviews.Feature;
@@ -89,6 +90,8 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     private final ToolchainManagementInternal toolchainManagement;
 
+    private final SharedModelDefaultsStore sharedModelDefaultsStore;
+
     public DefaultSettings(
         ServiceRegistryFactory serviceRegistryFactory,
         GradleInternal gradle,
@@ -110,6 +113,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         this.rootProjectDescriptor = createProjectDescriptor(null, getProjectName(settingsDir), settingsDir);
         this.dependencyResolutionManagement = services.get(DependencyResolutionManagementInternal.class);
         this.toolchainManagement = services.get(ToolchainManagementInternal.class);
+        this.sharedModelDefaultsStore = services.get(SharedModelDefaultsStore.class);
     }
 
     private static String getProjectName(File settingsDir) {
@@ -414,11 +418,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     }
 
     @Override
-    @Inject
-    public abstract SharedModelDefaults getDefaults();
-
-    @Override
     public void defaults(Action<? super SharedModelDefaults> action) {
-        action.execute(getDefaults());
+        sharedModelDefaultsStore.add(action);
     }
 }

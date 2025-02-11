@@ -18,27 +18,31 @@ package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.api.file.ProjectLayout;
 
 /**
- * Shared model defaults for configuring software types.  Defaults apply initial values to the model objects of software types.
+ * Shared model defaults for configuring software types. Defaults apply initial values to the model objects of software types.
  * When a software type plugin is applied to a project, the model object for the software type will be pre-configured with the values
  * set in the default.
  *
  * @since 8.10
  */
 @Incubating
-@ServiceScope(Scope.Build.class)
 public interface SharedModelDefaults {
+
+    /**
+     * TODO: javadoc
+     */
+    ProjectLayout getLayout();
+
     /**
      * Adds a model default for the software type specified by the given name.
      *
      * @param name the name of the software type
      * @param publicType the public type of the software type
      * @param configureAction the action to configure the software type
-     *
      * @since 8.10
      */
-    <T> void add(String name, Class<T> publicType, Action<? super T> configureAction);
+    <T>
+    void add(String name, Class<T> publicType, Action<? super T> configureAction);
 }

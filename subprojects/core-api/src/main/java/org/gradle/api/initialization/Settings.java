@@ -419,16 +419,6 @@ public interface Settings extends PluginAware, ExtensionAware {
     void caches(Action<? super CacheConfigurations> cachesConfiguration);
 
     /**
-     * Returns the model defaults object for this build.
-     *
-     * This is an experimental feature.
-     *
-     * @since 8.10
-     */
-    @Incubating
-    SharedModelDefaults getDefaults();
-
-    /**
      * Configures the model defaults for this build.
      *
      * This is an experimental feature.
