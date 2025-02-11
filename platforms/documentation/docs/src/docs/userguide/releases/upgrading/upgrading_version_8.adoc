@@ -132,6 +132,20 @@ container.attributeProvider(firstAttribute, project.getProviders().provider(() -
 There is no good public use case for this exception, and it is not intended to be thrown by users.
 It will be replaced by `org.gradle.api.internal.artifacts.transform.VariantTransformConfigurationException` for internal use only in Gradle 9.0.
 
+[[deprecated_update_daemon_jvm]]
+==== Deprecated properties in the incubating `UpdateDaemonJvm`
+
+The following properties of `UpdateDaemonJvm` are now deprecated:
+
+* `jvmVersion`
+* `jvmVendor`
+
+They are replaced by `languageVersion` and `vendor` respectively.
+This allows the configuration of a Java toolchain spec and the `UpdateDaemonJvm` task to be interchangeable.
+
+Note that due to the change of type for the vendor property, executing `updateDaemonJvm` with the `jvmVendor` property will result in the task failing.
+See <<gradle_daemon.adoc#sec:specifying_a_jvm_vendor,the documentation>> for the new configuration option.
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
