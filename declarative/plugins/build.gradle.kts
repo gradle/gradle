@@ -17,7 +17,7 @@ gradlePlugin {
 
         create("desktop-compose-application") {
             id = "org.gradle.client.softwaretype.desktop-compose-application"
-            implementationClass = "org.gradle.client.softwaretype.DesktopComposeApplicationPlugin"
+            implementationClass = "org.gradle.client.softwaretype.desktopcompose.DesktopComposeApplicationPlugin"
         }
     }
 }

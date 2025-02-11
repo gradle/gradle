@@ -1,4 +1,4 @@
-package org.gradle.client.softwaretype;
+package org.gradle.client.softwaretype.desktopcompose;
 
 import org.gradle.api.Action;
 import org.gradle.api.experimental.kmp.KmpApplication;

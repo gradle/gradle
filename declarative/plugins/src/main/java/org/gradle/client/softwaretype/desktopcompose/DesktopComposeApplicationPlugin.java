@@ -1,4 +1,4 @@
-package org.gradle.client.softwaretype;
+package org.gradle.client.softwaretype.desktopcompose;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
