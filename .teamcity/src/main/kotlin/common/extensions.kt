@@ -103,8 +103,8 @@ fun Requirements.requiresNotSharedHost() {
  */
 const val hiddenArtifactDestination = ".teamcity/gradle-logs"
 
-fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30) {
-    artifactRules = """
+fun BuildType.applyDefaultSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, buildJvm: Jvm = BuildToolBuildJvm, timeout: Int = 30, artifactRuleOverride: String? = null) {
+    artifactRules = artifactRuleOverride ?: """
         *.psoutput => $hiddenArtifactDestination
         *.threaddump => $hiddenArtifactDestination
         build/report-* => $hiddenArtifactDestination
