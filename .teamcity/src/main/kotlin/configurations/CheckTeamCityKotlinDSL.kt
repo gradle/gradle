@@ -13,7 +13,7 @@ class CheckTeamCityKotlinDSL(model: CIBuildModel, stage: Stage) : OsAwareBaseGra
         name = "CheckTeamCityKotlinDSL"
         description = "Check Kotlin DSL in .teamcity/"
 
-        applyDefaultSettings()
+        applyDefaultSettings(artifactRuleOverride = "")
         steps {
             script {
                 name = "RUN_MAVEN_CLEAN_VERIFY"
