@@ -4,6 +4,10 @@ plugins {
 
 description = "Declarative plugins containing custom software types for the gradle-client project."
 
+dependencies {
+    api(libs.declarative)
+}
+
 gradlePlugin {
     plugins {
         create("custom-ecosystem") {

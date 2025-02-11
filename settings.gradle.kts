@@ -7,7 +7,6 @@ pluginManagement {
     includeBuild("../now-in-android/declarative-gradle/unified-prototype/unified-plugin")
 
     repositories {
-        mavenCentral()
         gradlePluginPortal {
             content {
                 includeGroupAndSubgroups("com.gradle")
@@ -15,6 +14,7 @@ pluginManagement {
                 includeGroupAndSubgroups("io.github.gradle")
             }
         }
+        mavenCentral()
     }
 }
 

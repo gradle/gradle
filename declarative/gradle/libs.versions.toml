@@ -1,0 +1,8 @@
+[versions]
+declarative = "0.1.37"
+
+[libraries]
+declarative = { module = "org.gradle.experimental.kmp-ecosystem:org.gradle.experimental.kmp-ecosystem.gradle.plugin", version.ref = "declarative" }
+
+[plugins]
+declarative = { id = "org.gradle.client.ecosystem.custom-ecosystem", version.ref = "declarative" }
