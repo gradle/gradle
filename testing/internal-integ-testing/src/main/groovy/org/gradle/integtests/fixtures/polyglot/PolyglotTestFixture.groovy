@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures.polyglot
 
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
-abstract class KotlinScriptIntegrationTest extends AbstractIntegrationSpec {
+trait PolyglotTestFixture {
 
-    @Override
-    TestFile getBuildFile() {
-        return super.getBuildKotlinFile()
+    TestFile buildFile() {
+        getBuildFile(PolyglotDslTestInterceptor.currentDsl)
     }
 
-    def setup() {
-        settingsFile << "rootProject.buildFileName = '${buildFile.name}'"
+    TestFile buildFileForProject(String project) {
+        getBuildFile(PolyglotDslTestInterceptor.currentDsl, project)
     }
 
-    protected void withKotlinBuildSrc() {
-        file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
+    TestFile settingsFile() {
+        getSettingsFile(PolyglotDslTestInterceptor.currentDsl)
     }
+
+    GradleDsl currentDsl() {
+        PolyglotDslTestInterceptor.currentDsl
+    }
+
 }

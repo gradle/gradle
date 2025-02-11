@@ -288,8 +288,8 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         where:
         scriptType      | scriptBlock   | scriptFileName
-        "project build" | 'buildscript' | getDefaultBuildFileName()
-        "script plugin" | 'buildscript' | "scriptPlugin.gradle"
+        "project build" | 'buildscript' | 'build.gradle'
+        "script plugin" | 'buildscript' | 'scriptPlugin.gradle'
         "settings"      | 'buildscript' | 'settings.gradle'
         "init"          | 'initscript'  | 'init.gradle'
     }
