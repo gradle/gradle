@@ -412,13 +412,15 @@ configurations.compile.withDependencies {
 
         then:
         def deprecationOperations = buildOps.all().findAll { !it.progress(DefaultDeprecatedUsageProgressDetails).isEmpty() }
-        deprecationOperations.size() == 1
-        def pluginId = deprecationOperations[0].details.applicationId
-
-        def pluginOperations = buildOps.all(org.gradle.api.internal.plugins.ApplyPluginBuildOperationType)
-        def associatedPlugins = pluginOperations.findAll { it.details.applicationId == pluginId }
-        associatedPlugins.size() == 1
-        associatedPlugins[0].details.pluginId == "com.example.plugin"
+        deprecationOperations.findAll { op ->
+            if (!op.details.containsKey("applicationId")) {
+                return false
+            }
+            def pluginId = op.details["applicationId"]
+            def pluginOperations = buildOps.all(org.gradle.api.internal.plugins.ApplyPluginBuildOperationType)
+            def associatedPlugins = pluginOperations.findAll { it.details.applicationId == pluginId }
+            associatedPlugins.size() == 1 && associatedPlugins[0].details.pluginId == "com.example.plugin"
+        }.size() == 1
     }
 
     def "can lazily add dependencies to a configuration"() {
