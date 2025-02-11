@@ -31,6 +31,7 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.fileCollections)
     implementation(projects.fileOperations)
+    implementation(projects.persistentCache)
     implementation(projects.time)
     implementation(projects.serviceRegistryBuilder)
 
