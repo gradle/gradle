@@ -17,8 +17,9 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
-import org.gradle.integtests.fixtures.declarative.SkipDsl
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.hamcrest.Matchers
@@ -26,8 +27,8 @@ import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
 
-@DeclarativeDslTest
-class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotBuildFilesFixture {
+@PolyglotDslTest
+class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
     @Rule
     MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 

@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.settings
+package org.gradle.integtests.fixtures.polyglot
 
-import org.gradle.integtests.fixtures.declarative.DeclarativeDslTestInterceptor
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
-trait PolyglotBuildFilesFixture {
+trait PolyglotTestFixture {
 
     TestFile buildFile() {
-        getBuildFile(DeclarativeDslTestInterceptor.currentDsl)
+        getBuildFile(PolyglotDslTestInterceptor.currentDsl)
     }
 
     TestFile buildFileForProject(String project) {
-        getBuildFile(DeclarativeDslTestInterceptor.currentDsl, project)
+        getBuildFile(PolyglotDslTestInterceptor.currentDsl, project)
     }
 
     TestFile settingsFile() {
-        getSettingsFile(DeclarativeDslTestInterceptor.currentDsl)
+        getSettingsFile(PolyglotDslTestInterceptor.currentDsl)
     }
 
     GradleDsl currentDsl() {
-        DeclarativeDslTestInterceptor.currentDsl
+        PolyglotDslTestInterceptor.currentDsl
     }
 
 }

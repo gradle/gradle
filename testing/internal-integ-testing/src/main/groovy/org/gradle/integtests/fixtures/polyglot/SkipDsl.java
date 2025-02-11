@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures.declarative;
+package org.gradle.integtests.fixtures.polyglot;
 
 import org.gradle.test.fixtures.dsl.GradleDsl;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -29,14 +30,16 @@ import java.lang.annotation.Target;
  * to be run with a certain DSL and specifying the reason.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Repeatable(SkipDsl.List.class)
+@Inherited
 public @interface SkipDsl {
     GradleDsl dsl();
     String because();
 
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.METHOD)
+    @Target({ElementType.METHOD, ElementType.TYPE})
+    @Inherited
     @interface List {
         /**
          * Return the repeatable annotations.

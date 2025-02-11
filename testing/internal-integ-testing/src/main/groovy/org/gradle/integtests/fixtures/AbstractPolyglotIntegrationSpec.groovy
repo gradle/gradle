@@ -18,8 +18,10 @@ package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
-import org.gradle.integtests.fixtures.polyglot.PolyglotDslTestInterceptor
 import org.gradle.integtests.fixtures.polyglot.MultiProjectBuilder
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 /**
  * An integration test which allows testing build scripts with both the
@@ -27,12 +29,13 @@ import org.gradle.integtests.fixtures.polyglot.MultiProjectBuilder
  */
 @CompileStatic
 @PolyglotDslTest
-class AbstractPolyglotIntegrationSpec extends AbstractIntegrationSpec {
+@SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "Declarative DSL needs more feature in order to run these tests")
+class AbstractPolyglotIntegrationSpec extends AbstractIntegrationSpec implements PolyglotTestFixture {
 
     private MultiProjectBuilder projectBuilder
 
     def setup() {
-        projectBuilder = new MultiProjectBuilder(PolyglotDslTestInterceptor.currentDsl, testDirectory)
+        projectBuilder = new MultiProjectBuilder(currentDsl(), testDirectory)
     }
 
     /**

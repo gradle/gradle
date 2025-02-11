@@ -19,12 +19,13 @@ package org.gradle.internal.declarativedsl.settings
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
-import org.gradle.integtests.fixtures.declarative.DeclarativeDslTest
-import org.gradle.integtests.fixtures.declarative.SkipDsl
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 
-@DeclarativeDslTest
-class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotBuildFilesFixture {
+@PolyglotDslTest
+class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
     def setup() {
         file("gradle.properties") << """
             org.gradle.kotlin.dsl.dcl=true
