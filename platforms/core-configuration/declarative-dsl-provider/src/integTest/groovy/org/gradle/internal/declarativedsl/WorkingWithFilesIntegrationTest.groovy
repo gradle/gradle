@@ -18,16 +18,18 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
-import org.gradle.integtests.fixtures.polyglot.SkipDsl
 import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
-import org.gradle.test.fixtures.dsl.GradleDsl
 
 @PolyglotDslTest
 class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
 
-    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Support for project layout in defaults block not yet implemented for Kotlin DSL") // TODO
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Support for project layout in defaults block not yet implemented for Groovy DSL") // TODO
+    def setup() {
+        file("gradle.properties") << """
+            org.gradle.kotlin.dsl.dcl=true
+        """
+    }
+
     def 'set #name'() {
         given:
         withSoftwareTypePlugins(
