@@ -75,18 +75,6 @@ kotlinApplication {
                     // But we can determine the value of this string at runtime and just hardcode it
                     implementation("org.jetbrains.compose.ui:ui-test-junit4:1.6.11")
                 }
-
-                unitTests {
-                    dependencies {
-                        // TODO: Make some tests here to demo this
-                    }
-                }
-
-                functionalTests {
-                    dependencies {
-                        // TODO: Make some tests here to demo this
-                    }
-                }
             }
         }
     }
