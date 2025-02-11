@@ -1,6 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
 pluginManagement {
+    includeBuild("./declarative")
+
     // Check out this project as a sibling to now-in-android, that contains the declarative prototype project to use this
     includeBuild("../now-in-android/declarative-gradle/unified-prototype/unified-plugin")
 
@@ -22,6 +24,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.8.0")
 
     id("org.gradle.experimental.kmp-ecosystem").version("0.1.37")
+
+    id("org.gradle.client.ecosystem.custom-ecosystem")
 }
 
 dependencyResolutionManagement {
