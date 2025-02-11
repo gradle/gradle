@@ -27,6 +27,7 @@ public abstract class GradleCoreProblemGroup {
     private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = ProblemGroup.create("task-selection", "Task selection");
     private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = ProblemGroup.create("dependency-version-catalog", "Version catalog");
     private static final ProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = ProblemGroup.create("dependency-variant-resolution", "Variant resolution");
+    private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
 
     public static CompilationProblemGroup compilation() {
         return COMPILATION_PROBLEM_GROUP;
@@ -56,6 +57,10 @@ public abstract class GradleCoreProblemGroup {
         return VARIANT_RESOLUTION_PROBLEM_GROUP;
     }
 
+    public static DaemonToolchainProblemGroup daemonToolchain() {
+        return DAEMON_TOOLCHAIN_PROBLEM_GROUP;
+    }
+
     public interface CompilationProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup java();
@@ -67,6 +72,11 @@ public abstract class GradleCoreProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup property();
         ProblemGroup type();
+    }
+
+    public interface DaemonToolchainProblemGroup {
+        ProblemGroup thisGroup();
+        ProblemGroup configurationGeneration();
     }
 
     private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
@@ -122,6 +132,22 @@ public abstract class GradleCoreProblemGroup {
         @Override
         public ProblemGroup type() {
             return type;
+        }
+    }
+
+    private static class DefaultDaemonToolchainProblemGroup implements DaemonToolchainProblemGroup {
+
+        private final ProblemGroup thisGroup = ProblemGroup.create("daemon-toolchain", "Daemon toolchain");
+        private final ProblemGroup configurationGeneration = ProblemGroup.create("configuration-generation", "Gradle configuration generation", thisGroup);
+
+        @Override
+        public ProblemGroup thisGroup() {
+            return thisGroup;
+        }
+
+        @Override
+        public ProblemGroup configurationGeneration() {
+            return configurationGeneration;
         }
     }
 }

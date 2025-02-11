@@ -141,6 +141,20 @@ This will become an error in Gradle 10.0.
 
 This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
 
+[[deprecated_update_daemon_jvm]]
+==== Deprecated properties in the incubating `UpdateDaemonJvm`
+
+The following properties of `UpdateDaemonJvm` are now deprecated:
+
+* `jvmVersion`
+* `jvmVendor`
+
+They are replaced by `languageVersion` and `vendor` respectively.
+This allows the configuration of a Java toolchain spec and the `UpdateDaemonJvm` task to be interchangeable.
+
+Note that due to the change of type for the vendor property, executing `updateDaemonJvm` with the `jvmVendor` property will result in the task failing.
+See <<gradle_daemon.adoc#sec:specifying_a_jvm_vendor,the documentation>> for the new configuration option.
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 

@@ -17,7 +17,6 @@
 package org.gradle.internal.watch.registry.impl;
 
 import net.rubygrapefruit.platform.NativeIntegrationUnavailableException;
-import org.gradle.fileevents.FileEvents;
 import org.gradle.fileevents.FileWatchEvent;
 import org.gradle.fileevents.internal.OsxFileEventFunctions;
 import org.gradle.fileevents.internal.OsxFileEventFunctions.OsxFileWatcher;
@@ -34,8 +33,8 @@ import java.util.function.Predicate;
 
 public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory<OsxFileEventFunctions, OsxFileWatcher> {
 
-    public DarwinFileWatcherRegistryFactory(Predicate<String> immutableLocationsFilter) throws NativeIntegrationUnavailableException {
-        super(FileEvents.get(OsxFileEventFunctions.class), immutableLocationsFilter);
+    public DarwinFileWatcherRegistryFactory(FileEventFunctionsLookup fileEvents, Predicate<String> immutableLocationsFilter) throws NativeIntegrationUnavailableException {
+        super(fileEvents.getFileEventFunctions(OsxFileEventFunctions.class), immutableLocationsFilter);
     }
 
     @Override

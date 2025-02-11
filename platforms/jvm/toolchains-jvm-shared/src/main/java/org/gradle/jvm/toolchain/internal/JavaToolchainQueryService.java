@@ -35,6 +35,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainProvisioningService;
+import org.gradle.jvm.toolchain.internal.install.JvmInstallationMetadataMatcher;
 
 import javax.inject.Inject;
 import java.io.File;
