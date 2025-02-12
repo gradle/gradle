@@ -349,7 +349,7 @@ An improper way to share build logic between subprojects is _cross-project confi
 
 TIP:  Avoid using `subprojects {}` and `allprojects {}`.
 
-With <<glossary.adoc#sub:cross_configuration,cross-project configuration>>, build logic can be injected into a subproject which is not obvious when looking at its build script.
+With <<glossary.adoc#sub:terminology_cross_configuration,cross-project configuration>>, build logic can be injected into a subproject which is not obvious when looking at its build script.
 
 In the long run, cross-project configuration usually grows in complexity and becomes a burden.
 Cross-project configuration can also introduce configuration-time coupling between projects, which can prevent optimizations like configuration-on-demand from working properly.
