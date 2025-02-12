@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator
+package org.gradle.api.initialization.internal;
 
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.SharedModelDefaults;
 
+public interface SharedModelDefaultsInternal extends SharedModelDefaults {
+
+    /**
+     * TODO: javadoc
+     */
+    void setProjectLayout(ProjectLayout projectLayout);
+
+    void clearProjectLayout();
+}
