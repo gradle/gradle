@@ -12,14 +12,15 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.files)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.workers)
 
     api(libs.groovy)
