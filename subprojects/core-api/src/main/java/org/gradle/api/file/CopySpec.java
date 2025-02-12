@@ -136,9 +136,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * The strategy to use when trying to copy more than one file to the same destination.
      * Defaults to {@link DuplicatesStrategy#INHERIT}, the strategy inherited from the parent copy spec.
-     *
-     * If the parent copy spec does not have a strategy, the default is {@link DuplicatesStrategy#FAIL}.
-     * This means that if no explicit deduplication strategy is set, but duplicates are found, an error is thrown.
+     * If no explicit deduplication strategy is set, but duplicates are found, an error is thrown.
      */
     void setDuplicatesStrategy(DuplicatesStrategy strategy);
 
