@@ -19,6 +19,9 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.SharedModelDefaults;
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -40,11 +43,22 @@ import javax.annotation.Nullable;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
+
+    private final SharedModelDefaultsInternal sharedModelDefaults;
+    private final ProjectLayout projectLayout;
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
-    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
+    public ActionBasedModelDefaultsHandler(
+        SharedModelDefaults sharedModelDefaults,
+        ProjectLayout projectLayout,
+        SoftwareTypeRegistry softwareTypeRegistry,
+        InspectionScheme inspectionScheme,
+        InternalProblems problems
+    ) {
+        this.sharedModelDefaults = (SharedModelDefaultsInternal) sharedModelDefaults;
+        this.projectLayout = projectLayout;
         this.softwareTypeRegistry = softwareTypeRegistry;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
@@ -61,10 +75,12 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
             new PropertyVisitor() {
                 @Override
                 public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
+                    sharedModelDefaults.setProjectLayout(projectLayout);
                     softwareTypeImplementation.visitModelDefaults(
                         Cast.uncheckedCast(ActionBasedDefault.class),
                         executeActionVisitor(softwareTypeImplementation, value.call())
                     );
+                    sharedModelDefaults.clearProjectLayout();
                 }
             }
         );

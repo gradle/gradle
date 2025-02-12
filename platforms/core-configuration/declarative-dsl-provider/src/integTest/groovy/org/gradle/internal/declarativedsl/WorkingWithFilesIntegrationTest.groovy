@@ -98,6 +98,28 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"    | false
     }
 
+    @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "The situation is prohibited in Declarative DSL via other means")
+    def "using project layout inside the `defaults` block, but outside of software definition sub-blocks throws"() {
+        given:
+        settingsFile() << """
+            defaults {
+                println("layout = \${layout}")
+            }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        if (GradleDsl.KOTLIN == currentDsl()) {
+            failure.assertHasDescription("ProjectLayout should be referenced only inside of software type default configuration blocks")
+        } else if (GradleDsl.GROOVY == currentDsl()) {
+            failure.assertHasCause("ProjectLayout should be referenced only inside of software type default configuration blocks")
+        } else {
+            throw new RuntimeException("Shouldn't happen")
+        }
+    }
+
     private static String getWithFileSystemLocationProperties() {
         """
             package org.gradle.test;

@@ -18,6 +18,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -31,6 +32,12 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @Incubating
 @ServiceScope(Scope.Build.class)
 public interface SharedModelDefaults {
+
+    /**
+     * TODO: javadoc
+     */
+    ProjectLayout getLayout();
+
     /**
      * Adds a model default for the software type specified by the given name.
      *
