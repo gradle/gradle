@@ -25,7 +25,10 @@ import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.CheckoutMode
 
-abstract class BasePromotionBuildType(vcsRootId: String, cleanCheckout: Boolean = true) : BuildType() {
+abstract class BasePromotionBuildType(
+    vcsRootId: String,
+    cleanCheckout: Boolean = true,
+) : BuildType() {
     init {
         vcs {
             root(AbsoluteId(vcsRootId))

@@ -19,26 +19,27 @@ class BuildScanTagUtilsTest {
     }
 
     private val subprojectProvider = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json"))
-    private val model = CIBuildModel(
-        projectId = "Check",
-        branch = VersionedSettingsBranch.fromDslContext(),
-        buildScanTags = listOf("Check"),
-        subprojects = subprojectProvider
-    )
+    private val model =
+        CIBuildModel(
+            projectId = "Check",
+            branch = VersionedSettingsBranch.fromDslContext(),
+            buildScanTags = listOf("Check"),
+            subprojects = subprojectProvider,
+        )
 
     @Test
     fun `test stage tags`() {
         assertEquals(
             "-DbuildScan.PartOf=QuickFeedbackLinuxOnly,QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
-            model.stages[0].getBuildScanCustomValueParam()
+            model.stages[0].getBuildScanCustomValueParam(),
         )
         assertEquals(
             "-DbuildScan.PartOf=QuickFeedback,PullRequestFeedback,ReadyforNightly,ReadyforRelease",
-            model.stages[1].getBuildScanCustomValueParam()
+            model.stages[1].getBuildScanCustomValueParam(),
         )
         assertEquals(
             "-DbuildScan.PartOf=ReadyforRelease",
-            model.stages[4].getBuildScanCustomValueParam()
+            model.stages[4].getBuildScanCustomValueParam(),
         )
     }
 
@@ -46,7 +47,7 @@ class BuildScanTagUtilsTest {
     fun `test functional test project tags`() {
         assertEquals(
             "QuickJava23AdoptiumLinuxAmd64",
-            TestCoverage(1, TestType.quick, Os.LINUX, JvmVersion.java23, JvmVendor.openjdk).asBuildScanCustomValue()
+            TestCoverage(1, TestType.QUICK, Os.LINUX, JvmVersion.JAVA_23, JvmVendor.OPENJDK).asBuildScanCustomValue(),
         )
     }
 }
