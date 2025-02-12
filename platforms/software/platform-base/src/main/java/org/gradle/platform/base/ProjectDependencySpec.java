@@ -17,8 +17,7 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A dependency onto a library published by a project.

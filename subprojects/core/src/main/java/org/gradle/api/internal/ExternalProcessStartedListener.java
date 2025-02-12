@@ -18,8 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @EventScope(Scope.Build.class)
 public interface ExternalProcessStartedListener {

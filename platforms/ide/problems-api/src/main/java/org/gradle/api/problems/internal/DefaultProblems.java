@@ -25,8 +25,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NonNull;
 
 @ServiceScope(Scope.BuildTree.class)
 public class DefaultProblems implements InternalProblems {
@@ -62,7 +61,7 @@ public class DefaultProblems implements InternalProblems {
         return createReporter();
     }
 
-    @Nonnull
+    @NonNull
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,

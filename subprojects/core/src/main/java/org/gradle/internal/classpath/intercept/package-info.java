@@ -17,5 +17,5 @@
 /**
  * Package containing classes related to intercepting calls for Java bytecode and Groovy runtime.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.classpath.intercept;

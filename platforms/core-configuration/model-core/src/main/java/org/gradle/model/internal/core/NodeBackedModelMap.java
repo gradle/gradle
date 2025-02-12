@@ -38,8 +38,8 @@ import org.gradle.model.internal.inspect.ModelElementProjection;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.report.IncompatibleTypeReferenceReporter;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;

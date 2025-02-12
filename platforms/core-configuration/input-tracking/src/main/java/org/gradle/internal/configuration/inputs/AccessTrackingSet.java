@@ -18,9 +18,9 @@ package org.gradle.internal.configuration.inputs;
 
 import com.google.common.collect.ForwardingSet;
 import com.google.common.collect.Iterators;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -65,7 +65,7 @@ class AccessTrackingSet<E> extends ForwardingSet<E> {
     }
 
     @Override
-    public boolean containsAll(@Nonnull Collection<?> collection) {
+    public boolean containsAll(@NonNull Collection<?> collection) {
         boolean result = delegate.containsAll(collection);
         for (Object o : collection) {
             listener.onAccess(o);

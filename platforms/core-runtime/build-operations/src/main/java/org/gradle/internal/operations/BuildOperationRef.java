@@ -16,7 +16,8 @@
 
 package org.gradle.internal.operations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.Serializable;
 
 public interface BuildOperationRef extends Serializable {

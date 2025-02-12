@@ -20,8 +20,8 @@ import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

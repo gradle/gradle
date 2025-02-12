@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Used to signal the end of build to the plugin.

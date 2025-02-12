@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.internal.build.event.types.DefaultTestMetadataDescriptor;
@@ -29,13 +28,14 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Test listener that forwards the test metadata events.
  *
  * This listener adapts build operation test events sent from the build into internal test events shared with the consumer.
  */
-@NonNullApi
+@NullMarked
 /* package */ class ClientForwardingTestMetadataOperationListener implements BuildOperationListener {
     private final ProgressEventConsumer eventConsumer;
     private final BuildOperationIdFactory idFactory;

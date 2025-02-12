@@ -25,7 +25,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(libs.commonsIo)
     implementation(libs.guava)

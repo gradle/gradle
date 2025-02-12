@@ -17,8 +17,8 @@
 package org.gradle.process.internal.util;
 
 import org.gradle.api.InvalidUserDataException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Locale;

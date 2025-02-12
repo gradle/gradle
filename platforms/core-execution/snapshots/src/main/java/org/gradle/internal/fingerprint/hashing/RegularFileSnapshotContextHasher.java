@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint.hashing;
 
 import org.gradle.internal.hash.HashCode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 
 public interface RegularFileSnapshotContextHasher {

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.RegularFile;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * Represents the grouped metadata from a single test metadata event in a binary format that can be serialized to disk.
  */
-@NonNullApi
+@NullMarked
 public final class SerializedMetadata {
     private final long logTime;
     private final ImmutableList<SerializedMetadataElement> metadatas;
@@ -57,7 +57,7 @@ public final class SerializedMetadata {
         return metadatas;
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class SerializedMetadataElement {
         private final String key;
         private final byte[] value;

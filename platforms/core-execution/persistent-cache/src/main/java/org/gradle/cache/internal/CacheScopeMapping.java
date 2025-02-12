@@ -16,7 +16,8 @@
 
 package org.gradle.cache.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.File;
 
 public interface CacheScopeMapping {

@@ -24,7 +24,7 @@ dependencies {
     api(projects.workerMain)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.hashing)
     implementation(projects.requestHandlerWorker)
@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.snapshotsWorker)
     implementation(projects.time)
 
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 

@@ -16,8 +16,8 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 /**

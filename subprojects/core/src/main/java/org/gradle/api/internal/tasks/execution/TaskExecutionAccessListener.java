@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 @EventScope(Scope.Build.class)

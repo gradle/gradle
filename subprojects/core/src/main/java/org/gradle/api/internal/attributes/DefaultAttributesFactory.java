@@ -24,9 +24,9 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -249,7 +249,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
     }
 
-    @Nonnull
+    @NonNull
     private String buildSameNameDifferentTypeErrorMsg(Attribute<?> newAttribute, Attribute<?> oldAttribute) {
         return "Cannot have two attributes with the same name but different types. "
             + "This container already has an attribute named '" + newAttribute.getName() + "' of type '" + oldAttribute.getType().getName()

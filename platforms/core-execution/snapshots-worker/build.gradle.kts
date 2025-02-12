@@ -11,5 +11,5 @@ dependencies {
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 }

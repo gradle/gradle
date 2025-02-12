@@ -18,8 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class ValidatingValueCollector<T> implements ValueCollector<T> {
     private final Class<?> collectionType;

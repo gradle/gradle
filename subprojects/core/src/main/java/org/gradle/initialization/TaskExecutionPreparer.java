@@ -19,8 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Responsible for preparing `Gradle` instances for task execution. The result is passed to a {@link org.gradle.execution.BuildWorkExecutor} for execution. Prior to preparing for task execution, the `Gradle` instance has its projects configured by a {@link org.gradle.configuration.ProjectsPreparer}.

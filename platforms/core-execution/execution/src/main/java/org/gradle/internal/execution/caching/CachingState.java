@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.caching.BuildCacheKey;
 import org.gradle.internal.Either;
 import org.gradle.internal.execution.history.BeforeExecutionState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;

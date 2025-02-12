@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsProvider;
@@ -25,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.HtmlTestReport;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,7 +40,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 /**
  * The implementation of {@link org.gradle.api.tasks.testing.TestReport} from before the introduction of the new generic / non-JVM test report infrastructure.
  */
-@NonNullApi
+@NullMarked
 public class LegacyTestReportGenerator implements TestReportGenerator {
     private static Supplier<TestResultsProvider> createAggregateProvider(FileCollection resultDirs) {
         if (resultDirs.getFiles().size() == 1) {

@@ -18,8 +18,7 @@ package org.gradle.workers.internal;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.classloader.ClassLoaderSpec;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class HierarchicalClassLoaderStructure implements ClassLoaderStructure {
     private final ClassLoaderSpec self;

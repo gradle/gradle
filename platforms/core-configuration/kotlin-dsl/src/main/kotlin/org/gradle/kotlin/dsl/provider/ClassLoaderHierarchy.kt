@@ -126,8 +126,8 @@ fun hierarchyOf(classLoader: ClassLoader): ArrayList<ClassLoaderNode> {
             super.visitParent(classLoader)
         }
 
-        override fun visitClassPath(classPath: Array<out URL?>) {
-            current.classPath.addAll(classPath.filterNotNull())
+        override fun visitClassPath(classPath: Array<out URL>) {
+            current.classPath.addAll(classPath)
         }
 
         private

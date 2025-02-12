@@ -31,9 +31,9 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -89,7 +89,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         }
     }
 
-    @Nonnull
+    @NonNull
     private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
         if (taskIdentity != null) {

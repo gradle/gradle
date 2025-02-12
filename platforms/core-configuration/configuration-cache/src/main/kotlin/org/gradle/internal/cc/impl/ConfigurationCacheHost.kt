@@ -31,5 +31,5 @@ interface ConfigurationCacheHost : HostServiceProvider {
 
     fun visitBuilds(visitor: (VintageGradleBuild) -> Unit)
 
-    fun <T> factory(serviceType: Class<T>): Factory<T>
+    fun <T : Any> factory(serviceType: Class<T>): Factory<T>
 }

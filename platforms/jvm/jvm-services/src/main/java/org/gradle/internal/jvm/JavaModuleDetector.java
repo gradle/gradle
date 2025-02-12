@@ -23,8 +23,8 @@ import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

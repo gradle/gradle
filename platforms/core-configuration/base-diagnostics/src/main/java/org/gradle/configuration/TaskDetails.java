@@ -18,15 +18,15 @@ package org.gradle.configuration;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskOptionsGenerator;
 import org.gradle.api.internal.tasks.options.OptionDescriptor;
 import org.gradle.api.internal.tasks.options.OptionReader;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * A configuration-cache friendly view of a {@link Task} that only projects information
  * that is relevant for the {@link Help} task.
  */
-@NonNullApi
+@NullMarked
 class TaskDetails {
     final static Comparator<TaskDetails> DEFAULT_COMPARATOR = (o1, o2) -> {
         // tasks in higher-up projects first

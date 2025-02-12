@@ -16,9 +16,9 @@
 
 package org.gradle.plugins.ide.internal.tooling;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class GradleProjectBuilderOptions {
 
     /**

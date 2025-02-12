@@ -32,8 +32,8 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.instantiation.InstanceGenerator;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashMap;

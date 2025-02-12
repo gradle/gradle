@@ -16,9 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Test 1...5 will have a parent of Group, and Group will have a parent of Root.
  * Composite test results are calculated by summing the results of all children. This is done by incrementing the parent's count when a child's count is incremented.
  */
-@NonNullApi
+@NullMarked
 class TestResultState {
     private final @Nullable TestResultState parent;
     private final AtomicLong totalCount = new AtomicLong(0);

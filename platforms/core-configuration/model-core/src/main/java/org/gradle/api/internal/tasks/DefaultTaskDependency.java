@@ -26,9 +26,9 @@ import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -203,7 +203,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
     }
 
     static class VisitBehavior {
-        @Nonnull
+        @NonNull
         public final Consumer<? super TaskDependencyResolveContext> onVisit;
 
         public VisitBehavior(Consumer<? super TaskDependencyResolveContext> onVisit) {

@@ -27,8 +27,8 @@ import org.gradle.internal.component.model.DefaultExternalModuleComponentGraphRe
 import org.gradle.internal.component.model.GraphSelectionCandidates;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;

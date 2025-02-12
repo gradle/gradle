@@ -16,8 +16,8 @@
 package org.gradle.tooling.events.problems;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.ProgressEvent;
+import org.jspecify.annotations.NullMarked;
 
 /**
  *
@@ -25,7 +25,7 @@ import org.gradle.tooling.events.ProgressEvent;
  *
  * @since 8.4
  */
-@NonNullApi
+@NullMarked
 @Incubating
 public interface ProblemEvent extends ProgressEvent {
 

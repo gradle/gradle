@@ -22,8 +22,8 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory;
 import org.gradle.internal.properties.annotations.PropertyTypeResolver;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Map;
 

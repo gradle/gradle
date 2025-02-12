@@ -17,7 +17,6 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -31,15 +30,16 @@ import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModuleDependency;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSingleEntryLibraryDependency;
 import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleModuleVersion;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 public class IdeaModuleBuilderSupport {
 
     public static @Nullable JavaVersion convertToJavaVersion(@Nullable IdeaLanguageLevel ideaLanguageLevel) {

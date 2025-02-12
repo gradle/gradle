@@ -24,8 +24,8 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.UnscopedCacheBuilderFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;

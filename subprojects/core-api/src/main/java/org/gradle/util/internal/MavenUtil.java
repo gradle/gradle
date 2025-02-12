@@ -17,8 +17,8 @@
 package org.gradle.util.internal;
 
 import org.gradle.internal.SystemProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class MavenUtil {

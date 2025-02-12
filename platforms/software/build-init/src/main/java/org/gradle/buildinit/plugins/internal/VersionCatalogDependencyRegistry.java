@@ -17,10 +17,10 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.catalog.DefaultVersionCatalogBuilder;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * Tracks plugins, libraries and their versions used during build generation.
  */
-@NonNullApi
+@NullMarked
 public class VersionCatalogDependencyRegistry {
     private static final Pattern RESERVED_LIBRARY_PREFIX = Pattern.compile("^(" + String.join("|", DefaultVersionCatalogBuilder.FORBIDDEN_LIBRARY_ALIAS_PREFIX) + ")[- ]");
     private static final Pattern RESERVED_ALIAS_COMPONENT = Pattern.compile("(^|-)(" + String.join("|", Sets.union(DefaultVersionCatalogBuilder.RESERVED_ALIAS_NAMES, DefaultVersionCatalogBuilder.RESERVED_JAVA_NAMES)) + ")($|[- ])");
@@ -157,14 +157,14 @@ public class VersionCatalogDependencyRegistry {
         return nextKey;
     }
 
-    @NonNullApi
+    @NullMarked
     public static class VersionEntry {
         String alias;
         String module;
         String version;
     }
 
-    @NonNullApi
+    @NullMarked
     public static class LibraryEntry {
         String alias;
         String module;
@@ -172,7 +172,7 @@ public class VersionCatalogDependencyRegistry {
         String versionRef;
     }
 
-    @NonNullApi
+    @NullMarked
     public static class PluginEntry {
         String alias;
         String pluginId;

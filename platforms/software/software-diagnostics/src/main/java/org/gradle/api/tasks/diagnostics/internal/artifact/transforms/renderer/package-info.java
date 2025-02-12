@@ -17,5 +17,5 @@
 /**
  * Renderers responsible for generating Artifact Transform reports from gathered models.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.tasks.diagnostics.internal.artifact.transforms.renderer;

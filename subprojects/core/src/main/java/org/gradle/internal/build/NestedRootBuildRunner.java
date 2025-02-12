@@ -22,8 +22,7 @@ import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.ServiceRegistry;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class NestedRootBuildRunner {
 

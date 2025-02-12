@@ -18,7 +18,7 @@ dependencies {
     api(projects.messaging)
     api(projects.native)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.files)
     implementation(projects.logging)

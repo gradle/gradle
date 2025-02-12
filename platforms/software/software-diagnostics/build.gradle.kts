@@ -34,7 +34,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.groovy)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.functional)

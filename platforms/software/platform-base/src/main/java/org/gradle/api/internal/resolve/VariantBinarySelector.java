@@ -18,8 +18,8 @@ package org.gradle.api.internal.resolve;
 
 import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponent;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 
 public interface VariantBinarySelector {

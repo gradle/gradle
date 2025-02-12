@@ -16,13 +16,13 @@
 
 package org.gradle.process.internal.worker.problem;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -30,7 +30,7 @@ import java.io.File;
  * <p>
  * This emitter will use the {@link WorkerProblemProtocol} to communicate problems to the daemon.
  */
-@NonNullApi
+@NullMarked
 public class WorkerProblemEmitter implements ProblemSummarizer {
     private final WorkerProblemProtocol protocol;
 

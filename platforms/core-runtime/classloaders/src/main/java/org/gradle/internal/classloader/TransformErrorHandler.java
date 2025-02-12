@@ -17,8 +17,7 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Throwables;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A helper to handle transform errors in {@link InstrumentingClassLoader}.

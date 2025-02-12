@@ -26,8 +26,8 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.util.internal.NameValidator;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 public class TaskFactory implements ITaskFactory {

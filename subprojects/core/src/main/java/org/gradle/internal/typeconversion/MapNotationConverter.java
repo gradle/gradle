@@ -22,8 +22,8 @@ import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.CachedInvokable;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

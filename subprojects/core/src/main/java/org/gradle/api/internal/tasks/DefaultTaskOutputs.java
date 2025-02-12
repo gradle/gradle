@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableSortedSet;
 import groovy.lang.Closure;
 import org.gradle.api.Describable;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.FilePropertyContainer;
@@ -40,8 +39,9 @@ import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.StaticValue;
 import org.gradle.internal.properties.bean.PropertyWalker;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,7 +49,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-@NonNullApi
+@NullMarked
 public class DefaultTaskOutputs implements TaskOutputsEnterpriseInternal {
     private final FileCollection allOutputFiles;
     private final PropertyWalker propertyWalker;

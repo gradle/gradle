@@ -16,7 +16,7 @@
 
 package org.gradle.util.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class GroovyDependencyUtil {
     /**

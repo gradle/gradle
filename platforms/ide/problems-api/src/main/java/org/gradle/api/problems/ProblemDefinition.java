@@ -17,8 +17,7 @@
 package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes a specific problem without context.

@@ -16,8 +16,8 @@
 package org.gradle.internal.util;
 
 import org.gradle.api.Action;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +62,7 @@ public class Trie implements Comparable<Trie> {
     }
 
     @Override
-    public int compareTo(@Nonnull Trie o) {
+    public int compareTo(@NonNull Trie o) {
         return c - o.c;
     }
 

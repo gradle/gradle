@@ -18,10 +18,10 @@ package org.gradle.api.internal.attributes.matching;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Set;
 

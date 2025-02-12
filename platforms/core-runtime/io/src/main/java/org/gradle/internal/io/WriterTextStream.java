@@ -17,8 +17,8 @@
 package org.gradle.internal.io;
 
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Writer;
 

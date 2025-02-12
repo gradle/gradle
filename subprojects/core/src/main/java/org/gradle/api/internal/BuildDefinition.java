@@ -24,8 +24,8 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 @ServiceScope(Scope.Build.class)

@@ -22,6 +22,6 @@
 
 // We already have a similar package-info.java in :build-cache-spi
 // We must have a package-info.java for every package directory, but for each package
-// @NonNullApi must only be declared once, otherwise `:docs:javadocAll` fails.
-//@NonNullApi
+// @NullMarked must only be declared once, otherwise `:docs:javadocAll` fails.
+//@NullMarked
 package org.gradle.caching;

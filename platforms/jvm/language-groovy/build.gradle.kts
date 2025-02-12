@@ -27,7 +27,7 @@ dependencies {
     api(projects.workers)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.classloaders)
     implementation(projects.concurrent)

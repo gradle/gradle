@@ -25,8 +25,7 @@ import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.problems.ProblemDiagnostics;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface InternalProblemSpec extends ProblemSpec {
 

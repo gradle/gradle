@@ -18,7 +18,6 @@ package org.gradle.internal.properties.bean;
 
 import com.google.common.base.Suppliers;
 import org.gradle.api.Buildable;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
@@ -39,8 +38,9 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker.InstanceMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.Map;
@@ -49,7 +49,7 @@ import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 
-@NonNullApi
+@NullMarked
 public class DefaultPropertyWalker implements PropertyWalker {
     private final InstanceMetadataWalker walker;
     private final ImplementationResolver implementationResolver;

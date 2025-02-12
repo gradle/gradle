@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
-@NonNullApi
+@NullMarked
 public interface InternalProblemSummary extends Serializable {
     InternalProblemId getProblemId();
 

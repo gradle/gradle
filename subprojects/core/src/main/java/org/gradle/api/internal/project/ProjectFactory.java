@@ -30,8 +30,8 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scripts.ProjectScopedScriptResolution;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.internal.NameValidator;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class ProjectFactory implements IProjectFactory {

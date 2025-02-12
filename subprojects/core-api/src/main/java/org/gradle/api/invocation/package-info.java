@@ -17,5 +17,5 @@
 /**
  * Classes for invoking and monitoring gradle builds.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.invocation;

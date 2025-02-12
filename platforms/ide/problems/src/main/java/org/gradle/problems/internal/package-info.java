@@ -17,7 +17,7 @@
 /**
  * Package for internal, top-level classes used by the Problems API.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.problems.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

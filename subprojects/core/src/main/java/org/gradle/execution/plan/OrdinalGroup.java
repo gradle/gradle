@@ -16,7 +16,8 @@
 
 package org.gradle.execution.plan;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 

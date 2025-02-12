@@ -15,7 +15,7 @@
  */
 package org.gradle.api.attributes;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides context about attribute compatibility checks, and allows the user to define

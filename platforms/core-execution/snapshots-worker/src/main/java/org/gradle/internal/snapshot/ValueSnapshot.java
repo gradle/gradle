@@ -17,8 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import org.gradle.internal.hash.Hashable;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An immutable snapshot of the state of some Java object or object graph.

@@ -65,10 +65,10 @@ class DefaultConfigurationCacheHost internal constructor(
     override fun createBuild(settingsFile: File?): ConfigurationCacheBuild =
         DefaultConfigurationCacheBuild(gradle.owner, service(), service(), settingsFile)
 
-    override fun <T> service(serviceType: Class<T>): T =
+    override fun <T : Any> service(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
 
-    override fun <T> factory(serviceType: Class<T>): Factory<T> =
+    override fun <T : Any> factory(serviceType: Class<T>): Factory<T> =
         gradle.services.getFactory(serviceType)
 
     private

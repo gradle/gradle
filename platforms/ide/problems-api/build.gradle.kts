@@ -39,7 +39,10 @@ dependencies {
 
     api(libs.guava)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
+    api(projects.serialization)
+
+    implementation(libs.jsr305)
 
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)

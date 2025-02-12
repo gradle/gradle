@@ -17,8 +17,8 @@ package org.gradle.internal.service;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 @ServiceScope(Scope.Global.class)
@@ -29,6 +29,5 @@ public interface ServiceLocator {
 
     <T> DefaultServiceLocator.ServiceFactory<T> getFactory(Class<T> serviceType) throws UnknownServiceException;
 
-    @Nullable
-    <T> DefaultServiceLocator.ServiceFactory<T> findFactory(Class<T> serviceType);
+    <T> DefaultServiceLocator.@Nullable ServiceFactory<T> findFactory(Class<T> serviceType);
 }

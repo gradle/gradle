@@ -21,9 +21,9 @@ import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptor;
 import org.gradle.internal.instrumentation.api.types.FilterableBytecodeInterceptorFactory;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.tree.MethodNode;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor extends FilterableBytecodeInterceptor {

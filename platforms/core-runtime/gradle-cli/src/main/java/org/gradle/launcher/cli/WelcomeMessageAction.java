@@ -30,8 +30,8 @@ import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

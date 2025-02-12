@@ -19,8 +19,8 @@ package org.gradle.vcs.internal.resolver;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.function.Supplier;

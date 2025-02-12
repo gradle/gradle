@@ -22,7 +22,7 @@
  * <li>user-friendly error messages in the presence of cycles</li>
  * </ul>
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.evaluation;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

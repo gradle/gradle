@@ -35,8 +35,8 @@ import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 import static com.google.common.base.Preconditions.checkNotNull;

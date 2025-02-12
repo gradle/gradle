@@ -19,8 +19,8 @@ import org.gradle.initialization.SettingsLocation;
 import org.gradle.internal.scripts.ScriptFileResolver;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 import static org.gradle.initialization.DefaultProjectDescriptor.BUILD_SCRIPT_BASENAME;

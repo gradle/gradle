@@ -16,8 +16,8 @@
 
 package org.gradle.api.artifacts;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Provides access to component metadata from a {@link ComponentMetadataRule}.
@@ -40,6 +40,6 @@ public interface ComponentMetadataContext {
     @Nullable
     <T> T getDescriptor(Class<T> descriptorClass);
 
-    @Nonnull
+    @NonNull
     ComponentMetadataDetails getDetails();
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -28,6 +27,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -35,7 +35,7 @@ import java.util.Set;
 /**
  * A {@code SourceTask} performs some operation on source files.
  */
-@NonNullApi
+@NullMarked
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
 public abstract class SourceTask extends ConventionTask implements PatternFilterable {
     private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();

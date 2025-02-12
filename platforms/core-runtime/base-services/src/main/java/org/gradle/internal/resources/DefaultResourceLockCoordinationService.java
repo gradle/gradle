@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.MutableReference;
 import org.gradle.internal.UncheckedException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;

@@ -18,8 +18,7 @@ package org.gradle.internal.event;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@code ListenerNotificationException} is thrown when a listener cannot be notified of an event.

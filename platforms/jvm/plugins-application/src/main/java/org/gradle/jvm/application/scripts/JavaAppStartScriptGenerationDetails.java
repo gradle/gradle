@@ -16,7 +16,8 @@
 
 package org.gradle.jvm.application.scripts;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**

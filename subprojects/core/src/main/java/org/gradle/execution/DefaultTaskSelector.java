@@ -28,8 +28,8 @@ import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.internal.NameMatcher;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.Map;
 import java.util.Objects;
@@ -117,7 +117,7 @@ public class DefaultTaskSelector implements TaskSelector {
         return spec;
     }
 
-    @Nonnull
+    @NonNull
     private static String getSearchContext(ProjectState targetProject, boolean includeSubprojects) {
         if (includeSubprojects && !targetProject.getChildProjects().isEmpty()) {
             return targetProject.getDisplayName() + " and its subprojects";

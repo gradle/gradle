@@ -16,8 +16,8 @@
 package org.gradle.api.file;
 
 import org.gradle.internal.file.FilePathUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.CharBuffer;

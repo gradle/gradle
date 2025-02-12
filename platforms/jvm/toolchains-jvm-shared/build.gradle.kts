@@ -22,7 +22,7 @@ description = "Declarations to define JVM toolchains shared between launcher and
 
 dependencies {
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)

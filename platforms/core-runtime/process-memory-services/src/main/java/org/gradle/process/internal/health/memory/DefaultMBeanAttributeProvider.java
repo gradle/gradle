@@ -16,8 +16,8 @@
 
 package org.gradle.process.internal.health.memory;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.NullMarked;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -27,7 +27,7 @@ import javax.management.ObjectName;
 import javax.management.ReflectionException;
 import java.lang.management.ManagementFactory;
 
-@NonNullApi
+@NullMarked
 public class DefaultMBeanAttributeProvider implements MBeanAttributeProvider {
     @Override
     public <T> T getMbeanAttribute(String mbean, final String attribute, Class<T> type) {

@@ -27,7 +27,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.gson)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.classloaders)

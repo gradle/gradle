@@ -17,8 +17,7 @@
 package org.gradle.model.dsl.internal.transform;
 
 import org.gradle.model.dsl.internal.inputs.PotentialInputs;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Implemented by transformed rules closure.

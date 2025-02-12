@@ -30,8 +30,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.git.internal.GitVersionRef;
 import org.gradle.vcs.internal.VersionControlRepositoryConnection;
 import org.gradle.vcs.internal.VersionRef;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 @ServiceScope(Scope.BuildSession.class)

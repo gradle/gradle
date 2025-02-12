@@ -23,7 +23,7 @@
  *     See {@link org.gradle.internal.versionedcache.CacheVersionMapping}.</li>
  * </ul>
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.versionedcache;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

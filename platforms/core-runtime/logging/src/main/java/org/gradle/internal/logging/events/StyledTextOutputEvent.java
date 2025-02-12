@@ -21,8 +21,8 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.logging.LogEventLevel;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

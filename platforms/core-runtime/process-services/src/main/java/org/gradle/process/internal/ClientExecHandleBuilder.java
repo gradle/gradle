@@ -16,11 +16,11 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ProcessForkOptions;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * TODO: Rename to ExecHandleBuilder and remove current ExecHandleBuilder in Gradle 9.0
  */
-@NonNullApi
+@NullMarked
 public interface ClientExecHandleBuilder extends BaseExecHandleBuilder {
     ClientExecHandleBuilder commandLine(Iterable<?> args);
 

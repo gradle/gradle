@@ -17,7 +17,8 @@
 package org.gradle.internal.service;
 
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**

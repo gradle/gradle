@@ -21,9 +21,9 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -42,7 +42,7 @@ public class DefaultPropertyAnnotationMetadata extends AbstractHasAnnotationMeta
     }
 
     @Override
-    public int compareTo(@Nonnull PropertyAnnotationMetadata o) {
+    public int compareTo(@NonNull PropertyAnnotationMetadata o) {
         return propertyName.compareTo(o.getPropertyName());
     }
 

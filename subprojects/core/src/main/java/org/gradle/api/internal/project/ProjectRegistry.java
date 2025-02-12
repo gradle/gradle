@@ -16,8 +16,8 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.specs.Spec;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 

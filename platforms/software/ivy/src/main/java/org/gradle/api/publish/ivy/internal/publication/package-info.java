@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullApi
+@NullMarked
 package org.gradle.api.publish.ivy.internal.publication;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

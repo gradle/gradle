@@ -8,7 +8,7 @@ dependencies {
     api(projects.resources)
 
     api(libs.bouncycastlePgp)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)

@@ -17,10 +17,10 @@
 package org.gradle.plugins.ide.internal.tooling.model;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.gradle.DefaultProjectIdentifier;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.Collection;
@@ -31,7 +31,7 @@ import java.util.List;
  * <p>
  * <b>This model is internal, and is NOT part of the public Tooling API.</b>
  */
-@NonNullApi
+@NullMarked
 public class IsolatedGradleProjectInternal implements Serializable {
 
     private final DefaultGradleScript buildScript = new DefaultGradleScript();

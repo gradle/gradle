@@ -16,8 +16,8 @@
 
 package org.gradle.nativeplatform.test.xctest.internal.execution;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * A test descriptor generated from scraping XCTest's output.
  */
-@NonNullApi
+@NullMarked
 class XCTestDescriptor {
     private final TestDescriptorInternal descriptorInternal;
     private final List<String> messages = new ArrayList<>();

@@ -17,8 +17,8 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 public class DefaultBinaryPluginIdentifier implements InternalBinaryPluginIdentifier, Serializable {

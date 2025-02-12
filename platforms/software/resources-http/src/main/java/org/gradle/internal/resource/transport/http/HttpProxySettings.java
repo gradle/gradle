@@ -17,10 +17,9 @@ package org.gradle.internal.resource.transport.http;
 
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.credentials.Credentials;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 public interface HttpProxySettings {
 
@@ -42,7 +41,7 @@ public interface HttpProxySettings {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     class HttpProxyCredentials implements Credentials {
         private final String username;
         private final String password;

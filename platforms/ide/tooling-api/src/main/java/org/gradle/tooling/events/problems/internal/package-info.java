@@ -18,7 +18,7 @@
  * Internal problems specisficx.
  **/
 
-@NonNullApi
+@NullMarked
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

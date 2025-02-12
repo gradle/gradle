@@ -19,8 +19,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link ClassLoaderFactory} that also stores the hash of each created classloader which is later retrievable via {@link #getClassLoaderClasspathHash(ClassLoader)}.

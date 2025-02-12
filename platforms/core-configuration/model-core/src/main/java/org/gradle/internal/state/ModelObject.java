@@ -18,8 +18,7 @@ package org.gradle.internal.state;
 
 import org.gradle.api.Describable;
 import org.gradle.api.Task;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An object that represents some part of a model. This interface is mixed-in to all generated classes and should

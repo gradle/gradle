@@ -19,7 +19,7 @@ dependencies {
     api(projects.serialization)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.classloaders)
     implementation(projects.buildProcessServices)
@@ -28,6 +28,7 @@ dependencies {
     implementation(projects.time)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

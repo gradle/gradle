@@ -29,6 +29,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.xml.XmlFactories;
+import org.jspecify.annotations.NonNull;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -39,7 +40,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import javax.annotation.Nonnull;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -341,7 +341,7 @@ public class PomReader implements PomParent {
         return replaceProps(val);
     }
 
-    @Nonnull
+    @NonNull
     public String getPackaging() {
         String val = getFirstChildText(projectElement, PACKAGING);
         if (val == null) {
