@@ -32,7 +32,6 @@ import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +46,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrRe
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@NullMarked
 public class ArchUnitFixtureTest {
     @Test
     public void reports_valid_methods() {
@@ -167,12 +167,10 @@ public class ArchUnitFixtureTest {
         return events.getAllEvents().iterator().next();
     }
 
-    @Nonnull
     private ConditionEvent checkThatHasOnlyAllowedTypes(String methodName) {
         return checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(methodName, String.class, String.class);
     }
 
-    @Nonnull
     private ConditionEvent checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(String methodName, Class<?>... arguments) {
         ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
         JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);

@@ -25,6 +25,7 @@ import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -44,6 +45,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.gradlePublicApi;
 
 @AnalyzeClasses(packages = "org.gradle")
+@NullMarked
 public class KotlinCompatibilityTest {
 
     @ArchTest
@@ -78,7 +80,7 @@ public class KotlinCompatibilityTest {
         private final JavaMethod method;
         private final boolean isGetter;
 
-        @javax.annotation.Nullable
+        @org.jspecify.annotations.Nullable
         public static Accessor from(JavaMethod method) {
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(method.getName());
             if (propertyAccessorType != null && (KotlinCompatibilityTest.isGetter(method, propertyAccessorType) || KotlinCompatibilityTest.isSetter(method, propertyAccessorType))) {
@@ -116,7 +118,7 @@ public class KotlinCompatibilityTest {
         private final Set<JavaMethod> getters;
         private final Set<JavaMethod> setters;
 
-        @javax.annotation.Nullable
+        @org.jspecify.annotations.Nullable
         public static Accessors from(String propertyName, List<Accessor> accessors) {
             Map<Boolean, List<Accessor>> gettersAndSetters = accessors.stream().collect(partitioningBy(Accessor::isGetter));
             JavaClass owningClass = accessors.iterator().next().getMethod().getOwner();
