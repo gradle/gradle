@@ -68,27 +68,6 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
             valueTitles.add(element);
         }
 
-        //adding the properties from the super class onto the inheriting class
-        Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();
-        List<ClassDoc> superTypes = classDoc.getSuperTypes();
-        for (ClassDoc superType : superTypes) {
-            LOG.info("Getting properties for {}", superType.getName());
-            for (PropertyDoc propertyDoc : superType.getClassProperties()) {
-                Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
-                for (ExtraAttributeDoc attributeDoc : propertyDoc.getAdditionalValues()) {
-                    String key = attributeDoc.getKey();
-                    if (inheritedValueTitleMapping.get(key) != null) {
-                        ExtraAttributeDoc newAttribute = new ExtraAttributeDoc(inheritedValueTitleMapping.get(key), attributeDoc.getValueCell());
-                        additionalValues.put(newAttribute.getKey(), newAttribute);
-                    } else {
-                        additionalValues.put(key, attributeDoc);
-                    }
-                }
-
-                props.put(propertyDoc.getName(), propertyDoc.forClass(classDoc, additionalValues.values()));
-            }
-        }
-
         for (Element row : children(classDoc.getPropertiesTable(), "tr")) {
             List<Element> cells = children(row, "td");
             if (cells.size() != header.size()) {
