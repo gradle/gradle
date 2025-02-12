@@ -68,6 +68,8 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
             valueTitles.add(element);
         }
 
+        Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>();
+
         for (Element row : children(classDoc.getPropertiesTable(), "tr")) {
             List<Element> cells = children(row, "td");
             if (cells.size() != header.size()) {
@@ -80,15 +82,6 @@ public class ClassDocPropertiesBuilder extends ModelBuilderSupport {
             }
 
             Map<String, ExtraAttributeDoc> additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>();
-
-            if (!superTypes.isEmpty()) {
-                PropertyDoc overriddenProp = props.get(propName);
-                if (overriddenProp != null) {
-                    for (ExtraAttributeDoc attributeDoc : overriddenProp.getAdditionalValues()) {
-                        additionalValues.put(attributeDoc.getKey(), attributeDoc);
-                    }
-                }
-            }
 
             for (int i = 1; i < header.size(); i++) {
                 if (cells.get(i).getFirstChild() == null) {
