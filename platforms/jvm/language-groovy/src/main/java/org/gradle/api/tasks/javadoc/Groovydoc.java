@@ -230,8 +230,8 @@ public abstract class Groovydoc extends SourceTask {
      * @deprecated Do not use this method.
      */
     @Internal
-    @NotToBeReplacedByLazyProperty(because="it's going to be removed")
     @Deprecated
+    @NotToBeReplacedByLazyProperty(because="it's going to be removed")
     public org.gradle.api.internal.tasks.AntGroovydoc getAntGroovydoc() {
         DeprecationLogger.deprecateMethod(Groovydoc.class, "getAntGroovydoc()").willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
 
