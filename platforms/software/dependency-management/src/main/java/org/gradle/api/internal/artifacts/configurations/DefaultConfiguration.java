@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
@@ -1085,10 +1086,15 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         return this;
     }
 
-    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
+    @Deprecated
     @Override
     public String getUploadTaskName() {
-        return Configurations.uploadTaskName(getName());
+        DeprecationLogger.deprecateMethod(Configuration.class, "getUploadTaskName()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
+
+        return "upload" + StringUtils.capitalize(getName());
     }
 
     @Override
