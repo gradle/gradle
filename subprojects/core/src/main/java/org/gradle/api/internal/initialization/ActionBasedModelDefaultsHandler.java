@@ -19,9 +19,6 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
-import org.gradle.api.file.ProjectLayout;
-import org.gradle.api.initialization.SharedModelDefaults;
-import org.gradle.api.initialization.SharedModelDefaultsStore;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
@@ -43,23 +40,12 @@ import javax.annotation.Nullable;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
-
-    private final SharedModelDefaultsStore sharedModelDefaultsStore;
     private final SoftwareTypeRegistry softwareTypeRegistry;
-    private final ProjectLayout projectLayout;
     private final InspectionScheme inspectionScheme;
     private final InternalProblems problems;
 
-    public ActionBasedModelDefaultsHandler(
-        SharedModelDefaultsStore sharedModelDefaultsStore,
-        SoftwareTypeRegistry softwareTypeRegistry,
-        ProjectLayout projectLayout,
-        InspectionScheme inspectionScheme,
-        InternalProblems problems
-    ) {
-        this.sharedModelDefaultsStore = sharedModelDefaultsStore;
+    public ActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, InspectionScheme inspectionScheme, InternalProblems problems) {
         this.softwareTypeRegistry = softwareTypeRegistry;
-        this.projectLayout = projectLayout;
         this.inspectionScheme = inspectionScheme;
         this.problems = problems;
     }
@@ -67,11 +53,6 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
     @Override
     public <T> void apply(T target, ClassLoaderScope classLoaderScope, String softwareTypeName, Plugin<?> plugin) {
         SoftwareTypeImplementation<?> softwareTypeImplementation = softwareTypeRegistry.getSoftwareTypeImplementations().get(softwareTypeName);
-
-        DefaultSharedModelDefaults sharedModelDefaults = new DefaultSharedModelDefaults(softwareTypeName, softwareTypeImplementation, projectLayout);
-        for (Action<? super SharedModelDefaults> action : sharedModelDefaultsStore.getActions()) {
-            action.execute(sharedModelDefaults);
-        }
 
         DefaultTypeValidationContext typeValidationContext = DefaultTypeValidationContext.withRootType(plugin.getClass(), false, problems);
         inspectionScheme.getPropertyWalker().visitProperties(

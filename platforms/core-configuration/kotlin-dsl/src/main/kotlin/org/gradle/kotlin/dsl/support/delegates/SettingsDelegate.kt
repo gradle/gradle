@@ -171,6 +171,9 @@ abstract class SettingsDelegate : Settings {
     override fun getLayout(): BuildLayout =
         delegate.layout
 
+    override fun getDefaults(): SharedModelDefaults =
+        delegate.defaults
+
     override fun defaults(action: Action<in SharedModelDefaults>) {
         delegate.defaults(action)
     }

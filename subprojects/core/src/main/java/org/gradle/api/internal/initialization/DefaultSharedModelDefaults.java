@@ -18,38 +18,30 @@ package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
+import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 
 public class DefaultSharedModelDefaults implements SharedModelDefaults, MethodMixIn {
-    private final String softwareTypeName;
-    private final SoftwareTypeImplementation<?> softwareType;
-    private final ProjectLayout projectLayout;
+    private final SoftwareTypeRegistry softwareTypeRegistry;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
 
     @Inject
-    public DefaultSharedModelDefaults(String softwareTypeName, SoftwareTypeImplementation<?> softwareType, ProjectLayout projectLayout) {
-        this.softwareTypeName = softwareTypeName;
-        this.softwareType = softwareType;
-        this.projectLayout = projectLayout;
-    }
-
-    @Override
-    public ProjectLayout getLayout() {
-        return projectLayout;
+    public DefaultSharedModelDefaults(SoftwareTypeRegistry softwareTypeRegistry) {
+        this.softwareTypeRegistry = softwareTypeRegistry;
     }
 
     @Override
     public <T> void add(String name, Class<T> publicType, Action<? super T> configureAction) {
-        if (softwareTypeName.equals(name)) {
+        if (softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name)) {
+            SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
             if (softwareType.getModelPublicType().isAssignableFrom(publicType)) {
                 softwareType.addModelDefault(new ActionBasedDefault<>(configureAction));
             } else {
@@ -68,13 +60,15 @@ public class DefaultSharedModelDefaults implements SharedModelDefaults, MethodMi
     class DynamicMethods implements MethodAccess {
         @Override
         public boolean hasMethod(String name, Object... arguments) {
-            return softwareTypeName.equals(name) && arguments.length == 1 &&
-                (arguments[0] instanceof Action || arguments[0] instanceof Closure);
+            return arguments.length == 1 &&
+                (arguments[0] instanceof Action || arguments[0] instanceof Closure) &&
+                softwareTypeRegistry.getSoftwareTypeImplementations().containsKey(name);
         }
 
         @Override
         public DynamicInvokeResult tryInvokeMethod(String name, Object... arguments) {
             if (hasMethod(name, arguments)) {
+                SoftwareTypeImplementation<?> softwareType = softwareTypeRegistry.getSoftwareTypeImplementations().get(name);
                 add(name, softwareType.getModelPublicType(), Cast.uncheckedNonnullCast(toAction(arguments[0])));
                 return DynamicInvokeResult.found();
             } else {
