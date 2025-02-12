@@ -157,6 +157,10 @@ class CrossProjectConfigurationReportingGradle private constructor(
         throw UnsupportedOperationException()
     }
 
+    override fun testDeprecation() {
+        delegate.testDeprecation()
+    }
+
     internal
     companion object {
         fun from(gradle: GradleInternal, referrerProject: ProjectInternal): CrossProjectConfigurationReportingGradle {

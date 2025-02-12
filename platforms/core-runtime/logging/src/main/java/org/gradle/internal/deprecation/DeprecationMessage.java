@@ -30,6 +30,7 @@ class DeprecationMessage {
     private final DeprecatedFeatureUsage.Type usageType;
     private final String problemIdDisplayName;
     private final String problemId;
+    private final DeprecationInfo deprecationInfo;
 
     DeprecationMessage(
         String summary,
@@ -39,7 +40,8 @@ class DeprecationMessage {
         @Nullable DocLink documentation,
         DeprecatedFeatureUsage.Type usageType,
         String problemIdDisplayName,
-        String problemId
+        String problemId,
+        DeprecationInfo deprecationInfo
     ) {
         this.summary = summary;
         this.removalDetails = removalDetails;
@@ -49,10 +51,11 @@ class DeprecationMessage {
         this.usageType = usageType;
         this.problemIdDisplayName = problemIdDisplayName;
         this.problemId = problemId;
+        this.deprecationInfo = deprecationInfo;
     }
 
     DeprecatedFeatureUsage toDeprecatedFeatureUsage(Class<?> calledFrom) {
-        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, documentation, usageType, problemIdDisplayName, problemId, calledFrom);
+        return new DeprecatedFeatureUsage(summary, removalDetails, advice, context, documentation, usageType, problemIdDisplayName, problemId, calledFrom, deprecationInfo);
     }
 
 }

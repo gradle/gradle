@@ -21,7 +21,7 @@ import org.gradle.api.problems.ProblemGroup;
 public abstract class GradleCoreProblemGroup {
 
     private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup();
-    private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
+    private static final DeprecationProblemGroup DEPRECATION_PROBLEM_GROUP = new DefaultDeprecationProblemGroup();
     private static final ProblemGroup DEPRECATION_LOGGER_GROUP = ProblemGroup.create("deprecation-logger", "Deprecation");
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
@@ -34,7 +34,7 @@ public abstract class GradleCoreProblemGroup {
         return COMPILATION_PROBLEM_GROUP;
     }
 
-    public static ProblemGroup deprecation() {
+    public static DeprecationProblemGroup deprecation() {
         return DEPRECATION_PROBLEM_GROUP;
     }
 
@@ -71,6 +71,11 @@ public abstract class GradleCoreProblemGroup {
         ProblemGroup java();
         ProblemGroup groovy();
         ProblemGroup groovyDsl();
+    }
+
+    public interface DeprecationProblemGroup {
+        ProblemGroup thisGroup();
+        ProblemGroup plugin();
     }
 
     public interface ValidationProblemGroup {
@@ -112,6 +117,25 @@ public abstract class GradleCoreProblemGroup {
         @Override
         public ProblemGroup groovyDsl() {
             return this.groovyDsl;
+        }
+    }
+
+    private static class DefaultDeprecationProblemGroup implements DeprecationProblemGroup {
+
+        private final ProblemGroup thisGroup = ProblemGroup.create("deprecation", "Deprecation");
+        private final ProblemGroup plugin = ProblemGroup.create("plugin", "Plugin", thisGroup);
+
+        private DefaultDeprecationProblemGroup() {
+        }
+
+        @Override
+        public ProblemGroup thisGroup() {
+            return thisGroup;
+        }
+
+        @Override
+        public ProblemGroup plugin() {
+            return this.plugin;
         }
     }
 

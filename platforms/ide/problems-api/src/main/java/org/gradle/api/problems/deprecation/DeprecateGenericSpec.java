@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Specification for building deprecations related to behavior.
  *
- * @since 8.13
+ * @since 8.14
  */
 @Incubating
 public interface DeprecateGenericSpec extends CommonDeprecationSpec<DeprecateGenericSpec> {

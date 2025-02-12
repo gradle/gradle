@@ -17,20 +17,28 @@
 package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.problems.deprecation.DeprecatedVersion;
+import org.gradle.api.problems.deprecation.ReportSource;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
 class DefaultDeprecationData implements DeprecationData, Serializable {
 
+    private final ReportSource reportSource;
     private final DeprecatedVersion removedIn;
     private final String replacedBy;
     private final String reason;
 
-    public DefaultDeprecationData(@Nullable DeprecatedVersion removedIn, @Nullable String because, @Nullable String reason) {
+    public DefaultDeprecationData(ReportSource reportSource, @Nullable DeprecatedVersion removedIn, @Nullable String because, @Nullable String reason) {
+        this.reportSource = reportSource;
         this.removedIn = removedIn;
         this.replacedBy = because;
         this.reason = reason;
+    }
+
+    @Override
+    public ReportSource getSource() {
+        return reportSource;
     }
 
     @Override
@@ -52,12 +60,17 @@ class DefaultDeprecationData implements DeprecationData, Serializable {
     }
 
     static class Builder implements DeprecationDataSpec {
-        private DeprecatedVersion removedIn;
+        private final ReportSource reportSource;
+        private String removedIn;
         private String replacedBy;
         private String reason;
 
+        public Builder(ReportSource reportSource) {
+            this.reportSource = reportSource;
+        }
+
         @Override
-        public DeprecationDataSpec removedIn(DeprecatedVersion version) {
+        public DeprecationDataSpec removedIn(String version) {
             this.removedIn = version;
             return this;
         }
@@ -75,7 +88,7 @@ class DefaultDeprecationData implements DeprecationData, Serializable {
         }
 
         public DeprecationData build() {
-            return new DefaultDeprecationData(removedIn, replacedBy, reason);
+            return new DefaultDeprecationData(reportSource, removedIn, replacedBy, reason);
         }
     }
 

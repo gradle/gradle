@@ -58,6 +58,7 @@ import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.IncludedBuildInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -225,6 +226,15 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             settings.close();
             settings = null;
         }
+    }
+
+    @Override
+    public void testDeprecation() {
+        DeprecationLogger.deprecateMethod(GradleInternal.class, "testDeprecation()")
+            .replaceWith("other()")
+            .willBeRemovedInGradle10()
+            .undocumented()
+            .nagUser();
     }
 
     @Override

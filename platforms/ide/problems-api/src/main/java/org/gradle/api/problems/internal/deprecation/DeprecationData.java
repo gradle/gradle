@@ -20,6 +20,7 @@ package org.gradle.api.problems.internal.deprecation;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.deprecation.DeprecatedVersion;
+import org.gradle.api.problems.deprecation.ReportSource;
 
 import javax.annotation.Nullable;
 
@@ -27,16 +28,20 @@ import javax.annotation.Nullable;
  * Additional data shipped with a deprecation.
  * <p>
  * This data is accessible, after reporting the deprecation, to consumers of problem events.
- *
- * @since 8.13
  */
 @Incubating
 public interface DeprecationData extends AdditionalData {
+
+    /**
+     * Returns from where the deprecation is reported from.
+     *
+     * @return the source of the deprecation.
+     */
+    ReportSource getSource();
     /**
      * Returns the version in which the deprecation will become an error.
      *
      * @return the version in which the deprecation will become an error.
-     * @since  8.13
      */
     @Nullable
     DeprecatedVersion getRemovedIn();

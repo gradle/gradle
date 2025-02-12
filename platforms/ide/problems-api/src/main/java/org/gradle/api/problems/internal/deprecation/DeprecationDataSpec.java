@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
-import org.gradle.api.problems.deprecation.DeprecatedVersion;
 
 /**
  * Specification for building deprecations related additional data.
@@ -28,7 +27,7 @@ import org.gradle.api.problems.deprecation.DeprecatedVersion;
 @Incubating
 public interface DeprecationDataSpec extends AdditionalData {
 
-    DeprecationDataSpec removedIn(DeprecatedVersion version);
+    DeprecationDataSpec removedIn(String version);
 
     DeprecationDataSpec replacedBy(String reason);
 

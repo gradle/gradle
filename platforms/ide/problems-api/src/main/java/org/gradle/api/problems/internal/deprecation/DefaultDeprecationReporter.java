@@ -18,10 +18,12 @@ package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.Action;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.deprecation.DeprecateGenericSpec;
 import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
 import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
 import org.gradle.api.problems.deprecation.DeprecationReporter;
+import org.gradle.api.problems.deprecation.ReportSource;
 import org.gradle.api.problems.internal.DefaultProblemReporter;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblem;
@@ -35,35 +37,69 @@ public class DefaultDeprecationReporter implements DeprecationReporter {
     }
 
     @Override
-    public Problem deprecate(String label, Action<DeprecateGenericSpec> spec) {
-        DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reporter.createProblemBuilder());
+    public Problem deprecate(ReportSource reportSource, String label, Action<DeprecateGenericSpec> spec) {
+        DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reportSource, reporter.createProblemBuilder());
         deprecationBuilder.getProblemBuilder()
-            .id("generic", "Generic deprecation", GradleCoreProblemGroup.deprecation())
-            .contextualLabel(label);
+            .id("generic", "Generic deprecation", GradleCoreProblemGroup.deprecation().thisGroup())
+            .contextualLabel(label)
+            .stackLocation()
+            .withException(new RuntimeException());
         spec.execute(deprecationBuilder);
         return reportBuiltProblem(deprecationBuilder);
     }
 
     @Override
-    public Problem deprecateMethod(Class<?> containingClass, String signature, Action<DeprecateMethodSpec> spec) {
-        DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reporter.createProblemBuilder());
+    public Problem deprecateMethod(ReportSource reportSource, Class<?> containingClass, String signature, Action<DeprecateMethodSpec> spec) {
+        DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reportSource, reporter.createProblemBuilder());
+        String name = containingClass.getSimpleName() + "." + signature;
         deprecationBuilder.getProblemBuilder()
-            .id("method", "Method deprecation", GradleCoreProblemGroup.deprecation())
-            .contextualLabel(
-                String.format("Method '%s#%s' is deprecated", containingClass.getName(), signature)
-            );
+            .id(name, name, methodDeprecationProblemGroup(reportSource))
+            .contextualLabel(String.format("Method '%s#%s' is deprecated", containingClass.getName(), signature))
+            .stackLocation()
+            .withException(new RuntimeException());
         spec.execute(deprecationBuilder);
         return reportBuiltProblem(deprecationBuilder);
     }
 
-    @Override
-    public Problem deprecatePlugin(String pluginId, Action<DeprecatePluginSpec> spec) {
-        DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reporter.createProblemBuilder());
-        deprecationBuilder.getProblemBuilder()
-            .id("plugin", "Plugin deprecation", GradleCoreProblemGroup.deprecation())
-            .contextualLabel(
-                String.format("Plugin '%s' is deprecated", pluginId)
+    ProblemGroup methodDeprecationProblemGroup(ReportSource reportSource) {
+        if (ReportSource.gradle().equals(reportSource)) {
+            return ProblemGroup.create(
+                "method",
+                "Method",
+                ProblemGroup.create(
+                    "gradle",
+                    "Gradle",
+                    GradleCoreProblemGroup.deprecation().thisGroup()
+                )
             );
+        } else if (reportSource instanceof ReportSource.PluginReportSource) {
+            String id = ((ReportSource.PluginReportSource) reportSource).getId();
+            return ProblemGroup.create(
+                "method",
+                "Method",
+                ProblemGroup.create(
+                    "plugin",
+                    "Plugin",
+                    ProblemGroup.create(
+                        id,
+                        id,
+                        GradleCoreProblemGroup.deprecation().thisGroup()
+                    )
+                )
+            );
+        } else {
+            throw new IllegalArgumentException("Unsupported report source: " + reportSource);
+        }
+    }
+
+    @Override
+    public Problem deprecatePlugin(ReportSource reportSource, String pluginId, Action<DeprecatePluginSpec> spec) {
+        DefaultDeprecationBuilder deprecationBuilder = new DefaultDeprecationBuilder(reportSource, reporter.createProblemBuilder());
+        deprecationBuilder.getProblemBuilder()
+            .id(pluginId, pluginId, GradleCoreProblemGroup.deprecation().plugin())
+            .contextualLabel(String.format("Plugin '%s' is deprecated", pluginId))
+            .stackLocation()
+            .withException(new RuntimeException());
         spec.execute(deprecationBuilder);
         return reportBuiltProblem(deprecationBuilder);
     }
@@ -73,4 +109,6 @@ public class DefaultDeprecationReporter implements DeprecationReporter {
         reporter.report(deprecationProblem);
         return deprecationProblem;
     }
+
+    // TODO (donat) cover indirectDeprecation: by default all deprecations are direct and so they should have stackLocation. The API should have an indirect() call on the spec to disable that.
 }

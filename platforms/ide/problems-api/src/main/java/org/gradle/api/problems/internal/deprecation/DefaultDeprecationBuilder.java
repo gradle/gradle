@@ -13,24 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.problems.deprecation.DeprecateGenericSpec;
 import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
 import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
+import org.gradle.api.problems.deprecation.ReportSource;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
-
-import javax.annotation.Nullable;
 
 class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePluginSpec, DeprecateMethodSpec {
     private final InternalProblemBuilder builder;
     private final DefaultDeprecationData.Builder additionalDataBuilder;
 
-    public DefaultDeprecationBuilder(InternalProblemBuilder builder) {
+    public DefaultDeprecationBuilder(ReportSource reportSource, InternalProblemBuilder builder) {
         this.builder = builder;
-        this.additionalDataBuilder = new DefaultDeprecationData.Builder();
+        this.additionalDataBuilder = new DefaultDeprecationData.Builder(reportSource);
     }
 
     @Override
@@ -40,26 +38,14 @@ class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePlugin
     }
 
     @Override
-    public DefaultDeprecationBuilder removedInVersion(String opaqueVersion) {
-        additionalDataBuilder.removedIn(new DefaultOpaqueDeprecatedVersion(opaqueVersion));
-        return this;
-    }
-
-    @Override
-    public DeprecateGenericSpec removedInVersion(Integer major, @Nullable Integer minor, @Nullable Integer patch, @Nullable String qualifier) {
-        additionalDataBuilder.removedIn(new DefaultSemverDeprecatedVersion(major, minor, patch, qualifier));
+    public DefaultDeprecationBuilder removedInVersion(String version) {
+        additionalDataBuilder.removedIn(version);
         return this;
     }
 
     @Override
     public DefaultDeprecationBuilder because(String reason) {
-        additionalDataBuilder.because(reason);
-        return this;
-    }
-
-    @Override
-    public DefaultDeprecationBuilder withDetails(String details) {
-        builder.details(details);
+        builder.details(reason);
         return this;
     }
 
@@ -68,7 +54,7 @@ class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePlugin
     }
 
     public InternalProblem build() {
-        builder .additionalDataInternal(additionalDataBuilder.build());
+        builder.additionalDataInternal(additionalDataBuilder.build());
         return builder.build();
     }
 }

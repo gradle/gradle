@@ -18,13 +18,11 @@ package org.gradle.api.problems.deprecation;
 
 import org.gradle.api.Incubating;
 
-import javax.annotation.Nullable;
-
 /**
  * Common, shared specification for other deprecation specs to build upon.
  *
  * @param <T> the subtype of the deprecation spec
- * @since 8.13
+ * @since 8.14
  */
 @Incubating
 public interface CommonDeprecationSpec<T extends CommonDeprecationSpec<?>> {
@@ -34,7 +32,7 @@ public interface CommonDeprecationSpec<T extends CommonDeprecationSpec<?>> {
      *
      * @param replacement the replacement for the deprecated behavior
      * @return the fluent builder used to call this
-     * @since 8.13
+     * @since 8.14
      */
     T replacedBy(String replacement);
 
@@ -44,50 +42,19 @@ public interface CommonDeprecationSpec<T extends CommonDeprecationSpec<?>> {
      * <b>Note:</b> use this only when other version patterns are not fitting.
      * When an opaque version is used, we cannot provide additional intelligence in the reports.
      *
-     * @param opaqueVersion the version from which the deprecated behavior will be removed. E.g. "version-1.2.3"
+     * @param version the version from which the deprecated behavior will be removed. E.g. "version-1.2.3"
      * @return the fluent builder used to call this
-     * @since 8.13
+     * @since 8.14
      * @see OpaqueDeprecatedVersion
      */
-    T removedInVersion(String opaqueVersion);
+    T removedInVersion(String version);
 
     /**
-     * Declares in which version the deprecated item will be removed.
-     * <p>
-     * This versioning scheme follows the Maven versioning scheme.
-     * For example, the version "1.2.3-SNAPSHOT" would be represented as:
-     * <ul>
-     *     <li>major: 1</li>
-     *     <li>minor: 2</li>
-     *     <li>patch: 3</li>
-     *     <li>qualifier: "SNAPSHOT"</li>
-     * </ul>
-     * <p>
-     * When using this version, we can provide additional intelligence in the reports like finding lower bounds of versions reported.
-     *
-     * @param major the major component of the version
-     * @param minor the minor component of the version
-     * @param patch the patch component of the version
-     * @param qualifier the qualifier component of the version
-     * @return the fluent builder used to call this
-     * @since 8.13
-     */
-    T removedInVersion(Integer major, @Nullable Integer minor, @Nullable Integer patch, @Nullable String qualifier);
-
-    /**
-     * Declares an optional reasoning why the deprecation is happening.
+     * Declares longer - possibly multi-line - description of the deprecation. an optional reasoning why the deprecation is happening.
+     * Will be reported as a problem details
      *
      * @return the fluent builder used to call this
-     * @since 8.13
+     * @since 8.14
      */
     T because(String reason);
-
-    /**
-     * A longer, possibly multi-line description of the deprecation.
-     *
-     * @param details the details of the deprecation
-     * @return the fluent builder used to call this
-     * @since 8.13
-     */
-    T withDetails(String details);
 }

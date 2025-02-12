@@ -22,6 +22,9 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
+import org.gradle.api.problems.deprecation.DeprecationReporter;
+import org.gradle.api.problems.deprecation.ReportSource;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.InternalProblemReporter;
@@ -94,30 +97,50 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
-        InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-        Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
-            @Override
-            public void execute(InternalProblemSpec builder) {
-                InternalProblemSpec problemSpec = builder
-                    // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecationLogger())
-                    .contextualLabel(usage.getSummary())
-                    .details(usage.getRemovalDetails())
-                    .documentedAt(usage.getDocumentationUrl())
-                    .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-                        @Override
-                        public void execute(DeprecationDataSpec data) {
-                            data.type(usage.getType().toDeprecationDataType());
+        if (usage.getDeprecationInfo().getMethodClass() != null) {
+            DeprecationReporter reporter = problemsService.getDeprecationReporter();
+            final String removedIn = usage.getDeprecationInfo().getRemovedInVersion();
+            final String advice = usage.getDeprecationInfo().getAdvice();
+            reporter.deprecateMethod(ReportSource.gradle(), usage.getDeprecationInfo().getMethodClass(), usage.getDeprecationInfo().getMethodWithParams(), new Action<DeprecateMethodSpec>() {
+                    @Override
+                    public void execute(DeprecateMethodSpec spec) {
+                        spec.because(usage.getContextualAdvice());
+                        if (removedIn != null) {
+                            spec.removedInVersion(removedIn);
                         }
-                    })
-                    .severity(WARNING);
+                        if (advice != null) {
+                            spec.because(advice);
+                        }
+                    }
+                }
+            );
 
-                addPossibleLocation(diagnostics, problemSpec);
-                addSolution(usage.getAdvice(), problemSpec);
-                addSolution(usage.getContextualAdvice(), problemSpec);
-            }
-        });
-        reporter.report(problem);
+        } else {
+            InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
+            Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
+                @Override
+                public void execute(InternalProblemSpec builder) {
+                    InternalProblemSpec problemSpec = builder
+                        // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
+                        .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecationLogger())
+                        .contextualLabel(usage.getSummary())
+                        .details(usage.getRemovalDetails())
+                        .documentedAt(usage.getDocumentationUrl())
+                        .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
+                            @Override
+                            public void execute(DeprecationDataSpec data) {
+                                data.type(usage.getType().toDeprecationDataType());
+                            }
+                        })
+                        .severity(WARNING);
+
+                    addPossibleLocation(diagnostics, problemSpec);
+                    addSolution(usage.getAdvice(), problemSpec);
+                    addSolution(usage.getContextualAdvice(), problemSpec);
+                }
+            });
+            reporter.report(problem);
+        }
     }
 
     private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {

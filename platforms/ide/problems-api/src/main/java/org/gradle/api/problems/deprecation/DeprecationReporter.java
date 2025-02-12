@@ -23,7 +23,7 @@ import org.gradle.api.problems.Problem;
 /**
  * Specialized reporter for deprecation problems.
  *
- * @since 8.13
+ * @since 8.14
  */
 @Incubating
 public interface DeprecationReporter {
@@ -31,30 +31,33 @@ public interface DeprecationReporter {
     /**
      * Generic deprecation, using {@code message} to describe the deprecation.
      *
+     * @param reportSource describes the source of the deprecation.
      * @param message a message for the deprecation; it should state the deprecation, but not the reason (e.g. "Plugin 'plugin' is deprecated")
      * @param feature a spec to configure the deprecation
      * @return a problem representing the deprecation
-     * @since 8.13
+     * @since 8.14
      */
-    Problem deprecate(String message, Action<DeprecateGenericSpec> feature);
+    Problem deprecate(ReportSource reportSource, String message, Action<DeprecateGenericSpec> feature);
 
     /**
      * Declares a deprecated method (represented by {@code signature}) in the class {@code containingClass}
      *
+     * @param reportSource describes the source of the deprecation.
      * @param signature the signature of the method to deprecate. E.g. "method(String, int)"
      * @param containingClass the class containing the method to deprecate
      * @param spec a spec to configure the deprecation
      * @return a problem representing the deprecation
-     * @since 8.13
+     * @since 8.14
      */
-    Problem deprecateMethod(Class<?> containingClass, String signature, Action<DeprecateMethodSpec> spec);
+    Problem deprecateMethod(ReportSource reportSource, Class<?> containingClass, String signature, Action<DeprecateMethodSpec> spec);
 
     /**
      * Declares a plugin deprecation for {@code pluginId}
      *
+     * @param reportSource describes the source of the deprecation.
      * @param pluginId the id of the plugin to deprecate
      * @param spec a spec to configure the deprecation
-     * @since 8.13
+     * @since 8.14
      */
-    Problem deprecatePlugin(String pluginId, Action<DeprecatePluginSpec> spec);
+    Problem deprecatePlugin(ReportSource reportSource, String pluginId, Action<DeprecatePluginSpec> spec);
 }

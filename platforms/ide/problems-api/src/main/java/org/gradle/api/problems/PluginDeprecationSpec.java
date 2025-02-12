@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Specification for deprecating a plugin.
  *
- * @since 8.13
+ * @since 8.14
  */
 @Incubating
 public interface PluginDeprecationSpec {

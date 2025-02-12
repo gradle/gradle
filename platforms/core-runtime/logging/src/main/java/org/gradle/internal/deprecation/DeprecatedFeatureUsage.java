@@ -35,6 +35,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final DocLink documentation;
     private final String problemIdDisplayName;
     private final String problemId;
+    private DeprecationInfo deprecationInfo;
 
     private final Type type;
 
@@ -47,7 +48,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         Type type,
         String problemIdDisplayName,
         String problemId,
-        Class<?> calledFrom
+        Class<?> calledFrom,
+        DeprecationInfo deprecationInfo
     ) {
         super(summary, calledFrom);
         this.removalDetails = Preconditions.checkNotNull(removalDetails);
@@ -57,6 +59,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.documentation = documentation;
         this.problemIdDisplayName = problemIdDisplayName;
         this.problemId = problemId;
+        this.deprecationInfo = deprecationInfo;
     }
 
     @VisibleForTesting
@@ -69,10 +72,15 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.type = usage.type;
         this.problemIdDisplayName = usage.problemIdDisplayName;
         this.problemId = usage.problemId;
+        this.deprecationInfo = usage.deprecationInfo;
     }
 
     @Nullable public String getProblemId() {
         return problemId;
+    }
+
+    @Nullable public DeprecationInfo getDeprecationInfo() {
+        return deprecationInfo;
     }
 
     /**

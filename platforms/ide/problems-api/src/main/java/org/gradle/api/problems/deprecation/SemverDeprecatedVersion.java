@@ -26,16 +26,16 @@ import javax.annotation.Nullable;
  * One significant difference between this and {@link OpaqueDeprecatedVersion} is that this version is sortable.
  * With ordering, we can determine a minimum version when the code using deprecations will break.
  *
- * @since 8.13
+ * @since 8.14
  */
-@Incubating
+@Incubating // TODO (donat) delete
 public interface SemverDeprecatedVersion extends DeprecatedVersion {
 
     /**
      * Returns the major version.
      *
      * @return the major version
-     * @since 8.13
+     * @since 8.14
      */
     Integer getMajor();
 
@@ -43,7 +43,7 @@ public interface SemverDeprecatedVersion extends DeprecatedVersion {
      * Returns the minor version.
      *
      * @return the minor version
-     * @since 8.13
+     * @since 8.14
      */
     @Nullable
     Integer getMinor();
@@ -52,7 +52,7 @@ public interface SemverDeprecatedVersion extends DeprecatedVersion {
      * Returns the patch version.
      *
      * @return the patch version
-     * @since 8.13
+     * @since 8.14
      */
     @Nullable
     Integer getPatch();
@@ -61,7 +61,7 @@ public interface SemverDeprecatedVersion extends DeprecatedVersion {
      * Returns the qualifier version.
      *
      * @return the qualifier version
-     * @since 8.13
+     * @since 8.14
      */
     @Nullable
     String getQualifier();
