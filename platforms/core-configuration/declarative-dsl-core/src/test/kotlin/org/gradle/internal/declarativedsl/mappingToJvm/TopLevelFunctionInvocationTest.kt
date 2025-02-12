@@ -20,6 +20,8 @@ import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.intrinsics.IntrinsicRuntimeFunctionCandidatesProvider
+import org.gradle.internal.declarativedsl.intrinsics.gradleRuntimeIntrinsicsKClass
 import org.gradle.internal.declarativedsl.schemaBuilder.FixedTopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
@@ -29,6 +31,14 @@ import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.kotlinFunction
 
 class TopLevelFunctionInvocationTest {
+    @Test
+    fun `can invoke the Kotlin stdlib listOf function via intrinsics`() {
+        val resolution = schema.resolve("""myStrings = listOf("one", "two")""")
+        val result = evaluateRuntimeInstance(resolution)
+
+        Assert.assertEquals(listOf("one", "two"), result.myStrings)
+    }
+
     @Test
     fun `can invoke an ordinary auto-imported top-level function by simple name`() {
         val resolution = schema.resolve("""myStrings = testStrings(123)""")
@@ -57,6 +67,7 @@ class TopLevelFunctionInvocationTest {
         schema, resolution, kotlinFunctionAsConfigureLambda, RuntimeCustomAccessors.none, { TopLevel() }, runtimeFunctionResolver =
             CompositeFunctionResolver(
                 listOf(
+                    DefaultRuntimeFunctionResolver(kotlinFunctionAsConfigureLambda, IntrinsicRuntimeFunctionCandidatesProvider(listOf(gradleRuntimeIntrinsicsKClass))),
                     DefaultRuntimeFunctionResolver(kotlinFunctionAsConfigureLambda, DefaultRuntimeFunctionCandidatesProvider)
                 )
             )

@@ -21,6 +21,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.assertIs
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.schemaBuilder.FixedTopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.junit.Assert
 import org.junit.Test
@@ -39,8 +40,10 @@ class ExternalFunctionsTest {
     val schema = schemaFromTypes(
         TopLevel::class,
         listOf(TopLevel::class, List::class),
-        externalFunctions = listOf<KFunction<*>>(
-            Class.forName("kotlin.collections.CollectionsKt").methods.single { it.name == "listOf" && it.parameters.singleOrNull()?.isVarArgs == true }.kotlinFunction!!
+        externalFunctionDiscovery = FixedTopLevelFunctionDiscovery(
+            listOf<KFunction<*>>(
+                Class.forName("kotlin.collections.CollectionsKt").methods.single { it.name == "listOf" && it.parameters.singleOrNull()?.isVarArgs == true }.kotlinFunction!!
+            )
         ),
         defaultImports = listOf(DefaultFqName.parse("kotlin.collections.listOf"))
     )

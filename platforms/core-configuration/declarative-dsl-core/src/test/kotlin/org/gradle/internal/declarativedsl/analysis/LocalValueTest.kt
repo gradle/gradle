@@ -10,7 +10,7 @@ import org.junit.Test
 
 
 val schema =
-    schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class), emptyList(), emptyMap(), emptyList())
+    schemaFromTypes(TopLevel::class, listOf(TopLevel::class, MyClass::class))
 
 
 class LocalValueTest {
