@@ -21,6 +21,7 @@ import org.gradle.tooling.ToolingModelContract
 
 @ToolingModelContract(subTypes = [
     InterpretationStepFeature.DocumentChecks::class,
+    InterpretationStepFeature.RunsBeforeClassScopeIsReady::class,
     InterpretationStepFeature.ResolutionResultPostprocessing::class,
     InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults::class,
     InterpretationStepFeature.ResolutionResultPostprocessing.ApplyModelDefaults::class
@@ -29,6 +30,9 @@ sealed interface InterpretationStepFeature {
     interface DocumentChecks : InterpretationStepFeature {
         val checkKeys: Iterable<String>
     }
+
+    interface RunsBeforeClassScopeIsReady : InterpretationStepFeature
+
     sealed interface ResolutionResultPostprocessing : InterpretationStepFeature {
         interface DefineModelDefaults : ResolutionResultPostprocessing
         interface ApplyModelDefaults : ResolutionResultPostprocessing
