@@ -28,6 +28,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.beAnnotatedOrInPackag
 public class BuildOperationsApiTest {
 
     @ArchTest
+    @SuppressWarnings("unchecked")
     public static final ArchRule classes_in_operations_package_are_annotated_with_non_null_api =
         classes().should(beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class));
 }

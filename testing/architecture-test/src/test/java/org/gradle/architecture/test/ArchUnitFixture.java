@@ -283,6 +283,7 @@ public interface ArchUnitFixture {
         return new AnnotatedMaybeInSupertypePredicate(predicate);
     }
 
+    @SuppressWarnings("unchecked")
     static ArchCondition<JavaClass> beAnnotatedOrInPackageAnnotatedWith(Class<? extends Annotation>... annotationTypes) {
         return ArchConditions.be(annotatedOrInPackageAnnotatedWith(annotationTypes));
     }
@@ -290,6 +291,7 @@ public interface ArchUnitFixture {
     /**
      * Either the class is directly annotated with the given annotation type or the class is in a package that is annotated with the given annotation type.
      */
+    @SuppressWarnings("unchecked")
     static DescribedPredicate<JavaClass> annotatedOrInPackageAnnotatedWith(Class<? extends Annotation>... annotationTypes) {
         return new AnnotatedOrInPackageAnnotatedPredicate(annotationTypes);
     }
@@ -465,6 +467,7 @@ public interface ArchUnitFixture {
     class AnnotatedOrInPackageAnnotatedPredicate extends DescribedPredicate<JavaClass> {
         private final Class<? extends Annotation>[] annotationTypes;
 
+        @SuppressWarnings("unchecked")
         AnnotatedOrInPackageAnnotatedPredicate(Class<? extends Annotation>... annotationTypes) {
             super("annotated (directly or via its package) with @" + annotationTypes[0].getName());
             this.annotationTypes = annotationTypes;

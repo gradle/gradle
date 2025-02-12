@@ -4,6 +4,11 @@ plugins {
 
 description = "Public and internal 'core' Gradle APIs that are required by other subprojects"
 
+gradlebuildJava {
+    // JSpecify annotations using ElementType.MODULE
+    usesFutureStdlib = true
+}
+
 errorprone {
     disabledChecks.addAll(
         "InlineMeSuggester", // 1 occurrences

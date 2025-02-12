@@ -137,6 +137,7 @@ public class ArchUnitFixtureTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void checks_for_annotation_presence() {
         ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class);
         assertNoViolation(checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.OwnNonNullApi.class));

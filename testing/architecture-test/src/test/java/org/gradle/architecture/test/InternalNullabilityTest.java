@@ -44,6 +44,7 @@ public class InternalNullabilityTest {
      * For instance, if the package exists in both {@code :core} and {@code :base-services}, it should be annotated in {@code :base-services}.
      */
     @ArchTest
+    @SuppressWarnings("unchecked")
     public static final ArchRule internal_classes_are_annotated_with_non_null_api = freeze(classes()
         .that(are(inGradleInternalApiPackages()))
         .and(classes_not_written_in_kotlin)

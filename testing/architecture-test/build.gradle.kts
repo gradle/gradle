@@ -13,6 +13,11 @@ description = """Verifies that Gradle code complies with architectural rules.
     | For example that nullable annotations are used consistently or that or that public api classes do not extend internal types.
 """.trimMargin()
 
+gradlebuildJava {
+    // JSpecify annotations using ElementType.MODULE
+    usesFutureStdlib = true
+}
+
 dependencies {
     currentClasspath(projects.distributionsFull)
     testImplementation(projects.baseServices)
