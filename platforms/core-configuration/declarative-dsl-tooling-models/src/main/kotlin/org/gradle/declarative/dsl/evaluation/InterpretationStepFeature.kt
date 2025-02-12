@@ -17,6 +17,7 @@
 package org.gradle.declarative.dsl.evaluation
 
 import org.gradle.tooling.ToolingModelContract
+import java.io.Serializable
 
 
 @ToolingModelContract(subTypes = [
@@ -26,7 +27,7 @@ import org.gradle.tooling.ToolingModelContract
     InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults::class,
     InterpretationStepFeature.ResolutionResultPostprocessing.ApplyModelDefaults::class
 ])
-sealed interface InterpretationStepFeature {
+sealed interface InterpretationStepFeature : Serializable {
     interface DocumentChecks : InterpretationStepFeature {
         val checkKeys: Iterable<String>
     }
