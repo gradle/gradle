@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.deprecation;
+package org.gradle.api.problems.internal.deprecation;
 
 
+import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.problems.deprecation.ReportSource;
 
 import javax.annotation.Nullable;
 
@@ -25,16 +27,37 @@ import javax.annotation.Nullable;
  * Additional data shipped with a deprecation.
  * <p>
  * This data is accessible, after reporting the deprecation, to consumers of problem events.
- *
- * @since 8.13
  */
+@Incubating
 public interface DeprecationData extends AdditionalData {
-    @Nullable
-    DeprecatedVersion getRemovedIn();
 
+    /**
+     * Returns from where the deprecation is reported from.
+     *
+     * @return the source of the deprecation.
+     */
+    ReportSource getSource();
+    /**
+     * Returns the version in which the deprecation will become an error.
+     *
+     * @return the version in which the deprecation will become an error.
+     */
+    @Nullable
+    String getRemovedIn();
+
+    /**
+     * Returns the feature that replaces the deprecated feature.
+     *
+     * @return the feature that replaces the deprecated feature.
+     */
     @Nullable
     String getReplacedBy();
 
+    /**
+     * Returns human-readable reason of why the deprecation was introduced.
+     *
+     * @return reason of why the deprecation was introduced
+     */
     @Nullable
     String getBecause();
 }

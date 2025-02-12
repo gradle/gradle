@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 /**
  * Marker interface for version of a deprecated feature.
  *
- * @since 8.13
+ * @since 8.14
  */
 @Incubating
 public interface DeprecatedVersion {

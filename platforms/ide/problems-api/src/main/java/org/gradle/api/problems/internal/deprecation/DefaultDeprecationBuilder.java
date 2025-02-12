@@ -13,73 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.problems.internal.deprecation;
 
-import org.gradle.api.Action;
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.deprecation.DeprecateGenericSpec;
-import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
-import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
-import org.gradle.api.problems.deprecation.DeprecationDataSpec;
+import org.gradle.api.problems.deprecation.ReportSource;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 
-import javax.annotation.Nullable;
-
-class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePluginSpec, DeprecateMethodSpec {
+class DefaultDeprecationBuilder implements InternalDeprecateSpec {
     private final InternalProblemBuilder builder;
+    private final DefaultDeprecationData.Builder additionalDataBuilder;
 
-    public DefaultDeprecationBuilder(InternalProblemBuilder builder) {
+    public DefaultDeprecationBuilder(ReportSource reportSource, InternalProblemBuilder builder) {
         this.builder = builder;
+        this.additionalDataBuilder = new DefaultDeprecationData.Builder(reportSource);
     }
 
     @Override
-    public DefaultDeprecationBuilder replacedBy(final String replacement) {
-        builder.additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-            @Override
-            public void execute(DeprecationDataSpec deprecationDataSpec) {
-                deprecationDataSpec.replacedBy(replacement);
-            }
-        });
+    public DefaultDeprecationBuilder replacedBy(String replacement) {
+        additionalDataBuilder.replacedBy(replacement);
         return this;
     }
 
     @Override
-    public DefaultDeprecationBuilder removedInVersion(final String opaqueVersion) {
-        builder.additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-            @Override
-            public void execute(DeprecationDataSpec deprecationDataSpec) {
-                deprecationDataSpec.removedIn(new DefaultOpaqueDeprecatedVersion(opaqueVersion));
-            }
-        });
+    public DefaultDeprecationBuilder removedInVersion(String version) {
+        additionalDataBuilder.removedIn(version);
         return this;
     }
 
     @Override
-    public DeprecateGenericSpec removedInVersion(final Integer major, @Nullable final Integer minor, @Nullable final Integer patch, @Nullable final String qualifier) {
-        builder.additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-            @Override
-            public void execute(DeprecationDataSpec deprecationDataSpec) {
-                deprecationDataSpec.removedIn(new DefaultSemverDeprecatedVersion(major, minor, patch, qualifier));
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public DefaultDeprecationBuilder because(final String reason) {
-        builder.additionalData(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-            @Override
-            public void execute(DeprecationDataSpec deprecationDataSpec) {
-                deprecationDataSpec.because(reason);
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public DefaultDeprecationBuilder withDetails(String details) {
-        builder.details(details);
+    public DefaultDeprecationBuilder because(String reason) {
+        builder.details(reason);
         return this;
     }
 
@@ -87,7 +50,8 @@ class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePlugin
         return builder;
     }
 
-    public Problem build() {
+    public InternalProblem build() {
+        builder.additionalDataInternal(additionalDataBuilder.build());
         return builder.build();
     }
 }

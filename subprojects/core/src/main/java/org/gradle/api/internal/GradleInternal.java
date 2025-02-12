@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -168,4 +169,7 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * Resets the lifecycle for this Gradle object.
      */
     void resetState();
+
+    @VisibleForTesting
+    void testDeprecation();
 }
