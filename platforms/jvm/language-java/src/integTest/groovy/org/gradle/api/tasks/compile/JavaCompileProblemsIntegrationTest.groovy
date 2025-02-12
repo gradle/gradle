@@ -31,7 +31,6 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
-import org.opentest4j.AssertionFailedError
 import spock.lang.Issue
 
 /**
@@ -81,10 +80,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
      * @param checkSolutions Whether to check for non-empty solutions (defaults to true)
      */
     void verifyErrorProblem(ReceivedProblem problem, boolean expectLineLocation = true, boolean checkSolutions = true) {
-        assertLabel(problem)
         assertLocations(problem, expectLineLocation)
         assert problem.severity == Severity.ERROR
-        assert problem.fqid == 'compilation:java:compiler-err-expected'
+        assert problem.fqid == 'compilation:java:compiler.err.expected'
+        assert problem.definition.id.displayName == "';' expected"
         assert problem.contextualLabel == '\';\' expected'
         if (checkSolutions) {
             assert !problem.solutions.empty
@@ -99,10 +98,10 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
      * @param fileLocation Optional file location for additional verification
      */
     void verifyWarningProblem(ReceivedProblem problem, boolean expectLineLocation = true, String fileLocation = null) {
-        assertLabel(problem)
         assertLocations(problem, expectLineLocation)
         assert problem.severity == Severity.WARNING
-        assert problem.fqid == 'compilation:java:compiler-warn-redundant-cast'
+        assert problem.fqid == 'compilation:java:compiler.warn.redundant.cast'
+        assert problem.definition.id.displayName == 'redundant cast to java.lang.String'
         assertRedundantCastInContextualLabel(problem.contextualLabel)
 
         // Optional verification for details if file location is provided
@@ -120,7 +119,8 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     void verifyWerrorProblem(ReceivedProblem problem) {
         assertLocations(problem, false, false)
         assert problem.severity == Severity.ERROR
-        assert problem.fqid == 'compilation:java:compiler-err-warnings-and-werror'
+        assert problem.fqid == 'compilation:java:compiler.err.warnings.and.werror'
+        assert problem.definition.id.displayName == 'warnings found and -Werror specified'
         assert problem.contextualLabel == 'warnings found and -Werror specified'
         assert !problem.solutions.empty
         assert problem.details == "error: warnings found and -Werror specified"
@@ -135,9 +135,9 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
     void verifyJdkSpecificWarningProblem(ReceivedProblem problem, boolean isJava9Compatible) {
         assertLocations(problem, true)
         assert problem.severity == Severity.WARNING
-        assert problem.fqid == 'compilation:java:compiler-warn-redundant-cast'
-
+        assert problem.fqid == 'compilation:java:compiler.warn.redundant.cast'
         def message = getRedundantMessage(isJava9Compatible)
+        assert problem.definition.id.displayName == 'redundant cast to java.lang.String'
         assert problem.contextualLabel == message
         assert problem.details.contains(message)
     }
@@ -196,13 +196,13 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
         verifyAll(receivedProblem(0)) {
             assertLocations(it, false, false)
             severity == Severity.ADVICE
-            fqid == 'compilation:java:compiler-note-unchecked-filename'
+            fqid == 'compilation:java:compiler.note.unchecked.filename'
             contextualLabel == "${buildFile.parentFile.path}/src/main/java/Foo.java uses unchecked or unsafe operations.".replace('/', File.separator)
         }
         verifyAll(receivedProblem(1)) {
             assertLocations(it, false, false)
             severity == Severity.ADVICE
-            fqid == 'compilation:java:compiler-note-unchecked-recompile'
+            fqid == 'compilation:java:compiler.note.unchecked.recompile'
             contextualLabel == "Recompile with -Xlint:unchecked for details."
         }
     }
@@ -414,19 +414,6 @@ class JavaCompileProblemsIntegrationTest extends AbstractIntegrationSpec impleme
             //  - JDK11:         invalid flag: -invalid-flag
             contextualLabel.endsWith('invalid flag: -invalid-flag')
             exception.message.endsWith('invalid flag: -invalid-flag')
-        }
-    }
-
-    void assertLabel(ReceivedProblem receivedProblem) {
-        switch (receivedProblem.severity) {
-            case Severity.ERROR:
-                assert receivedProblem.definition.id.displayName == "Java compilation error"
-                break
-            case Severity.WARNING:
-                assert receivedProblem.definition.id.displayName == "Java compilation warning"
-                break
-            default:
-                throw new AssertionFailedError("Unexpected severity: ${receivedProblem.severity}")
         }
     }
 
