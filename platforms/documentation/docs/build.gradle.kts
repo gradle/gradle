@@ -709,6 +709,11 @@ tasks.named<Test>("docsTest") {
         }
     }
 
+    filter {
+        // TODO(https://github.com/gradle/gradle/issues/22538)
+        excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation.sample")
+    }
+
     if (project.configurationCacheEnabledForDocsTests) {
         systemProperty("org.gradle.integtest.samples.cleanConfigurationCacheOutput", "true")
         systemProperty("org.gradle.integtest.executer", "configCache")
