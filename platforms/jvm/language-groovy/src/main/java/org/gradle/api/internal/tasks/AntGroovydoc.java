@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
@@ -42,7 +43,10 @@ import java.util.Set;
 
 /**
  * Generates groovy doc using Ant.
+ *
+ * @deprecated This is an internal API. Do not use this class.
  */
+@Deprecated
 public final class AntGroovydoc {
 
     private final IsolatedAntBuilder ant;
@@ -52,6 +56,7 @@ public final class AntGroovydoc {
         IsolatedAntBuilder ant,
         TemporaryFileProvider temporaryFileProvider
     ) {
+        DeprecationLogger.deprecateType(AntGroovydoc.class).willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
         this.ant = ant;
         this.temporaryFileProvider = temporaryFileProvider;
     }
