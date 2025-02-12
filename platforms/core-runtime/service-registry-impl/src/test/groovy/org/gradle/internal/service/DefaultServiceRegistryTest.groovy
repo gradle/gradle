@@ -17,9 +17,9 @@
 package org.gradle.internal.service
 
 import com.google.common.reflect.TypeToken
-import org.gradle.api.NonNullApi
 import org.gradle.internal.Factory
 import org.gradle.internal.concurrent.Stoppable
+import org.gradle.util.GroovyNullMarked
 import org.gradle.util.internal.TextUtil
 import spock.lang.Specification
 
@@ -1681,7 +1681,7 @@ class DefaultServiceRegistryTest extends Specification {
         Factory<?> getFactory(Class<?> type)
     }
 
-    @NonNullApi
+    @GroovyNullMarked
     private static class MockServiceWrapper implements Service {
         private final Object instance
 
@@ -1753,7 +1753,7 @@ class DefaultServiceRegistryTest extends Specification {
         }
     }
 
-    @NonNullApi
+    @GroovyNullMarked
     private static class MockServiceRegistry implements ContainsServices, ServiceRegistry {
         private final ParentServices parentServices
 
