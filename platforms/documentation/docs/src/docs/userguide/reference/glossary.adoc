@@ -26,7 +26,7 @@ You can run a build using the `gradle` or `gradlew` commands.
 
 [[sub:terminology_build_scan]]
 Build Scan::
-A Build Scan is a service provided by Gradle which is used to identify build issues and build performance.
+A link:https://gradle.com/develocity/product/build-scan[Build Scan] is a service provided by Gradle which is used to identify build issues and build performance.
 
 [[sub:terminology_build_script]]
 Build Script::
@@ -280,8 +280,6 @@ Equivalent to a <<sub:terminology_plugin,plugin>>, but written such that it look
 [[sub:terminology_project]]
 Project::
 Often referred to as a "module", every Gradle project is backed by a `Project` instance, hence the name.
-+
-The most common type of <<sub:terminology_plugin,plugin>> is a project plugin.
 +
 Most Gradle projects are composed of many projects (usually called "subprojects").
 
