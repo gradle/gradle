@@ -23,7 +23,6 @@ import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.internal.tasks.GroovydocAntAction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.Property;
@@ -39,7 +38,9 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.workers.WorkerExecutor;
 
@@ -64,6 +65,7 @@ import java.util.Set;
  * that is used, is the one from the Groovy dependency defined in the build script.
  */
 @CacheableTask
+@SuppressWarnings("deprecation")
 public abstract class Groovydoc extends SourceTask {
     private FileCollection groovyClasspath;
 
@@ -71,7 +73,7 @@ public abstract class Groovydoc extends SourceTask {
 
     private File destinationDir;
 
-    private AntGroovydoc antGroovydoc;
+    private org.gradle.api.internal.tasks.AntGroovydoc antGroovydoc;
 
     private boolean use;
 
@@ -223,18 +225,31 @@ public abstract class Groovydoc extends SourceTask {
         this.classpath = classpath;
     }
 
+    /**
+     * This is an internal API that will be removed.
+     * @deprecated Do not use this method.
+     */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public AntGroovydoc getAntGroovydoc() {
+    @NotToBeReplacedByLazyProperty(because="it's going to be removed")
+    @Deprecated
+    public org.gradle.api.internal.tasks.AntGroovydoc getAntGroovydoc() {
+        DeprecationLogger.deprecateMethod(Groovydoc.class, "getAntGroovydoc()").willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
+
         if (antGroovydoc == null) {
             IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
             TemporaryFileProvider temporaryFileProvider = getServices().get(TemporaryFileProvider.class);
-            antGroovydoc = new AntGroovydoc(antBuilder, temporaryFileProvider);
+            antGroovydoc = new org.gradle.api.internal.tasks.AntGroovydoc(antBuilder, temporaryFileProvider);
         }
         return antGroovydoc;
     }
 
-    public void setAntGroovydoc(AntGroovydoc antGroovydoc) {
+    /**
+     * This is an internal API that will be removed.
+     * @deprecated Do not use this method.
+     */
+    @Deprecated
+    public void setAntGroovydoc(org.gradle.api.internal.tasks.AntGroovydoc antGroovydoc) {
+        DeprecationLogger.deprecateMethod(getClass(), "setAntGroovydoc(AntGroovydoc)").willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
         this.antGroovydoc = antGroovydoc;
     }
 

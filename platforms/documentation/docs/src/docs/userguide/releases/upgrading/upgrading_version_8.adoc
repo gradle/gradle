@@ -35,6 +35,15 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.14]]
+== Upgrading from 8.13 and earlier
+
+=== Deprecations
+
+==== `Groovydoc.getAntGroovydoc()` and `org.gradle.api.internal.tasks.AntGroovydoc` have been deprecated
+
+This was an internal API that was inadvertently exposed. This will be removed in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
