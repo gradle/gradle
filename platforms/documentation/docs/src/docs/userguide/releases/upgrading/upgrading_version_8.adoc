@@ -35,6 +35,22 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.14]]
+== Upgrading from 8.13 and earlier
+
+=== Potential breaking changes
+
+=== Deprecations
+
+[[deprecated_string_to_enum_coercion_for_rich_properties]]
+==== Groovy String to Enum coercion for Property types is deprecated
+
+Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[String to enum coercion].
+Assigning a string to a property of type `Property<T>` where `T` is an enum is deprecated.
+This will become an error in Gradle 10.0.
+
+This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
@@ -131,15 +147,6 @@ container.attributeProvider(firstAttribute, project.getProviders().provider(() -
 
 There is no good public use case for this exception, and it is not intended to be thrown by users.
 It will be replaced by `org.gradle.api.internal.artifacts.transform.VariantTransformConfigurationException` for internal use only in Gradle 9.0.
-
-[[deprecated_string_to_enum_coercion_for_rich_properties]]
-==== Groovy String to Enum coercion for Property types is deprecated
-
-Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[String to enum coercion].
-Assigning a string to a property of type `Property<T>` where `T` is an enum is deprecated.
-This will become an error in Gradle 10.0.
-
-This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
 
 [[deprecated_update_daemon_jvm]]
 ==== Deprecated properties in the incubating `UpdateDaemonJvm`
