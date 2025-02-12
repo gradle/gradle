@@ -23,6 +23,12 @@ repositories {
     googleApisJs()
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 configurations {
     consumable("gradleFullDocsElements") {
         attributes {

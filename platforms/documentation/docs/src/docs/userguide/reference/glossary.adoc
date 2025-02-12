@@ -77,7 +77,7 @@ The configuration phase happens first and is single-threaded.
 
 [[sub:terminology_convention_plugin]]
 Convention Plugin::
-A <<sub:terminology_plugin>> built on top of an <<sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
+A <<sub:terminology_plugin,plugin>> built on top of an <<sub:terminology_ecosystem_plugin,ecosystem plugin>>, which applies common _conventions_ to the build script that uses the plugin.
 
 [[sub:terminology_cross_configuration]]
 Cross-Configuration::
@@ -163,7 +163,7 @@ For more information, see the sections on <<dependency_constraints.adoc#dependen
 
 [[sub:terminology_ecosystem_plugin]]
 Ecosystem Plugin::
-A <<sub:terminology_plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
+A <<sub:terminology_plugin,plugin>> responsible for building a language, such as Java (`java` and `java-library`), Groovy, Scala, Android, Kotlin, etc.
 Many plugins are maintained by Gradle and are part of the Gradle distribution.
 
 [[sub:terminology_execution_phase]]
@@ -263,15 +263,18 @@ Plugin::
 Gradle is built on a plugin system.
 Gradle itself is primarily composed of infrastructure, such as a sophisticated dependency resolution engine, common to all project types.
 The rest of its functionality comes from plugins, including "core" plugins distributed with Gradle itself, third-party plugins, and <<sub:terminology_script_plugin,script plugins>> in a given build.
-
-There are three _kinds_ of plugin, based on the context in which they are applied:
-
-. Project plugins that implement `Plugin<Project>`, applied in <<sub:terminology_build_script,build scripts>>.
-. Settings plugins that implement `Plugin<Settings>`, applied in <<sub:terminology_settings_script,settings scripts>>.
-. Init (Gradle) plugins that implement `Plugin<Gradle>`, applied in <<sub:terminology_init_script,init scripts>>.
-
++
 Plugins may be _implemented_ as so-called binary plugins (that is, by explicitly implementing one of the specific generic interfaces described above), or as <<sub:terminology_precompiled_script_plugin,precompiled script plugins>>.
 This distinction is merely an implementation detail.
++
+There are three _kinds_ of plugin, based on the context in which they are applied.
++
+1. Project plugins that implement `Plugin<Project>`, applied in <<sub:terminology_build_script,build scripts>>.
++
+2. Settings plugins that implement `Plugin<Settings>`, applied in <<sub:terminology_settings_script,settings scripts>>.
++
+3. Init plugins that implement `Plugin<Gradle>`, applied in <<sub:terminology_init_script,init scripts>>.
+
 
 [[sub:terminology_precompiled_script_plugin]]
 Precompiled Script Plugin::
@@ -346,7 +349,7 @@ The version selection for transitive dependencies can be influenced by declaring
 == V
 
 [[sub:terminology_variant]]
-Variant (of a component)::
+Variant (of a Component)::
 Each <<#sub:terminology_component, component>> consists of one or more variants.
 A variant consists of a set of artifacts and defines a set of dependencies.
 It is identified by a set of <<sub:terminology_attribute,attributes>> and <<sub:terminology_capability,capabilities>>.
