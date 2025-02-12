@@ -15,7 +15,6 @@
 [[build_init_plugin]]
 = Build Init Plugin
 
-
 The Build Init plugin can be used to create a new Gradle build. It supports creating brand new Gradle builds of various types as well as converting existing Apache Maven builds to Gradle.
 
 [[sec:sample_usage]]
@@ -109,9 +108,63 @@ If the `--overwrite` option is provided, Gradle will overwrite any existing file
 
 All build types also set up <<gradle_wrapper.adoc#gradle_wrapper_reference, Gradle Wrapper>> in the build.
 
+=== Options
+
+[cols="2,3,1"]
+|===
+|Option |Description |Example
+
+|`--comments` / `--no-comments`
+|Include clarifying comments in files. User can also use the property `org.gradle.buildinit.comments`.
+|
+
+|`--incubating`
+|Allow the generated build to use new features and APIs.
+|
+
+|`--use-defaults` / `--no-use-defaults`
+|Use default values for options not configured explicitly.
+|
+
+|`--overwrite`
+|Allow existing files in the build directory to be overwritten.
+|
+
+|`--split-project` / `--no-split-project`
+|Split functionality across multiple subprojects?
+|
+
+|`--java-version`
+|Provides java version to use in the project.
+|`11`
+
+|`--insecure-protocol`
+|How to handle insecure URLs used for Maven Repositories.
+|`fail`
+
+|`--type`
+|Set the type of project to generate.
+|`java-application`
+
+|`--dsl`
+|Set the build script DSL to be used in generated scripts.
+|`groovy`
+
+|`--test-framework`
+|Set the test framework to be used.
+|`junit-jupiter`
+
+|`--project-name`
+|Set the project name. Defaults to the name of the directory.
+|`my-project`
+
+|`--package`
+|Set the package for source files.
+|`my.project`
+|===
+
 [[sec:build_init_types]]
 == Build init types
-
 
 [[sec:pom_maven_conversion]]
 === `pom` build type (Maven conversion)
@@ -182,7 +235,6 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 * `gradle init --type java-application --test-framework spock`: Uses https://spockframework.org[Spock] for testing instead of JUnit 4
 * `gradle init --type java-application --test-framework testng`: Uses https://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
 
-
 [[sec:java_version_option]]
 ==== The `--java-version` option
 
@@ -211,7 +263,6 @@ Alternative test framework can be specified by supplying a `--test-framework` ar
 * `gradle init --type java-library --test-framework spock`: Uses http://code.google.com/p/spock/[Spock] for testing instead of JUnit 4
 * `gradle init --type java-library --test-framework testng`: Uses http://testng.org/doc/index.html[TestNG] for testing instead of JUnit 4
 
-
 [[sec:java_gradle_plugin]]
 === `java-gradle-plugin` build type
 
@@ -224,7 +275,6 @@ It has the following features:
 * Uses https://junit.org/junit4/[JUnit 4] and TestKit for testing
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
-
 
 [[sec:kotlin_application]]
 === `kotlin-application` build type
@@ -240,7 +290,6 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
 
-
 [[sec:kotlin_library]]
 === `kotlin-library` build type
 
@@ -254,7 +303,6 @@ It has the following features:
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
-
 
 [[sec:kotlin_gradle_plugin]]
 === `kotlin-gradle-plugin` build type
@@ -312,7 +360,6 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
 
-
 [[sec:groovy_application]]
 === `groovy-application` build type
 
@@ -326,7 +373,6 @@ It has the following features:
 * Uses http://spockframework.org[Spock testing framework] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files
-
 
 [[sec:groovy_gradle_plugin]]
 === `groovy-gradle-plugin` build type
@@ -342,7 +388,6 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample class and unit test, if there are no existing source or test files
 
-
 [[sec:cpp_application]]
 === `cpp-application` build type
 
@@ -355,7 +400,6 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a private header file and an associated test class, if there are no existing source or test files
 
-
 [[sec:cpp_library]]
 === `cpp-library` build type
 
@@ -367,7 +411,6 @@ It has the following features:
 * Uses the "`cpp-unit-test`" plugin to build and run simple unit tests
 * Has directories in the conventional locations for source code
 * Contains a sample C++ class, a public header file and an associated test class, if there are no existing source or test files
-
 
 [[sec:basic]]
 === `basic` build type
