@@ -48,7 +48,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}. " +
+        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}. " +
                 "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
@@ -68,7 +68,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}) " +
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) " +
             "from 'http://insecure-server.com', due to: Attempting to download java toolchain from an insecure URI http://insecure-server.com. This is not supported, use a secure URI instead")
     }
 
@@ -84,7 +84,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}) from 'https://server.com/v=^10'")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'https://server.com/v=^10'")
             .assertHasResolutions(
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain repositories at https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories."),
@@ -104,7 +104,7 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
             .runWithFailure()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}) from 'invalid-url'")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from 'invalid-url'")
     }
 
     @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
@@ -129,8 +129,8 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         jdkRepository.stop()
 
         then:
-        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}) from '$uri', " +
-            "due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific}")
+        failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}) from '$uri', " +
+            "due to: Toolchain provisioned from '$uri' doesn't satisfy the specification: {languageVersion=${javaVersion.majorVersion}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}")
     }
 
     @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
