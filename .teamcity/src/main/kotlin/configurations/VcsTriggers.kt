@@ -16,14 +16,16 @@
 
 package configurations
 
-val triggerExcludes = """
-        -:.idea
-        -:.github
-        -:.teamcity
-        -:platforms/documentation/docs/src/docs/release
-""".trimIndent()
+val triggerExcludes =
+    """
+    -:.idea
+    -:.github
+    -:.teamcity
+    -:platforms/documentation/docs/src/docs/release
+    """.trimIndent()
 
-fun branchesFilterExcluding(vararg excludedBranch: String) = """
+fun branchesFilterExcluding(vararg excludedBranch: String) =
+    """
 +:*
 ${excludedBranch.joinToString("\n") { "-:$it" }}
 """

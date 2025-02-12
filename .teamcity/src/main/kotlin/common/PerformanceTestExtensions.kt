@@ -21,13 +21,18 @@ import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.BuildType
 import jetbrains.buildServer.configs.kotlin.buildSteps.script
 
-fun BuildType.applyPerformanceTestSettings(os: Os = Os.LINUX, arch: Arch = Arch.AMD64, timeout: Int = 30) {
+fun BuildType.applyPerformanceTestSettings(
+    os: Os = Os.LINUX,
+    arch: Arch = Arch.AMD64,
+    timeout: Int = 30,
+) {
     applyDefaultSettings(os = os, arch = arch, timeout = timeout)
-    artifactRules = """
+    artifactRules =
+        """
         build/report-*-performance-tests.zip => .
-        build/report-*-performance.zip => $hiddenArtifactDestination
-        build/report-*PerformanceTest.zip => $hiddenArtifactDestination
-    """.trimIndent()
+        build/report-*-performance.zip => $HIDDEN_ARTIFACT_DESTINATION
+        build/report-*PerformanceTest.zip => $HIDDEN_ARTIFACT_DESTINATION
+        """.trimIndent()
     detectHangingBuilds = false
     requirements {
         requiresNotEc2Agent()
@@ -46,7 +51,7 @@ fun performanceTestCommandLine(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     testJavaVersion: String = os.perfTestJavaVersion.major.toString(),
-    testJavaVendor: String = os.perfTestJavaVendor.toString(),
+    testJavaVendor: String = os.perfTestJavaVendor.name.lowercase(),
 ) = listOf(
     "$task${if (extraParameters.isEmpty()) "" else " $extraParameters"}",
     "-PperformanceBaselines=$baselines",
@@ -55,14 +60,15 @@ fun performanceTestCommandLine(
     "-PautoDownloadAndroidStudio=true",
     "-PrunAndroidStudioInHeadlessMode=true",
     "-Porg.gradle.java.installations.auto-download=false",
-    os.javaInstallationLocations(arch)
-) + listOf(
-    "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
-    "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-    "-Porg.gradle.performance.db.username" to "%performance.db.username%"
-).map { (key, value) -> os.escapeKeyValuePair(key, value) }
+    os.javaInstallationLocations(arch),
+) +
+    listOf(
+        "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
+        "-Porg.gradle.performance.db.url" to "%performance.db.url%",
+        "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+    ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
-const val individualPerformanceTestArtifactRules = """
+const val INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES = """
 testing/*/build/test-results-*.zip => results
 testing/*/build/tmp/**/log.txt => failure-logs
 testing/*/build/tmp/**/profile.log => failure-logs
@@ -75,10 +81,11 @@ fun BuildSteps.substDirOnWindows(os: Os) {
         script {
             name = "SETUP_VIRTUAL_DISK_FOR_PERF_TEST"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = """
+            scriptContent =
+                """
                 subst p: /d
                 subst p: "%teamcity.build.checkoutDir%"
-            """.trimIndent()
+                """.trimIndent()
             skipConditionally()
         }
     }

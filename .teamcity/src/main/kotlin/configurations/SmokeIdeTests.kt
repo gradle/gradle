@@ -23,26 +23,30 @@ import common.requiresNotEc2Agent
 import model.CIBuildModel
 import model.Stage
 
-class SmokeIdeTests(model: CIBuildModel, stage: Stage) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
-    id(buildTypeId(model))
-    name = "Smoke Ide Tests"
-    description = "Tests against IDE sync process"
+class SmokeIdeTests(
+    model: CIBuildModel,
+    stage: Stage,
+) : OsAwareBaseGradleBuildType(os = Os.LINUX, stage = stage, init = {
+        id(buildTypeId(model))
+        name = "Smoke Ide Tests"
+        description = "Tests against IDE sync process"
 
-    requirements {
-        // These tests are usually heavy and the build time is twice on EC2 agents
-        requiresNotEc2Agent()
-    }
+        requirements {
+            // These tests are usually heavy and the build time is twice on EC2 agents
+            requiresNotEc2Agent()
+        }
 
-    applyTestDefaults(
-        model = model,
-        buildType = this,
-        gradleTasks = ":smoke-ide-test:smokeIdeTest",
-        extraParameters = listOf(
-            stage.getBuildScanCustomValueParam(),
-            buildScanTagParam("SmokeIdeTests")
-        ).joinToString(" "),
-    )
-}) {
+        applyTestDefaults(
+            model = model,
+            buildType = this,
+            gradleTasks = ":smoke-ide-test:smokeIdeTest",
+            extraParameters =
+                listOf(
+                    stage.getBuildScanCustomValueParam(),
+                    buildScanTagParam("SmokeIdeTests"),
+                ).joinToString(" "),
+        )
+    }) {
     companion object {
         fun buildTypeId(model: CIBuildModel) = "${model.projectId}_SmokeIdeTests"
     }
