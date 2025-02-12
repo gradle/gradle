@@ -31,16 +31,16 @@ class GradleRootProjectIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        buildFile("build-logic/build.gradle.kts", """
+        file("build-logic/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
             repositories {
                mavenCentral()
             }
-        """)
+        """
 
-        settingsFile << """
+        settingsFile """
             pluginManagement {
                 includeBuild("build-logic")
             }
@@ -60,14 +60,14 @@ class GradleRootProjectIntegrationTest extends AbstractIntegrationSpec {
         file("buildSrc/src/main/kotlin/foo.gradle.kts") << """
             println("Foo applied")
         """
-        buildFile("buildSrc/build.gradle.kts", """
+        file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
             repositories {
                mavenCentral()
             }
-        """)
+        """
 
         settingsFile """
             gradle.rootProject {

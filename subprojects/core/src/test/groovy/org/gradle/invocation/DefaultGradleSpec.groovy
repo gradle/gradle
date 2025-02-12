@@ -409,7 +409,8 @@ class DefaultGradleSpec extends Specification {
         gradle.executeRootProjectActions()
 
         then:
-        thrown(IllegalStateException)
+        def e = thrown(IllegalStateException)
+        e.message == "Root project actions may be executed only after base project classloader scope has been locked"
 
         when:
         baseProjectClassLoaderScope.isLocked() >> true
@@ -447,7 +448,8 @@ class DefaultGradleSpec extends Specification {
         gradle.executeRootProjectActions()
 
         then:
-        thrown(IllegalStateException)
+        def e = thrown(IllegalStateException)
+        e.message == "Root project actions may be executed only after base project classloader scope has been locked"
 
         when:
         baseProjectClassLoaderScope.isLocked() >> true

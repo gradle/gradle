@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
+import org.gradle.api.IsolatedAction;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
@@ -159,6 +160,14 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      */
     ClassLoaderScope baseProjectClassLoaderScope();
 
+    /**
+     * Add a callback to be called after base project classloader locked, effectively at the very end of the root project actions execution.
+     * Relative to other callbacks it happens later than {@link Gradle#projectsLoaded(Action)} and
+     * right after {@link org.gradle.api.invocation.GradleLifecycle#beforeProject(IsolatedAction)}.
+     * <p>
+     * Adding a callback is NOT thread-safe.
+     * @see #executeRootProjectActions()
+     */
     void baseProjectClassLoaderLocked(Action<? super GradleInternal> action);
 
     /**
