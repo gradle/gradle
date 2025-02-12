@@ -16,6 +16,7 @@ dependencies {
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)

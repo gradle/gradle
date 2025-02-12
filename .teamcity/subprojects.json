@@ -308,6 +308,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-server-worker",
+    "path": "platforms/core-execution/daemon-server-worker",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-services",
     "path": "platforms/core-runtime/daemon-services",
     "unitTests": true,

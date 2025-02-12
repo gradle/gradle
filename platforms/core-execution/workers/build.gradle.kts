@@ -12,29 +12,25 @@ dependencies {
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
-    api(projects.hashing)
+    api(projects.daemonServerWorker)
     api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.modelCore)
     api(projects.processMemoryServices)
-    api(projects.requestHandlerWorker)
-    api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.snapshots)
     api(projects.stdlibJavaExtensions)
     api(projects.workerMain)
 
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.fileTemp)
-    implementation(projects.fileCollections)
-    implementation(projects.fileOperations)
-    implementation(projects.persistentCache)
+    implementation(projects.hashing)
+    implementation(projects.requestHandlerWorker)
+    implementation(projects.serialization)
+    implementation(projects.snapshots)
     implementation(projects.time)
-    implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.slf4jApi)
     implementation(libs.guava)
@@ -58,9 +54,6 @@ dependencies {
     testFixturesImplementation(libs.groovyJson)
     testFixturesImplementation(projects.baseServices)
 
-    testRuntimeOnly(projects.distributionsCore) {
-        because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
-    }
     integTestDistributionRuntimeOnly(projects.distributionsJvm) {
         because("Uses application plugin.")
     }
