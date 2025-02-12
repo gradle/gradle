@@ -46,7 +46,7 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                 antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
                     public Object doCall(Object ignore) {
                         params.getExecutionData().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                        return null;
+                        return Void.class;
                     }
                 }});
                 Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
@@ -55,7 +55,7 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                         antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
                             public Object doCall(Object ignore) {
                                 params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                                return null;
+                                return Void.class;
                             }
                         }});
                         final Map<String, Object> sourcefilesArgs;
@@ -68,10 +68,10 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                         antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
                             public Object doCall(Object ignore) {
                                 params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                                return null;
+                                return Void.class;
                             }
                         }});
-                        return null;
+                        return Void.class;
                     }
                 }});
                 if (params.getGenerateHtml().get()) {
@@ -89,7 +89,7 @@ public class AntJacocoReport implements Action<AntBuilderDelegate> {
                         ImmutableMap.<String, Object>of("destfile", params.getCsvDestination().getAsFile().get())
                     });
                 }
-                return null;
+                return Void.class;
             }
         }});
     }

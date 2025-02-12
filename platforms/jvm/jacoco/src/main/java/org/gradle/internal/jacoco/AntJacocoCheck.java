@@ -28,6 +28,7 @@ import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.util.internal.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                     antBuilder.invokeMethod("executiondata", new Object[]{emptyArgs, new Closure<Object>(this, this) {
                         public Object doCall(Object ignore) {
                             params.getExecutionData().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                            return null;
+                            return Void.class;
                         }
                     }});
                     Map<String, Object> structureArgs = ImmutableMap.<String, Object>of("name", params.getProjectName().get());
@@ -74,7 +75,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                             antBuilder.invokeMethod("classfiles", new Object[]{emptyArgs, new Closure<Object>(this, this) {
                                 public Object doCall(Object ignore) {
                                     params.getAllClassesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                                    return null;
+                                    return Void.class;
                                 }
                             }});
                             final Map<String, Object> sourcefilesArgs;
@@ -87,10 +88,10 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
                             antBuilder.invokeMethod("sourcefiles", new Object[]{sourcefilesArgs, new Closure<Object>(this, this) {
                                 public Object doCall(Object ignore) {
                                     params.getAllSourcesDirs().filter(File::exists).addToAntBuilder(antBuilder, "resources");
-                                    return null;
+                                    return Void.class;
                                 }
                             }});
-                            return null;
+                            return Void.class;
                         }
                     }});
 
@@ -122,16 +123,16 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
 
                                                 antBuilder.invokeMethod("limit", new Object[] {ImmutableMap.copyOf(limitArgs) });
                                             }
-                                            return null;
+                                            return Void.class;
                                         }
                                     }});
                                 }
-                                return null;
+                                return Void.class;
                             }
                         }});
                     }
 
-                    return null;
+                    return Void.class;
                 }
             }});
         } catch (Exception e) {
@@ -142,6 +143,7 @@ public class AntJacocoCheck implements Action<AntBuilderDelegate> {
         GFileUtils.touch(params.getDummyOutputFile().get().getAsFile());
     }
 
+    @Nullable
     private String getViolations(AntBuilderDelegate antBuilder) {
         return Cast.uncheckedCast(antBuilder.getProjectProperties().get(VIOLATIONS_ANT_PROPERTY));
     }
