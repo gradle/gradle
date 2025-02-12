@@ -135,8 +135,8 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 
     private
     fun buildDeclarativeRuntimeFunction(collectorAccessor: DependencyCollectorAccessor) = object : DeclarativeRuntimeFunction {
-        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
-            val dependencyCollector = collectorAccessor(receiver)
+        override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+            val dependencyCollector = collectorAccessor(checkNotNull(receiver))
             when (val dependencyNotation = binding.values.single()) {
                 is ProjectDependency -> dependencyCollector.add(dependencyNotation)
                 else -> dependencyCollector.add(dependencyNotation.toString())
@@ -159,7 +159,7 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
             property !is KMutableProperty // TODO: decide what to do with `var foo: DependencyCollector`
     }
 
-    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution {
+    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {
         // We can't just use find receiverClass directly as a key because at runtime we get a decorated class with a different type
         // that extends the original class we extracted into the managedFunctions map, so we have to check the superClass
         return typeHierarchyViaJavaReflection(receiverClass)
