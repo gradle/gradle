@@ -101,6 +101,10 @@ desktopComposeApp {
         config.setFrom(rootDir.resolve("gradle/detekt/detekt.conf"))
         parallel = true
     }
+
+//    compose {
+//
+//    }
 }
 
 val appName = "GradleClient"
