@@ -346,14 +346,12 @@ public class ResolutionExecutor {
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults legacyGraphResults = oldModelBuilder.complete();
 
-        // TODO: Failures from dependency locking should be included in the nonFatalFailuresBuilder.
         Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
         if (lockingVisitor != null) {
             lockingFailures = lockingVisitor.collectLockingFailures();
         }
 
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
-
         MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
         VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures);
 

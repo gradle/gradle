@@ -538,12 +538,12 @@ public class DependencyGraphBuilder {
         // This component was selected due to version conflict resolution.
         // Fail all incoming edges.
 
-        ImmutableList<String> versions = selected.getModule().getAllVersions().stream()
-            .map(component -> component.getId().getVersion())
+        ImmutableList<Conflict.Participant> participants = selected.getModule().getAllVersions().stream()
+            .map(component -> new Conflict.Participant(component.getId().getVersion(), component.getComponentId()))
             .collect(ImmutableList.toImmutableList());
 
         Conflict conflict = new Conflict(
-            versions,
+            participants,
             selected.getModuleVersion().getModule(),
             selected.getSelectionReason()
         );

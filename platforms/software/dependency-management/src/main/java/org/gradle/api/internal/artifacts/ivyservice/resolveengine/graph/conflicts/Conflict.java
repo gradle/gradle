@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 import java.util.List;
@@ -27,12 +28,16 @@ import java.util.List;
  */
 public class Conflict {
 
-    private final List<String> versions;
+    private final List<Participant> participants;
     private final ModuleIdentifier moduleId;
     private final ComponentSelectionReason selectionReason;
 
-    public Conflict(ImmutableList<String> versions, ModuleIdentifier moduleId, ComponentSelectionReason selectionReason) {
-        this.versions = versions;
+    public Conflict(
+        ImmutableList<Participant> participants,
+        ModuleIdentifier moduleId,
+        ComponentSelectionReason selectionReason
+    ) {
+        this.participants = participants;
         this.moduleId = moduleId;
         this.selectionReason = selectionReason;
     }
@@ -45,8 +50,31 @@ public class Conflict {
         return moduleId;
     }
 
-    public List<String> getVersions() {
-        return versions;
+    public List<Participant> getParticipants() {
+        return participants;
+    }
+
+    /**
+     * A component that was involved in the conflict.
+     */
+    public static class Participant {
+
+        private final String version;
+        private final ComponentIdentifier id;
+
+        public Participant(String version, ComponentIdentifier id) {
+            this.version = version;
+            this.id = id;
+        }
+
+        public String getVersion() {
+            return version;
+        }
+
+        public ComponentIdentifier getId() {
+            return id;
+        }
+
     }
 
 }
