@@ -74,4 +74,4 @@ dependencies {
 ----
 
 [.text-right]
-**Next Step:** <<dependency_resolution.adoc#six-dependency_resolution,Learn about Dependency Resolution>> >>
+**Advanced Concepts:** <<dependency_resolution.adoc#dependency-resolution-basics,Learn about Dependency Resolution>> >>
