@@ -383,7 +383,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         mavenHttpRepo.module('org.foo', 'app-dep').publish().allowAll()
     }
 
-    def "failed resolved configurations are exposed via build operation"() {
+    def "version conflict failures incur no build operation failure"() {
         given:
         MavenHttpModule a
         MavenHttpModule b
@@ -412,7 +412,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                compile 'org:a:1.0'
                compile 'org:b:1.0'
             }
-"""
+        """
         failedResolve.prepare()
 
         a.pom.expectGet()
@@ -427,16 +427,11 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         failedResolve.assertFailurePresent(failure)
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType)
         op.details.configurationName == "compile"
-        op.failure == "org.gradle.api.internal.artifacts.ivyservice.TypedResolveException: Could not resolve all dependencies for configuration ':compile'."
-        failure.assertHasCause("""Conflict found for the following module:
-  - org:leaf between versions 2.0 and 1.0""")
         op.result != null
         op.result.resolvedDependenciesCount == 2
     }
 
-    // This documents the current behavior, not necessarily the smartest one.
-    // FTR This behaves the same in 4.7, 4.8 and 4.9
-    def "non fatal errors incur no resolution failure"() {
+    def "non fatal errors incur no build operation failure"() {
         def mod = mavenHttpRepo.module('org', 'a', '1.0')
         mod.pomFile << "corrupt"
 
@@ -453,7 +448,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
             dependencies {
                compile 'org:a:1.0'
             }
-"""
+        """
         failedResolve.prepare()
 
         then:

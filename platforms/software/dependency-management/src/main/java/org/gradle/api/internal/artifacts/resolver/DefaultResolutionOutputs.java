@@ -27,11 +27,9 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.configurations.ArtifactCollectionInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultArtifactCollection;
 import org.gradle.api.internal.artifacts.configurations.ResolutionBackedFileCollection;
-import org.gradle.api.internal.artifacts.configurations.ResolutionResultProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolutionResultProviderBackedSelectedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -45,8 +43,6 @@ import org.gradle.api.specs.Specs;
 import org.gradle.internal.Actions;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.reflect.Instantiator;
-
-import java.util.Collections;
 
 /**
  * Default implementation of {@link ResolutionOutputsInternal}. This class is in charge of
@@ -83,32 +79,20 @@ public class DefaultResolutionOutputs implements ResolutionOutputsInternal {
     }
 
     @Override
-    public ResolutionResultProvider<ResolverResults> getRawResults() {
-        return resolutionAccess.getResults();
-    }
-
-    @Override
     public Provider<ResolvedVariantResult> getRootVariant() {
         return new DefaultProvider<>(() -> {
-            MinimalResolutionResult resolutionResult = getVisitedGraphResults().getResolutionResult();
+            MinimalResolutionResult resolutionResult = getResolutionResult();
             return resolutionResult.getRootSource().get().getVariant(resolutionResult.getRootVariantId());
         });
     }
 
     @Override
     public Provider<ResolvedComponentResult> getRootComponent() {
-        return new DefaultProvider<>(() -> getVisitedGraphResults().getResolutionResult().getRootSource().get());
+        return new DefaultProvider<>(() -> getResolutionResult().getRootSource().get());
     }
 
-    /**
-     * Get the resolved graph, throwing any non-fatal exception that occurred during resolution.
-     */
-    private VisitedGraphResults getVisitedGraphResults() {
-        VisitedGraphResults graph = resolutionAccess.getResults().getValue().getVisitedGraph();
-        graph.getResolutionFailure().ifPresent(ex -> {
-            resolutionAccess.getHost().rethrowFailuresAndReportProblems("dependencies", Collections.singleton(ex));
-        });
-        return graph;
+    private MinimalResolutionResult getResolutionResult() {
+        return resolutionAccess.getResults().getValue().getVisitedGraph().getResolutionResult();
     }
 
     @Override
