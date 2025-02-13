@@ -16,16 +16,17 @@
 
 package org.gradle.groovy.compile
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.internal.jvm.Jvm
+import org.gradle.testing.fixture.GroovyCoverage
 
 class HigherToolchainGroovyCompileIntegrationTest extends AbstractToolchainGroovyCompileIntegrationTest {
 
     @Override
     Jvm computeJdkForTest() {
         AvailableJavaHomes.getAvailableJdk {
-            it.languageVersion > Jvm.current().javaVersion && JavaVersion.VERSION_16.isCompatibleWith(it.languageVersion)
+            it.languageVersion > Jvm.current().javaVersion && GroovyCoverage.supportsJavaVersion(MultiVersionIntegrationSpec.version, it.languageVersion)
         }
     }
 }
