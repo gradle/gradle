@@ -21,7 +21,9 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.graph.StringEncoder
 import java.io.OutputStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.concurrent.thread
 
 
 /**
@@ -37,7 +39,24 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
     var nextId = AtomicInteger(1)
 
     private
-    val output = Output(stream)
+    val q = LinkedBlockingQueue<WriteRequest>()
+
+    private
+    data class WriteRequest(val id: Int, val string: String)
+
+    private
+    val writer = thread(isDaemon = true) {
+        Output(stream).use { output ->
+            while (true) {
+                val (id, string) = q.take()
+                output.writeStringId(id)
+                if (id == 0) {
+                    break
+                }
+                output.writeString(string)
+            }
+        }
+    }
 
     override fun writeNullableString(encoder: Encoder, string: CharSequence?) {
         if (string == null) {
@@ -50,23 +69,15 @@ class ParallelStringEncoder(stream: OutputStream) : StringEncoder {
     override fun writeString(encoder: Encoder, string: CharSequence) {
         val id = strings.computeIfAbsent(string.toString()) { key ->
             val id = nextId.getAndIncrement()
-            doWriteString(id, key)
+            q.put(WriteRequest(id, key))
             id
         }
         encoder.writeSmallInt(id)
     }
 
     override fun close() {
-        output.writeStringId(0) // EOF
-        output.close()
-    }
-
-    private
-    fun doWriteString(id: Int, key: String) {
-        synchronized(output) {
-            output.writeStringId(id)
-            output.writeString(key)
-        }
+        q.put(WriteRequest(0, ""))
+        writer.join()
     }
 
     private
