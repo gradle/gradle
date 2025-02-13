@@ -77,6 +77,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheParallelOption(),
         new ConfigurationCacheRecreateOption(),
         new ConfigurationCacheQuietOption(),
+        new ConfigurationCacheIntegrityCheckOption(),
         new ConfigurationCacheEntriesPerKeyOption(),
         new IsolatedProjectsOption(),
         new ProblemReportGenerationOption(),
@@ -630,6 +631,23 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
             settings.setConfigurationCacheQuiet(value);
+        }
+    }
+
+    /**
+     * Enables stricter integrity checks of the stored configuration cache entries, at the cost of inflating the entry size by 10-15%.
+     * Can be useful when debugging store failures.
+     */
+    public static class ConfigurationCacheIntegrityCheckOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.integrity-check";
+
+        public ConfigurationCacheIntegrityCheckOption() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheIntegrityCheckEnabled(value);
         }
     }
 

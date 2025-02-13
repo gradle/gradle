@@ -62,22 +62,42 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
             }, value) {
                 encoding.run { encode(value) }
             }
+            if (isIntegrityCheckEnabled) {
+                writeSmallInt(tag)
+            }
         }
     }
 
-    override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
-        NULL_VALUE -> null
-        else -> {
-            val binding = try {
-                bindings[tag]
-            } catch (e: ArrayIndexOutOfBoundsException) {
-                onError(e) {
-                    text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
-                    text("The value may have been written incorrectly or its data is corrupted.")
+    override suspend fun ReadContext.decode(): Any? {
+        val tag = readSmallInt()
+        when (tag) {
+            NULL_VALUE -> return null
+            else -> {
+                val binding = try {
+                    bindings[tag]
+                } catch (e: ArrayIndexOutOfBoundsException) {
+                    onError(e) {
+                        text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
+                        text("The value may have been written incorrectly or its data is corrupted.")
+                    }
+                    null
                 }
-                null
+                if (binding == null) {
+                    // This can happen if the errors are suppressed.
+                    return null
+                }
+
+                val result = binding.decoding.run { decode() }
+                if (isIntegrityCheckEnabled) {
+                    val tagGuard = readSmallInt()
+                    if (tag != tagGuard) {
+                        onError(IllegalArgumentException("Tag guard mismatch: $tag != $tagGuard.")) {
+                            text("The value cannot be decoded properly. It may have been written incorrectly or its data is corrupted.")
+                        }
+                    }
+                }
+                return result
             }
-            binding?.let { it.decoding.run { decode() } }
         }
     }
 

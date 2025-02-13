@@ -137,6 +137,7 @@ abstract class AbstractUserTypeCodecTest {
             encoder = encoder,
             classEncoder = DefaultClassEncoder(mock()),
             beanStateWriterLookup = DefaultBeanStateWriterLookup(),
+            isIntegrityCheckEnabled = false,
             logger = mock(),
             tracer = null,
             problemsListener = problemHandler
@@ -148,6 +149,7 @@ abstract class AbstractUserTypeCodecTest {
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
+            isIntegrityCheckEnabled = false,
             logger = mock(),
             problemsListener = mock(),
             classDecoder = DefaultClassDecoder(mock(), mock())
