@@ -17,15 +17,15 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
-import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskProvider;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
@@ -34,18 +34,14 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     private final String extension;
     private final String type;
     private final String classifier;
-    private final TaskDependencyInternal buildDependencies;
 
     public SingleOutputTaskIvyArtifact(TaskProvider<? extends Task> generator, IvyPublicationCoordinates coordinates, String extension, String type, @Nullable String classifier, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+        super(taskDependencyFactory, generator);
         this.generator = generator;
         this.coordinates = coordinates;
         this.extension = extension;
         this.type = type;
         this.classifier = classifier;
-        this.buildDependencies = taskDependencyFactory.visitingDependencies(context -> {
-            context.add(generator.get());
-        });
     }
 
     @Override
@@ -74,13 +70,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected TaskDependency getDefaultBuildDependencies() {
-        return buildDependencies;
-    }
-
-    @Override
-    public File getFile() {
-        return generator.get().getOutputs().getFiles().getSingleFile();
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return generator.map(task -> new DefaultFileSystemLocation(task.getOutputs().getFiles().getSingleFile()));
     }
 
     public boolean isEnabled() {

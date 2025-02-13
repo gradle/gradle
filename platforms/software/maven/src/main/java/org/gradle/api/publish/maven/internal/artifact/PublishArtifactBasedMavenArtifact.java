@@ -16,24 +16,22 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.tasks.TaskDependency;
-
-import java.io.File;
+import org.gradle.api.provider.Provider;
 
 public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
-    private final PublishArtifact publishArtifact;
+    private final PublishArtifactInternal publishArtifact;
 
-    public PublishArtifactBasedMavenArtifact(PublishArtifact publishArtifact, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public PublishArtifactBasedMavenArtifact(PublishArtifactInternal publishArtifact, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory, publishArtifact);
         this.publishArtifact = publishArtifact;
     }
 
     @Override
-    public File getFile() {
-        return publishArtifact.getFile();
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return publishArtifact.getFileProvider();
     }
 
     @Override
@@ -44,11 +42,6 @@ public class PublishArtifactBasedMavenArtifact extends AbstractMavenArtifact {
     @Override
     protected String getDefaultClassifier() {
         return publishArtifact.getClassifier();
-    }
-
-    @Override
-    protected TaskDependency getDefaultBuildDependencies() {
-        return publishArtifact.getBuildDependencies();
     }
 
     @Override

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.publish
 
 import org.gradle.api.Task
 
-public class DefaultPublishArtifactTest extends AbstractPublishArtifactTest {
+class DefaultPublishArtifactTest extends AbstractConfigurablePublishArtifactTest {
 
     def "init"() {
         given:

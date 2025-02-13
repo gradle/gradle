@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -30,12 +32,13 @@ import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.ProviderBackedFileCollection;
 import org.gradle.api.internal.file.collections.UnpackingVisitor;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ProviderResolutionStrategy;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -119,6 +122,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
+    public FileCollection fromProvider(Provider<List<FileSystemLocation>> elements) {
+        return new ProviderBackedFileCollection(
+            Providers.internal(elements),
+            fileResolver,
+            taskDependencyFactory,
+            patternSetFactory,
+            ProviderResolutionStrategy.REQUIRE_PRESENT
+        );
+    }
+
+    @Override
     public ConfigurableFileTree fileTree() {
         return new DefaultConfigurableFileTree(fileResolver, listener, patternSetFactory, taskDependencyFactory, directoryFileTreeFactory);
     }
@@ -137,28 +151,6 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     @Override
     public FileTreeInternal treeOf(MinimalFileTree tree) {
         return new FileTreeAdapter(tree, listener, taskDependencyFactory, patternSetFactory);
-    }
-
-    @Override
-    public FileCollectionInternal create(TaskDependency builtBy, MinimalFileSet contents) {
-        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory) {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                super.visitDependencies(context);
-                context.add(builtBy);
-            }
-        };
-    }
-
-    @Override
-    public FileCollectionInternal create(MinimalFileSet contents, Consumer<? super TaskDependencyResolveContext> visitTaskDependencies) {
-        return new FileCollectionAdapter(contents, taskDependencyFactory, patternSetFactory) {
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                super.visitDependencies(context);
-                visitTaskDependencies.accept(context);
-            }
-        };
     }
 
     @Override
