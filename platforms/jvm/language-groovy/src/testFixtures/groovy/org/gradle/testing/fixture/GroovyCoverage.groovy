@@ -87,13 +87,10 @@ class GroovyCoverage {
 
         allVersions.addAll(FUTURE)
 
-        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_23)) {
-            return VersionCoverage.versionsAtLeast(allVersions, '3.0.22')
-        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_22)) {
-            return VersionCoverage.versionsAbove(allVersions, '3.0.20')
-        } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
-            return VersionCoverage.versionsAbove(allVersions, '3.0.13')
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
+            return VersionCoverage.versionsAtLeast(allVersions, '3.0.23') // Tentative, not released yet
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_15)) {
+            // Latest 3.0.x patches support Java 15+
             return VersionCoverage.versionsAtLeast(allVersions, '3.0.0')
         } else if (javaVersion.isCompatibleWith(JavaVersion.VERSION_14)) {
             return VersionCoverage.versionsBetweenInclusive(allVersions, '2.2.2', '2.5.10')
