@@ -30,6 +30,7 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
+    implementation(projects.classloaders)
     implementation(projects.logging)
     implementation(projects.problemsApi)
     implementation(projects.serviceProvider)

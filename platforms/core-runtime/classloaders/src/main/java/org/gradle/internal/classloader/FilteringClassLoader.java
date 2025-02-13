@@ -233,12 +233,12 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
          */
         public boolean isEmpty() {
             return classNames.isEmpty()
-                    && packageNames.isEmpty()
-                    && packagePrefixes.isEmpty()
-                    && resourcePrefixes.isEmpty()
-                    && resourceNames.isEmpty()
-                    && disallowedClassNames.isEmpty()
-                    && disallowedPackagePrefixes.isEmpty();
+                && packageNames.isEmpty()
+                && packagePrefixes.isEmpty()
+                && resourcePrefixes.isEmpty()
+                && resourceNames.isEmpty()
+                && disallowedClassNames.isEmpty()
+                && disallowedPackagePrefixes.isEmpty();
         }
 
         /**
@@ -355,7 +355,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
     }
 
-    private static class TrieSet implements Iterable<String> {
+    public static class TrieSet implements Iterable<String> {
         private final Trie trie;
         private final Set<String> set;
 
@@ -382,7 +382,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     /**
      * Move the Trie class in :base-services to :functional once we can use Java 8 and delete this class.
      */
-    private static class Trie implements Comparable<Trie> {
+    public static class Trie implements Comparable<Trie> {
         private final char chr;
         private final boolean terminal;
         private final Trie[] transitions;
@@ -501,7 +501,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
     }
 
-    interface Action<T> {
+    public interface Action<T> {
         void execute(T target);
     }
 }

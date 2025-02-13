@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal.worker.child;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathProvider;
@@ -45,7 +44,6 @@ import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.stream.EncodedStream;
-import org.gradle.internal.util.Trie;
 import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -69,6 +67,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerImplementationFactory.WORKER_GRADLE_REMAPPING_PREFIX;
 
 @ServiceScope(Scope.UserHome.class)
 public class WorkerProcessClassPathProvider implements ClassPathProvider {
@@ -221,6 +221,10 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 EncodedStream.EncodedInput.class,
                 ClassLoaderUtils.class,
                 FilteringClassLoader.class,
+                FilteringClassLoader.Action.class,
+                FilteringClassLoader.Trie.Builder.class,
+                FilteringClassLoader.Trie.class,
+                FilteringClassLoader.TrieSet.class,
                 ClassLoaderHierarchy.class,
                 ClassLoaderVisitor.class,
                 ClassLoaderSpec.class,
@@ -235,8 +239,6 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
                 PropertyMutator.class,
                 Factory.class,
                 Spec.class,
-                Action.class,
-                Trie.class,
                 JavaVersion.class,
                 JavaVersionParser.class);
             Set<Class<?>> result = new HashSet<Class<?>>(classes);
@@ -274,7 +276,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             @Override
             public String map(String typeName) {
                 if (typeName.startsWith("org/gradle/")) {
-                    return "worker/" + typeName;
+                    return WORKER_GRADLE_REMAPPING_PREFIX + "/" + typeName;
                 }
                 return typeName;
             }
