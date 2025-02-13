@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.extensions.stdlib.Assignable;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
@@ -80,7 +79,7 @@ import java.util.function.BiFunction;
  */
 @HasInternalProtocol
 @NonExtensible
-public interface Provider<T> extends Assignable.Source<T> {
+public interface Provider<T> {
 
     /**
      * Returns the value of this provider if it has a value present, otherwise throws {@code java.lang.IllegalStateException}.
