@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
@@ -260,4 +261,39 @@ class ConfigurationCacheFileCollectionIntegrationTest extends AbstractConfigurat
         and:
         file('build/consumer-output.txt').text == '42'
     }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/30052")
+    def "provider-backed file collections with relative paths are resolved relative to their source"() {
+        given:
+        settingsFile """
+            include("sub")
+            include("other")
+        """
+        createDirs("other")
+
+        buildFile "sub/build.gradle", """
+            abstract class CustomTask extends DefaultTask {
+                @InputFiles abstract ConfigurableFileCollection getIncoming()
+                @TaskAction void run() { println("Effective files: \${incoming.files.toSorted()}") }
+            }
+
+            tasks.register("foo", CustomTask) {
+                incoming.from(project.files(provider { "subFile.txt" }))
+                incoming.from(project(":other").isolated.projectDirectory.files(provider { "otherFile.txt" }))
+                incoming.from(layout.settingsDirectory.files(provider { "settingsFile.txt" }))
+            }
+        """
+
+        when:
+        configurationCacheRun ":sub:foo"
+
+        then:
+        def files = ["subFile.txt", "otherFile.txt", "settingsFile.txt"]
+        // TODO: files must be resolved relative to the their source
+//        def files = ["sub/subFile.txt", "other/otherFile.txt", "settingsFile.txt"]
+        outputContains("Effective files: ${files.collect { testDirectory.file(it) }.toSorted()}")
+    }
+
+    // TODO: add tests for other file collections (like file trees) that carry around their own resolvers
 }
