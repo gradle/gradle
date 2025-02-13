@@ -126,6 +126,7 @@ fun BuildType.applyDefaultSettings(
         build/report-* => $HIDDEN_ARTIFACT_DESTINATION
         build/tmp/teŝt files/** => $HIDDEN_ARTIFACT_DESTINATION/teŝt-files
         build/errorLogs/** => $HIDDEN_ARTIFACT_DESTINATION/errorLogs
+        build/reports/configuration-cache/**/configuration-cache-report.html
         subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         testing/architecture-test/build/reports/binary-compatibility/report.html => binary-compatibility-reports
         build/reports/dependency-verification/** => dependency-verification-reports
@@ -207,7 +208,6 @@ fun BuildType.paramsForBuildToolBuild(
         param("env.GRADLE_CACHE_REMOTE_SERVER", "%gradle.cache.remote.server%")
 
         param("env.JAVA_HOME", javaHome(buildJvm, os, arch))
-        param("env.GRADLE_OPTS", "-Xmx1536m")
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
@@ -266,7 +266,6 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
 }
 
 fun buildToolGradleParameters(
-    daemon: Boolean = true,
     isContinue: Boolean = true,
     maxParallelForks: String = "%maxParallelForks%",
 ): List<String> =
@@ -278,9 +277,7 @@ fun buildToolGradleParameters(
         "-PmaxParallelForks=$maxParallelForks",
         PLUGINS_PORTAL_URL_OVERRIDE,
         "-s",
-        "--no-configuration-cache",
         "%additional.gradle.parameters%",
-        if (daemon) "--daemon" else "--no-daemon",
         if (isContinue) "--continue" else "",
     )
 
