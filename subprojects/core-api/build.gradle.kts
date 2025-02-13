@@ -18,7 +18,7 @@ errorprone {
 dependencies {
     compileOnly(libs.jetbrainsAnnotations)
 
-    api(projects.coreApiJava)
+    api(projects.coreApiBase)
     api(projects.stdlibJavaExtensions)
     api(projects.stdlibKotlinExtensions)
     api(projects.buildCacheSpi)

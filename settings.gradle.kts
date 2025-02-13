@@ -63,7 +63,7 @@ unassigned {
     subproject("core")
     subproject("build-events")
     subproject("composite-builds")
-    subproject("core-api-java")
+    subproject("core-api-base")
     subproject("core-api")
 }
 
