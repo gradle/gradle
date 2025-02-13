@@ -35,6 +35,7 @@ dependencies {
     manifestClasspath(projects.stdlibJavaExtensions)
     manifestClasspath(projects.buildProcessServices)
     manifestClasspath(projects.baseServices)
+    manifestClasspath(projects.classloaders)
     manifestClasspath(projects.concurrent)
     manifestClasspath(projects.serviceLookup)
 

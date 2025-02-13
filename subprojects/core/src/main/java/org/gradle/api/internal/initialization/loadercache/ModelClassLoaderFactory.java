@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.serialization;
+package org.gradle.api.internal.initialization.loadercache;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.TaskExecutionRequest;
@@ -24,6 +24,8 @@ import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
+import org.gradle.tooling.internal.provider.serialization.ClientOwnedClassLoaderSpec;
+import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 
 import java.net.MalformedURLException;
 import java.net.URI;

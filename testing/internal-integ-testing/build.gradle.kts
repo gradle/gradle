@@ -86,6 +86,7 @@ dependencies {
     implementation(projects.buildEvents)
     implementation(projects.buildOption)
     implementation(projects.buildState)
+    implementation(projects.classloaders)
     implementation(projects.cli)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseOperations)

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.classloader;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.model.internal.asm.AsmConstants;
@@ -90,7 +90,7 @@ public class TransformReplacer implements Closeable {
                 // This replacer was closed while setting up a loader.
                 // The transformLoader might be inserted into the loaders map after close(), so let's close it for sure to
                 // avoid leaks.
-                IoActions.closeQuietly(transformLoader);
+                IOUtils.closeQuietly(transformLoader);
                 // Throw the exception so the caller doesn't see the obviously closed loader.
                 ensureOpened();
             }
@@ -115,7 +115,7 @@ public class TransformReplacer implements Closeable {
         Loader oldLoader = loaders.putIfAbsent(domain, newLoader);
         if (oldLoader != null) {
             // Discard the new loader, someone beat us with storing it.
-            IoActions.closeQuietly(newLoader);
+            IOUtils.closeQuietly(newLoader);
             return oldLoader;
         }
         return newLoader;
@@ -129,7 +129,7 @@ public class TransformReplacer implements Closeable {
         }
         closed = true;
         for (Loader value : loaders.values()) {
-            IoActions.closeQuietly(value);
+            IOUtils.closeQuietly(value);
         }
     }
 
@@ -198,7 +198,7 @@ public class TransformReplacer implements Closeable {
         @Override
         public synchronized void close() {
             // Not calling getJarFileLocked intentionally, to avoid opening the JAR if it isn't opened yet.
-            IoActions.closeQuietly(jarFile);
+            IOUtils.closeQuietly(jarFile);
         }
 
         private JarFile getJarFileLocked() throws IOException {

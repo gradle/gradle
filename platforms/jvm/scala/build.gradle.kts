@@ -11,8 +11,9 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileOperations)
@@ -24,10 +25,10 @@ dependencies {
     api(projects.modelCore)
     api(projects.platformBase)
     api(projects.platformJvm)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
-    api(projects.buildProcessServices)
 
     api(libs.groovy)
     api(libs.inject)

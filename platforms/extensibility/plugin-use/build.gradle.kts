@@ -5,6 +5,7 @@ plugins {
 dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.coreApi)
     api(projects.core)
     api(projects.dependencyManagement)

@@ -58,6 +58,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-option",
         "build-process-services",
         "build-state",
+        "classloaders",
         "cli",
         "client-services",
         "concurrent",

@@ -26,6 +26,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
     implementation(projects.modelReflect)

@@ -189,6 +189,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "classloaders",
+    "path": "platforms/core-runtime/classloaders",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "cli",
     "path": "platforms/core-runtime/cli",
     "unitTests": true,
