@@ -23,6 +23,7 @@ import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 
 /**
  * A lazy version of {@link PatternFilterable} that allows includes and excludes to be added lazily.
@@ -65,6 +66,14 @@ public abstract class LazyPatternFilterable {
 
     public void exclude(Closure excludeSpec) {
         getExcludeSpecs().add(Specs.convertClosureToSpec(excludeSpec));
+    }
+
+    public LazyPatternFilterable applyFrom(PatternSet patternSet) {
+        include(patternSet.getIncludesView());
+        exclude(patternSet.getExcludesView());
+        patternSet.getIncludeSpecsView().forEach(this::include);
+        patternSet.getExcludeSpecsView().forEach(this::exclude);
+        return this;
     }
 
     /**
