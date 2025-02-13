@@ -16,7 +16,6 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.specs.NotSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
@@ -165,7 +164,12 @@ public class DefaultClassPath implements ClassPath, Serializable {
 
     @Override
     public ClassPath removeIf(final Spec<? super File> filter) {
-        List<File> remainingFiles = CollectionUtils.filter(files, new NotSpec<File>(filter));
+        List<File> remainingFiles = CollectionUtils.filter(files, new Spec<File>() {
+            @Override
+            public boolean isSatisfiedBy(File element) {
+                return !filter.isSatisfiedBy(element);
+            }
+        });
         if (remainingFiles.size() == files.size()) {
             return this;
         }

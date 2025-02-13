@@ -29,8 +29,12 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
+    implementation(projects.baseAsm)
+    implementation(projects.concurrent)
     implementation(projects.io)
 
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
     implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
