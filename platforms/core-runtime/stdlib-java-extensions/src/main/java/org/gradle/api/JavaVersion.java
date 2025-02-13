@@ -119,11 +119,9 @@ public enum JavaVersion {
 
     /**
      * Java 24 major version.
-     * Not officially supported by Gradle. Use at your own risk.
      *
      * @since 7.6
      */
-    @Incubating
     VERSION_24,
 
     /**
@@ -152,6 +150,15 @@ public enum JavaVersion {
      */
     @Incubating
     VERSION_27,
+
+    /**
+     * Java 28 major version.
+     * Not officially supported by Gradle. Use at your own risk.
+     *
+     * @since 8.14
+     */
+    @Incubating
+    VERSION_28,
 
     /**
      * Higher version of Java.

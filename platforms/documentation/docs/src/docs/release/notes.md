@@ -98,7 +98,14 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+<a name="java-24"></a>
+### Support for building projects with Java 24
 
+Gradle now supports [Java 24](userguide/compatibility.html#java) for compiling, testing, and starting Java programs.
+You can select the Java language version using [toolchains](userguide/toolchains.html).
+
+However, Gradle itself cannot run on Java 24 yet, as Groovy does not fully support JDK 24.
+Future versions are expected to address this.
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
