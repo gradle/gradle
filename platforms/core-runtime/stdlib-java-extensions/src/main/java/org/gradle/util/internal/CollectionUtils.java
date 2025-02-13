@@ -450,6 +450,7 @@ public abstract class CollectionUtils {
      * @param <T> The element type of t1
      * @return t1
      */
+    @SuppressWarnings("unchecked")
     public static <T, C extends Collection<? super T>> C addAll(C t1, T... t2) {
         Collections.addAll(t1, t2);
         return t1;

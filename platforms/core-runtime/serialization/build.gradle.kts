@@ -21,7 +21,10 @@ plugins {
 
 description = "Tools to serialize data"
 
-gradlebuildJava.usedInWorkers()
+gradlebuildJava {
+    usedInWorkers()
+    usesFutureStdlib = true
+}
 
 dependencies {
     api(projects.hashing)

@@ -62,26 +62,11 @@ plugins {
 // compile tasks to permit some of these requirements.
 // TODO: Rename this. It controls more than just java compilation.
 val gradlebuildJava = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava").apply {
-    usesFutureStdlib.convention(targetVersion.map {
-        // Assume most of our projects targeting workers use Java standard libraries
-        // that were introduced in version later than the version they target.
-
-        // It is by chance that these future libraries are not loaded on test workers during runtime.
-        // TODO: In Gradle 9.0, tooling API and workers will target JVM 8 and we can set this value to false by default.
-        it < 8
-    })
-    usesIncompatibleDependencies.convention(targetVersion.map {
-        // Assume most of our projects targeting workers use dependencies like guava
-        // which require Java 8. (base-services for example uses guava).
-
-        // It is by chance that these incompatible dependencies are not loaded on test workers during runtime.
-        // TODO: In Gradle 9.0, tooling API and workers will target JVM 8 and we can set this value to false by default.
-        it < 8
-    })
-
-    // Assume by default, a library targets the daemon and does not reference JDK internal classes.
+    // By default, assume a library targets the daemon and does not use any workarounds
     usedInDaemon()
     usesJdkInternals.convention(false)
+    usesFutureStdlib.convention(false)
+    usesIncompatibleDependencies.convention(false)
 }
 
 enforceCompatibility(gradlebuildJava)
@@ -133,11 +118,6 @@ fun enforceCompatibility(gradlebuildJava: UnitTestAndCompileExtension) {
     enforceKotlinCompatibility(targetVersion, useRelease)
 
     project.afterEvaluate {
-        if (targetVersion.get() < 8) {
-            // Apply ParameterNamesIndex since 6 and 7 bytecode doesn't support -parameters
-            project.apply(plugin = "gradlebuild.api-parameter-names-index")
-        }
-
         if (gradlebuildJava.usesIncompatibleDependencies.get()) {
             // Some projects use dependencies that target higher JVM versions
             // than the projects target. Disable dependency management checks
