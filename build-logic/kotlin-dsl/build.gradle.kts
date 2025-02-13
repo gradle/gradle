@@ -7,7 +7,6 @@ description = "Provides plugins to configure Kotlin DSL and patch the Kotlin com
 dependencies {
     implementation("gradlebuild:basics")
 
-//    api(project(":classloaders"))
     implementation(projects.dependencyModules)
     implementation(projects.jvm)
     implementation(projects.kotlinDslSharedRuntime)
