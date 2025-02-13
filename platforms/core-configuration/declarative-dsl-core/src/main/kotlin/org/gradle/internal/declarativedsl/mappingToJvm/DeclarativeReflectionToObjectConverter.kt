@@ -94,7 +94,7 @@ class DeclarativeReflectionToObjectConverter(
             )
 
             is ObjectOrigin.NewObjectFromMemberFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromMemberFunction(objectOrigin) }
-            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction() }
+            is ObjectOrigin.NewObjectFromTopLevelFunction -> objectByIdentity(ObjectAccessKey.Identity(objectOrigin.invocationId)) { objectFromTopLevelFunction(objectOrigin) }
             is ObjectOrigin.NullObjectOrigin -> InstanceAndPublicType.NULL
             is ObjectOrigin.PropertyDefaultValue -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
             is ObjectOrigin.PropertyReference -> getPropertyValue(objectOrigin.receiver, objectOrigin.property)
@@ -163,7 +163,7 @@ class DeclarativeReflectionToObjectConverter(
         val dataFun = origin.function
         val receiverInstance = receiverInstanceAndPublicType.first
         val receiverKClass = receiverInstanceAndPublicType.second
-        return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun)) {
+        return when (val runtimeFunction = functionResolver.resolve(receiverKClass, dataFun, getScopeClassLoader())) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
                 val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
@@ -205,7 +205,7 @@ class DeclarativeReflectionToObjectConverter(
         val receiverInstance = receiverInstanceAndPublicType.first
         val receiverKClass = receiverInstanceAndPublicType.second
 
-        when (val runtimeFunction = functionResolver.resolve(receiverKClass, function)) {
+        when (val runtimeFunction = functionResolver.resolve(receiverKClass, function, getScopeClassLoader())) {
             is RuntimeFunctionResolver.Resolution.Resolved -> {
                 val binding = mapOf(function.dataParameter to getObjectByResolvedOrigin(valueOrigin).instance)
                 runtimeFunction.function.callByWithErrorHandling(receiverInstance, binding, false).result
@@ -217,9 +217,17 @@ class DeclarativeReflectionToObjectConverter(
 
     private
     fun objectFromTopLevelFunction(
-        // origin: ObjectOrigin.NewObjectFromTopLevelFunction
+        origin: ObjectOrigin.NewObjectFromTopLevelFunction
     ): InstanceAndPublicType {
-        TODO("support calls to top-level functions: they need to carry the owner class information to get resolved")
+        return when (val runtimeFunction = functionResolver.resolve(Any::class, origin.function, getScopeClassLoader())) {
+            is RuntimeFunctionResolver.Resolution.Resolved -> {
+                val bindingWithValues = origin.parameterBindings.bindingMap.mapValues { getObjectByResolvedOrigin(it.value.objectOrigin).instance }
+                runtimeFunction.function.callByWithErrorHandling(receiver = null, bindingWithValues, origin.parameterBindings.providesConfigureBlock)
+                    .result
+            }
+
+            RuntimeFunctionResolver.Resolution.Unresolved -> error("could not resolve a top-level function ${origin.function}")
+        }
     }
 
     private

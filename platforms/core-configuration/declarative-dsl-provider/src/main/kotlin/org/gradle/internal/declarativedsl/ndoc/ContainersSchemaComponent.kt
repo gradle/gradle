@@ -151,11 +151,11 @@ internal class ContainersSchemaComponent : AnalysisSchemaComponent, ObjectConver
 
     override fun runtimeFunctionResolvers(): List<RuntimeFunctionResolver> = listOf(
         object : RuntimeFunctionResolver {
-            override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution =
+            override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution =
                 // TODO: this check relies on the hashing+equality implementation of the schema functions; if those get proxied (e.g. to TAPI), it won't work; We do not need that for now, though.
                 if (schemaFunction in elementFactoryFunctions) {
                     RuntimeFunctionResolver.Resolution.Resolved(object : DeclarativeRuntimeFunction {
-                        override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+                        override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
                             val result = (receiver as NamedDomainObjectContainer<*>).maybeCreate(binding.values.single() as String)
                             val resultInstanceAndPublicType = InstanceAndPublicType.of(result, elementPublicTypes[schemaFunction])
                             return DeclarativeRuntimeFunction.InvocationResult(resultInstanceAndPublicType, resultInstanceAndPublicType)

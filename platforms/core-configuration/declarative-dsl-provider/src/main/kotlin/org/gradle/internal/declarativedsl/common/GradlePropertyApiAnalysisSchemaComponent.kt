@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.common
 
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.declarative.dsl.model.annotations.AccessFromCurrentReceiverOnly
 import org.gradle.declarative.dsl.model.annotations.HiddenInDeclarativeDsl
@@ -36,6 +37,7 @@ import java.util.Locale
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.KVisibility
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
 import kotlin.reflect.full.memberProperties
@@ -123,7 +125,7 @@ class PropertyReturnTypeDiscovery : TypeDiscovery {
 
 
 private
-val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class)
+val handledPropertyTypes = setOf(Property::class, DirectoryProperty::class, RegularFileProperty::class, ListProperty::class)
 
 
 private
@@ -132,6 +134,10 @@ fun isGradlePropertyType(type: KType): Boolean = type.classifier in handledPrope
 
 private
 fun propertyValueType(type: KType): KType {
+    if (type.classifier == ListProperty::class) {
+        return List::class.createType(type.arguments)
+    }
+
     fun searchClassHierarchyForPropertyType(type: KType): KType? {
         return when (val classifier = type.classifier) {
             Property::class -> type

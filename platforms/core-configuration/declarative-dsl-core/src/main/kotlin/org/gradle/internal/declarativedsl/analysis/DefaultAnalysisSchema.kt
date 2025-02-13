@@ -176,6 +176,7 @@ data class DefaultDataBuilderFunction(
 @SerialName("dataTopLevelFunction")
 data class DefaultDataTopLevelFunction(
     override val packageName: String,
+    override val ownerJvmTypeName: String,
     override val simpleName: String,
     override val parameters: List<DataParameter>,
     override val semantics: Pure,
