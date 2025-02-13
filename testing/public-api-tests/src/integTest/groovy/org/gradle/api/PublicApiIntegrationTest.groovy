@@ -139,6 +139,9 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             import org.gradle.api.Plugin
             import org.gradle.api.Project
 
+            // Test if extension methods are available
+            import org.gradle.kotlin.dsl.the
+
             class PublishedApiTestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
                     project.tasks.register("myTask", CustomTask::class.java) { task ->
