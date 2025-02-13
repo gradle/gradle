@@ -66,14 +66,11 @@ class ClassDocMethodsBuilderTest extends XmlSpecification {
         }
 
         then:
-        doc.classMethods.size() == 6
+        doc.classMethods.size() == 3
 
         doc.classMethods[0].name == 'a'
         doc.classMethods[1].name == 'b'
         doc.classMethods[2].name == 'b'
-        doc.classMethods[3].name == 'c'
-        doc.classMethods[4].name == 'd'
-        doc.classMethods[5].name == 'e'
 
         _ * classMetaData.declaredMethods >> ([methodA, methodB, methodBOverload] as Set)
         _ * classMetaData.findDeclaredMethods("a") >> [methodA]
