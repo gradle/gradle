@@ -8,7 +8,6 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.kotlinCompose)
-    alias(libs.plugins.sqldelight)
     alias(libs.plugins.detekt)
 }
 
@@ -30,10 +29,6 @@ desktopComposeApp {
                     implementation(project(":mutations-demo"))
 
                     implementation(libs.gradle.tooling.api)
-
-                    implementation(libs.sqldelight.extensions.coroutines)
-                    implementation(libs.sqldelight.runtime)
-                    implementation(libs.sqldelight.driver.sqlite)
 
                     implementation(libs.decompose.decompose)
                     implementation(libs.decompose.compose)
@@ -83,6 +78,18 @@ desktopComposeApp {
             }
         }
     }
+
+    sqlDelight {
+        databases {
+            database("ApplicationDatabase") {
+                packageName = "org.gradle.client.core.database.sqldelight.generated"
+                verifyDefinitions = true
+                verifyMigrations = true
+                deriveSchemaFromMigrations = true
+                generateAsync = false
+            }
+        }
+    }
 }
 
 group = "org.gradle.client"
@@ -95,18 +102,6 @@ val appName = "GradleClient"
 val appDisplayName = "Gradle Client"
 val appQualifiedName = "org.gradle.client"
 val appUUID = file("app-uuid.txt").readText().trim()
-
-sqldelight {
-    databases {
-        create("ApplicationDatabase") {
-            packageName = "org.gradle.client.core.database.sqldelight.generated"
-            verifyDefinitions = true
-            verifyMigrations = true
-            deriveSchemaFromMigrations = true
-            generateAsync = false
-        }
-    }
-}
 
 compose.desktop {
     application {

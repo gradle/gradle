@@ -4,6 +4,11 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.experimental.kmp.StandaloneKmpApplicationPlugin;
 import org.gradle.api.internal.plugins.software.SoftwareType;
+import org.gradle.client.softwaretype.sqldelight.SqlDelightSupport;
+
+import static org.gradle.api.experimental.kmp.StandaloneKmpApplicationPlugin.PluginWiring.wireKMPApplication;
+import static org.gradle.client.softwaretype.sqldelight.SqlDelightSupport.needToWireSqlDelight;
+import static org.gradle.client.softwaretype.sqldelight.SqlDelightSupport.wireSqlDelight;
 
 @SuppressWarnings("UnstableApiUsage")
 public abstract class DesktopComposeApplicationPlugin implements Plugin<Project> {
@@ -15,6 +20,18 @@ public abstract class DesktopComposeApplicationPlugin implements Plugin<Project>
     @Override
     public void apply(Project project) {
         DesktopComposeApplication dslModel = getDesktopComposeApp();
-        StandaloneKmpApplicationPlugin.PluginWiring.wirePlugin(project, dslModel.getKotlinApplication());
+        wireKMPApplication(project, dslModel.getKotlinApplication());
+
+        /*
+         * It's necessary to defer checking the NDOC in our extension for contents until after project evaluation.
+         * If you move the check below outside of afterEvaluate, it fails.  Inside, it succeeds.
+         * Without the afterEvaluate, the databases is seen as empty, and the plugin fails, with this warning:
+         * https://github.com/plangrid/sqldelight/blob/917cb8e5ee437d37bfdbdcbb3fded09b683fe826/sqldelight-gradle-plugin/src/main/kotlin/app/cash/sqldelight/gradle/SqlDelightPlugin.kt#L112
+         */
+        project.afterEvaluate(p -> {
+            if (needToWireSqlDelight(dslModel)) {
+                wireSqlDelight(project, dslModel);
+            }
+        });
     }
 }

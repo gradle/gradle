@@ -1,8 +1,17 @@
 [versions]
 declarative = "0.1.37"
+kotlin = "2.0.21"
+sqldelight = "2.0.2"
 
 [libraries]
 declarative = { module = "org.gradle.experimental.kmp-ecosystem:org.gradle.experimental.kmp-ecosystem.gradle.plugin", version.ref = "declarative" }
+kotlin-multiplatform = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
+sqldelight = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqldelight" }
+sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+sqldelight-extensions-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-driver-sqlite = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 
 [plugins]
+kmp-ecosystem = { id = "org.gradle.experimental.kmp-ecosystem", version.ref = "declarative" }
 declarative = { id = "org.gradle.client.ecosystem.custom-ecosystem", version.ref = "declarative" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
