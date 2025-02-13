@@ -175,7 +175,7 @@ class LanguageTreeToDomContext {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryArgumentFormat)
             }
 
-            if (expr.args.any { it is FunctionArgument.ValueArgument && it.expr is NamedReference }) {
+            if (expr.args.any { it is FunctionArgument.SingleValueArgument && it.expr is NamedReference }) {
                 errors += UnsupportedSyntax(UnsupportedSyntaxCause.ValueFactoryCallWithNamedReference)
             }
 
