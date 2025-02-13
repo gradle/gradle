@@ -33,6 +33,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.UnresolvedDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.DocumentationRegistry
@@ -1044,7 +1045,7 @@ class DefaultConfigurationSpec extends Specification {
         def resolvedComponentResult = Mock(ResolvedComponentResultInternal)
         Supplier<ResolvedComponentResultInternal> rootSource = () -> resolvedComponentResult
         def result = new MinimalResolutionResult(0, rootSource, ImmutableAttributes.EMPTY)
-        def graphResults = new DefaultVisitedGraphResults(result, [] as Set, null)
+        def graphResults = new DefaultVisitedGraphResults(result, [] as Set)
 
         resolver.resolveGraph(config) >> DefaultResolverResults.graphResolved(graphResults, visitedArtifacts(), Mock(ResolverResults.LegacyResolverResults))
 
@@ -1661,13 +1662,17 @@ class DefaultConfigurationSpec extends Specification {
 
     private ResolverResults buildDependenciesResolved() {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
         DefaultResolverResults.buildDependenciesResolved(visitedGraphResults, visitedArtifacts([] as Set), Mock(ResolverResults.LegacyResolverResults))
     }
 
     private ResolverResults graphResolved(ResolveException failure) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, failure)
+        def unresolved = Mock(UnresolvedDependency) {
+            getProblem() >> failure
+        }
+
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [unresolved] as Set)
 
         def visitedArtifactSet = Stub(VisitedArtifactSet) {
             select(_) >> selectedArtifacts(failure)
@@ -1685,7 +1690,7 @@ class DefaultConfigurationSpec extends Specification {
 
     private ResolverResults graphResolved(Set<File> files = []) {
         def resolutionResult = new MinimalResolutionResult(0, () -> Stub(ResolvedComponentResultInternal), ImmutableAttributes.EMPTY)
-        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set, null)
+        def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
             depSpec -> selectedArtifacts(files),

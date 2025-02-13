@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results;
 
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.result.MinimalResolutionResult;
 
-import javax.annotation.Nullable;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -32,30 +29,24 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
 
     private final MinimalResolutionResult resolutionResult;
     private final Set<UnresolvedDependency> unresolvedDependencies;
-    private final ResolveException resolutionFailure;
 
     public DefaultVisitedGraphResults(
         MinimalResolutionResult resolutionResult,
-        Set<UnresolvedDependency> unresolvedDependencies,
-        @Nullable ResolveException resolutionFailure
+        Set<UnresolvedDependency> unresolvedDependencies
     ) {
         this.resolutionResult = resolutionResult;
         this.unresolvedDependencies = unresolvedDependencies;
-        this.resolutionFailure = resolutionFailure;
     }
 
     @Override
     public boolean hasAnyFailure() {
-        return !unresolvedDependencies.isEmpty() || resolutionFailure != null;
+        return !unresolvedDependencies.isEmpty();
     }
 
     @Override
     public void visitFailures(Consumer<Throwable> visitor) {
         for (UnresolvedDependency unresolvedDependency : unresolvedDependencies) {
             visitor.accept(unresolvedDependency.getProblem());
-        }
-        if (resolutionFailure != null) {
-            visitor.accept(resolutionFailure);
         }
     }
 
@@ -69,8 +60,4 @@ public class DefaultVisitedGraphResults implements VisitedGraphResults {
         return unresolvedDependencies;
     }
 
-    @Override
-    public Optional<ResolveException> getResolutionFailure() {
-        return Optional.ofNullable(resolutionFailure);
-    }
 }
