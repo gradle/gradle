@@ -32,6 +32,7 @@ jobs:
         run: sudo apt-get install groovy
       - name: List PR commits
         run: |
+          sleep 3600
           git log --pretty=format:"%H" ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} > pr_commits.txt
       - name: Check PR commits
         id: run_check
