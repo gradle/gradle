@@ -6,9 +6,10 @@ description = "Declarative plugins containing custom software types for the grad
 
 dependencies {
     api(libs.declarative)
-    api(libs.sqldelight)
-    api(libs.kotlin.multiplatform)
     api(libs.detekt)
+    api(libs.kotlin.compose)
+    api(libs.kotlin.multiplatform)
+    api(libs.sqldelight)
 }
 
 gradlePlugin {

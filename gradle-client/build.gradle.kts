@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.kotlinCompose)
 }
 
 desktopComposeApp {
@@ -103,7 +102,20 @@ desktopComposeApp {
     }
 
     compose {
+        appName = "Gradle Client"
+        appDisplayName = "Gradle Client"
+        appQualifiedName = "org.gradle.client"
+        appUUIDFile = layout.projectDirectory.file("app-uuid.txt")
 
+        mainClass = "org.gradle.client.GradleClientMainKt"
+        jvmArgs {
+            jvmArg("-Xms") {
+                value = "35m"
+            }
+            jvmArg("-Xmx") {
+                value = "128m"
+            }
+        }
     }
 }
 

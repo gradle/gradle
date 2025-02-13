@@ -5,6 +5,7 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.plugins.software.SoftwareType;
 
 import static org.gradle.api.experimental.kmp.StandaloneKmpApplicationPlugin.PluginWiring.wireKMPApplication;
+import static org.gradle.client.softwaretype.compose.ComposeSupport.wireCompose;
 import static org.gradle.client.softwaretype.detekt.DetektSupport.wireDetekt;
 import static org.gradle.client.softwaretype.sqldelight.SqlDelightSupport.needToWireSqlDelight;
 import static org.gradle.client.softwaretype.sqldelight.SqlDelightSupport.wireSqlDelight;
@@ -37,5 +38,7 @@ public abstract class CustomDesktopComposeApplicationPlugin implements Plugin<Pr
                 wireSqlDelight(project, dslModel);
             }
         });
+
+        wireCompose(project, dslModel);
     }
 }
