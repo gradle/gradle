@@ -102,9 +102,9 @@ desktopComposeApp {
         parallel = true
     }
 
-//    compose {
-//
-//    }
+    compose {
+
+    }
 }
 
 val appName = "GradleClient"

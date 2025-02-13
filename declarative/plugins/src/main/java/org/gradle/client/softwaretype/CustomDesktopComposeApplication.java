@@ -1,4 +1,4 @@
-package org.gradle.client.softwaretype.desktopcompose;
+package org.gradle.client.softwaretype;
 
 import org.gradle.api.Action;
 import org.gradle.api.experimental.kmp.KmpApplication;
@@ -10,7 +10,7 @@ import org.gradle.declarative.dsl.model.annotations.Configuring;
 import org.gradle.declarative.dsl.model.annotations.Restricted;
 
 @Restricted
-public interface DesktopComposeApplication {
+public interface CustomDesktopComposeApplication {
     @Restricted
     Property<String> getGroup();
 

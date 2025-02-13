@@ -2,17 +2,17 @@ package org.gradle.client.softwaretype.sqldelight;
 
 import app.cash.sqldelight.gradle.SqlDelightExtension;
 import org.gradle.api.Project;
-import org.gradle.client.softwaretype.desktopcompose.DesktopComposeApplication;
+import org.gradle.client.softwaretype.CustomDesktopComposeApplication;
 
 @SuppressWarnings("UnstableApiUsage")
 public final class SqlDelightSupport {
     private SqlDelightSupport() { /* not instantiable */ }
 
-    public static boolean needToWireSqlDelight(DesktopComposeApplication dslModel) {
+    public static boolean needToWireSqlDelight(CustomDesktopComposeApplication dslModel) {
         return !dslModel.getSqlDelight().getDatabases().isEmpty();
     }
 
-    public static void wireSqlDelight(Project project, DesktopComposeApplication dslModel) {
+    public static void wireSqlDelight(Project project, CustomDesktopComposeApplication dslModel) {
         project.getPluginManager().apply("app.cash.sqldelight");
 
         dslModel.getKotlinApplication().getTargets().jvm(jvmTarget -> {
