@@ -8,10 +8,15 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.kotlinCompose)
-    alias(libs.plugins.detekt)
 }
 
 desktopComposeApp {
+    group = "org.gradle.client"
+
+    // Version must be strictly x.y.z and >= 1.0.0
+    // for native packaging to work across platforms
+    version = "1.1.3"
+
     kotlinApplication {
         dependencies {
             implementation(project.dependencies.platform(libs.kotlin.bom))
@@ -90,13 +95,13 @@ desktopComposeApp {
             }
         }
     }
+
+    detekt {
+        source.setFrom("src/jvmMain/kotlin", "src/jvmTest/kotlin")
+        config.setFrom(rootDir.resolve("gradle/detekt/detekt.conf"))
+        parallel = true
+    }
 }
-
-group = "org.gradle.client"
-
-// Version must be strictly x.y.z and >= 1.0.0
-// for native packaging to work across platforms
-version = "1.1.3"
 
 val appName = "GradleClient"
 val appDisplayName = "Gradle Client"
@@ -118,7 +123,8 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = appName
-            packageVersion = project.version.toString()
+            packageVersion = "1.1.3"
+// TODO: restore this            packageVersion = project.version.toString()
             description = appDisplayName
             vendor = "Gradle"
             copyright = "© ${Year.now()} the original author or authors."
@@ -153,10 +159,4 @@ compose.desktop {
             }
         }
     }
-}
-
-detekt {
-    source.setFrom("src/jvmMain/kotlin", "src/jvmTest/kotlin")
-    config.setFrom(rootDir.resolve("gradle/detekt/detekt.conf"))
-    parallel = true
 }

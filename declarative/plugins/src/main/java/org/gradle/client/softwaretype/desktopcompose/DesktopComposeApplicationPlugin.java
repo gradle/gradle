@@ -2,11 +2,11 @@ package org.gradle.client.softwaretype.desktopcompose;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.experimental.kmp.StandaloneKmpApplicationPlugin;
 import org.gradle.api.internal.plugins.software.SoftwareType;
-import org.gradle.client.softwaretype.sqldelight.SqlDelightSupport;
+import org.gradle.client.softwaretype.detekt.Detekt;
 
 import static org.gradle.api.experimental.kmp.StandaloneKmpApplicationPlugin.PluginWiring.wireKMPApplication;
+import static org.gradle.client.softwaretype.detekt.DetektSupport.wireDetekt;
 import static org.gradle.client.softwaretype.sqldelight.SqlDelightSupport.needToWireSqlDelight;
 import static org.gradle.client.softwaretype.sqldelight.SqlDelightSupport.wireSqlDelight;
 
@@ -20,7 +20,12 @@ public abstract class DesktopComposeApplicationPlugin implements Plugin<Project>
     @Override
     public void apply(Project project) {
         DesktopComposeApplication dslModel = getDesktopComposeApp();
+
+        project.setGroup(dslModel.getGroup());
+        project.setVersion(dslModel.getVersion());
+
         wireKMPApplication(project, dslModel.getKotlinApplication());
+        wireDetekt(project, dslModel.getDetekt());
 
         /*
          * It's necessary to defer checking the NDOC in our extension for contents until after project evaluation.

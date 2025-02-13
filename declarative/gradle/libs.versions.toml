@@ -1,5 +1,6 @@
 [versions]
 declarative = "0.1.37"
+detekt = "1.23.6"
 kotlin = "2.0.21"
 sqldelight = "2.0.2"
 
@@ -10,6 +11,7 @@ sqldelight = { module = "app.cash.sqldelight:gradle-plugin", version.ref = "sqld
 sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
 sqldelight-extensions-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 sqldelight-driver-sqlite = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
 
 [plugins]
 kmp-ecosystem = { id = "org.gradle.experimental.kmp-ecosystem", version.ref = "declarative" }

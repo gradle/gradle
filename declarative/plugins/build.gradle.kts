@@ -8,6 +8,7 @@ dependencies {
     api(libs.declarative)
     api(libs.sqldelight)
     api(libs.kotlin.multiplatform)
+    api(libs.detekt)
 }
 
 gradlePlugin {
