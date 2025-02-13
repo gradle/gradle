@@ -160,10 +160,12 @@ fun reflectDefaultValue(
 ): ObjectReflection {
     return when (val type = context.typeRefContext.getDataType(objectOrigin)) {
         is DataType.ConstantType<*> -> ObjectReflection.DefaultValue(type, objectOrigin)
+        is DataType.ParameterizedTypeInstance -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataClass -> reflectData(OperationId(-1L, DefaultOperationGenerationId.preExisting), type, objectOrigin, context)
         is EnumClass -> ObjectReflection.DefaultValue(type, objectOrigin)
         is DataType.NullType -> error("Null type can't appear in property types")
         is DataType.UnitType -> error("Unit can't appear in property types")
+        is DataType.TypeVariableUsage -> error("Type variables cannot appear as value types, must be substituted")
     }
 }
 
