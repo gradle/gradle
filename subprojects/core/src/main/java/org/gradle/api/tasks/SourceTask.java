@@ -17,32 +17,39 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.LazyPatternFilterable;
 import org.gradle.internal.Factory;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.inject.Inject;
-import java.util.Set;
+
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * A {@code SourceTask} performs some operation on source files.
  */
 @NonNullApi
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
-public abstract class SourceTask extends ConventionTask implements PatternFilterable {
+public abstract class SourceTask extends ConventionTask {
     private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
-    private final PatternFilterable patternSet;
+    private final LazyPatternFilterable patternFilterable;
 
     public SourceTask() {
-        patternSet = getPatternSetFactory().create();
+        patternFilterable = getProject().getObjects().newInstance(LazyPatternFilterable.class);
     }
 
     @Inject
@@ -50,9 +57,15 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * This method is called by the task implementation to apply the include and exclude patterns to the source files.
+     *
+     * @since 9.0
+     */
+    @Incubating
     @Internal
-    protected PatternFilterable getPatternSet() {
-        return patternSet;
+    protected void applyPatternSetTo(PatternFilterable patternFilterable) {
+        this.patternFilterable.applyTo(patternFilterable);
     }
 
     /**
@@ -71,7 +84,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     @ToBeReplacedByLazyProperty
     @PathSensitive(PathSensitivity.ABSOLUTE)
     public FileTree getSource() {
-        return sourceFiles.getAsFileTree().matching(patternSet);
+        return sourceFiles.getAsFileTree().matching(this::applyPatternSetTo);
     }
 
     /**
@@ -105,112 +118,118 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#include(String...)
      */
-    @Override
     public SourceTask include(String... includes) {
-        patternSet.include(includes);
+        patternFilterable.include(includes);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#include(Iterable)
      */
-    @Override
     public SourceTask include(Iterable<String> includes) {
-        patternSet.include(includes);
+        patternFilterable.include(includes);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#include(Spec)
      */
-    @Override
     public SourceTask include(Spec<FileTreeElement> includeSpec) {
-        patternSet.include(includeSpec);
+        patternFilterable.include(includeSpec);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#include(Closure)
      */
-    @Override
     public SourceTask include(Closure includeSpec) {
-        patternSet.include(includeSpec);
+        patternFilterable.include(includeSpec);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#exclude(String...)
      */
-    @Override
     public SourceTask exclude(String... excludes) {
-        patternSet.exclude(excludes);
+        patternFilterable.exclude(excludes);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#exclude(Iterable)
      */
-    @Override
     public SourceTask exclude(Iterable<String> excludes) {
-        patternSet.exclude(excludes);
+        patternFilterable.exclude(excludes);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#exclude(Spec)
      */
-    @Override
     public SourceTask exclude(Spec<FileTreeElement> excludeSpec) {
-        patternSet.exclude(excludeSpec);
+        patternFilterable.exclude(excludeSpec);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see PatternFilterable#exclude(Closure)
      */
-    @Override
     public SourceTask exclude(Closure excludeSpec) {
-        patternSet.exclude(excludeSpec);
+        patternFilterable.exclude(excludeSpec);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * The set of include patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludes() {
-        return patternSet.getIncludes();
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = GETTER, name = "getIncludes"),
+        @ReplacedAccessor(value = SETTER, name = "setIncludes", originalType = Iterable.class, fluentSetter = true)
+    })
+    public SetProperty<String> getIncludes() {
+        return patternFilterable.getIncludes();
     }
 
     /**
-     * {@inheritDoc}
+     * The set of exclude patterns.
+     *
+     * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
      */
-    @Override
-    public SourceTask setIncludes(Iterable<String> includes) {
-        patternSet.setIncludes(includes);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludes() {
-        return patternSet.getExcludes();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public SourceTask setExcludes(Iterable<String> excludes) {
-        patternSet.setExcludes(excludes);
-        return this;
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = GETTER, name = "getExcludes"),
+        @ReplacedAccessor(value = SETTER, name = "setExcludes", originalType = Iterable.class, fluentSetter = true)
+    })
+    public SetProperty<String> getExcludes() {
+        return patternFilterable.getExcludes();
     }
 }
