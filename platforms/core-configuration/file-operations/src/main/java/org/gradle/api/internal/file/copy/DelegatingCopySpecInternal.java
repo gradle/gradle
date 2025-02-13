@@ -27,6 +27,7 @@ import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -35,7 +36,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilterReader;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
@@ -110,16 +110,6 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         return getDelegateCopySpec().from(sourcePath, configureAction);
-    }
-
-    @Override
-    public CopySpec setIncludes(Iterable<String> includes) {
-        return getDelegateCopySpec().setIncludes(includes);
-    }
-
-    @Override
-    public CopySpec setExcludes(Iterable<String> excludes) {
-        return getDelegateCopySpec().setExcludes(excludes);
     }
 
     @Override
@@ -282,12 +272,12 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     @Override
-    public Set<String> getIncludes() {
+    public SetProperty<String> getIncludes() {
         return getDelegateCopySpec().getIncludes();
     }
 
     @Override
-    public Set<String> getExcludes() {
+    public SetProperty<String> getExcludes() {
         return getDelegateCopySpec().getExcludes();
     }
 

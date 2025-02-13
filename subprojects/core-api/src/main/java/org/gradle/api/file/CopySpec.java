@@ -21,14 +21,20 @@ import groovy.transform.stc.ClosureParams;
 import groovy.transform.stc.SimpleType;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * A set of specifications for copying files.  This includes:
@@ -89,7 +95,7 @@ import java.util.regex.Pattern;
  * @see org.gradle.api.Project#copy(groovy.lang.Closure) Project.copy()
  */
 @HasInternalProtocol
-public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {
+public interface CopySpec extends CopySourceSpec, CopyProcessingSpec {
     /**
      * Specifies whether case-sensitive pattern matching should be used.
      *
@@ -226,86 +232,96 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     @Override
     CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction);
 
-    // PatternFilterable overrides to broaden return type
-
     /**
-     * {@inheritDoc}
+     * The set of include patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @since 9.0
      */
-    @Override
-    CopySpec setIncludes(Iterable<String> includes);
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = GETTER, name = "getIncludes"),
+        @ReplacedAccessor(value = SETTER, name = "setIncludes", originalType = Iterable.class, fluentSetter = true)
+        // We need to use binaryCompatibility = ACCESSORS_KEPT and manually accept changes,
+        // because the original get method is only on an interface we removed from this class
+    }, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT)
+    SetProperty<String> getIncludes();
 
     /**
-     * {@inheritDoc}
+     * The set of exclude patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @since 9.0
      */
-    @Override
-    CopySpec setExcludes(Iterable<String> excludes);
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = GETTER, name = "getExcludes"),
+        @ReplacedAccessor(value = SETTER, name = "setExcludes", originalType = Iterable.class, fluentSetter = true)
+        // We need to use binaryCompatibility = ACCESSORS_KEPT and manually accept changes,
+        // because the original get method is only on an interface we removed from this class
+    }, binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT)
+    SetProperty<String> getExcludes();
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#include(String...)
      */
-    @Override
     CopySpec include(String... includes);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#include(Iterable)
      */
-    @Override
     CopySpec include(Iterable<String> includes);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#include(Spec)
      */
-    @Override
     CopySpec include(Spec<FileTreeElement> includeSpec);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of include patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#include(Closure)
      */
-    @Override
     CopySpec include(Closure includeSpec);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#exclude(String...)
      */
-    @Override
     CopySpec exclude(String... excludes);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#exclude(Iterable)
      */
-    @Override
     CopySpec exclude(Iterable<String> excludes);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#exclude(Spec)
      */
-    @Override
     CopySpec exclude(Spec<FileTreeElement> excludeSpec);
 
     /**
-     * {@inheritDoc}
+     * Adds to the set of exclude patterns.
      *
      * @see org.gradle.api.tasks.util.PatternFilterable Pattern Format
+     * @see org.gradle.api.tasks.util.PatternFilterable#exclude(Closure)
      */
-    @Override
     CopySpec exclude(Closure excludeSpec);
 
     // CopyProcessingSpec overrides to broaden return type

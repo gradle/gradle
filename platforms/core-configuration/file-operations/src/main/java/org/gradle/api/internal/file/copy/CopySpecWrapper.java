@@ -30,6 +30,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SyncSpec;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.util.internal.ClosureBackedAction;
@@ -38,7 +39,6 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -131,18 +131,6 @@ public class CopySpecWrapper implements SyncSpec {
     @Override
     public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         return delegate.from(sourcePath, configureAction);
-    }
-
-    @Override
-    public CopySpec setIncludes(Iterable<String> includes) {
-        delegate.setIncludes(includes);
-        return this;
-    }
-
-    @Override
-    public CopySpec setExcludes(Iterable<String> excludes) {
-        delegate.setExcludes(excludes);
-        return this;
     }
 
     @Override
@@ -328,12 +316,12 @@ public class CopySpecWrapper implements SyncSpec {
     }
 
     @Override
-    public Set<String> getIncludes() {
+    public SetProperty<String> getIncludes() {
         return delegate.getIncludes();
     }
 
     @Override
-    public Set<String> getExcludes() {
+    public SetProperty<String> getExcludes() {
         return delegate.getExcludes();
     }
 
