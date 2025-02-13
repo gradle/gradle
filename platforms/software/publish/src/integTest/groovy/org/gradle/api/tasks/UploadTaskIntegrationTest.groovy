@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
  and its properties accessed for backwards compatibility; but that it throws an exception upon usage.
  */
 class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
-    def "deprecated Upload task class can be registered and properties accessed, but fails at execution time"() {
+    def "deprecated Upload task class can be registered, but accessing properties are deprecated and fails at execution time"() {
         given:
         buildFile << """
             plugins {
@@ -48,12 +48,28 @@ class UploadTaskIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectDeprecations()
         succeeds 'tasks'
 
-        and:
+        when:
         executer.withBuildJvmOpts("-Dorg.gradle.configuration-cache.internal.task-execution-access-pre-stable=true")
-        fails 'upload'
+        expectDeprecations()
+        fails('upload')
+
+        then:
         result.assertHasErrorOutput "The legacy `Upload` task was removed in Gradle 8. Please use the `maven-publish` or `ivy-publish` plugin instead. " +
             "For more on publishing on maven repositories, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/publishing_maven.html#publishing_maven in the Gradle documentation."
+    }
+
+    def expectDeprecations() {
+        executer.expectDocumentedDeprecationWarning("The Upload.isUploadDescriptor() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.setUploadDescriptor(boolean) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.getDescriptorDestination() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.setDescriptorDestination(File) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.getRepositories() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.repositories(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.getConfiguration() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.setConfiguration(Configuration) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
+        executer.expectDocumentedDeprecationWarning("The Upload.getArtifacts() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#upload_task_deprecation")
     }
 }

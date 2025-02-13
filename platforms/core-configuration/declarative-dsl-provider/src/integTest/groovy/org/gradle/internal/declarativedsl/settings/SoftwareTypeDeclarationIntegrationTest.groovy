@@ -17,26 +17,36 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.hamcrest.Matchers
 import org.junit.Rule
 
 import static org.gradle.util.Matchers.containsText
 
-class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+@PolyglotDslTest
+class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
     @Rule
     MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     @Rule
     MavenHttpPluginRepository mavenHttpRepo = new MavenHttpPluginRepository(mavenRepo)
 
+    def setup() {
+        // enable DCL support to have KTS accessors generated
+        propertiesFile << "org.gradle.kotlin.dsl.dcl=true"
+    }
+
     def 'can declare and configure a custom software type from included build'() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -54,13 +64,13 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         def pluginBuilder = withSoftwareTypePlugins()
         pluginBuilder.publishAs("com", "example", "1.0", pluginPortal, createExecuter()).allowAll()
 
-        file("settings.gradle.dcl") << """
+        settingsFile() << """
             plugins {
                 id("com.example.test-software-type").version("1.0")
             }
         """
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -81,7 +91,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         def pluginBuilder = withSoftwareTypePlugins()
         pluginBuilder.publishAs("com", "example", "1.0", mavenHttpRepo, createExecuter()).allowAll()
 
-        file("settings.gradle.dcl") << """
+        settingsFile() << """
             pluginManagement {
                 repositories {
                     maven { url = uri("$mavenHttpRepo.uri") }
@@ -92,7 +102,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
             }
         """
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         succeeds(":printTestSoftwareTypeExtensionConfiguration")
@@ -109,9 +119,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSettingsPluginThatExposesMultipleSoftwareTypes().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
             anotherSoftwareType {
                 foo = "test2"
 
@@ -137,9 +147,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSettingsPluginThatExposesMultipleSoftwareTypes().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -152,13 +162,14 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         outputDoesNotContain("Applying AnotherSoftwareTypeImplPlugin")
     }
 
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy has no problem with finding non-public methods/types ...")
     def 'can declare and configure a custom software type with different public and implementation model types'() {
         given:
         withSoftwareTypePluginThatHasDifferentPublicAndImplementationModelTypes().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionImplConfiguration")
@@ -167,7 +178,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         assertThatDeclaredValuesAreSetProperly()
 
         when:
-        file("build.gradle.dcl") << """
+        buildFile() << """
             testSoftwareType {
                 nonPublic = "foo"
             }
@@ -175,17 +186,23 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":printTestSoftwareTypeExtensionImplConfiguration")
 
         then:
-        failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
-        failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublic'"))
+        if (GradleDsl.KOTLIN == currentDsl()) {
+            failure.assertThatDescription(Matchers.containsString("Unresolved reference: nonPublic"))
+        } else if (GradleDsl.DECLARATIVE == currentDsl()) {
+            failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
+            failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublic'"))
+        } else {
+            throw new RuntimeException("Test wasn't meant to be run with " + currentDsl().languageCodeName + " DSL")
+        }
     }
 
     def 'can declare and configure a custom software type from a parent class'() {
         given:
         withSoftwareTypePluginThatExposesSoftwareTypeFromParentClass().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -198,9 +215,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatHasUnannotatedMethods().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -213,9 +230,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginWithMismatchedModelTypes().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -230,7 +247,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatDoesNotExposeSoftwareTypes().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
         when:
         fails(":help")
@@ -245,9 +262,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatExposesMultipleSoftwareTypes().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType + """
             anotherSoftwareType {
                 id = "test2"
 
@@ -270,9 +287,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatExposesPrivateSoftwareType().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -287,9 +304,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -306,9 +323,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatFailsToRegistersItsOwnExtension().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -322,9 +339,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         given:
         withSoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")

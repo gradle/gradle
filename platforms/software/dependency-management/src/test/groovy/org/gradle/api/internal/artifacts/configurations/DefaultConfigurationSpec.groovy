@@ -735,7 +735,7 @@ class DefaultConfigurationSpec extends Specification {
 
         where:
         baseRole << [
-            ConfigurationRoles.LEGACY,
+            ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE,
             ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE
         ] + ConfigurationRolesForMigration.ALL
@@ -1741,7 +1741,7 @@ class DefaultConfigurationSpec extends Specification {
         new DefaultExternalModuleDependency(group, name, version)
     }
 
-    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.LEGACY) {
+    private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":", ConfigurationRole role = ConfigurationRoles.ALL) {
         return confFactory(projectPath, buildPath).create(confName, configurationsProvider, Factories.constant(resolutionStrategy), rootComponentMetadataBuilder, role)
     }
 
@@ -1779,6 +1779,7 @@ class DefaultConfigurationSpec extends Specification {
             new ResolveExceptionMapper(Mock(DomainObjectContext), Mock(DocumentationRegistry)),
             new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
             userCodeApplicationContext,
+            CollectionCallbackActionDecorator.NOOP,
             projectStateRegistry,
             Stub(WorkerThreadRegistry),
             TestUtil.domainObjectCollectionFactory(),

@@ -2,16 +2,20 @@ package common
 
 import jetbrains.buildServer.configs.kotlin.DslContext
 
-fun isSecurityFork(): Boolean {
-    return DslContext.settingsRoot.id.toString().lowercase().contains("security")
-}
+fun isSecurityFork(): Boolean =
+    DslContext.settingsRoot.id
+        .toString()
+        .lowercase()
+        .contains("security")
 
 // GradleMaster -> Master
 // GradleSecurityAdvisory84mwRelease -> SecurityAdvisory84mwRelease
 val DslContext.uuidPrefix: String
     get() = settingsRoot.id.toString().substringAfter("Gradle")
 
-data class VersionedSettingsBranch(val branchName: String) {
+data class VersionedSettingsBranch(
+    val branchName: String,
+) {
     /**
      * 0~23.
      * To avoid nightly promotion jobs running at the same time,
@@ -35,36 +39,31 @@ data class VersionedSettingsBranch(val branchName: String) {
     val enableVcsTriggers: Boolean = nightlyPromotionTriggerHour != null
 
     companion object {
-        private
-        const val MASTER_BRANCH = "master"
+        private const val MASTER_BRANCH = "master"
 
-        private
-        const val RELEASE_BRANCH = "release"
+        private const val RELEASE_BRANCH = "release"
 
-        private
-        const val EXPERIMENTAL_BRANCH = "experimental"
+        private const val EXPERIMENTAL_BRANCH = "experimental"
 
-        private
-        val OLD_RELEASE_PATTERN = "release(\\d+)x".toRegex()
+        private val OLD_RELEASE_PATTERN = "release(\\d+)x".toRegex()
 
-        fun fromDslContext(): VersionedSettingsBranch {
-            return VersionedSettingsBranch(DslContext.getParameter("Branch", "placeholder"))
-        }
+        fun fromDslContext(): VersionedSettingsBranch = VersionedSettingsBranch(DslContext.getParameter("Branch", "placeholder"))
 
-        private fun determineNightlyPromotionTriggerHour(branchName: String) = when (branchName) {
-            MASTER_BRANCH -> 0
-            RELEASE_BRANCH -> 1
-            else -> {
-                val matchResult = OLD_RELEASE_PATTERN.find(branchName)
-                if (matchResult == null) {
-                    null
-                } else {
-                    (matchResult.groupValues[1].toInt() - 4).apply {
-                        require(this in 2..23)
+        private fun determineNightlyPromotionTriggerHour(branchName: String) =
+            when (branchName) {
+                MASTER_BRANCH -> 0
+                RELEASE_BRANCH -> 1
+                else -> {
+                    val matchResult = OLD_RELEASE_PATTERN.find(branchName)
+                    if (matchResult == null) {
+                        null
+                    } else {
+                        (matchResult.groupValues[1].toInt() - 4).apply {
+                            require(this in 2..23)
+                        }
                     }
                 }
             }
-        }
     }
 
     val isMainBranch: Boolean
@@ -79,22 +78,26 @@ data class VersionedSettingsBranch(val branchName: String) {
     fun vcsRootId() = DslContext.settingsRoot.id.toString()
 
     fun promoteNightlyTaskName() = nightlyTaskName("promote")
+
     fun prepNightlyTaskName() = nightlyTaskName("prep")
 
-    fun promoteMilestoneTaskName(): String = when {
-        isRelease -> "promoteReleaseMilestone"
-        else -> "promoteMilestone"
-    }
+    fun promoteMilestoneTaskName(): String =
+        when {
+            isRelease -> "promoteReleaseMilestone"
+            else -> "promoteMilestone"
+        }
 
-    fun promoteFinalReleaseTaskName(): String = when {
-        isMaster -> throw UnsupportedOperationException("No final release job on master branch")
-        isRelease -> "promoteFinalRelease"
-        else -> "promoteFinalBackportRelease"
-    }
+    fun promoteFinalReleaseTaskName(): String =
+        when {
+            isMaster -> throw UnsupportedOperationException("No final release job on master branch")
+            isRelease -> "promoteFinalRelease"
+            else -> "promoteFinalBackportRelease"
+        }
 
-    private fun nightlyTaskName(prefix: String): String = when {
-        isMaster -> "${prefix}Nightly"
-        isRelease -> "${prefix}ReleaseNightly"
-        else -> "${prefix}PatchReleaseNightly"
-    }
+    private fun nightlyTaskName(prefix: String): String =
+        when {
+            isMaster -> "${prefix}Nightly"
+            isRelease -> "${prefix}ReleaseNightly"
+            else -> "${prefix}PatchReleaseNightly"
+        }
 }

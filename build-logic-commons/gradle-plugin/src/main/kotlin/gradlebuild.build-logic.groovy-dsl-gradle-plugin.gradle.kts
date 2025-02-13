@@ -1,5 +1,3 @@
-import gradlebuild.commons.configureJavaToolChain
-
 /*
  * Copyright 2020 the original author or authors.
  *
@@ -24,8 +22,6 @@ plugins {
     id("gradlebuild.test-retry")
     id("gradlebuild.private-javadoc")
 }
-
-java.configureJavaToolChain()
 
 dependencies {
     api(platform("gradlebuild:build-platform"))

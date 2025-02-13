@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.work.DisableCachingByDefault;
 
 import javax.annotation.Nullable;
@@ -33,16 +34,17 @@ import java.io.File;
 
 /**
  * This task is <strong>no longer supported</strong> and will <strong>throw an exception</strong> if you try to use it.
- * It is preserved solely for backwards compatibility and may be removed in a future version.
  *
- * @deprecated This class is scheduled for removal in a future version. To upload artifacts, use the `maven-publish` or `ivy-publish` plugins instead.
+ * @deprecated This class is scheduled for removal in Gradle 9.0. To publish artifacts,
+ *      use the {@code maven-publish} or {@code ivy-publish} plugins instead.
  */
-@Deprecated // TODO:Finalize Upload Removal - Issue #21439
+@Deprecated
 @DisableCachingByDefault(because = "Produces no cacheable output")
 public abstract class Upload extends ConventionTask {
+
     /**
      * Do not use this method, it is for internal use only.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Deprecated
     @Inject
@@ -59,102 +61,145 @@ public abstract class Upload extends ConventionTask {
 
     /**
      * Do not use this method, it will always return {@code false}.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Input
     @Deprecated
     public boolean isUploadDescriptor() {
+        DeprecationLogger.deprecateMethod(Upload.class, "isUploadDescriptor()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return false;
     }
 
     /**
      * Do not use this method, it does nothing.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
-    public void setUploadDescriptor(boolean uploadDescriptor) { /* empty */ }
+    public void setUploadDescriptor(boolean uploadDescriptor) {
+        DeprecationLogger.deprecateMethod(Upload.class, "setUploadDescriptor(boolean)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
+    }
 
     /**
      * Do not use this method, it will always return {@code null}.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Internal
     @Nullable
     @Deprecated
     public File getDescriptorDestination() {
+        DeprecationLogger.deprecateMethod(Upload.class, "getDescriptorDestination()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return null;
     }
 
     /**
      * Do not use this method, it does nothing.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @SuppressWarnings("UnusedDeclaration")
     @Deprecated
-    public void setDescriptorDestination(@Nullable File descriptorDestination) { /* empty */ }
+    public void setDescriptorDestination(@Nullable File descriptorDestination) {
+        DeprecationLogger.deprecateMethod(Upload.class, "setDescriptorDestination(File)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
+    }
 
     /**
      * Do not use this method, it will always return {@code null}.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Internal
     @Nullable
     @Deprecated
     public RepositoryHandler getRepositories() {
+        DeprecationLogger.deprecateMethod(Upload.class, "getRepositories()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return null;
     }
 
     /**
      * Do not use this method, it will always return {@code null}.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Internal
     @Nullable
     @Deprecated
     public Configuration getConfiguration() {
+        DeprecationLogger.deprecateMethod(Upload.class, "getConfiguration()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return null;
     }
 
     /**
      * Do not use this method, it does nothing.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
-    public void setConfiguration(@Nullable Configuration configuration) { /* empty */ }
+    public void setConfiguration(@Nullable Configuration configuration) {
+        DeprecationLogger.deprecateMethod(Upload.class, "setConfiguration(Configuration)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
+    }
 
     /**
      * Do not use this method, it will always return {@code null}.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Nullable
     @Deprecated
     @SuppressWarnings({"UnusedDeclaration", "rawtypes"})
     public RepositoryHandler repositories(@Nullable @DelegatesTo(RepositoryHandler.class) Closure configureClosure) {
+        DeprecationLogger.deprecateMethod(Upload.class, "repositories(Closure)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return null;
     }
 
     /**
      * Do not use this method, it will always return {@code null}.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @Nullable
     @Deprecated
     @SuppressWarnings("UnusedDeclaration")
     public RepositoryHandler repositories(Action<? super RepositoryHandler> configureAction) {
+        DeprecationLogger.deprecateMethod(Upload.class, "repositories(Action)")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return null;
     }
 
     /**
      * Do not use this method, it must return a non-{@code null} value as an input property to all the task to run,
      * but this value <strong>should not be relied upon</strong> for anything.
-     * @deprecated This class is scheduled for removal in a future version, this method <strong>should not be used</strong>.
+     * @deprecated This class is scheduled for removal in Gradle 9.0, this method <strong>should not be used</strong>.
      */
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFiles
     @Deprecated
     public FileCollection getArtifacts() {
+        DeprecationLogger.deprecateMethod(Upload.class, "getArtifacts()")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(7, "upload_task_deprecation")
+            .nagUser();
         return getProject().files();
     }
 }

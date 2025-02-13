@@ -9,8 +9,7 @@ import java.net.URI
 
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
-    languageVersion = JavaLanguageVersion.of(17)
-    vendor = JvmVendorSpec.ADOPTIUM
+    jvmVersion = JavaLanguageVersion.of(17)
 }
 
 tasks.withType<UpdateReleasedVersions>().configureEach {

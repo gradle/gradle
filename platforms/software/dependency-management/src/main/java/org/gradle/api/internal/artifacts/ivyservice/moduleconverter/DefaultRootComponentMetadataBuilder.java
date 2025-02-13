@@ -114,7 +114,6 @@ public class DefaultRootComponentMetadataBuilder implements RootComponentMetadat
             }
             return variantStateBuilder.createRootVariantState(
                 resolvedConf,
-                configurationsProvider,
                 componentIdentifier,
                 new DefaultLocalVariantGraphResolveStateBuilder.DependencyCache(),
                 owner.getModel(),

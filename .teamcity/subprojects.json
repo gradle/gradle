@@ -875,6 +875,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "model-reflect",
+    "path": "platforms/core-configuration/model-reflect",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "native",
     "path": "platforms/core-runtime/native",
     "unitTests": true,

@@ -105,7 +105,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'includes problem location in message'() {
         given:
-        useLocation("<long>", 123)
+        useLocation("<long>", "<path to source>", 123)
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature'))
@@ -156,10 +156,10 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def 'logs deprecation warning once for each unique location'() {
         given:
-        useLocation("<one>", 123)
-        useLocation("<one>", 1)
-        useLocation("<one>", 123)
-        useLocation("<one>", 1)
+        useLocation("<one>", "<path to source>", 123)
+        useLocation("<one>", "<path to source>", 1)
+        useLocation("<one>", "<path to source>", 123)
+        useLocation("<one>", "<path to source>", 1)
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
@@ -181,9 +181,9 @@ feature1 removal""")
     def 'does not log deprecation warning without stack trace if the same warning has already been seen with a stack trace'() {
         given:
         useStackTrace(fakeStackTrace)
-        useLocation("<plugin>", 123, fakeStackTrace)
+        useLocation("<plugin>", "<path to source>", 123, fakeStackTrace)
         useStackTrace()
-        useLocation("<plugin>", 123)
+        useLocation("<plugin>", "<path to source>", 123)
 
         when:
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
@@ -507,10 +507,10 @@ feature1 removal""")
         }
     }
 
-    private void useLocation(String displayName, int lineNumber, List<StackTraceElement> stackTrace = []) {
+    private void useLocation(String displayName, String filePath, int lineNumber, List<StackTraceElement> stackTrace = []) {
         1 * problemStream.forCurrentCaller(_) >> Stub(ProblemDiagnostics) {
             _ * getStack() >> stackTrace
-            _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), lineNumber)
+            _ * getLocation() >> new Location(Describables.of(displayName), Describables.of("<short>"), filePath, lineNumber)
         }
     }
 

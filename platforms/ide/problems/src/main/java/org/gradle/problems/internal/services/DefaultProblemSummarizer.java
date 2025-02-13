@@ -22,6 +22,8 @@ import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemSummaryData;
+import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.api.problems.internal.TaskIdentityProvider;
 import org.gradle.internal.buildoption.IntegerInternalOption;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -29,6 +31,7 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
@@ -42,6 +45,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final int threshold;
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
+    private final TaskIdentityProvider taskProvider;
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -51,7 +55,8 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         CurrentBuildOperationRef currentBuildOperationRef,
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator
+        ProblemReportCreator problemReportCreator,
+        TaskIdentityProvider taskProvider
     ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
@@ -59,6 +64,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
         this.summarizerStrategy = new SummarizerStrategy(threshold);
         this.problemReportCreator = problemReportCreator;
+        this.taskProvider = taskProvider;
     }
 
     @Override
@@ -76,10 +82,20 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     @Override
     public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
         if (summarizerStrategy.shouldEmit(problem)) {
+            problem = maybeAddTaskLocation(problem, id);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
             }
         }
+    }
+
+    @Nonnull
+    private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
+        TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
+        if (taskIdentity != null) {
+            problem = problem.toBuilder(null, null, null).taskLocation(taskIdentity.getTaskPath()).build();
+        }
+        return problem;
     }
 }

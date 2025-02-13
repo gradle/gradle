@@ -2,7 +2,7 @@ name: Auto update performance test durations JSON
 
 on:
   schedule:
-    - cron: '53 3 1 * *'
+    - cron: '53 3 * * 1'
   workflow_dispatch:
 
 permissions:

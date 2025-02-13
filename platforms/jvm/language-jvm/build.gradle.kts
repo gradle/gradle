@@ -28,7 +28,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.logging)
-    implementation(projects.modelCore)
+    implementation(projects.modelReflect)
     implementation(projects.testSuitesBase)
 
     implementation(libs.guava)
@@ -38,7 +38,7 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(testFixtures(projects.core))
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(testFixtures(projects.resourcesHttp))
 
     testFixturesImplementation(libs.commonsLang)

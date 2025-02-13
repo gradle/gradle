@@ -27,7 +27,7 @@ dependencies {
     integTestImplementation(libs.samplesCheck) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
     }
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
 
     crossVersionTestImplementation(projects.baseServices)
     crossVersionTestImplementation(projects.core)

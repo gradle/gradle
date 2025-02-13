@@ -17,9 +17,18 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
-class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+@PolyglotDslTest
+class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
+
+    def setup() {
+        file("gradle.properties") << """
+            org.gradle.kotlin.dsl.dcl=true
+        """
+    }
 
     def 'set #name'() {
         given:
@@ -29,9 +38,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -46,7 +55,33 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"
     }
 
-    static String getWithFileSystemLocationProperties() {
+    def "using a read-only property by mistake gives a helpful error message for #name"() {
+        given:
+        withSoftwareTypePlugins(
+            extensionClassContent,
+            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
+            settingsPluginThatRegistersSoftwareType
+        ).prepareToExecute()
+
+        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+
+        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failureCauseContains("Failed to interpret the declarative DSL file '${file("build.gradle.dcl").path}':")
+        failureCauseContains("Failures in resolution:")
+        failureCauseContains("assignment to property '$propName' with read-only type '$name'")
+
+        where:
+        extensionClassContent                           | name              | propName
+        withReadOnlyDirectoryProperty                   | "Directory"       | "dir"
+        withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"
+    }
+
+    private static String getWithFileSystemLocationProperties() {
         """
                 package org.gradle.test;
 
@@ -72,7 +107,49 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             """
     }
 
-    static String getWithPropertiesOfFileSystemLocations() {
+    private static String getWithReadOnlyDirectoryProperty() {
+        """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                import org.gradle.api.file.Directory;
+                import org.gradle.api.file.RegularFileProperty;
+                import org.gradle.api.provider.Property;
+
+                @Restricted
+                public interface TestSoftwareTypeExtension {
+                    @Restricted
+                    Directory getDir();
+
+                    @Restricted
+                    RegularFileProperty getFile();
+                }
+            """
+    }
+
+    private static String getWithReadOnlyRegularFileProperty() {
+        """
+                package org.gradle.test;
+
+                import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+                import org.gradle.api.file.DirectoryProperty;
+                import org.gradle.api.file.RegularFile;
+                import org.gradle.api.provider.Property;
+
+                @Restricted
+                public interface TestSoftwareTypeExtension {
+                    @Restricted
+                    DirectoryProperty getDir();
+
+                    @Restricted
+                    RegularFile getFile();
+                }
+            """
+    }
+
+    private static String getWithPropertiesOfFileSystemLocations() {
         """
                 package org.gradle.test;
 
@@ -116,7 +193,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             """
     }
 
-    static String getWithJavaBeanPropertiesOfFileSystemLocations() {
+    private static String getWithJavaBeanPropertiesOfFileSystemLocations() {
         """
                 package org.gradle.test;
 
@@ -165,7 +242,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             """
     }
 
-    static String getPluginsFromIncludedBuild() {
+    private static String getPluginsFromIncludedBuild() {
         return """
             pluginManagement {
                 includeBuild("plugins")
@@ -176,7 +253,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
+    private static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType() {
         return """
             testSoftwareType {
                 dir = layout.projectDirectory.dir("someDir")
@@ -185,8 +262,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    void assertThatDeclaredValuesAreSetProperly() {
+    private void assertThatDeclaredValuesAreSetProperly() {
         outputContains("dir = ${testDirectory.file("someDir").path}\nfile = ${testDirectory.file("someFile").path}")
     }
-
 }

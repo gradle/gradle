@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -41,6 +42,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
+import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.buildFileLocation
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
@@ -93,7 +95,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
             definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
             definition.severity == Severity.WARNING
-            locations(it).find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
+            locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
         }
     }
 
@@ -172,6 +174,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4609")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {

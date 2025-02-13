@@ -67,7 +67,18 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
         NULL_VALUE -> null
-        else -> bindings[tag].decoding.run { decode() }
+        else -> {
+            val binding = try {
+                bindings[tag]
+            } catch (e: ArrayIndexOutOfBoundsException) {
+                onError(e) {
+                    text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
+                    text("The value may have been written incorrectly or its data is corrupted.")
+                }
+                null
+            }
+            binding?.let { it.decoding.run { decode() } }
+        }
     }
 
     private

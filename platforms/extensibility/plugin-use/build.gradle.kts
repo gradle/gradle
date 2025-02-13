@@ -13,6 +13,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.problemsApi)
 
     api(libs.guava)
