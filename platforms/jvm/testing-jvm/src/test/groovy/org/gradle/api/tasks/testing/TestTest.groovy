@@ -208,7 +208,7 @@ class TestTest extends AbstractConventionTaskTest {
         then:
         test.includes == [TEST_PATTERN_1] as Set
         test.excludes == [TEST_PATTERN_1] as Set
-        test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
+        test.filter.commandLineIncludePatterns.get() == [TEST_PATTERN_2] as Set
     }
 
     def "--tests is combined with filter.includeTestsMatching"() {
@@ -221,8 +221,8 @@ class TestTest extends AbstractConventionTaskTest {
         then:
         test.includes.empty
         test.excludes.empty
-        test.filter.includePatterns == [TEST_PATTERN_1] as Set
-        test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
+        test.filter.includePatterns.get() == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns.get() == [TEST_PATTERN_2] as Set
     }
 
     def "--tests is combined with filter.includePatterns"() {
@@ -235,8 +235,8 @@ class TestTest extends AbstractConventionTaskTest {
         then:
         test.includes.empty
         test.excludes.empty
-        test.filter.includePatterns == [TEST_PATTERN_1] as Set
-        test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
+        test.filter.includePatterns.get() == [TEST_PATTERN_1] as Set
+        test.filter.commandLineIncludePatterns.get() == [TEST_PATTERN_2] as Set
     }
 
     def "jvm arg providers are added to java fork options"() {
