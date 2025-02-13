@@ -73,11 +73,11 @@ class ScalaCompileTest extends AbstractConventionTaskTest {
 
         expect:
         compile.is(compile.include(TEST_PATTERN_1, TEST_PATTERN_2))
-        compile.getIncludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
+        compile.getIncludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
 
         and:
         compile.is(compile.include(TEST_PATTERN_3))
-        compile.getIncludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+        compile.getIncludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
     def "test excludes"() {
@@ -86,10 +86,10 @@ class ScalaCompileTest extends AbstractConventionTaskTest {
 
         expect:
         compile.is(compile.exclude(TEST_PATTERN_1, TEST_PATTERN_2))
-        compile.getExcludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
+        compile.getExcludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
 
         and:
         compile.is(compile.exclude(TEST_PATTERN_3))
-        compile.getExcludes() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+        compile.getExcludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 }

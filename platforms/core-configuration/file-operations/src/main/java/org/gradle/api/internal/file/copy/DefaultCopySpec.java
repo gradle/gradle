@@ -43,9 +43,11 @@ import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.LazyPatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -77,7 +79,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     protected final Instantiator instantiator;
     private final ObjectFactory objectFactory;
     private final ConfigurableFileCollection sourcePaths;
-    private final PatternSet patternSet;
+    private final LazyPatternFilterable lazyPatternFilterable;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
     private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<>();
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
@@ -103,9 +105,9 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.objectFactory = objectFactory;
         this.instantiator = instantiator;
         this.patternSetFactory = patternSetFactory;
-        this.patternSet = patternSet;
         this.filePermissions = objectFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = objectFactory.property(ConfigurableFilePermissions.class);
+        this.lazyPatternFilterable = objectFactory.newInstance(LazyPatternFilterable.class).applyFrom(patternSet);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -344,77 +346,67 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public PatternSet getPatterns() {
+        PatternSet patternSet = Preconditions.checkNotNull(patternSetFactory.create());
+        lazyPatternFilterable.applyTo(patternSet);
         return patternSet;
     }
 
     @Override
     public CopySpec include(String... includes) {
-        patternSet.include(includes);
+        lazyPatternFilterable.include(includes);
         return this;
     }
 
     @Override
     public CopySpec include(Iterable<String> includes) {
-        patternSet.include(includes);
+        lazyPatternFilterable.include(includes);
         return this;
     }
 
     @Override
     public CopySpec include(Spec<FileTreeElement> includeSpec) {
-        patternSet.include(includeSpec);
+        lazyPatternFilterable.include(includeSpec);
         return this;
     }
 
     @Override
     public CopySpec include(Closure includeSpec) {
-        patternSet.include(includeSpec);
+        lazyPatternFilterable.include(includeSpec);
         return this;
     }
 
     @Override
-    public Set<String> getIncludes() {
-        return patternSet.getIncludes();
-    }
-
-    @Override
-    public CopySpec setIncludes(Iterable<String> includes) {
-        patternSet.setIncludes(includes);
-        return this;
+    public SetProperty<String> getIncludes() {
+        return lazyPatternFilterable.getIncludes();
     }
 
     @Override
     public CopySpec exclude(String... excludes) {
-        patternSet.exclude(excludes);
+        lazyPatternFilterable.exclude(excludes);
         return this;
     }
 
     @Override
     public CopySpec exclude(Iterable<String> excludes) {
-        patternSet.exclude(excludes);
+        lazyPatternFilterable.exclude(excludes);
         return this;
     }
 
     @Override
     public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
-        patternSet.exclude(excludeSpec);
+        lazyPatternFilterable.exclude(excludeSpec);
         return this;
     }
 
     @Override
     public CopySpec exclude(Closure excludeSpec) {
-        patternSet.exclude(excludeSpec);
+        lazyPatternFilterable.exclude(excludeSpec);
         return this;
     }
 
     @Override
-    public Set<String> getExcludes() {
-        return patternSet.getExcludes();
-    }
-
-    @Override
-    public CopySpec setExcludes(Iterable<String> excludes) {
-        patternSet.setExcludes(excludes);
-        return this;
+    public SetProperty<String> getExcludes() {
+        return lazyPatternFilterable.getExcludes();
     }
 
     @Override
@@ -738,7 +730,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludes());
             }
-            result.addAll(patternSet.getIncludesView());
+            result.addAll(lazyPatternFilterable.getIncludes().get());
             return result;
         }
 
@@ -748,7 +740,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludes());
             }
-            result.addAll(patternSet.getExcludesView());
+            result.addAll(lazyPatternFilterable.getExcludes().get());
             return result;
         }
 
@@ -759,7 +751,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllExcludeSpecs());
             }
-            result.addAll(patternSet.getExcludeSpecsView());
+            result.addAll(lazyPatternFilterable.getExcludeSpecs().get());
             return result;
         }
 
@@ -868,7 +860,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             if (parentResolver != null) {
                 result.addAll(parentResolver.getAllIncludeSpecs());
             }
-            result.addAll(patternSet.getIncludeSpecsView());
+            result.addAll(lazyPatternFilterable.getIncludeSpecs().get());
             return result;
         }
 

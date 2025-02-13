@@ -27,9 +27,9 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ExpandDetails;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FilePermissions;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FilePermissions;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.FileLookup;
@@ -44,8 +44,11 @@ import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -56,11 +59,11 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
@@ -418,38 +421,26 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Override
-    public AbstractCopyTask setIncludes(Iterable<String> includes) {
-        getMainSpec().setIncludes(includes);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludes() {
+    @ReplacesEagerProperty(replacedAccessors = {
+        // Getter is already intercepted in super class
+        @ReplacedAccessor(value = SETTER, name = "setIncludes", originalType = Iterable.class, fluentSetter = true)
+    })
+    public SetProperty<String> getIncludes() {
         return getMainSpec().getIncludes();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override
-    public AbstractCopyTask setExcludes(Iterable<String> excludes) {
-        getMainSpec().setExcludes(excludes);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     @Internal
     @Override
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludes() {
+    @ReplacesEagerProperty(replacedAccessors = {
+        // Getter is already intercepted in super class
+        @ReplacedAccessor(value = SETTER, name = "setExcludes", originalType = Iterable.class, fluentSetter = true)
+    })
+    public SetProperty<String> getExcludes() {
         return getMainSpec().getExcludes();
     }
 

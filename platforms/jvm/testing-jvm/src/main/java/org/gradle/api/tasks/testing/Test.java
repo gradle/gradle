@@ -51,6 +51,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -67,8 +68,8 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.util.internal.LazyPatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -77,6 +78,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
@@ -108,6 +110,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.SETTER;
 import static org.gradle.util.internal.ConfigureUtil.configureUsing;
 
 /**
@@ -173,19 +177,19 @@ import static org.gradle.util.internal.ConfigureUtil.configureUsing;
  */
 @NonNullApi
 @CacheableTask
-public abstract class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
+public abstract class Test extends AbstractTestTask implements JavaForkOptions {
 
     private final JavaForkOptions forkOptions;
     private final ModularitySpec modularity;
     private final Property<JavaLauncher> javaLauncher;
 
-    private final PatternFilterable patternSet;
+    private final LazyPatternFilterable patternFilterable;
     private final ConfigurableFileCollection stableClasspath;
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
         ObjectFactory objectFactory = getObjectFactory();
-        patternSet = getPatternSetFactory().create();
+        patternFilterable = objectFactory.newInstance(LazyPatternFilterable.class);
         // Create a stable instance to represent the classpath, that takes care of conventions and mutations applied to the property
         stableClasspath = objectFactory.fileCollection();
         stableClasspath.from(new Callable<Object>() {
@@ -619,11 +623,11 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @Override
     protected List<String> getNoMatchingTestErrorReasons() {
         List<String> reasons = new ArrayList<>();
-        if (!getIncludes().isEmpty()) {
-            reasons.add(getIncludes() + "(include rules)");
+        if (!getIncludes().get().isEmpty()) {
+            reasons.add(getIncludes().get() + "(include rules)");
         }
-        if (!getExcludes().isEmpty()) {
-            reasons.add(getExcludes() + "(exclude rules)");
+        if (!getExcludes().get().isEmpty()) {
+            reasons.add(getExcludes().get() + "(exclude rules)");
         }
         reasons.addAll(super.getNoMatchingTestErrorReasons());
         return reasons;
@@ -631,81 +635,65 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
 
     /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
-     *
-     * @see #setIncludes(Iterable)
      */
-    @Override
     public Test include(String... includes) {
-        patternSet.include(includes);
+        patternFilterable.include(includes);
         return this;
     }
 
     /**
      * Adds include patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
-     *
-     * @see #setIncludes(Iterable)
      */
-    @Override
     public Test include(Iterable<String> includes) {
-        patternSet.include(includes);
+        patternFilterable.include(includes);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * See {@link org.gradle.api.tasks.util.PatternFilterable#include(Spec)}.
      */
-    @Override
     public Test include(Spec<FileTreeElement> includeSpec) {
-        patternSet.include(includeSpec);
+        patternFilterable.include(includeSpec);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * See {@link org.gradle.api.tasks.util.PatternFilterable#include(Closure)}.
      */
-    @Override
     public Test include(Closure includeSpec) {
-        patternSet.include(includeSpec);
+        patternFilterable.include(includeSpec);
         return this;
     }
 
     /**
      * Adds exclude patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
-     *
-     * @see #setExcludes(Iterable)
      */
-    @Override
     public Test exclude(String... excludes) {
-        patternSet.exclude(excludes);
+        patternFilterable.exclude(excludes);
         return this;
     }
 
     /**
      * Adds exclude patterns for the files in the test classes directory (e.g. '**&#47;*Test.class')).
-     *
-     * @see #setExcludes(Iterable)
      */
-    @Override
     public Test exclude(Iterable<String> excludes) {
-        patternSet.exclude(excludes);
+        patternFilterable.exclude(excludes);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * See {@link org.gradle.api.tasks.util.PatternFilterable#exclude(Spec)}.
      */
-    @Override
     public Test exclude(Spec<FileTreeElement> excludeSpec) {
-        patternSet.exclude(excludeSpec);
+        patternFilterable.exclude(excludeSpec);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * See {@link org.gradle.api.tasks.util.PatternFilterable#exclude(Closure)}.
      */
-    @Override
     public Test exclude(Closure excludeSpec) {
-        patternSet.exclude(excludeSpec);
+        patternFilterable.exclude(excludeSpec);
         return this;
     }
 
@@ -753,23 +741,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      *
      * @see #include(String...)
      */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludes() {
-        return patternSet.getIncludes();
-    }
-
-    /**
-     * Sets the include patterns for test execution.
-     *
-     * @param includes The patterns list
-     * @see #include(String...)
-     */
-    @Override
-    public Test setIncludes(Iterable<String> includes) {
-        patternSet.setIncludes(includes);
-        return this;
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = GETTER, name = "getIncludes"),
+        @ReplacedAccessor(value = SETTER, name = "setIncludes", originalType = Iterable.class, fluentSetter = true)
+    })
+    public SetProperty<String> getIncludes() {
+        return patternFilterable.getIncludes();
     }
 
     /**
@@ -777,23 +755,13 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
      *
      * @see #exclude(String...)
      */
-    @Override
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludes() {
-        return patternSet.getExcludes();
-    }
-
-    /**
-     * Sets the exclude patterns for test execution.
-     *
-     * @param excludes The patterns list
-     * @see #exclude(String...)
-     */
-    @Override
-    public Test setExcludes(Iterable<String> excludes) {
-        patternSet.setExcludes(excludes);
-        return this;
+    @ReplacesEagerProperty(replacedAccessors = {
+        @ReplacedAccessor(value = GETTER, name = "getExcludes"),
+        @ReplacedAccessor(value = SETTER, name = "setExcludes", originalType = Iterable.class, fluentSetter = true)
+    })
+    public SetProperty<String> getExcludes() {
+        return patternFilterable.getExcludes();
     }
 
     /**
@@ -1048,7 +1016,7 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
     @PathSensitive(PathSensitivity.RELATIVE)
     @NotToBeReplacedByLazyProperty(because = "Read-only FileTree property")
     public FileTree getCandidateClassFiles() {
-        return getTestClassesDirs().getAsFileTree().matching(patternSet);
+        return getTestClassesDirs().getAsFileTree().matching(patternFilterable::applyTo);
     }
 
     /**
