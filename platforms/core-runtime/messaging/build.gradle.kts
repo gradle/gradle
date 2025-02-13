@@ -16,6 +16,7 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
 
+    implementation(projects.classloaders)
     implementation(projects.io)
     implementation(projects.buildOperations)
 

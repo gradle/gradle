@@ -24,8 +24,8 @@ description = "Tools to serialize data"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
+    api(projects.classloaders)
     api(projects.hashing)
-    api(projects.baseServices)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
@@ -33,6 +33,7 @@ dependencies {
 
     implementation(projects.io)
 
+    implementation(libs.commonsIo)
     implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)

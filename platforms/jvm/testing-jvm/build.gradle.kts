@@ -34,6 +34,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.fileTemp)

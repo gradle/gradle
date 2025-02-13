@@ -17,6 +17,7 @@
 package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
@@ -41,7 +42,6 @@ import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.ModelClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 

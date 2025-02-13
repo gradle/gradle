@@ -16,11 +16,13 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.NonNullApi;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -39,13 +41,14 @@ import java.util.Set;
 /**
  * An immutable classpath.
  */
+@NonNullApi
 public class DefaultClassPath implements ClassPath, Serializable {
 
     public static Builder builderWithExactSize(int size) {
         return new Builder(size);
     }
 
-    public static ClassPath of(Iterable<File> files) {
+    public static ClassPath of(@Nullable Iterable<File> files) {
         if (files == null) {
             return EMPTY;
         } else if (files instanceof Collection) {
@@ -59,7 +62,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         }
     }
 
-    public static ClassPath of(File... files) {
+    public static ClassPath of(@Nullable File... files) {
         if (files == null || files.length == 0) {
             return EMPTY;
         } else {
@@ -70,7 +73,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
     /**
      * Only here for the Kotlin DSL, use {@link #of(Iterable)} instead.
      */
-    public static ClassPath of(Collection<File> files) {
+    public static ClassPath of(@Nullable Collection<File> files) {
         if (files == null || files.isEmpty()) {
             return EMPTY;
         } else {
@@ -217,7 +220,7 @@ public class DefaultClassPath implements ClassPath, Serializable {
         }
     }
 
-    protected static final class ImmutableUniqueList<T> extends AbstractList<T> implements Serializable {
+    public static final class ImmutableUniqueList<T> extends AbstractList<T> implements Serializable {
         private static final ImmutableUniqueList<Object> EMPTY = new ImmutableUniqueList<Object>(Collections.emptySet());
 
         public static <T> ImmutableUniqueList<T> of(Collection<T> collection) {

@@ -69,6 +69,7 @@ errorprone {
 
 dependencies {
     api(projects.baseAsm)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.instrumentationAgentServices)
     api(projects.serialization)

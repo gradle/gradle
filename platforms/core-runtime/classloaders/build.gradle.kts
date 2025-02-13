@@ -26,7 +26,6 @@ dependencies {
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
 
-    api(libs.guava)
     api(libs.jsr305)
 
     implementation(projects.baseAsm)
@@ -35,9 +34,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
-    implementation(libs.fastutil)
-    implementation(libs.kryo)
-    implementation(libs.slf4jApi)
+    implementation(libs.guava)
 
     compileOnly(libs.errorProneAnnotations)
 }
