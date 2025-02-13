@@ -17,7 +17,6 @@ package gradlebuild.docs.dsl.docbook
 
 import gradlebuild.docs.XmlSpecification
 import gradlebuild.docs.dsl.docbook.model.ClassDoc
-import gradlebuild.docs.dsl.docbook.model.ExtraAttributeDoc
 import gradlebuild.docs.dsl.docbook.model.PropertyDoc
 import gradlebuild.docs.dsl.source.model.ClassMetaData
 import gradlebuild.docs.dsl.source.model.PropertyMetaData
