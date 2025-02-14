@@ -21,6 +21,7 @@ import junit.framework.TestCase
 import junit.framework.TestSuite
 import org.gradle.api.tasks.testing.TestFailure
 import org.junit.After
+import org.junit.AssumptionViolatedException
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Ignore
@@ -33,8 +34,6 @@ import org.junit.runner.notification.RunNotifier
 import org.junit.runners.Parameterized
 import org.junit.runners.Suite
 import org.junit.runners.model.RunnerBuilder
-
-import static org.junit.Assume.assumeTrue
 
 public class ATestClass {
     @Test
@@ -60,9 +59,11 @@ public class ATestClassWithIgnoredMethod {
 }
 
 public class ATestClassWithFailedTestAssumption {
+    static def failure = TestFailure.fromAssumptionFailure(new AssumptionViolatedException(""))
+
     @Test
     public void assumed() {
-        assumeTrue(false)
+        throw failure.rawFailure
     }
 }
 
