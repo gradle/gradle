@@ -21,10 +21,10 @@ public interface CustomDesktopComposeApplication {
     @Nested
     KmpApplication getKotlinApplication();
 
-    @Configuring
-    default void kotlinApplication(Action<? super KmpApplication> action) {
-        action.execute(getKotlinApplication());
-    }
+//    @Configuring
+//    default void kotlinApplication(Action<? super KmpApplication> action) {
+//        action.execute(getKotlinApplication());
+//    }
 
     @Nested
     Compose getCompose();

@@ -1,12 +1,11 @@
 @file:Suppress("UnstableApiUsage")
-import org.gradle.kotlin.dsl.desktop
+//import org.gradle.kotlin.dsl.desktop
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import java.time.Year
+//import java.time.Year
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.jetbrainsCompose)
 }
 
 desktopComposeApp {
@@ -126,9 +125,17 @@ desktopComposeApp {
                 }
             }
         }
+
+        nativeDistributions {
+//            targetFormats
+//            targetformat("dmg")
+//            TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+
+        }
     }
 }
 
+/*
 val appName = "GradleClient"
 val appDisplayName = "Gradle Client"
 val appQualifiedName = "org.gradle.client"
@@ -186,3 +193,4 @@ compose.desktop {
         }
     }
 }
+*/

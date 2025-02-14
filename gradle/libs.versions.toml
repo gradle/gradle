@@ -2,7 +2,6 @@
 kotlin = "2.0.21"
 kotlinx-coroutines = "1.8.1"
 kotlinx-serialization = "1.6.3"
-compose-plugin = "1.6.11"
 decompose = "3.0.0"
 gradle-tooling = "8.12-20241009055624+0000"
 declarative-dsl = "8.12-20241009055624+0000"
@@ -37,5 +36,3 @@ junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", vers
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
-kotlinCompose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
