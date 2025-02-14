@@ -135,16 +135,12 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
 
         @Override
         public void visitImplementation(Class<?> implementation) {
-            visitImplementation(ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher));
+            this.implementation = ImplementationSnapshot.of(implementation, classLoaderHierarchyHasher);
         }
 
         @Override
-        public void visitImplementation(ImplementationSnapshot implementation) {
-            if (this.implementation == null) {
-                this.implementation = implementation;
-            } else {
-                this.additionalImplementations.add(implementation);
-            }
+        public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
+            this.additionalImplementations.add(implementation);
         }
 
         public ImplementationSnapshot getImplementation() {

@@ -117,7 +117,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             }
 
             @Override
-            public void visitImplementation(ImplementationSnapshot implementation) {
+            public void visitAdditionalImplementation(ImplementationSnapshot implementation) {
             }
         });
         // It doesn't matter whether we use cacheable true or false, since none of the warnings depends on the cacheability of the task.

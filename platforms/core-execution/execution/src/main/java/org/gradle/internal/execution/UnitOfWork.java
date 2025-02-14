@@ -177,8 +177,17 @@ public interface UnitOfWork extends Describable {
 
     // TODO Move this to {@link InputVisitor}
     interface ImplementationVisitor {
+        /**
+         * Visit the implementation of the work. This is the type of the task or transform being executed.
+         */
         void visitImplementation(Class<?> implementation);
-        void visitImplementation(ImplementationSnapshot implementation);
+
+        /**
+         * Visits additional implementations related to the work. This is only used for additional task
+         * actions that are added via {@code Task.doLast()} etc.
+         */
+        // TODO Make these additional implementations into identity inputs
+        void visitAdditionalImplementation(ImplementationSnapshot implementation);
     }
 
     /**

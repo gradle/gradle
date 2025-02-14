@@ -304,7 +304,7 @@ public class TaskExecution implements MutableUnitOfWork {
 
         List<InputChangesAwareTaskAction> taskActions = task.getTaskActions();
         for (InputChangesAwareTaskAction taskAction : taskActions) {
-            visitor.visitImplementation(taskAction.getActionImplementation(classLoaderHierarchyHasher));
+            visitor.visitAdditionalImplementation(taskAction.getActionImplementation(classLoaderHierarchyHasher));
         }
     }
 
