@@ -581,6 +581,7 @@ It might be really hard to connect the invalid index to a serialization issue. E
 include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
 ----
 You can immediately see the name of the offending task and even the field that contains the broken data.
+Keep in mind that this attribution is best-effort: it should be accurate in most cases, but rarely can be confused by some byte patterns.
 
 Note, however, that the current set of integrity checks primarily aims at detecting issues with serialization protocols more than data corruption.
 It may not be as effective against issues caused by hardware failures like bit rotting or bad sectors.
