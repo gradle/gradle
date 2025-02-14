@@ -149,10 +149,10 @@ object BuildServices : ServiceRegistrationProvider {
         classpathFingerprinter: ClasspathFingerprinter
     ): ClasspathHasher =
         DefaultClasspathHasher(
+            fileCollectionSnapshotter,
             if (isKotlinScriptCompilationAvoidanceEnabled) {
                 KotlinCompileClasspathFingerprinter(
                     cacheService,
-                    fileCollectionSnapshotter,
                     stringInterner
                 )
             } else {

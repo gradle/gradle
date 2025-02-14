@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
+import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import javax.inject.Inject
@@ -35,6 +36,8 @@ interface ClassPathAware {
 
 
 interface SharedAccessorsPackageAware : ClassPathAware {
+    @get:Inject
+    val snapshotter: FileCollectionSnapshotter
 
     @get:Inject
     val classPathFingerprinter: ClasspathFingerprinter
@@ -45,32 +48,31 @@ internal
 fun <T> T.implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports
 ): List<String> where T : Task, T : SharedAccessorsPackageAware =
-    implicitImportsForPrecompiledScriptPlugins(implicitImports, classPathFingerprinter, classPathFiles)
+    implicitImportsForPrecompiledScriptPlugins(implicitImports, snapshotter, classPathFingerprinter, classPathFiles)
 
 
 internal
 val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
-    get() = classPathFingerprinter.sharedAccessorsPackageFor(classPathFiles)
+    get() = classPathFingerprinter.sharedAccessorsPackageFor(snapshotter, classPathFiles)
 
 
 internal
 fun implicitImportsForPrecompiledScriptPlugins(
     implicitImports: ImplicitImports,
+    snapshotter: FileCollectionSnapshotter,
     classpathFingerprinter: ClasspathFingerprinter,
     classPathFiles: FileCollection
 ): List<String> {
-    return implicitImports.list + "${classpathFingerprinter.sharedAccessorsPackageFor(classPathFiles)}.*"
+    return implicitImports.list + "${classpathFingerprinter.sharedAccessorsPackageFor(snapshotter, classPathFiles)}.*"
 }
 
 
 private
-fun ClasspathFingerprinter.sharedAccessorsPackageFor(classPathFiles: FileCollection): String =
-    "$SHARED_ACCESSORS_PACKAGE_PREFIX${fingerprintHashFor(classPathFiles)}"
-
-
-private
-fun ClasspathFingerprinter.fingerprintHashFor(classPathFiles: FileCollection) =
-    fingerprint(classPathFiles).hash
+fun ClasspathFingerprinter.sharedAccessorsPackageFor(snapshotter: FileCollectionSnapshotter, classPathFiles: FileCollection): String {
+    val snapshot = snapshotter.snapshot(classPathFiles).snapshot
+    val fingerprintHash = fingerprint(snapshot, null).hash
+    return "$SHARED_ACCESSORS_PACKAGE_PREFIX${fingerprintHash}"
+}
 
 
 private
