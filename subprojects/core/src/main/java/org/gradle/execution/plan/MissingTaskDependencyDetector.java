@@ -71,7 +71,7 @@ public class MissingTaskDependencyDetector {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> lenientlyVisitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs));
+            .forEach(spec -> visitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs));
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
             collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
@@ -85,16 +85,6 @@ public class MissingTaskDependencyDetector {
                 filteredFileTreeInput.getRoot(),
                 outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec)
             );
-        }
-    }
-
-    private static void lenientlyVisitInputFileProperty(InputFilePropertySpec spec, Set<String> taskInputs, Set<FilteredTree> filteredFileTreeTaskInputs) {
-        try {
-            visitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs);
-        } catch (Exception e) {
-            // We are lenient here, since we are only interested in the locations which are accessed by the task.
-            // If we can't determine the locations, we can't detect missing dependencies.
-            LOGGER.debug("Failed to determine locations accessed by task", e);
         }
     }
 
