@@ -22,12 +22,15 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayDeque;
@@ -43,6 +46,8 @@ import java.util.Set;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MissingTaskDependencyDetector.class);
+
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
 
@@ -66,26 +71,7 @@ public class MissingTaskDependencyDetector {
         Set<String> taskInputs = new LinkedHashSet<>();
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-                @Override
-                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
-                }
-
-                @Override
-                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                    if (patterns.isEmpty()) {
-                        taskInputs.add(root.getAbsolutePath());
-                    } else {
-                        filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
-                    }
-                }
-
-                @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                    taskInputs.add(file.getAbsolutePath());
-                }
-            }));
+            .forEach(spec -> lenientlyVisitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs));
         inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
         for (String locationConsumedByThisTask : taskInputs) {
             collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
@@ -100,6 +86,39 @@ public class MissingTaskDependencyDetector {
                 outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec)
             );
         }
+    }
+
+    private static void lenientlyVisitInputFileProperty(InputFilePropertySpec spec, Set<String> taskInputs, Set<FilteredTree> filteredFileTreeTaskInputs) {
+        try {
+            visitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs);
+        } catch (Exception e) {
+            // We are lenient here, since we are only interested in the locations which are accessed by the task.
+            // If we can't determine the locations, we can't detect missing dependencies.
+            LOGGER.debug("Failed to determine locations accessed by task", e);
+        }
+    }
+
+    private static void visitInputFileProperty(InputFilePropertySpec spec, Set<String> taskInputs, Set<FilteredTree> filteredFileTreeTaskInputs) {
+        spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
+            @Override
+            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+            }
+
+            @Override
+            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                if (patterns.isEmpty()) {
+                    taskInputs.add(root.getAbsolutePath());
+                } else {
+                    filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                }
+            }
+
+            @Override
+            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                taskInputs.add(file.getAbsolutePath());
+            }
+        });
     }
 
     private void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
