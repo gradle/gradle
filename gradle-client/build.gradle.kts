@@ -116,6 +116,16 @@ desktopComposeApp {
                 value = "128m"
             }
         }
+
+        buildTypes {
+            release {
+                proguard {
+                    optimize = false
+                    obfuscate = false
+                    configurationFiles.setFrom(layout.projectDirectory.file("proguard-desktop.pro"))
+                }
+            }
+        }
     }
 }
 
