@@ -55,14 +55,22 @@ public class WorkerDaemonStarter {
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.sharedPackages("org.gradle", "javax.inject");
+
+        // We know the exact minimal classpath for the WorkerDaemonServer.
+        // Do not use the automatic implementation classpath.
+        builder.withoutAutomaticImplementationClasspath();
+        builder.applicationClasspath(classPathRegistry.getClassPath("DAEMON_SERVER_WORKER").getAsFiles());
+
+        // For flat classloaders, we include the work classpath along with the WorkerDaemonServer implementation.
+        // This is simpler to reason about and may have performance advantages. But at the same time, this allows
+        // the work to see the classes of the WorkerDaemonServer at runtime. This is fine for internal work,
+        // but for user-provided work, we serialize the work classpath and load it on the worker side.
         if (forkOptions.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
             FlatClassLoaderStructure flatClassLoaderStructure = (FlatClassLoaderStructure) forkOptions.getClassLoaderStructure();
-            builder.applicationClasspath(classPathRegistry.getClassPath("MINIMUM_WORKER_RUNTIME").getAsFiles());
-            builder.useApplicationClassloaderOnly();
-            builder.applicationClasspath(toFiles(flatClassLoaderStructure.getSpec()));
-        } else {
-            builder.applicationClasspath(classPathRegistry.getClassPath("CORE_WORKER_RUNTIME").getAsFiles());
+            Iterable<File> workClasspath = toFiles(flatClassLoaderStructure.getSpec());
+            builder.applicationClasspath(workClasspath);
         }
+
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.copyTo(javaCommand);
         builder.registerArgumentSerializer(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
