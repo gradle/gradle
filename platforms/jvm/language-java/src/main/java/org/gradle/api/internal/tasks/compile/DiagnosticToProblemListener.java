@@ -87,8 +87,13 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
-        String idName = diagnostic.getCode().replace('.', '-');
-        return ProblemId.create(idName, mapKindToDisplayName(diagnostic.getKind()), GradleCoreProblemGroup.compilation().java());
+        String code = diagnostic.getCode();
+        String message = diagnostic.getMessage(Locale.getDefault());
+        return ProblemId.create(
+            code == null ? "unknown" : code,
+            message == null ? "unknown" : message,
+            GradleCoreProblemGroup.compilation().java()
+        );
     }
 
     /**
@@ -161,7 +166,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
         Severity severity = mapKindToSeverity(diagnostic.getKind());
         spec.severity(severity);
-        addFormattedMessage(spec, diagnostic);
+        addContextualLabel(spec, diagnostic);
         addDetails(spec, diagnostic);
         addLocations(spec, diagnostic);
         if (severity == Severity.ERROR) {
@@ -169,18 +174,21 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         }
     }
 
-    private void addFormattedMessage(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String formatted = toFormattedMessage(diagnostic);
-        System.err.println(formatted);
-        spec.details(formatted);
+    private static void addContextualLabel(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String message = diagnostic.getMessage(Locale.getDefault());
+        if (message != null) {
+            String[] messageLines = message.split("\n");
+            // Contextual label is always the first line of the message
+            spec.contextualLabel(messageLines[0]);
+        }
     }
 
-    private static void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
-        String message = diagnostic.getMessage(Locale.getDefault());
-        String[] messageLines = message.split("\n");
-
-        // Contextual label is always the first line of the message
-        spec.contextualLabel(messageLines[0]);
+    private void addDetails(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
+        String formatted = toFormattedMessage(diagnostic);
+        if (formatted != null) {
+            System.err.println(formatted);
+            spec.details(formatted);
+        }
     }
 
     private static void addLocations(ProblemSpec spec, Diagnostic<? extends JavaFileObject> diagnostic) {
@@ -252,22 +260,6 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private static String getPath(JavaFileObject fileObject) {
         return fileObject.getName();
-    }
-
-    private static String mapKindToDisplayName(Diagnostic.Kind kind) {
-        switch (kind) {
-            case ERROR:
-                return "Java compilation error";
-            case WARNING:
-            case MANDATORY_WARNING:
-                return "Java compilation warning";
-            case NOTE:
-                return "Java compilation note";
-            case OTHER:
-                return "Java compilation problem";
-            default:
-                return "Unknown java compilation problem";
-        }
     }
 
     private static Severity mapKindToSeverity(Diagnostic.Kind kind) {
