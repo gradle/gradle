@@ -34,7 +34,8 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface SharedModelDefaults {
 
     /**
-     * TODO: javadoc
+     * Provides access to the project layout when default configurations are
+     * evaluated in the context of specific projects.
      *
      * @since 8.14
      */

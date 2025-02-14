@@ -22,9 +22,14 @@ import org.gradle.api.initialization.SharedModelDefaults;
 public interface SharedModelDefaultsInternal extends SharedModelDefaults {
 
     /**
-     * TODO: javadoc
+     * Specifies the current project when interpreting defaults configuration
+     * blocks during project evaluation time.
      */
     void setProjectLayout(ProjectLayout projectLayout);
 
+    /**
+     * Clears the current project when the interpretation of defaults configuration
+     * blocks is finished during project evaluation time.
+     */
     void clearProjectLayout();
 }
