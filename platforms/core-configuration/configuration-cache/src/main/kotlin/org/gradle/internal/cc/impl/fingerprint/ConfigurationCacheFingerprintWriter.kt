@@ -125,7 +125,6 @@ class ConfigurationCacheFingerprintWriter(
         val modelAsProjectDependency: Boolean
         val ignoreInputsDuringConfigurationCacheStore: Boolean
         val instrumentationAgentUsed: Boolean
-        val integrityCheckEnabled: Boolean
         val ignoredFileSystemCheckInputs: String?
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode
@@ -190,7 +189,6 @@ class ConfigurationCacheFingerprintWriter(
                 host.startParameterProperties,
                 host.ignoreInputsDuringConfigurationCacheStore,
                 host.instrumentationAgentUsed,
-                host.integrityCheckEnabled,
                 host.ignoredFileSystemCheckInputs
             )
         )

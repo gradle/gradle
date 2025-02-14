@@ -17,9 +17,35 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 
 class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
     static final String INTEGRITY_CHECKS = StartParameterBuildOptions.ConfigurationCacheIntegrityCheckOption.PROPERTY_NAME
+
+    def "enabling integrity check invalidates CC"() {
+        buildFile """
+            tasks.register("hello") { doLast { println "Hello" } }
+        """
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        when:
+        configurationCacheRun("hello")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheRun("hello", "-D${INTEGRITY_CHECKS}=false")
+
+        then:
+        configurationCache.assertStateLoaded()
+
+        when:
+        configurationCacheRun("hello", "-D${INTEGRITY_CHECKS}=true")
+
+        then:
+        configurationCache.assertStateStored()
+     }
 
     def "integrity checks detect invalid serialization protocol implementation"() {
         buildFile """

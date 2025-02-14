@@ -418,9 +418,6 @@ class ConfigurationCacheFingerprintController internal constructor(
         override val instrumentationAgentUsed: Boolean
             get() = agentStatus.isAgentInstrumentationEnabled
 
-        override val integrityCheckEnabled: Boolean
-            get() = startParameter.isIntegrityCheckEnabled
-
         override val ignoredFileSystemCheckInputs: String?
             get() = startParameter.ignoredFileSystemCheckInputs
 

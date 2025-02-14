@@ -79,6 +79,8 @@ class ConfigurationCacheKey(
         putBoolean(encryptionConfiguration.isEncrypting)
         putHash(encryptionConfiguration.encryptionKeyHashCode)
         putBoolean(startParameter.isDeduplicatingStrings)
+        // Integrity check affects the way fingerprint is stored.
+        putBoolean(startParameter.isIntegrityCheckEnabled)
     }
 
     private
