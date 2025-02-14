@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * TODO: Remove with Gradle 9.0
+ */
+@file:Suppress("UnusedImport", "UnusedImports")
+
 package gradlebuild.testing.services
 
 import org.gradle.api.file.DirectoryProperty
@@ -21,6 +26,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.assign
 import org.gradle.util.GradleVersion
 import java.io.StringReader
 import java.util.Properties
