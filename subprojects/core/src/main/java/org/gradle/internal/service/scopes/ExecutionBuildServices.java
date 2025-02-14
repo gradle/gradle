@@ -27,6 +27,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
+import org.gradle.internal.execution.ExecutionProblemHandler;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.OutputSnapshotter;
 import org.gradle.internal.execution.WorkInputListeners;
@@ -40,6 +41,7 @@ import org.gradle.internal.execution.history.changes.ExecutionStateChangeDetecto
 import org.gradle.internal.execution.history.impl.DefaultExecutionHistoryStore;
 import org.gradle.internal.execution.history.impl.DefaultOutputFilesRepository;
 import org.gradle.internal.execution.impl.DefaultExecutionEngine;
+import org.gradle.internal.execution.impl.DefaultExecutionProblemHandler;
 import org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep;
 import org.gradle.internal.execution.steps.AssignMutableWorkspaceStep;
 import org.gradle.internal.execution.steps.BroadcastChangingOutputsStep;
@@ -49,6 +51,7 @@ import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutio
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ChangingOutputsContext;
+import org.gradle.internal.execution.steps.CheckDependenciesStep;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
@@ -133,6 +136,11 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    ExecutionProblemHandler createExecutionProblemHandler(ValidateStep.ValidationWarningRecorder warningRecorder, VirtualFileSystem virtualFileSystem) {
+        return new DefaultExecutionProblemHandler(warningRecorder, virtualFileSystem);
+    }
+
+    @Provides
     public ExecutionEngine createExecutionEngine(
         BuildCacheController buildCacheController,
         BuildCancellationToken cancellationToken,
@@ -143,6 +151,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         CurrentBuildOperationRef currentBuildOperationRef,
         Deleter deleter,
+        ExecutionProblemHandler problemHandler,
         ExecutionStateChangeDetector changeDetector,
         FileSystemAccess fileSystemAccess,
         ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
@@ -151,9 +160,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         OutputSnapshotter outputSnapshotter,
         OverlappingOutputDetector overlappingOutputDetector,
         StartParameter startParameter,
-        TimeoutHandler timeoutHandler,
-        ValidateStep.ValidationWarningRecorder validationWarningRecorder,
-        VirtualFileSystem virtualFileSystem
+        TimeoutHandler timeoutHandler
     ) {
         UniqueId buildId = buildInvocationScopeId.getId();
         Supplier<OutputsCleaner> skipEmptyWorkOutputsCleanerSupplier = () -> new OutputsCleaner(deleter, buildOutputCleanupRegistry::isOutputOwnedByBuild, buildOutputCleanupRegistry::isOutputOwnedByBuild);
@@ -172,7 +179,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(problemHandler,
             new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
@@ -190,7 +197,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
@@ -208,10 +215,11 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new IdentifyStep<>(buildOperationRunner,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
+            new CheckDependenciesStep<>(problemHandler,
             new ChoosePipelineStep<>(
                 immutablePipeline,
                 mutablePipeline
-        )))));
+        ))))));
         // CHECKSTYLE:ON
         // @formatter:on
     }

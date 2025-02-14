@@ -458,17 +458,25 @@ public class TaskExecution implements MutableUnitOfWork {
 
     @Override
     public void validate(WorkValidationContext validationContext) {
-        Class<?> taskType = GeneratedSubclasses.unpackType(task);
-        // TODO This should probably use the task class info store
-        boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
-        TypeValidationContext typeValidationContext = validationContext.forType(taskType, cacheable);
+        TypeValidationContext typeValidationContext = getTypeValidationContext(validationContext);
         context.getTaskProperties().validateType(typeValidationContext);
         context.getTaskProperties().validate(new DefaultPropertyValidationContext(
             fileResolver,
             reservedFileSystemLocationRegistry,
             typeValidationContext
         ));
-        context.getValidationAction().validate(typeValidationContext);
+    }
+
+    @Override
+    public void checkDependencies(WorkValidationContext validationContext) {
+        context.getDependencyCheckAction().checkDependencies(getTypeValidationContext(validationContext));
+    }
+
+    private TypeValidationContext getTypeValidationContext(WorkValidationContext validationContext) {
+        Class<?> taskType = GeneratedSubclasses.unpackType(task);
+        // TODO This should probably use the task class info store
+        boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
+        return validationContext.forType(taskType, cacheable);
     }
 
     @Override

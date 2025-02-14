@@ -377,6 +377,8 @@ public interface UnitOfWork extends Describable {
      */
     default void validate(WorkValidationContext validationContext) {}
 
+    default void checkDependencies(WorkValidationContext validationContext) {}
+
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.
      */
