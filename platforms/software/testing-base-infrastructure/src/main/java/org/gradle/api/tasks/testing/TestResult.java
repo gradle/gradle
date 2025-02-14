@@ -67,6 +67,17 @@ public interface TestResult {
     List<Throwable> getExceptions();
 
     /**
+     * If the test failed with assumption violation exception, this will contain the exception.
+     *
+     * @return the exception, if any, logged for this test. If none, null is returned.
+     *
+     * @since 8.14
+     */
+    @Nullable
+    @Incubating
+    Throwable getAssumptionFailureException();
+
+    /**
      * Returns the time when this test started execution.
      *
      * @return The start time, in milliseconds since the epoch.
