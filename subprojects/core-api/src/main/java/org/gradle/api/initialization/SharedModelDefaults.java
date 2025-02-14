@@ -35,6 +35,8 @@ public interface SharedModelDefaults {
 
     /**
      * TODO: javadoc
+     *
+     * @since 8.14
      */
     ProjectLayout getLayout();
 
