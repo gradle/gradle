@@ -53,8 +53,8 @@ public enum DuplicatesStrategy {
     FAIL,
 
     /**
-     * The default strategy, which is to inherit the strategy from the parent copy spec, if any,
-     * or {@link DuplicatesStrategy#INCLUDE} if the copy spec has no parent.
+     * Uses the same strategy as the parent copy specification.
+     * This is the default behavior.
      *
      * @since 5.0
      */

@@ -141,7 +141,7 @@ public class ShortCircuitingResolutionExecutor {
             rootVariant.getName(),
             attributeDesugaring
         );
-        return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
+        return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet());
     }
 
     private static ImmutableCapabilities getCapabilities(

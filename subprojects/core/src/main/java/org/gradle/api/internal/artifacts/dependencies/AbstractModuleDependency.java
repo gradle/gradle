@@ -164,8 +164,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
             target.moduleDependencyCapabilities = moduleDependencyCapabilities.copy();
         }
         target.endorsing = endorsing;
-        if (target.getTargetConfiguration() != null) {
-            target.setTargetConfiguration(getTargetConfiguration());
+        if (configuration != null) {
+            target.setTargetConfiguration(configuration);
         }
     }
 

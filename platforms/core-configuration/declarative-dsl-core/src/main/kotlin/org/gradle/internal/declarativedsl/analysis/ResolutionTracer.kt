@@ -66,7 +66,9 @@ class ResolutionTracer(
 
     override fun expressionResolution(expr: Expr): ResolutionTrace.ResolutionOrErrors<ObjectOrigin> =
         expressionResolution[expr]?.let { resolution ->
-            check(expr !in elementErrors)
+            check(expr !in elementErrors) {
+                "Unknown expression: $expr at: ${expr.sourceData.sourceIdentifier.fileIdentifier}:${expr.sourceData.lineRange.start}"
+            }
             Resolution(resolution)
         } ?: elementErrors[expr]?.let { errors ->
             Errors(errors)

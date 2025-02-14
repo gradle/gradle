@@ -150,6 +150,9 @@ class DefaultJdkCacheDirectoryTest extends Specification {
 
             outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystem.current().getExecutableName("javadoc")))
             outStream.closeArchiveEntry()
+
+            outStream.putArchiveEntry(new TarArchiveEntry("bin/" + OperatingSystem.current().getExecutableName("jar")))
+            outStream.closeArchiveEntry()
         }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 
@@ -176,6 +179,8 @@ class DefaultJdkCacheDirectoryTest extends Specification {
             outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystem.current().getExecutableName("javac")))
 
             outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystem.current().getExecutableName("javadoc")))
+
+            outStream.putNextEntry(new ZipEntry("bin/" + OperatingSystem.current().getExecutableName("jar")))
         }
         def jdkCacheDirectory = new DefaultJdkCacheDirectory(newHomeDirProvider(), TestFiles.fileOperations(temporaryFolder, tmpFileProvider()), mockLockManager(), mockDetector(), tmpFileProvider())
 

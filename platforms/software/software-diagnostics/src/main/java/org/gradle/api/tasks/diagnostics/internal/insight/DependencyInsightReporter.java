@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics.internal.insight;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionCause;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -39,12 +40,14 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvedDependencyEdge;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -138,7 +141,6 @@ public class DependencyInsightReporter {
             String errorMessage = collectErrorMessages(failure, alreadyReportedErrors, uniqueResolutions);
             failures.addChild(new DefaultSection(errorMessage));
             sections.add(failures);
-
         }
     }
 
@@ -153,16 +155,23 @@ public class DependencyInsightReporter {
             formatter.node(failure.getMessage());
 
             Throwable cause = failure.getCause();
-            if (failure instanceof ResolutionProvider && cause != failure){
-                ((ResolutionProvider) failure).getResolutions().forEach(resolution -> {
-                    if (!resolution.startsWith(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX) && uniqueResolutions.add(resolution)) {
-                        formatter.node(resolution);
-                    }
-                });
-            }
-
             if (alreadyReportedErrors.contains(cause)) {
                 formatter.append(" (already reported)");
+            }
+
+            if (failure instanceof ResolutionProvider && cause != failure) {
+                for (String resolution : getResolutionsFor(failure)) {
+                    if (resolution.startsWith(ResolutionFailureHandler.DEFAULT_MESSAGE_PREFIX)) {
+                        continue;
+                    }
+                    if (resolution.contains("dependencyInsight")) {
+                        // The resolution is likely recommending the user to run this task. Do not emit it.
+                        continue;
+                    }
+                    if (uniqueResolutions.add(resolution)) {
+                        formatter.node(resolution);
+                    }
+                }
             }
             if (cause != null && cause != failure) {
                 formatter.startChildren();
@@ -170,6 +179,29 @@ public class DependencyInsightReporter {
                 formatter.endChildren();
             }
         }
+    }
+
+    private static Set<String> getResolutionsFor(Throwable throwable) {
+        if (throwable instanceof MultiCauseException) {
+            //  Multi-cause exceptions by default aggregate the resolutions of their causes.
+            // If a cause has resolutions, ensure we do not emit them for the parent exception.
+            MultiCauseException multiCause = (MultiCauseException) throwable;
+            Set<String> parentResolutions = new LinkedHashSet<>(multiCause.getResolutions());
+            for (Throwable cause : multiCause.getCauses()) {
+                if (cause instanceof ResolutionProvider) {
+                    ResolutionProvider childResolutionProvider = (ResolutionProvider) cause;
+                    childResolutionProvider.getResolutions().forEach(parentResolutions::remove);
+                }
+            }
+
+            return Collections.unmodifiableSet(parentResolutions);
+        }
+
+        if (throwable instanceof ResolutionProvider) {
+            return ImmutableSet.copyOf(((ResolutionProvider) throwable).getResolutions());
+        }
+
+        return Collections.emptySet();
     }
 
     private static DefaultSection buildSelectionReasonSection(ComponentSelectionReason reason) {

@@ -17,9 +17,19 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
 import org.gradle.internal.declarativedsl.settings.SoftwareTypeFixture
 
-class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+@PolyglotDslTest
+class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
+
+    def setup() {
+        file("gradle.properties") << """
+            org.gradle.kotlin.dsl.dcl=true
+        """
+    }
+
     def 'set #name'() {
         given:
         withSoftwareTypePlugins(
@@ -28,9 +38,9 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        file("settings.gradle.dcl") << pluginsFromIncludedBuild
+        settingsFile() << pluginsFromIncludedBuild
 
-        file("build.gradle.dcl") << declarativeScriptThatConfiguresOnlyTestSoftwareType
+        buildFile() << declarativeScriptThatConfiguresOnlyTestSoftwareType
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")

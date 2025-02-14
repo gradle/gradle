@@ -78,6 +78,7 @@ class DefaultConfigurationContainerSpec extends Specification {
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
+        CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),

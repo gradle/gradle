@@ -46,10 +46,11 @@ dependencies {
     implementation(projects.native)
     implementation(projects.serialization)
 
-    implementation(libs.guava)
     implementation(libs.asm)
-    implementation(libs.xmlApis)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
+    implementation(libs.xmlApis)
 
     testImplementation(projects.native)
     testImplementation(projects.fileCollections)
@@ -68,4 +69,7 @@ packageCycles {
     // Needed for the factory methods in the interface since the implementation is in an internal package
     // which in turn references the interface.
     excludePatterns.add("org/gradle/jvm/toolchain/JavaLanguageVersion**")
+    excludePatterns.add("org/gradle/jvm/toolchain/JvmVendorSpec**")
+    // Needed as this type uses org.gradle.internal.jvm.inspection.JvmVendor which is in a package using this package
+    excludePatterns.add("org/gradle/jvm/toolchain/internal/DefaultJvmVendorSpec**")
 }

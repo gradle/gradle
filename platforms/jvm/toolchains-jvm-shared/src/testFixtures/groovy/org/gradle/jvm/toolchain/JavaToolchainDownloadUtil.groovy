@@ -100,6 +100,16 @@ class JavaToolchainDownloadUtil {
         """
     }
 
+    static String constantUrlResolverCode() {
+        """
+            @Override
+            public Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request) {
+                URI uri = URI.create("https://example.xyz/content");
+                return Optional.of(JavaToolchainDownload.fromUri(uri));
+            }
+        """
+    }
+
     static String noUrlResolverCode() {
         """
             @Override

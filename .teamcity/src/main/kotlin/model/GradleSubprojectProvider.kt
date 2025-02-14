@@ -21,15 +21,18 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import java.io.File
 
-val ignoredSubprojects = listOf(
-    "soak", // soak test
-    "distributions-integ-tests", // build distribution testing
-    "architecture-test" // sanity check
-)
+val ignoredSubprojects =
+    listOf(
+        "soak", // soak test
+        "distributions-integ-tests", // build distribution testing
+        "architecture-test", // sanity check
+    )
 
 interface GradleSubprojectProvider {
     val subprojects: List<GradleSubproject>
+
     fun getSubprojectsForFunctionalTest(testConfig: TestCoverage): List<GradleSubproject>
+
     fun getSubprojectByName(name: String): GradleSubproject?
 }
 
@@ -41,13 +44,12 @@ data class JsonBasedGradleSubprojectProvider(
     override val subprojects = objectMapper.readValue<List<Map<String, Any>>>(jsonFile.readText()).map { toSubproject(it) }
 
     private val nameToSubproject = subprojects.map { it.name to it }.toMap()
-    override fun getSubprojectsForFunctionalTest(testConfig: TestCoverage) =
-        subprojects.filter { it.hasTestsOf(testConfig.testType) }
+
+    override fun getSubprojectsForFunctionalTest(testConfig: TestCoverage) = subprojects.filter { it.hasTestsOf(testConfig.testType) }
 
     override fun getSubprojectByName(name: String) = nameToSubproject[name]
 
-    private
-    fun toSubproject(subproject: Map<String, Any>): GradleSubproject {
+    private fun toSubproject(subproject: Map<String, Any>): GradleSubproject {
         val name = subproject["name"] as String
         val path = subproject["path"] as String
         val unitTests = !ignoredSubprojects.contains(name) && subproject["unitTests"] as Boolean
