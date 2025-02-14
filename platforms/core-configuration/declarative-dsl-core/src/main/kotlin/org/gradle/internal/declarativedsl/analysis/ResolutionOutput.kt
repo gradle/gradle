@@ -2,7 +2,6 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
-import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
@@ -260,12 +259,7 @@ private
 fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, invocationId: OperationId, parameterBindings: ParameterValueBinding) =
     receiver?.toString()?.plus(".").orEmpty() + buildString {
         if (function is DataConstructor) {
-            val fqn = when (val ref = function.dataClass) {
-                is DataTypeRef.Name -> ref.fqName.toString()
-                is DataTypeRef.Type -> (ref.dataType as? DataClass)?.name?.qualifiedName
-                    ?: ref.dataType.toString()
-            }
-            append(fqn)
+            append(function.dataClass.toString())
             append(".")
         }
         append(function.simpleName)
