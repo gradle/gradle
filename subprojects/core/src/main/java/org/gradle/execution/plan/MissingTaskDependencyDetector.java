@@ -29,25 +29,19 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
 public class MissingTaskDependencyDetector {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MissingTaskDependencyDetector.class);
-
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
 
@@ -68,50 +62,44 @@ public class MissingTaskDependencyDetector {
                     outputPath)
                 );
         }
-        Set<String> taskInputs = new LinkedHashSet<>();
-        Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> visitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs));
-        taskInputs.forEach(input -> inputHierarchy.recordNodeAccessingLocation(node, input));
-        for (String locationConsumedByThisTask : taskInputs) {
-            collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
-        }
-        for (FilteredTree filteredFileTreeInput : filteredFileTreeTaskInputs) {
-            Spec<FileTreeElement> spec = filteredFileTreeInput.getPatterns().getAsSpec();
-            inputHierarchy.recordNodeAccessingFileTree(node, filteredFileTreeInput.getRoot(), spec);
-            collectValidationProblemsForConsumer(
-                node,
-                validationContext,
-                filteredFileTreeInput.getRoot(),
-                outputHierarchy.getNodesAccessing(filteredFileTreeInput.getRoot(), spec)
-            );
-        }
+            .forEach(spec -> visitInputFileProperty(node, validationContext, spec));
     }
 
-    private static void visitInputFileProperty(InputFilePropertySpec spec, Set<String> taskInputs, Set<FilteredTree> filteredFileTreeTaskInputs) {
+    private void visitInputFileProperty(LocalTaskNode node, TypeValidationContext validationContext, InputFilePropertySpec spec) {
         spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                contents.forEach(location -> taskInputs.add(location.getAbsolutePath()));
+                contents.forEach(location -> visitUnfilteredLocation(location.getAbsolutePath()));
             }
 
             @Override
             public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                 if (patterns.isEmpty()) {
-                    taskInputs.add(root.getAbsolutePath());
+                    visitUnfilteredLocation(root.getAbsolutePath());
                 } else {
-                    filteredFileTreeTaskInputs.add(new FilteredTree(root.getAbsolutePath(), patterns));
+                    visitFilteredLocation(root.getAbsolutePath(), patterns.getAsSpec());
                 }
             }
 
             @Override
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                taskInputs.add(file.getAbsolutePath());
+                visitUnfilteredLocation(file.getAbsolutePath());
+            }
+
+            void visitUnfilteredLocation(String location) {
+                inputHierarchy.recordNodeAccessingLocation(node, location);
+                collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location));
+            }
+
+            void visitFilteredLocation(String location, Spec<FileTreeElement> spec) {
+                inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
+                collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
             }
         });
     }
 
-    private void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
+    private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
         producers.stream()
             .filter(producerNode -> hasNoSpecifiedOrder(producerNode, consumer))
             .filter(MissingTaskDependencyDetector::isEnabled)
@@ -133,10 +121,10 @@ public class MissingTaskDependencyDetector {
 
     // In a perfect world, the consumer should depend on the producer.
     // Though we still don't have a good solution for the code linter and formatter use-case.
-    // And for that case, there will be a cyclic dependency between the analyze and the format task if we only take output/input locations into account.
+    // And for that case, there will be a cyclic dependency between the 'analyze' and the 'format' task if we only take output/input locations into account.
     // Therefore, we currently allow these kind of missing dependencies, as long as any order has been specified.
     // See https://github.com/gradle/gradle/issues/15616.
-    private boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
+    private static boolean hasNoSpecifiedOrder(Node producerNode, Node consumerNode) {
         return missesDependency(producerNode, consumerNode) && missesDependency(consumerNode, producerNode);
     }
 
@@ -166,7 +154,7 @@ public class MissingTaskDependencyDetector {
     private static void addHardSuccessorTasksToQueue(Node node, Set<Node> seenNodes, Queue<Node> queue) {
         node.getHardSuccessors().forEach(successor -> {
             // We are searching for dependencies between tasks, so we can skip everything which is not a task when searching.
-            // For example we can skip all the transform nodes between two task nodes.
+            // For example, we can skip all the transform nodes between two task nodes.
             if (successor instanceof TaskNode || successor instanceof OrdinalNode) {
                 if (seenNodes.add(successor)) {
                     queue.add(successor);
@@ -179,7 +167,7 @@ public class MissingTaskDependencyDetector {
 
     private static final String IMPLICIT_DEPENDENCY = "IMPLICIT_DEPENDENCY";
 
-    private void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
+    private static void collectValidationProblem(Node producer, Node consumer, TypeValidationContext validationContext, String consumerProducerPath) {
         validationContext.visitPropertyProblem(problem ->
             problem.id(TextUtil.screamingSnakeToKebabCase(IMPLICIT_DEPENDENCY), "Property has implicit dependency", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
                 .contextualLabel("Gradle detected a problem with the following location: '" + consumerProducerPath + "'")
@@ -194,41 +182,5 @@ public class MissingTaskDependencyDetector {
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#dependsOn")
                 .solution("Declare an explicit dependency on '" + producer + "' from '" + consumer + "' using Task#mustRunAfter")
         );
-    }
-
-    private static class FilteredTree {
-        private final String root;
-        private final PatternSet patterns;
-
-        private FilteredTree(String root, PatternSet patterns) {
-            this.root = root;
-            this.patterns = patterns;
-        }
-
-        public String getRoot() {
-            return root;
-        }
-
-        public PatternSet getPatterns() {
-            return patterns;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            FilteredTree that = (FilteredTree) o;
-            return root.equals(that.root) && patterns.equals(that.patterns);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(root, patterns);
-        }
-
     }
 }
