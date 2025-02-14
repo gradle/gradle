@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.joining;
 import static org.gradle.internal.deprecation.DeprecationLogger.deprecateBehaviour;
@@ -34,11 +34,11 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 public class DefaultWorkValidationWarningRecorder implements ValidateStep.ValidationWarningRecorder, WorkValidationWarningReporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
 
-    private final AtomicInteger workWithFailuresCount = new AtomicInteger();
+    private final ConcurrentHashMap<UnitOfWork, Boolean> workWithWarnings = new ConcurrentHashMap<>();
 
     @Override
     public void recordValidationWarnings(UnitOfWork work, Collection<? extends InternalProblem> warnings) {
-        workWithFailuresCount.incrementAndGet();
+        workWithWarnings.put(work, Boolean.TRUE);
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))
             .map(warning -> "\n  - " + warning)
@@ -57,12 +57,13 @@ public class DefaultWorkValidationWarningRecorder implements ValidateStep.Valida
 
     @Override
     public void reportWorkValidationWarningsAtEndOfBuild() {
-        int workWithFailures = workWithFailuresCount.getAndSet(0);
-        if (workWithFailures > 0) {
+        int numberOfUnitsWithWarnings = workWithWarnings.size();
+        workWithWarnings.clear();
+        if (numberOfUnitsWithWarnings > 0) {
             LOGGER.warn(
                 "\nExecution optimizations have been disabled for {} invalid unit(s) of work during this build to ensure correctness." +
                     "\nPlease consult deprecation warnings for more details.",
-                workWithFailures
+                numberOfUnitsWithWarnings
             );
         }
     }
