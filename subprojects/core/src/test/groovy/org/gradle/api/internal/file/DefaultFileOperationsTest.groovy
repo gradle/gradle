@@ -229,7 +229,7 @@ class DefaultFileOperationsTest extends Specification {
 
         then:
         spec instanceof DefaultCopySpec
-        spec.includes == ['pattern'] as Set
+        spec.includes.get() == ['pattern'] as Set
     }
 
     private TestFile expectPathResolved(String path) {

@@ -1,0 +1,36 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.file.CopySpec",
+            "member": "Method org.gradle.api.file.CopySpec.getExcludes()",
+            "acceptation": "Property upgrade: handled manually since original method was on interface we removed from CopySpec",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopySpec",
+            "member": "Method org.gradle.api.file.CopySpec.getIncludes()",
+            "acceptation": "Property upgrade: handled manually since original method was on interface we removed from CopySpec",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopySpec",
+            "member": "Method org.gradle.api.file.CopySpec.setExcludes(java.lang.Iterable)",
+            "acceptation": "Property upgrade: handled manually since original method was on interface we removed from CopySpec",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.CopySpec",
+            "member": "Method org.gradle.api.file.CopySpec.setIncludes(java.lang.Iterable)",
+            "acceptation": "Property upgrade: handled manually since original method was on interface we removed from CopySpec",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

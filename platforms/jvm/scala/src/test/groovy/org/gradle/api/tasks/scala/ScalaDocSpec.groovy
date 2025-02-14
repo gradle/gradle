@@ -45,19 +45,19 @@ class ScalaDocSpec extends AbstractConventionTaskTest {
     def "test Scala Includes"() {
         expect:
         scalaDoc.include(TEST_PATTERN_1, TEST_PATTERN_2) == scalaDoc
-        scalaDoc.getIncludes().equals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2))
+        scalaDoc.getIncludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
 
         scalaDoc.include(TEST_PATTERN_3) == scalaDoc
-        scalaDoc.getIncludes().equals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3))
+        scalaDoc.getIncludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
     def "test Scala Excludes"() {
         expect:
         scalaDoc.exclude(TEST_PATTERN_1, TEST_PATTERN_2) == scalaDoc
-        scalaDoc.getExcludes().equals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2))
+        scalaDoc.getExcludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
 
         scalaDoc.exclude(TEST_PATTERN_3) == scalaDoc
-        scalaDoc.getExcludes().equals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3))
+        scalaDoc.getExcludes().get() == WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
 }

@@ -106,7 +106,7 @@ public abstract class ScalaDoc extends SourceTask {
     @IgnoreEmptyDirectories
     @PathSensitive(PathSensitivity.RELATIVE)
     protected FileTree getFilteredCompilationOutputs() {
-        return getCompilationOutputs().getAsFileTree().matching(getPatternSet()).matching(pattern -> pattern.include("**/*.tasty"));
+        return getCompilationOutputs().getAsFileTree().matching(this::applyPatternSetTo).matching(pattern -> pattern.include("**/*.tasty"));
     }
 
     /**

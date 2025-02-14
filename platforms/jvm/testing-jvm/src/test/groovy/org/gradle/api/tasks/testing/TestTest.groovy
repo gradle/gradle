@@ -89,8 +89,8 @@ class TestTest extends AbstractConventionTaskTest {
         test.getClasspath().files.isEmpty()
         test.getReports().getJunitXml().outputLocation.getOrNull() == null
         test.getReports().getHtml().outputLocation.getOrNull() == null
-        test.getIncludes().isEmpty()
-        test.getExcludes().isEmpty()
+        test.getIncludes().get().isEmpty()
+        test.getExcludes().get().isEmpty()
         !test.getIgnoreFailures()
         !test.getFailFast()
     }
@@ -176,25 +176,25 @@ class TestTest extends AbstractConventionTaskTest {
     def "test includes"() {
         expect:
         test.is(test.include(TEST_PATTERN_1, TEST_PATTERN_2))
-        test.getIncludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
+        test.getIncludes().get() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
 
         when:
         test.include(TEST_PATTERN_3)
 
         then:
-        test.getIncludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+        test.getIncludes().get() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
     def "test excludes"() {
         expect:
         test.is(test.exclude(TEST_PATTERN_1, TEST_PATTERN_2))
-        test.getExcludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
+        test.getExcludes().get() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2)
 
         when:
         test.exclude(TEST_PATTERN_3)
 
         then:
-        test.getExcludes() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
+        test.getExcludes().get() == toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3)
     }
 
     def "--tests is combined with includes and excludes"() {
@@ -206,8 +206,8 @@ class TestTest extends AbstractConventionTaskTest {
         test.setTestNameIncludePatterns([TEST_PATTERN_2])
 
         then:
-        test.includes == [TEST_PATTERN_1] as Set
-        test.excludes == [TEST_PATTERN_1] as Set
+        test.includes.get() == [TEST_PATTERN_1] as Set
+        test.excludes.get() == [TEST_PATTERN_1] as Set
         test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
     }
 
@@ -219,8 +219,8 @@ class TestTest extends AbstractConventionTaskTest {
         test.setTestNameIncludePatterns([TEST_PATTERN_2])
 
         then:
-        test.includes.empty
-        test.excludes.empty
+        test.includes.get().empty
+        test.excludes.get().empty
         test.filter.includePatterns == [TEST_PATTERN_1] as Set
         test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
     }
@@ -233,8 +233,8 @@ class TestTest extends AbstractConventionTaskTest {
         test.setTestNameIncludePatterns([TEST_PATTERN_2])
 
         then:
-        test.includes.empty
-        test.excludes.empty
+        test.includes.get().empty
+        test.excludes.get().empty
         test.filter.includePatterns == [TEST_PATTERN_1] as Set
         test.filter.commandLineIncludePatterns == [TEST_PATTERN_2] as Set
     }
