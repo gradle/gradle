@@ -206,6 +206,6 @@ class DefaultInputFingerprinterTest extends Specification {
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints = ImmutableSortedMap.of(),
         Consumer<InputVisitor> inputs
     ) {
-        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs)
+        inputFingerprinter.fingerprintInputProperties(previousValueSnapshots, previousFingerprints, knownCurrentValueSnapshots, knownCurrentFingerprints, inputs, FileCollectionStructureVisitor.NO_OP)
     }
 }

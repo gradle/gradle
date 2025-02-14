@@ -18,6 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSet
 import com.google.common.collect.ImmutableSortedMap
+import org.gradle.internal.execution.ExecutionProblemHandler
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.history.OutputsCleaner
 import org.gradle.internal.execution.history.PreviousExecutionState
@@ -28,12 +29,14 @@ import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.EXE
 import static org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome.SHORT_CIRCUITED
 
 class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<PreviousExecutionContext> implements SnapshotterFixture {
+    def problemHandler = Mock(ExecutionProblemHandler)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputsCleaner = Mock(OutputsCleaner)
 
     @Override
     protected AbstractSkipEmptyWorkStep createStep() {
-        new SkipEmptyIncrementalWorkStep(problemHandler,
+        new SkipEmptyIncrementalWorkStep(
+            problemHandler,
             outputChangeListener,
             workInputListeners,
             { -> outputsCleaner },
@@ -51,6 +54,9 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
         interaction {
             emptySourcesWithPreviousOutputs(outputFileSnapshot)
         }
+
+        and:
+        1 * problemHandler.handleReportedProblems(work, _)
 
         and:
         1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))
