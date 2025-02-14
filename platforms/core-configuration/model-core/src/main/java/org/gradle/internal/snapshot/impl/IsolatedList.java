@@ -45,16 +45,29 @@ public class IsolatedList extends AbstractListSnapshot<Isolatable<?>> implements
 
     @Override
     public List<Object> isolate() {
-        List<Object> list = new ArrayList<Object>(elements.size());
+        List<Object> list = new ArrayList<>(elements.size());
         for (Isolatable<?> element : elements) {
             list.add(element.isolate());
         }
         return list;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        return null;
+        S result = null;
+        if  (List.class.isAssignableFrom(type)) {
+            try {
+                result = type.getConstructor().newInstance();
+                for (Isolatable<?> element : elements) {
+                    ((List) result).add(element.isolate());
+                }
+            } catch (Exception e) {
+                // This method's contract is a "best-effort" so if given a List type that can't be constructed or populated, that's fine
+                result = null;
+            }
+        }
+        return result;
     }
 }
