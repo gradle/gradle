@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -160,8 +161,9 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     @Override
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
-        if (!isUseDaemon() && !isSingleUseDaemonRequested() && getJavaVersionFromJavaHome().isJava9Compatible()) {
-            buildJvmOptions.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
+        if (!isUseDaemon() && !isSingleUseDaemonRequested()) {
+            JavaVersion version = getJavaVersionFromJavaHome();
+            buildJvmOptions.addAll(JpmsConfiguration.getDaemonArgs(Integer.parseInt(version.getMajorVersion()), true));
         }
         return buildJvmOptions;
     }
