@@ -19,9 +19,9 @@ import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
@@ -42,9 +42,9 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final FileResourceListener fileResourceListener = Mock(FileResourceListener)
     final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target, fileResourceListener)
     final ExtensionContainerInternal rootExtension = Mock()
-    final ExtraPropertiesExtension rootProperties = Mock()
+    final ExtraPropertiesExtensionInternal rootProperties = Mock()
     final ExtensionContainerInternal childExtension = Mock()
-    final ExtraPropertiesExtension childProperties = Mock()
+    final ExtraPropertiesExtensionInternal childProperties = Mock()
 
     def setup() {
         _ * gradle.rootProject >> rootProject

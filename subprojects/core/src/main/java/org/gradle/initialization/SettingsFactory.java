@@ -22,9 +22,9 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.extensibility.DefaultExtraPropertiesExtension;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -65,7 +65,7 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-        ((DefaultExtraPropertiesExtension) settings.getExtensions().getExtraProperties())
+        ((ExtraPropertiesExtensionInternal) settings.getExtensions().getExtraProperties())
             .setGradleProperties(gradleProperties.getProperties());
         return new SettingsState(settings, serviceRegistryFactory.services);
     }

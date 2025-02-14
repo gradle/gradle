@@ -21,13 +21,14 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtension {
+public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
 
     private final Map<String, Object> storage = new HashMap<>();
 
@@ -116,6 +117,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         }
     }
 
+    @Override
     public void setGradleProperties(Map<String, Object> properties) {
         gradleProperties = ImmutableMap.copyOf(properties);
     }
