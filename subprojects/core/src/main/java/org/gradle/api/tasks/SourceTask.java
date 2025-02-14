@@ -63,7 +63,6 @@ public abstract class SourceTask extends ConventionTask {
      * @since 9.0
      */
     @Incubating
-    @Internal
     protected void applyPatternSetTo(PatternFilterable patternFilterable) {
         this.patternFilterable.applyTo(patternFilterable);
     }
