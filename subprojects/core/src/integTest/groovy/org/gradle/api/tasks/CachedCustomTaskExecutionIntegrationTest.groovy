@@ -814,40 +814,20 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         noExceptionThrown()
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "invalid tasks are not cached"() {
-        buildFile << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
-
-            @CacheableTask
-            abstract class InvalidTask extends DefaultTask {
-                @ValidationProblem File input
-                @OutputFile outputFile
-                @TaskAction action() {
-                    outputFile.text = "created"
-                }
-            }
-
-            task invalid(type: InvalidTask) {
-                input = file("input.txt")
-                outputFile = file("build/output.txt")
-            }
-        """
+        buildFile << DummyInvalidTask.source()
 
         executer.beforeExecute {
-            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem('InvalidTask', 'input'), 'id', 'section')
+            expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
         }
 
         when:
-        withBuildCache().run "invalid", "--info"
+        withBuildCache().run(DummyInvalidTask.name, "--info")
         then:
-        outputContains("""|Caching disabled for task ':invalid' because:
+        outputContains("""|Caching disabled for task ':${DummyInvalidTask.name}' because:
             |  Caching has been disabled to ensure correctness. Please consult deprecation warnings for more details.
         """.stripMargin())
-        executedAndNotSkipped(":invalid")
+        executedAndNotSkipped(":${DummyInvalidTask.name}")
     }
 
     private static String defineCachedTask(String suffix = "") {

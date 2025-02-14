@@ -47,7 +47,7 @@ val releasedVersions = moduleIdentity.releasedVersions.orNull
 
 fun createQuickFeedbackTasks() {
     val testType = TestType.CROSSVERSION
-    val defaultExecuter = "embedded"
+    val defaultExecuter = "forking"
     val prefix = testType.prefix
     testType.executers.forEach { executer ->
         val taskName = "$executer${prefix.capitalize()}Test"

@@ -92,7 +92,7 @@ class RerunFlakyTest(
         params {
             text(
                 testTaskParameterName,
-                ":core:embeddedIntegTest",
+                ":core:forkingIntegTest",
                 display = ParameterDisplay.PROMPT,
                 allowEmpty = false,
                 description = "The test task you want to run",
