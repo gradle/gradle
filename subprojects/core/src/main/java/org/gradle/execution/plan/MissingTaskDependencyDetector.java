@@ -72,7 +72,7 @@ public class MissingTaskDependencyDetector {
         Set<FilteredTree> filteredFileTreeTaskInputs = new LinkedHashSet<>();
         node.getTaskProperties().getInputFileProperties()
             .forEach(spec -> visitInputFileProperty(spec, taskInputs, filteredFileTreeTaskInputs));
-        inputHierarchy.recordNodeAccessingLocations(node, taskInputs);
+        taskInputs.forEach(input -> inputHierarchy.recordNodeAccessingLocation(node, input));
         for (String locationConsumedByThisTask : taskInputs) {
             collectValidationProblemsForConsumer(node, validationContext, locationConsumedByThisTask, outputHierarchy.getNodesAccessing(locationConsumedByThisTask));
         }
