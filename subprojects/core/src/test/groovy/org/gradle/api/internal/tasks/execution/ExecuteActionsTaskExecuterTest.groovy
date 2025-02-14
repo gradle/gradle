@@ -34,6 +34,7 @@ import org.gradle.api.tasks.StopActionException
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.caching.internal.controller.BuildCacheController
+import org.gradle.execution.plan.MissingTaskDependencyDetector
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.exceptions.DefaultMultiCauseException
@@ -114,7 +115,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fileSystemAccess = fileSystemAccess(virtualFileSystem)
     def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, fileSystem())
     def outputSnapshotter = new DefaultOutputSnapshotter(fileCollectionSnapshotter)
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, fileCollectionSnapshotter, FileSystemLocationSnapshotHasher.DEFAULT)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter
     }
@@ -142,6 +143,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def fileCollectionFactory = fileCollectionFactory()
     def deleter = deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningRecorder)
+    def missingTaskDependencyDetector = Stub(MissingTaskDependencyDetector)
 
     // TODO Make this test work with a mock execution engine
     def executionEngine = TestExecutionEngineFactory.createExecutionEngine(
@@ -171,7 +173,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         reservedFileSystemLocationRegistry,
         fileCollectionFactory,
         TestFiles.taskDependencyFactory(),
-        Stub(PathToFileResolver)
+        Stub(PathToFileResolver),
+        missingTaskDependencyDetector
     )
 
     def setup() {
@@ -186,7 +189,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> DefaultTaskExecutionMode.incremental()
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
-        executionContext.getValidationAction() >> { { c -> } as TaskExecutionContext.ValidationAction }
+        executionContext.getDependencyCheckAction() >> { { c -> } as TaskExecutionContext.DependencyCheckAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())

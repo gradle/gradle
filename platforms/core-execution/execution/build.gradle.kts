@@ -20,6 +20,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.coreApi)
     api(projects.files)
+    api(projects.fileCollections)
     api(projects.functional)
     api(projects.hashing)
     api(projects.modelCore)

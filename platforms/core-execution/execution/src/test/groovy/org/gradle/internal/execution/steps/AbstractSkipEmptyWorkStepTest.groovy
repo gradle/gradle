@@ -65,6 +65,7 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends
             ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
+            _,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             knownInputProperties,
@@ -98,6 +99,7 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends
             ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
+            _,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             knownInputProperties,
@@ -131,6 +133,7 @@ abstract class AbstractSkipEmptyWorkStepTest<C extends WorkspaceContext> extends
             ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
+            _,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             knownInputProperties,

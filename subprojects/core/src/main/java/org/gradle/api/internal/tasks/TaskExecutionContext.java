@@ -33,7 +33,7 @@ public interface TaskExecutionContext {
 
     WorkValidationContext getValidationContext();
 
-    ValidationAction getValidationAction();
+    DependencyCheckAction getDependencyCheckAction();
 
     void setTaskExecutionMode(TaskExecutionMode taskExecutionMode);
 
@@ -51,7 +51,7 @@ public interface TaskExecutionContext {
      */
     void setSnapshotTaskInputsBuildOperationContext(BuildOperationContext operation);
 
-    interface ValidationAction {
-        void validate(TypeValidationContext validationContext);
+    interface DependencyCheckAction {
+        void checkDependencies(TypeValidationContext validationContext);
     }
 }

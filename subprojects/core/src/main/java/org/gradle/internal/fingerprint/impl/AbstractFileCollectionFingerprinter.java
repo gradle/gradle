@@ -19,7 +19,6 @@ package org.gradle.internal.fingerprint.impl;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
-import org.gradle.internal.execution.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -33,18 +32,10 @@ import javax.annotation.Nullable;
 @NonNullApi
 public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
 
-    private final FileCollectionSnapshotter fileCollectionSnapshotter;
     private final FingerprintingStrategy fingerprintingStrategy;
 
-    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, FileCollectionSnapshotter fileCollectionSnapshotter) {
+    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy) {
         this.fingerprintingStrategy = fingerprintingStrategy;
-        this.fileCollectionSnapshotter = fileCollectionSnapshotter;
-    }
-
-    @Override
-    public CurrentFileCollectionFingerprint fingerprint(FileCollection files) {
-        FileCollectionSnapshotter.Result snapshotResult = fileCollectionSnapshotter.snapshot(files);
-        return fingerprint(snapshotResult.getSnapshot(), null);
     }
 
     @Override
