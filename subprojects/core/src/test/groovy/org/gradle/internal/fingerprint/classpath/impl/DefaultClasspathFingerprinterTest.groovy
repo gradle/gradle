@@ -50,7 +50,6 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(
         cacheService,
-        snapshotter,
         ResourceFilter.FILTER_NOTHING,
         ResourceEntryFilter.FILTER_NOTHING,
         PropertiesFileFilter.FILTER_NOTHING,
@@ -228,7 +227,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
 
     def fingerprint(TestFile... classpath) {
         fileSystemAccess.invalidate(classpath.collect { it.absolutePath })
-        def snapshot = snapshotter.snapshot(files(classpath)).snapshot
+        def snapshot = snapshotter.snapshot(files(classpath))
         def fileCollectionFingerprint = fingerprinter.fingerprint(snapshot, null)
         return fileCollectionFingerprint.fingerprints.collect { String path, FileSystemLocationFingerprint fingerprint ->
             [new File(path).getName(), fingerprint.normalizedPath, fingerprint.normalizedContentHash.toString()]

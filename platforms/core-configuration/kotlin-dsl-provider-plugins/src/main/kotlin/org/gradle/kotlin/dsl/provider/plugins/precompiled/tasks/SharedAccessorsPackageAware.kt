@@ -69,7 +69,7 @@ fun implicitImportsForPrecompiledScriptPlugins(
 
 private
 fun ClasspathFingerprinter.sharedAccessorsPackageFor(snapshotter: FileCollectionSnapshotter, classPathFiles: FileCollection): String {
-    val snapshot = snapshotter.snapshot(classPathFiles).snapshot
+    val snapshot = snapshotter.snapshot(classPathFiles)
     val fingerprintHash = fingerprint(snapshot, null).hash
     return "$SHARED_ACCESSORS_PACKAGE_PREFIX${fingerprintHash}"
 }

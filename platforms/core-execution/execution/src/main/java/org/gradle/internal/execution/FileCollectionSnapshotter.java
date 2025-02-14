@@ -17,26 +17,46 @@
 package org.gradle.internal.execution;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.io.File;
 
 /**
  * Service for snapshotting {@link FileCollection}s.
  */
 @ServiceScope({Scope.UserHome.class, Scope.BuildSession.class})
 public interface FileCollectionSnapshotter {
-    interface Result {
-        FileSystemSnapshot getSnapshot();
-
-        /**
-         * Whether any of the snapshot file collections is an archive tree backed by a file.
-         */
-        boolean containsArchiveTrees();
-    }
 
     /**
      * Snapshot the roots of a file collection.
      */
-    Result snapshot(FileCollection fileCollection);
+    default FileSystemSnapshot snapshot(FileCollection fileCollection) {
+        return snapshot(fileCollection, NO_OP_STRUCTURE_VISITOR);
+    }
+
+    /**
+     * Snapshot the roots of a file collection and call the given visitor during snapshotting.
+     */
+    FileSystemSnapshot snapshot(FileCollection fileCollection, FileCollectionStructureVisitor visitor);
+
+    /* private */ FileCollectionStructureVisitor NO_OP_STRUCTURE_VISITOR = new FileCollectionStructureVisitor() {
+        @Override
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+        }
+
+        @Override
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+        }
+
+        @Override
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+        }
+    };
 }

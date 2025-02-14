@@ -433,7 +433,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             GFileUtils.relativePathOf(file, rootDirectory)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
-            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection).snapshot
+            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
             return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
         }
 
@@ -508,7 +508,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             directoryChildrenNamesHash(file)
 
         override fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode {
-            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection).snapshot
+            val snapshot = fileCollectionSnapshotter.snapshot(fileCollection)
             return fileCollectionFingerprinter.fingerprint(snapshot, null).hash
         }
 

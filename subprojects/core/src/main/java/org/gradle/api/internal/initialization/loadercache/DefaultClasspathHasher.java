@@ -39,7 +39,7 @@ public class DefaultClasspathHasher implements ClasspathHasher {
 
     @Override
     public HashCode hash(ClassPath classpath) {
-        FileSystemSnapshot snapshot = snapshotter.snapshot(fileCollectionFactory.fixed(classpath.getAsFiles())).getSnapshot();
+        FileSystemSnapshot snapshot = snapshotter.snapshot(fileCollectionFactory.fixed(classpath.getAsFiles()));
         CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(snapshot, null);
         return fingerprint.getHash();
     }

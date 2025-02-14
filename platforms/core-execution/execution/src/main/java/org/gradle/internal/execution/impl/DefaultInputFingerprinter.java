@@ -19,6 +19,12 @@ package org.gradle.internal.execution.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.FileCollectionSnapshotter;
@@ -30,9 +36,11 @@ import org.gradle.internal.execution.UnitOfWork.ValueSupplier;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.properties.InputBehavior;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 
+import java.io.File;
 import java.util.function.Consumer;
 
 public class DefaultInputFingerprinter implements InputFingerprinter {
@@ -130,10 +138,24 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
                 value.getLineEndingNormalization());
             FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             try {
-                FileCollectionSnapshotter.Result result = snapshotter.snapshot(value.getFiles());
-                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(result.getSnapshot(), previousFingerprint);
+                MutableBoolean containsArchiveTrees = new MutableBoolean(false);
+                FileSystemSnapshot snapshot = snapshotter.snapshot(value.getFiles(), new FileCollectionStructureVisitor() {
+                    @Override
+                    public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                    }
+
+                    @Override
+                    public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+                    }
+
+                    @Override
+                    public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
+                        containsArchiveTrees.set(true);
+                    }
+                });
+                CurrentFileCollectionFingerprint fingerprint = fingerprinter.fingerprint(snapshot, previousFingerprint);
                 fingerprintsBuilder.put(propertyName, fingerprint);
-                if (result.containsArchiveTrees()) {
+                if (containsArchiveTrees.get()) {
                     propertiesRequiringIsEmptyCheck.add(propertyName);
                 }
             } catch (Exception e) {
