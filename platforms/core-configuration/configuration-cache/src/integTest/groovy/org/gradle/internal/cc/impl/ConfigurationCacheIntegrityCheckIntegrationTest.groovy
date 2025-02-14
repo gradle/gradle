@@ -49,7 +49,75 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
 
     def "integrity checks detect invalid serialization protocol implementation"() {
         buildFile """
-            class CustomSerializable implements Serializable {
+            ${brokenSerializable()}
+
+            abstract class MyTask extends DefaultTask {
+                CustomSerializable user = new CustomSerializable("John", 25)
+
+                @TaskAction
+                def action() {
+                    println("name = \${user.name}, age = \${user.age}")
+                }
+            }
+
+            tasks.register("showUser", MyTask)
+        """
+
+        when:
+        configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
+
+        then:
+        failureDescriptionStartsWith("Configuration cache state could not be cached: field `user` of task `:showUser` of type `MyTask`: The value cannot be decoded properly.")
+        failureCauseContains("Tag guard mismatch:")
+    }
+
+    def "integrity checks detect invalid serialization protocol implementation in fingerprint"() {
+        def configurationCache = new ConfigurationCacheFixture(this)
+
+        buildFile """
+            import org.gradle.api.provider.*
+
+            ${brokenSerializable()}
+
+            abstract class MyValueSource implements ValueSource<CustomSerializable, ValueSourceParameters.None> {
+                @Override
+                CustomSerializable obtain() {
+                    return new CustomSerializable("John", 23)
+                }
+            }
+
+            tasks.register("showUser") {
+                def user = providers.of(MyValueSource) {}.get().name
+
+                doLast {
+                    println("Hello, \$user!")
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("showUser", "-D${INTEGRITY_CHECKS}=true")
+
+        then:
+        // We only read fingerprint when reusing the cache, it isn't part of load-after-store.
+        // Thus the first (store) run succeeds.
+        configurationCache.assertStateStored()
+
+        when:
+        configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
+
+        then:
+        failureDescriptionStartsWith('Configuration cache state could not be cached: ' +
+            'field `value` of `org.gradle.internal.Try$Success` bean found in ' +
+            'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
+            'field `obtainedValue` of `org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint$ValueSource` bean found in ' +
+            'Gradle runtime: The value cannot be decoded properly. It may have been written incorrectly or its data is corrupted.')
+        failureCauseContains("Tag guard mismatch:")
+    }
+
+    def brokenSerializable() {
+        groovySnippet """
+           class CustomSerializable implements Serializable {
                 private transient String name
                 private transient int age
 
@@ -76,24 +144,6 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
                     this.name = (String) input.readObject()
                 }
             }
-
-            abstract class MyTask extends DefaultTask {
-                CustomSerializable user = new CustomSerializable("John", 25)
-
-                @TaskAction
-                def action() {
-                    println("name = \${user.name}, age = \${user.age}")
-                }
-            }
-
-            tasks.register("showUser", MyTask)
         """
-
-        when:
-        configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
-
-        then:
-        failureDescriptionStartsWith("Configuration cache state could not be cached: field `user` of task `:showUser` of type `MyTask`: The value cannot be decoded properly.")
-        failureCauseContains("Tag guard mismatch:")
     }
 }
