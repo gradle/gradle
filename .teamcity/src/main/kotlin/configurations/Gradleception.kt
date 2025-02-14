@@ -84,8 +84,10 @@ class Gradleception(
         val buildScanTags =
             if (bundleGroovy4) listOf(buildScanTagForType, buildScanTagForGroovy4) else listOf(buildScanTagForType)
         val extraSysProp = mutableListOf<String>()
+        val extraTasks = mutableListOf<String>()
         if (bundleGroovy4) {
             extraSysProp += "-DbundleGroovy4=true"
+            extraTasks += ":model-core:forkingIntegTest"
         }
         if (buildJvm.version != BuildToolBuildJvm.version) {
             extraSysProp += "-Dorg.gradle.ignoreBuildJavaVersionCheck=true"
@@ -151,7 +153,7 @@ class Gradleception(
 
                 localGradle {
                     name = "QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE"
-                    tasks = "clean sanityCheck test -PflakyTests=exclude"
+                    tasks = "clean sanityCheck test ${extraTasks.joinToString(" ")} -PflakyTests=exclude"
                     gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
                     gradleParams = defaultParameters
                 }

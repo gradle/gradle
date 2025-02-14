@@ -17,6 +17,8 @@
 package org.gradle.internal.extensibility
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
     def "does not emit deprecation warning when a decorated class exposes a Boolean property like a field"() {
@@ -43,7 +45,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             def myext = extensions.create("myext", MyExtension)
             task assertProperty {
                 doLast {
-                    assert myext.property
+                    assert myext.getProperty()
                 }
             }
         """
@@ -59,7 +61,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             def myext = extensions.create("myext", MyExtension)
             task assertProperty {
                 doLast {
-                    assert myext.property
+                    assert myext.getProperty()
                 }
             }
         """
@@ -75,7 +77,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             def myext = extensions.create("myext", MyExtension)
             task assertProperty {
                 doLast {
-                    assert myext.property
+                    assert myext.isProperty()
                 }
             }
         """
@@ -91,7 +93,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
             def myext = extensions.create("myext", MyExtension)
             task assertProperty {
                 doLast {
-                    assert myext.property
+                    assert myext.isProperty()
                 }
             }
         """
@@ -133,7 +135,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
 
                 @TaskAction
                 void doAction() {
-                    assert value.property
+                    assert value.isProperty()
                 }
             }
             tasks.create("assertProperty", MyTask)
@@ -146,6 +148,7 @@ class DeprecatedBooleanPropertyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("assertProperty")
     }
 
+    @Requires(value = IntegTestPreconditions.Groovy3OrEarlier, reason = "Groovy 4+ only emits a normal getter")
     def "does not emit a deprecation warning when a non-decorated class used as a task input exposes a Boolean is-getter and normal getter"() {
         buildFile << """
             class MyValue {
