@@ -1,3 +1,4 @@
+import gradlebuild.attributes.ExternallyAvailableLibraryAttribute
 import gradlebuild.basics.ClassFileContentsAttribute
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.modules.extension.ExternalModulesExtension
@@ -45,6 +46,8 @@ val apiStubElements = configurations.consumable("apiStubElements") {
     extendsFrom(configurations.named("implementation").get())
     extendsFrom(configurations.named("compileOnly").get())
     attributes {
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named("api-stubs"))
+        attribute(ExternallyAvailableLibraryAttribute.attribute, false)
         attribute(ClassFileContentsAttribute.attribute, ClassFileContentsAttribute.STUBS)
     }
 }

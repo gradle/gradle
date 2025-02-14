@@ -34,14 +34,7 @@ plugins {
     `java-base`
 }
 
-val moduleIdentity = extensions.create<ModuleIdentityExtension>("moduleIdentity")
-
-group = "org.gradle"
-version = collectVersionDetails(moduleIdentity)
-
-fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): String {
-    moduleIdentity.baseName.convention("gradle-$name")
-
+val moduleIdentity = extensions.create<ModuleIdentityExtension>("moduleIdentity").apply {
     val baseVersion = trimmedContentsOfFile("version.txt")
 
     val finalRelease = buildFinalRelease
@@ -57,11 +50,10 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
     }
 
     val versionQualifier = buildVersionQualifier
-    val isFinalRelease = finalRelease.isPresent
 
-    val buildTimestamp = buildTimestamp()
+    val buildTimestampProvider = buildTimestamp()
     val versionNumber = when {
-        isFinalRelease -> {
+        finalRelease.isPresent -> {
             baseVersion
         }
         rcNumber.isPresent -> {
@@ -71,29 +63,35 @@ fun Project.collectVersionDetails(moduleIdentity: ModuleIdentityExtension): Stri
             "$baseVersion-milestone-${milestoneNumber.get()}"
         }
         versionQualifier.isPresent -> {
-            "$baseVersion-${versionQualifier.get()}-${buildTimestamp.get()}"
+            "$baseVersion-${versionQualifier.get()}-${buildTimestampProvider.get()}"
         }
         else -> {
-            "$baseVersion-${buildTimestamp.get()}"
+            "$baseVersion-${buildTimestampProvider.get()}"
         }
     }
 
     val isSnapshot = !finalRelease.isPresent && !rcNumber.isPresent && !milestoneNumber.isPresent
 
-    moduleIdentity.version.convention(GradleVersion.version(versionNumber))
-    moduleIdentity.snapshot.convention(isSnapshot)
-    moduleIdentity.buildTimestamp.convention(buildTimestamp)
-    moduleIdentity.promotionBuild.convention(isPromotionBuild)
-
-    moduleIdentity.releasedVersions = provider {
+    published.convention(false)
+    baseName.convention("gradle-$name")
+    version.convention(GradleVersion.version(versionNumber))
+    snapshot.convention(isSnapshot)
+    buildTimestamp.convention(buildTimestampProvider)
+    promotionBuild.convention(isPromotionBuild)
+    releasedVersions = version.map { currentVersion ->
         ReleasedVersionsDetails(
-            moduleIdentity.version.get().baseVersion,
+            currentVersion.baseVersion,
             releasedVersionsFile()
         )
     }
-
-    return versionNumber
 }
+
+class LazyProjectVersion(private val version: Provider<String>) {
+    override fun toString(): String = version.get()
+}
+
+group = "org.gradle"
+version = LazyProjectVersion(moduleIdentity.version.map { it.version })
 
 /**
  * Returns the trimmed contents of the file at the given [path] after
