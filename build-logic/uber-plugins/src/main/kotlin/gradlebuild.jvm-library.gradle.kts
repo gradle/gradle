@@ -15,8 +15,11 @@
  */
 
 import com.autonomousapps.DependencyAnalysisSubExtension
+import gradlebuild.attributes.ExternallyAvailableLibraryAttribute
 
 plugins {
+    id("java-library")
+    id("gradlebuild.module-identity")
     id("gradlebuild.dependency-modules")
     id("gradlebuild.repositories")
     id("gradlebuild.minify")
@@ -37,6 +40,8 @@ plugins {
     id("com.autonomousapps.dependency-analysis") // Auditing dependencies to find unused libraries
 }
 
+ensurePublishedLibrariesOnlyDependOnPublishedLibraries()
+
 configure<DependencyAnalysisSubExtension> {
     issues {
         onAny {
@@ -55,5 +60,61 @@ configure<DependencyAnalysisSubExtension> {
 
         ignoreSourceSet("archTest", "crossVersionTest", "integTest", "jmh", "testFixtures")
 
+    }
+}
+
+class ExternallyAvailableAttributeCompatibilityRule : AttributeCompatibilityRule<Boolean> {
+    override fun execute(details: CompatibilityCheckDetails<Boolean>) {
+        val consumerIsPublished = details.consumerValue == true
+
+        // We assume all gradle JVM library variants define this attribute,
+        // so the absence of the attribute (producerValue == null) means the consumer is
+        // not a Gradle build variant and therefore is assumed external.
+        val producerIsPublished = details.producerValue != false
+
+        if (!consumerIsPublished || producerIsPublished) {
+            // If the consumer is not published, we don't care if the producer is published or not.
+            // Or, if it is published, the producer must be published.
+            details.compatible()
+        } else {
+            // Otherwise, the consumer is published but the producer is not, which is not permitted.
+            details.incompatible()
+        }
+    }
+}
+
+// TODO: Verification of externally available libraries should be handled natively
+//       by the Gradle publishing plugins. Gradle should refuse to publish a project with a
+//       dependency on another project, unless the other project is also configured for publishing.
+fun ensurePublishedLibrariesOnlyDependOnPublishedLibraries() {
+    // If our library is externally available, declare it as such.
+    listOf(configurations.apiElements, configurations.runtimeElements).configureEach {
+        attributes {
+            attributeProvider(ExternallyAvailableLibraryAttribute.attribute, gradleModule.published)
+        }
+    }
+
+    // If our library is externally available, require that our dependencies are also externally available.
+    // TODO: We should also probably check the compile classpath
+    configurations.runtimeClasspath {
+        attributes {
+            attributeProvider(ExternallyAvailableLibraryAttribute.attribute, gradleModule.published)
+        }
+    }
+
+    dependencies {
+        attributesSchema {
+            attribute(ExternallyAvailableLibraryAttribute.attribute) {
+                compatibilityRules.add(ExternallyAvailableAttributeCompatibilityRule::class.java)
+            }
+        }
+    }
+}
+
+fun <T: Any> Iterable<NamedDomainObjectProvider<T>>.configureEach(action: T.() -> Unit) {
+    forEach { provider ->
+        provider.configure {
+            action()
+        }
     }
 }
