@@ -41,13 +41,11 @@ import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation;
 import org.gradle.internal.instrumentation.api.annotations.ReplacedDeprecation.RemovedIn;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.util.internal.CollectionUtils;
 
 import javax.inject.Inject;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
@@ -61,7 +59,6 @@ public abstract class CompileOptions implements Serializable {
 
     private final DebugOptions debugOptions;
     private final ForkOptions forkOptions;
-    private List<String> compilerArgs = new ArrayList<>();
     private final Property<Boolean> incrementalAfterFailure;
     private final Property<String> javaModuleVersion;
     private final Property<String> javaModuleMainClass;
@@ -284,10 +281,8 @@ public abstract class CompileOptions implements Serializable {
      * are ignored.
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getCompilerArgs() {
-        return compilerArgs;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getCompilerArgs();
 
     /**
      * Returns all compiler arguments, added to the {@link #getCompilerArgs()} or the {@link #getCompilerArgumentProviders()} property.
@@ -297,10 +292,10 @@ public abstract class CompileOptions implements Serializable {
     @Internal
     @ReplacesEagerProperty
     public Provider<List<String>> getAllCompilerArgs() {
-        return getCompilerArgumentProviders().map(providerArgs -> {
+        return getCompilerArgs().zip(getCompilerArgumentProviders(), (args, argProviders) -> {
             ImmutableList.Builder<String> builder = ImmutableList.builder();
-            builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
-            for (CommandLineArgumentProvider compilerArgumentProvider : providerArgs) {
+            builder.addAll(CollectionUtils.stringize(args));
+            for (CommandLineArgumentProvider compilerArgumentProvider : argProviders) {
                 builder.addAll(CollectionUtils.toStringList(compilerArgumentProvider.asArguments()));
             }
             return builder.build();
@@ -315,14 +310,6 @@ public abstract class CompileOptions implements Serializable {
     @Nested
     @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getCompilerArgumentProviders"))
     public abstract ListProperty<CommandLineArgumentProvider> getCompilerArgumentProviders();
-
-    /**
-     * Sets any additional arguments to be passed to the compiler.
-     * Defaults to the empty list.
-     */
-    public void setCompilerArgs(List<String> compilerArgs) {
-        this.compilerArgs = compilerArgs;
-    }
 
     /**
      * informs whether to use incremental compilation feature.
