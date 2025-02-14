@@ -51,6 +51,11 @@ This will become an error in Gradle 10.0.
 
 This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
 
+[[antgroovydoc]]
+==== `Groovydoc.getAntGroovydoc()` and `org.gradle.api.internal.tasks.AntGroovydoc` have been deprecated
+
+This was an internal API that was inadvertently exposed. This will be removed in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 

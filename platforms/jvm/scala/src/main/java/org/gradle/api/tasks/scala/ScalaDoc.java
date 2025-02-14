@@ -304,6 +304,7 @@ public abstract class ScalaDoc extends SourceTask {
     protected abstract ObjectFactory getObjectFactory();
 
     @Inject
+    @Deprecated
     protected abstract IsolatedAntBuilder getAntBuilder();
 
     @Inject
