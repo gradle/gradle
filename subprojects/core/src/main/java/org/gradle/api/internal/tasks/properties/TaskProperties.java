@@ -38,11 +38,13 @@ public interface TaskProperties {
     /**
      * The lifecycle aware values.
      */
+    // Used in finalization; this should be part of input snapshotting for any UnitOfWork
     Iterable<? extends LifecycleAwareValue> getLifecycleAwareValues();
 
     /**
      * Input properties.
      */
+    // Used only in visiting regular inputs
     ImmutableSortedSet<InputPropertySpec> getInputProperties();
 
     /**
@@ -50,6 +52,10 @@ public interface TaskProperties {
      *
      * It is guaranteed that all the {@link InputFilePropertySpec}s have a name and that the names are unique.
      */
+    // Used in:
+    //   - visiting regular inputs (value queried only there)
+    //   - missing task dependency detection
+    //   - creating legacy `SnapshotTaskInputsBuildOperationType` build operation
     ImmutableSortedSet<InputFilePropertySpec> getInputFileProperties();
 
     /**

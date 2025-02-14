@@ -582,8 +582,9 @@ The following types/formats are supported:
             }
 
             task consumer {
+                inputs.files("empty-input").skipWhenEmpty(${noSourceTask == "consumer"})
                 def consumerOutput = file("build/comsumer/consumerOutput.txt")
-                inputs.files(producerOutput).skipWhenEmpty(${noSourceTask == "consumer"})
+                inputs.files(producerOutput)
                 outputs.file(consumerOutput)
                 doLast {
                     consumerOutput.text = "consumed"
