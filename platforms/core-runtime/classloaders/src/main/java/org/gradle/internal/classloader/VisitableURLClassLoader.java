@@ -16,9 +16,9 @@
 
 package org.gradle.internal.classloader;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.IoActions;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
 
@@ -36,6 +36,7 @@ import java.util.Map;
 public class VisitableURLClassLoader extends URLClassLoader implements ClassLoaderHierarchy {
     static {
         try {
+            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -154,6 +155,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         static {
             try {
                 // Not supported on Java 6, hence the try-catch
+                //noinspection Since15
                 ClassLoader.registerAsParallelCapable();
             } catch (NoSuchMethodError ignore) {
                 // ignore in Java 6
@@ -194,7 +196,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
 
         @Override
         public void close() throws IOException {
-            IoActions.closeQuietly(replacer);
+            IOUtils.closeQuietly(replacer);
             super.close();
         }
     }

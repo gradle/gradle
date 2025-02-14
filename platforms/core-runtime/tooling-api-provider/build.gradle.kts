@@ -29,9 +29,11 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
     implementation(libs.jsr305)
     implementation(libs.slf4jApi)
+
     implementation(projects.launcher)
     implementation(projects.buildState)
     implementation(projects.baseServices)
+    implementation(projects.classloaders)
     implementation(projects.coreApi)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.logging)

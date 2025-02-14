@@ -80,6 +80,7 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classloaders")
         subproject("cli")
         subproject("client-services")
         subproject("concurrent")

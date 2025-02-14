@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,25 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
-    id("gradlebuild.launchable-jar")
 }
 
-description = "Entry point for the Gradle daemon process. Bootstraps the daemon server implementation in :daemon-server."
+description = "Tools to handle classloaders"
 
-app {
-    mainClassName = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"
-}
+gradlebuildJava.usedInWorkers()
 
 dependencies {
-    implementation(projects.buildProcessServices)
+    api(projects.hashing)
+    api(projects.stdlibJavaExtensions)
 
-    manifestClasspath(projects.stdlibJavaExtensions)
-    manifestClasspath(projects.buildProcessServices)
-    manifestClasspath(projects.baseServices)
-    manifestClasspath(projects.classloaders)
-    manifestClasspath(projects.concurrent)
-    manifestClasspath(projects.serviceLookup)
+    api(libs.jsr305)
+
+    implementation(projects.baseAsm)
+    implementation(projects.concurrent)
+    implementation(projects.io)
+
+    implementation(libs.commonsIo)
+    implementation(libs.commonsLang)
+    implementation(libs.guava)
+
+    compileOnly(libs.errorProneAnnotations)
 }

@@ -16,13 +16,12 @@
 
 package org.gradle.internal.classloader;
 
-import org.gradle.internal.util.Trie;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -52,6 +51,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             SYSTEM_PACKAGES.add(p.getName());
         }
         try {
+            //noinspection Since15
             ClassLoader.registerAsParallelCapable();
         } catch (NoSuchMethodError ignore) {
             // Not supported on Java 6
@@ -181,7 +181,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             || (packagePrefixes.contains(DEFAULT_PACKAGE + ".") && isInDefaultPackage(className));
     }
 
-    private boolean isInDefaultPackage(String className) {
+    private static boolean isInDefaultPackage(String className) {
         return !className.contains(".");
     }
 
@@ -233,12 +233,12 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
          */
         public boolean isEmpty() {
             return classNames.isEmpty()
-                    && packageNames.isEmpty()
-                    && packagePrefixes.isEmpty()
-                    && resourcePrefixes.isEmpty()
-                    && resourceNames.isEmpty()
-                    && disallowedClassNames.isEmpty()
-                    && disallowedPackagePrefixes.isEmpty();
+                && packageNames.isEmpty()
+                && packagePrefixes.isEmpty()
+                && resourcePrefixes.isEmpty()
+                && resourceNames.isEmpty()
+                && disallowedClassNames.isEmpty()
+                && disallowedPackagePrefixes.isEmpty();
         }
 
         /**
@@ -355,7 +355,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         }
     }
 
-    private static class TrieSet implements Iterable<String> {
+    public static class TrieSet implements Iterable<String> {
         private final Trie trie;
         private final Set<String> set;
 
@@ -377,5 +377,131 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
         public Iterator<String> iterator() {
             return set.iterator();
         }
+    }
+
+    /**
+     * Move the Trie class in :base-services to :functional once we can use Java 8 and delete this class.
+     */
+    public static class Trie implements Comparable<Trie> {
+        private final char chr;
+        private final boolean terminal;
+        private final Trie[] transitions;
+
+        public static Trie from(Iterable<String> words) {
+            Builder builder = new Builder();
+            for (String word : words) {
+                builder.addWord(word);
+            }
+            return builder.build();
+        }
+
+        private Trie(char chr, boolean terminal, Trie[] transitions) {
+            this.chr = chr;
+            this.terminal = terminal;
+            this.transitions = transitions;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(chr).append(terminal ? "(terminal)\n" : "\n");
+            sb.append("Next: ");
+            for (Trie transition : transitions) {
+                sb.append(transition.chr).append(" ");
+            }
+            sb.append("\n");
+            return sb.toString();
+        }
+
+        @Override
+        public int compareTo(@Nonnull Trie o) {
+            return chr - o.chr;
+        }
+
+        /**
+         * Checks if the trie contains the given character sequence or any prefixes of the sequence.
+         */
+        public boolean find(CharSequence seq) {
+            if (seq.length() == 0) {
+                return false;
+            }
+            int idx = 0;
+            Trie cur = this;
+            while (idx < seq.length()) {
+                char c = seq.charAt(idx);
+                boolean found = false;
+                for (Trie transition : cur.transitions) {
+                    if (transition.chr == c) {
+                        cur = transition;
+                        idx++;
+                        found = true;
+                        if (idx == seq.length()) {
+                            return cur.terminal;
+                        }
+                        break;
+                    } else if (transition.chr > c) {
+                        return false;
+                    }
+                }
+                if (!found) {
+                    return cur.terminal;
+                }
+            }
+            return cur.terminal;
+        }
+
+        public static class Builder {
+            private final char chr;
+            private final List<Builder> transitions = new ArrayList<Builder>();
+
+            private boolean terminal;
+
+            public Builder() {
+                chr = '\0';
+            }
+
+            private Builder(char chr) {
+                this.chr = chr;
+            }
+
+            private Builder addTransition(char c, boolean terminal) {
+                Builder b = null;
+                for (Builder transition : transitions) {
+                    if (transition.chr == c) {
+                        b = transition;
+                        break;
+                    }
+                }
+                if (b == null) {
+                    b = new Builder(c);
+                    transitions.add(b);
+                }
+                b.terminal |= terminal;
+                return b;
+            }
+
+            public void addWord(String word) {
+                Trie.Builder cur = this;
+                char[] chars = word.toCharArray();
+                for (int i = 0; i < chars.length; i++) {
+                    char c = chars[i];
+                    cur = cur.addTransition(c, i == chars.length - 1);
+                }
+            }
+
+            public Trie build() {
+                Trie[] transitions = new Trie[this.transitions.size()];
+                for (int i = 0; i < this.transitions.size(); i++) {
+                    Builder transition = this.transitions.get(i);
+                    transitions[i] = transition.build();
+                }
+                Arrays.sort(transitions);
+                return new Trie(chr, terminal, transitions);
+            }
+        }
+    }
+
+    public interface Action<T> {
+        void execute(T target);
     }
 }

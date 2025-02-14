@@ -30,6 +30,7 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.classloaders)
     implementation(projects.time)
     implementation(projects.enterpriseLogging)
     implementation(projects.enterpriseOperations)
