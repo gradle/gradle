@@ -26,112 +26,174 @@ import spock.lang.Issue
 class DependencyDeclarationIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/23096")
-    @Issue("https://github.com/gradle/gradle/issues/32437")
-    def 'all properties of dependencies are copied when the dependency is copied'() {
-        disableProblemsApiCheck()
-
+    def "base properties are copied for version catalog dependency"() {
         given:
-        def baseProperties = """
-            because("reason1")
-
-            exclude(group: "test-group", module: "test-module")
-            artifact {
-                name = "test-name"
-                classifier = "test-classifier"
-                extension = "test-ext"
-                type = "test-type"
-                url = "test-url"
-            }
-            transitive = true
-            endorseStrictVersions()
-        """
-
-        def targetConfigurationProperties = """
-            transitive = false
-            targetConfiguration = "abc"
-            doNotEndorseStrictVersions()
-        """
-
-        def externalBaseProperties = """
-            $baseProperties
-
-            version {
-                branch = "branch"
-                strictly("123")
-                prefer("789")
-                reject("aaa")
-            }
-
-            changing = true
-        """
-
-        def externalTargetConfigurationProperties = """
-            $targetConfigurationProperties
-
-            version {
-                require("456")
-            }
-
-            changing = false
-        """
-
-        def variantAwareProperties = """
-            attributes {
-                attribute(Attribute.of('foo', String), 'bar')
-            }
-            capabilities {
-                requireCapability("org:test-cap:1.1")
-            }
-        """
-
         file("gradle/libs.versions.toml") << """[libraries]
-test1 = { module = 'org:test1', version = '1.0' }
-test2 = { module = 'org:test2', version = '1.0' }
-test3 = { module = 'org:test3', version = '1.0' }
+test = { module = 'org:test', version = '1.0' }
 """
 
-        settingsFile << """
-            include("test7")
-            include("test8")
-            include("test9")
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation(libs.test) {
+                    ${baseProperties}
+                }
+            }
         """
-        createDirs("test7", "test8", "test9")
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23096")
+    def "targetConfiguration properties are copied for version catalog dependency"() {
+        file("gradle/libs.versions.toml") << """[libraries]
+test = { module = 'org:test', version = '1.0' }
+"""
 
         buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation(libs.test) {
+                    ${externalTargetConfigurationProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23096")
+    def "variant aware properties are copied for version catalog dependency"() {
+        file("gradle/libs.versions.toml") << """[libraries]
+test = { module = 'org:test', version = '1.0' }
+"""
+
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation(libs.test) {
+                    ${variantAwareProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    def "base properties are copied for external dependency"() {
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation("org:test") {
+                    ${externalBaseProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    def "targetConfiguration properties are copied for external dependency"() {
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation("org:test") {
+                    ${externalTargetConfigurationProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    def "variant aware properties are copied for external dependency"() {
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation("org:test") {
+                    ${variantAwareProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32437")
+    def "base properties are copied for project dependency"() {
+        settingsFile << "include('test')"
+        createDirs("test")
+
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation(project(":test")) {
+                    ${baseProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32437")
+    def "targetConfiguration properties are copied for project dependency"() {
+        settingsFile << "include('test')"
+        createDirs("test")
+
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation(project(":test")) {
+                    ${targetConfigurationProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32437")
+    def "variant aware properties are copied for project dependency"() {
+        settingsFile << "include('test')"
+        createDirs("test")
+
+        buildFile << """
+            $copyTestBase
+
+            dependencies {
+                implementation(project(":test")) {
+                    ${variantAwareProperties}
+                }
+            }
+        """
+
+        expect:
+        succeeds("verifyCopy")
+    }
+
+    String getCopyTestBase() {
+        """
             configurations {
                 implementation
                 destination1
                 destination2
-            }
-
-            dependencies {
-                implementation(libs.test1) {
-                    ${externalBaseProperties}
-                }
-                implementation(libs.test2) {
-                    ${externalTargetConfigurationProperties}
-                }
-                implementation(libs.test3) {
-                    ${variantAwareProperties}
-                }
-                implementation("org:test4") {
-                    ${externalBaseProperties}
-                }
-                implementation("org:test5") {
-                    ${externalTargetConfigurationProperties}
-                }
-                implementation("org:test6") {
-                    ${variantAwareProperties}
-                }
-                implementation(project(":test7")) {
-                    ${baseProperties}
-                }
-                implementation(project(":test8")) {
-                    ${targetConfigurationProperties}
-                }
-                implementation(project(":test9")) {
-                    ${variantAwareProperties}
-                }
             }
 
             def verifyDep(Dependency original, Dependency copied) {
@@ -176,34 +238,96 @@ test3 = { module = 'org:test3', version = '1.0' }
                 configurations.implementation.dependencies.find { it.name == dep.name }
             }
 
-            configurations.implementation.dependencies.each {
-                project.dependencies.add("destination1", it)
-                configurations.destination2.dependencies.add(it)
-            }
+            tasks.register("verifyCopy") {
+                configurations.implementation.dependencies.each {
+                    project.dependencies.add("destination1", it)
+                    configurations.destination2.dependencies.add(it)
+                }
 
-            configurations.destination1.dependencies.each {
-                verifyDep(getOriginal(it), it)
-            }
+                configurations.destination1.dependencies.each {
+                    verifyDep(getOriginal(it), it)
+                }
 
-            configurations.destination2.dependencies.each {
-                verifyDep(getOriginal(it), it)
-            }
+                configurations.destination2.dependencies.each {
+                    verifyDep(getOriginal(it), it)
+                }
 
-            configurations.implementation.dependencies.each {
-                verifyDep(it, it.copy())
-            }
+                configurations.implementation.dependencies.each {
+                    verifyDep(it, it.copy())
+                }
 
-            configurations.implementation.copy().dependencies.each {
-                verifyDep(getOriginal(it), it)
-            }
+                configurations.implementation.copy().dependencies.each {
+                    verifyDep(getOriginal(it), it)
+                }
 
-            configurations.detachedConfiguration(configurations.implementation.dependencies.toArray(new Dependency[0])).dependencies.each {
-                verifyDep(getOriginal(it), it)
+                configurations.detachedConfiguration(configurations.implementation.dependencies.toArray(new Dependency[0])).dependencies.each {
+                    verifyDep(getOriginal(it), it)
+                }
             }
         """
+    }
 
-        expect:
-        succeeds "help"
+    private static String getBaseProperties() {
+        """
+            because("reason1")
+
+            exclude(group: "test-group", module: "test-module")
+            artifact {
+                name = "test-name"
+                classifier = "test-classifier"
+                extension = "test-ext"
+                type = "test-type"
+                url = "test-url"
+            }
+            transitive = true
+            endorseStrictVersions()
+        """
+    }
+
+    private static String getTargetConfigurationProperties() {
+        """
+            transitive = false
+            targetConfiguration = "abc"
+            doNotEndorseStrictVersions()
+        """
+    }
+
+    private static String getVariantAwareProperties() {
+        """
+            attributes {
+                attribute(Attribute.of('foo', String), 'bar')
+            }
+            capabilities {
+                requireCapability("org:test-cap:1.1")
+            }
+        """
+    }
+
+    private static String getExternalBaseProperties() {
+        """
+            $baseProperties
+
+            version {
+                branch = "branch"
+                strictly("123")
+                prefer("789")
+                reject("aaa")
+            }
+
+            changing = true
+        """
+    }
+
+    private static String getExternalTargetConfigurationProperties() {
+        """
+            $targetConfigurationProperties
+
+            version {
+                require("456")
+            }
+
+            changing = false
+        """
     }
 
 }
