@@ -75,15 +75,12 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
             else -> {
                 val binding = try {
                     bindings[tag]
-                } catch (e: ArrayIndexOutOfBoundsException) {
+                } catch (e: IndexOutOfBoundsException) {
                     onError(e) {
                         text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
                         text("The value may have been written incorrectly or its data is corrupted.")
                     }
-                    null
-                }
-                if (binding == null) {
-                    // This can happen if the errors are suppressed.
+                    // We may end up here if the errors are suppressed.
                     return null
                 }
 

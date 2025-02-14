@@ -80,16 +80,12 @@ abstract class AbstractUserTypeCodecTest {
         return any.uncheckedCast()
     }
 
-    private
+    internal
     fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
         val outputStream = ByteArrayOutputStream()
         writeTo(
             outputStream, graph, codec,
-            object : AbstractProblemsListener() {
-                override fun onProblem(problem: PropertyProblem) {
-                    println(problem)
-                }
-            }
+            loggingProblemsListener()
         )
         return outputStream.toByteArray()
     }
@@ -110,13 +106,13 @@ abstract class AbstractUserTypeCodecTest {
         }
     }
 
-    private
+    internal
     fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>) =
-        readFrom(ByteArrayInputStream(bytes), codec)
+        readFrom(ByteArrayInputStream(bytes), codec, loggingProblemsListener())
 
     private
-    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>) =
-        readContextFor(inputStream, codec).run {
+    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
+        readContextFor(inputStream, codec, problemsListener).run {
             withIsolateMock(codec) {
                 runReadOperation {
                     read()
@@ -144,16 +140,22 @@ abstract class AbstractUserTypeCodecTest {
         )
 
     private
-    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>) =
+    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>, problemsListener: ProblemsListener) =
         DefaultReadContext(
             codec = codec,
             decoder = KryoBackedDecoder(inputStream),
             beanStateReaderLookup = beanStateReaderLookupForTesting(),
             isIntegrityCheckEnabled = false,
             logger = mock(),
-            problemsListener = mock(),
+            problemsListener = problemsListener,
             classDecoder = DefaultClassDecoder(mock(), mock())
         )
+
+    private fun loggingProblemsListener() = object : AbstractProblemsListener() {
+        override fun onProblem(problem: PropertyProblem) {
+            println(problem)
+        }
+    }
 
     private
     fun userTypesCodec() = codecs().userTypesCodec()
