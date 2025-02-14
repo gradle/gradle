@@ -16,6 +16,7 @@
 
 package org.gradle.internal.file;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -38,4 +39,7 @@ public interface PathToFileResolver {
      * @return {@code true} if it can resolve relative path, {@code false} otherwise.
      */
     boolean canResolveRelativePath();
+
+    @Nullable
+    File getBaseDir();
 }

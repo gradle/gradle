@@ -423,8 +423,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         private PathToFileResolver createResolver() {
-            File resolved = directoryProvider.get().getAsFile();
-            return parentResolver.newResolver(resolved);
+            return parentResolver.newResolver(getBaseDir());
         }
 
         @Override
@@ -443,6 +442,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public boolean canResolveRelativePath() {
             return true;
+        }
+
+        @Override
+        public File getBaseDir() {
+            return directoryProvider.get().getAsFile();
         }
     }
 }
