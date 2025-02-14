@@ -146,6 +146,50 @@ This allows the configuration of a Java toolchain spec and the `UpdateDaemonJvm`
 Note that due to the change of type for the vendor property, executing `updateDaemonJvm` with the `jvmVendor` property will result in the task failing.
 See <<gradle_daemon.adoc#sec:specifying_a_jvm_vendor,the documentation>> for the new configuration option.
 
+[[groovy_boolean_properties]]
+==== Declaring boolean properties with `is`-prefix and `Boolean` types
+
+Gradle property names are derived by following the Java Bean specification with one exception.
+Gradle recognizes methods with a `Boolean` return type and a `is`-prefix as a boolean property. This is behavior inherited from Groovy originally.
+Groovy 4 more closely follows the Java Bean specification and link:https://issues.apache.org/jira/browse/GROOVY-10708[no longer supports this exception].
+
+Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
+In Gradle 9.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date, even when a `Boolean` property appears to be an input.
+
+Fixing this deprecation requires one of two things:
+
+1. Introduce a new method that starts with `get` instead of `is` which has the same behavior. The old method does not need to be removed (in order to preserve binary compatibility), but may need
+adjustments as indicated below.
+** It is recommended to deprecate the `is-` method, and then remove it in a future major version.
+2. Change the type of the property (both get and set) to `boolean`. *This is a breaking change.*
+
+For task input properties using the first option, you should also annotate the old `is-` method with `@Deprecated` and `@ReplacedBy` to ensure it is not used by Gradle.
+For example, this code:
+
+[source,java]
+```
+class MyValue {
+    private Boolean property = Boolean.TRUE;
+
+    @Input
+    Boolean isProperty() { return property; }
+}
+```
+
+Should be replaced with the following:
+
+[source,java]
+```
+class MyValue {
+    @Deprecated
+    @ReplacedBy("getProperty")
+    Boolean isProperty() { return property; }
+
+    @Input
+    Boolean getProperty() { return property; }
+}
+```
+
 [[changes_8.12]]
 == Upgrading from 8.11 and earlier
 
@@ -576,48 +620,6 @@ These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Ja
 - link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
 - Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
 - Calling `setVerbose(false)` did nothing.
-
-[[groovy_boolean_properties]]
-==== Declaring boolean properties with `is`-prefix and `Boolean` types
-
-Gradle property names are derived by following the Java Bean specification with one exception.
-Gradle recognizes methods with a `Boolean` return type and a `is`-prefix as a boolean property. This is behavior inherited from Groovy originally.
-Groovy 4 more closely follows the Java Bean specification and link:https://issues.apache.org/jira/browse/GROOVY-10708[no longer supports this exception].
-
-Gradle will emit a deprecation warning when it detects that a boolean property is derived from a method with a `Boolean` return type and `is`-prefix.
-In Gradle 9.0, these methods will no longer be treated as defining a Gradle property. This may cause tasks to be considered up-to-date when a `Boolean` property is an input.
-
-Fixing this deprecation requires one of two things:
-
-* Introduce a new method that starts with `get` instead of `is` which has the same behavior. The old method may be removed, but be aware that doing so may break backward compatibility.
-* Or change the type of the property (both get and set) to `boolean`.
-
-For task input properties using the first option, you should also annotate the old `is-` method with `@Deprecated` and `@ReplacedBy` to ensure it is not used by Gradle.
-For example, this code:
-
-[source,java]
-```
-class MyValue {
-    private Boolean property = Boolean.TRUE;
-
-    @Input
-    Boolean isProperty() { return property; }
-}
-```
-
-Should be replaced with the following:
-
-[source,java]
-```
-class MyValue {
-    @Deprecated
-    @ReplacedBy("getProperty")
-    Boolean isProperty() { return property; }
-
-    @Input
-    Boolean getProperty() { return property; }
-}
-```
 
 [[changes_8.10]]
 == Upgrading from 8.9 and earlier
