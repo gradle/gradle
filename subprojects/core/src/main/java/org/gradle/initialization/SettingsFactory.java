@@ -25,6 +25,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.extensibility.DefaultExtraPropertiesExtension;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
@@ -70,7 +71,8 @@ public class SettingsFactory {
         );
         Map<String, Object> properties = gradleProperties.getProperties();
         DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
-        ((ExtensibleDynamicObject) dynamicObject).addProperties(properties);
+        DefaultExtraPropertiesExtension dynamicProperties = (DefaultExtraPropertiesExtension) ((ExtensibleDynamicObject) dynamicObject).getDynamicProperties();
+        dynamicProperties.setGradleProperties(properties);
         return new SettingsState(settings, serviceRegistryFactory.services);
     }
 

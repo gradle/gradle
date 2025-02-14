@@ -16,11 +16,13 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Pair;
+import org.gradle.internal.extensibility.DefaultExtraPropertiesExtension;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.internal.resource.local.FileResourceListener;
@@ -66,6 +68,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     }
 
     private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
+        applicator.beginProperties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
         fileResourceListener.fileObserved(projectPropertiesFile);
@@ -78,6 +81,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             LOGGER.debug("project property file does not exists. We continue!");
             configurePropertiesOf(project, applicator, emptyMap());
         }
+        ((DefaultExtraPropertiesExtension) project.getExtensions().getExtraProperties()).setGradleProperties(applicator.endProperties());
     }
 
     // {@code mergedProperties} should really be <String, Object>, however properties loader signature expects a <String, String>
@@ -96,6 +100,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static class CachingPropertyApplicator {
         private final Class<? extends Project> projectClass;
         private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = new HashMap<>();
+        private final Map<String, Object> projectProperties = new HashMap<>();
 
         CachingPropertyApplicator(Class<? extends Project> projectClass) {
             this.projectClass = projectClass;
@@ -145,6 +150,16 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
          */
         private boolean isPossibleProperty(String name) {
             return !name.isEmpty();
+        }
+
+        public void beginProperties() {
+            projectProperties.clear();
+        }
+
+        public Map<String, Object> endProperties() {
+            ImmutableMap<String, Object> result = ImmutableMap.copyOf(projectProperties);
+            projectProperties.clear();
+            return result;
         }
     }
 }
