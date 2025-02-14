@@ -260,7 +260,7 @@ abstract class AbstractJavaCompilerIntegrationSpec extends AbstractIntegrationSp
         where:
         notation << [
             "'11'",
-            '11', // Integer, see #13351
+            // '11', // Integer, see #13351 TODO: Gradle 9.0 enable back when we have int -> String translation
             '"${11}"' // GString, see #13351
         ]
     }
