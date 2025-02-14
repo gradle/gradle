@@ -25,6 +25,7 @@ enum class JvmVersion(
     JAVA_17(17),
     JAVA_21(21),
     JAVA_23(23),
+    JAVA_24(24),
     ;
 
     fun toCapitalized(): String = name.replace("_", "").lowercase().toCapitalized()
