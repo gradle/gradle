@@ -223,7 +223,7 @@ To avoid generating subgroup accessors, use camelCase notation:
 |`libs.groovyCore`
 
 |`groovyJson-core`
-|`libs.groovyJsonCore`
+|`libs.groovyJson.core`
 
 |===
 
