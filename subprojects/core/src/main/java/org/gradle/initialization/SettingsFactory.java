@@ -17,7 +17,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -26,8 +25,6 @@ import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.extensibility.DefaultExtraPropertiesExtension;
-import org.gradle.internal.extensibility.ExtensibleDynamicObject;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
@@ -35,7 +32,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.service.scopes.SettingsScopeServices;
 
 import java.io.File;
-import java.util.Map;
 
 public class SettingsFactory {
     private final Instantiator instantiator;
@@ -69,10 +65,8 @@ public class SettingsFactory {
             settingsScript,
             startParameter
         );
-        Map<String, Object> properties = gradleProperties.getProperties();
-        DynamicObject dynamicObject = ((DynamicObjectAware) settings).getAsDynamicObject();
-        DefaultExtraPropertiesExtension dynamicProperties = (DefaultExtraPropertiesExtension) ((ExtensibleDynamicObject) dynamicObject).getDynamicProperties();
-        dynamicProperties.setGradleProperties(properties);
+        ((DefaultExtraPropertiesExtension) settings.getExtensions().getExtraProperties())
+            .setGradleProperties(gradleProperties.getProperties());
         return new SettingsState(settings, serviceRegistryFactory.services);
     }
 
