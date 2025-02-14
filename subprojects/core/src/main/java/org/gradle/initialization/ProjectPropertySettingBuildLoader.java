@@ -81,7 +81,8 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             LOGGER.debug("project property file does not exists. We continue!");
             configurePropertiesOf(project, applicator, emptyMap());
         }
-        ((DefaultExtraPropertiesExtension) project.getExtensions().getExtraProperties()).setGradleProperties(applicator.endProperties());
+        ((DefaultExtraPropertiesExtension) project.getExtensions().getExtraProperties())
+            .setGradleProperties(applicator.endProperties());
     }
 
     // {@code mergedProperties} should really be <String, Object>, however properties loader signature expects a <String, String>
