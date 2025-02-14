@@ -2,7 +2,8 @@ plugins {
     id("gradlebuild.distribution.implementation-java")
 }
 
-description = "Infrastructure that bootstraps a worker process"
+description = "Contains the main class that is loaded in a worker process, which is able to execute arbitrary actions. " +
+    "These classes are loaded in a separate worker daemon process and should have a minimal dependency set."
 
 gradlebuildJava.usedInWorkers()
 
