@@ -56,9 +56,11 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         """
         file("impl/build.gradle") << """
             def layout = project.layout
-            compileJava.doFirst {
+            compileJava {
                 options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
-                classpath = layout.files()
+                doFirst {
+                    classpath = layout.files()
+                }
             }
         """
         succeeds "impl:${language.compileTaskName}"
@@ -163,7 +165,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
             tasks.compileJava {
                 modularity.inferModulePath = false
                 options.compilerArgs << "--module-path=\${classpath.join(File.pathSeparator)}" \
-                    << "--module-source-path" << file("src/main/$languageName")
+                    << "--module-source-path" << file("src/main/$languageName").absolutePath
                 doFirst {
                     classpath = layout.files()
                 }
