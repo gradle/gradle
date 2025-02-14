@@ -18,19 +18,12 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.problems.Severity;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.TextUtil;
 
-import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
@@ -62,41 +55,16 @@ public class MissingTaskDependencyDetector {
                     outputPath)
                 );
         }
-        node.getTaskProperties().getInputFileProperties()
-            .forEach(spec -> visitInputFileProperty(node, validationContext, spec));
     }
 
-    private void visitInputFileProperty(LocalTaskNode node, TypeValidationContext validationContext, InputFilePropertySpec spec) {
-        spec.getPropertyFiles().visitStructure(new FileCollectionStructureVisitor() {
-            @Override
-            public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                contents.forEach(location -> visitUnfilteredLocation(location.getAbsolutePath()));
-            }
+    public void visitUnfilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location) {
+        inputHierarchy.recordNodeAccessingLocation(node, location);
+        collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location));
+    }
 
-            @Override
-            public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                if (patterns.isEmpty()) {
-                    visitUnfilteredLocation(root.getAbsolutePath());
-                } else {
-                    visitFilteredLocation(root.getAbsolutePath(), patterns.getAsSpec());
-                }
-            }
-
-            @Override
-            public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                visitUnfilteredLocation(file.getAbsolutePath());
-            }
-
-            void visitUnfilteredLocation(String location) {
-                inputHierarchy.recordNodeAccessingLocation(node, location);
-                collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location));
-            }
-
-            void visitFilteredLocation(String location, Spec<FileTreeElement> spec) {
-                inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
-                collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
-            }
-        });
+    public void visitFilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
+        inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
+        collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
     }
 
     private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {

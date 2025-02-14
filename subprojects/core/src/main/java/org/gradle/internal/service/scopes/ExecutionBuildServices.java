@@ -51,7 +51,6 @@ import org.gradle.internal.execution.steps.CaptureIncrementalStateBeforeExecutio
 import org.gradle.internal.execution.steps.CaptureNonIncrementalStateBeforeExecutionStep;
 import org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep;
 import org.gradle.internal.execution.steps.ChangingOutputsContext;
-import org.gradle.internal.execution.steps.CheckDependenciesStep;
 import org.gradle.internal.execution.steps.ChoosePipelineStep;
 import org.gradle.internal.execution.steps.ExecuteStep;
 import org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep;
@@ -195,7 +194,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new HandleStaleOutputsStep<>(buildOperationRunner, buildOutputCleanupRegistry,  deleter, outputChangeListener, outputFilesRepository,
             new LoadPreviousExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
-            new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
+            new SkipEmptyIncrementalWorkStep(problemHandler, outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
             new ValidateStep<>(problemHandler,
             new ResolveChangesStep<>(changeDetector,
@@ -215,11 +214,10 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new IdentifyStep<>(buildOperationRunner,
             new IdentityCacheStep<>(buildOperationProgressEventEmitter,
             new ExecuteWorkBuildOperationFiringStep<>(buildOperationRunner,
-            new CheckDependenciesStep<>(problemHandler,
             new ChoosePipelineStep<>(
                 immutablePipeline,
                 mutablePipeline
-        ))))));
+        )))));
         // CHECKSTYLE:ON
         // @formatter:on
     }

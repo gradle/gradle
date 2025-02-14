@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
 import org.gradle.internal.execution.caching.CachingState;
@@ -378,6 +379,10 @@ public interface UnitOfWork extends Describable {
     default void validate(WorkValidationContext validationContext) {}
 
     default void checkDependencies(WorkValidationContext validationContext) {}
+
+    default FileCollectionStructureVisitor getInputFileChecker(WorkValidationContext validationContext) {
+        return FileCollectionStructureVisitor.NO_OP;
+    }
 
     /**
      * Whether the outputs should be cleanup up when the work is executed non-incrementally.

@@ -106,6 +106,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
+            _,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             knownInputProperties,
@@ -141,6 +142,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            _,
             _
         ) >> { throw failure }
         interaction { snapshotState() }
@@ -155,7 +157,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
             visitor.visitImplementation(implementationType)
         }
-        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
     }
 

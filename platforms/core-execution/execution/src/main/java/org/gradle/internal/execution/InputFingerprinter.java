@@ -18,6 +18,7 @@ package org.gradle.internal.execution;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.execution.UnitOfWork.InputVisitor;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
@@ -34,7 +35,8 @@ public interface InputFingerprinter {
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
         ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,
-        Consumer<InputVisitor> inputs
+        Consumer<InputVisitor> inputs,
+        FileCollectionStructureVisitor validatingVisitor
     ) throws InputFingerprintingException, InputFileFingerprintingException;
 
     interface Result {

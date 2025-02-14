@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.ExecutionEngine;
 import org.gradle.internal.execution.ExecutionEngine.ExecutionOutcome;
@@ -63,6 +64,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
+    private final MissingTaskDependencyDetector missingTaskDependencyDetector;
 
     public ExecuteActionsTaskExecuter(
         ExecutionHistoryStore executionHistoryStore,
@@ -77,7 +79,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
-        PathToFileResolver fileResolver
+        PathToFileResolver fileResolver,
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationRunner = buildOperationRunner;
@@ -92,6 +95,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.fileCollectionFactory = fileCollectionFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
+        this.missingTaskDependencyDetector = missingTaskDependencyDetector;
     }
 
     @Override
@@ -110,7 +114,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             listenerManager,
             reservedFileSystemLocationRegistry,
             taskCacheabilityResolver,
-            taskDependencyFactory
+            taskDependencyFactory,
+            missingTaskDependencyDetector
         );
         try {
             return executeIfValid(task, state, context, work);

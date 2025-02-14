@@ -26,7 +26,6 @@ import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.FLAKY
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
-import static org.hamcrest.core.AnyOf.anyOf
 
 class MissingTaskDependenciesIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -567,7 +566,7 @@ The following types/formats are supported:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27576")
-    def "detects missing dependency when #noSourceTask task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
+    def "#description missing dependency when #noSourceTask task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
         def producerOutput = file("build/producerOutput.txt")
 
         buildFile << """
@@ -594,43 +593,34 @@ The following types/formats are supported:
 
         when:
         // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
-        runAndFail(firstTask, secondTask, "--max-workers=1")
+        if (detected) {
+            runAndFail(firstTask, secondTask, "--max-workers=1")
+        } else {
+            succeeds(firstTask, secondTask, "--max-workers=1")
+        }
 
         then:
-        assertMissingDependency(":producer", ":consumer", producerOutput)
+        if (detected) {
+            assertMissingDependency(":producer", ":consumer", producerOutput)
+        }
 
         where:
-        noSourceTask | firstTask  | secondTask
-        "producer"   | "producer" | "consumer"
-        "producer"   | "consumer" | "producer"
-        "consumer"   | "consumer" | "producer"
-        "consumer"   | "producer" | "consumer"
+        noSourceTask | firstTask  | secondTask | detected
+        "producer"   | "producer" | "consumer" | true
+        "producer"   | "consumer" | "producer" | true
+        "consumer"   | "consumer" | "producer" | false
+        "consumer"   | "producer" | "consumer" | false
+        description = detected ? "detects" : "does not detect"
     }
 
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
         expectReindentedValidationMessage()
-        if (GradleContextualExecuter.configCache) {
-            // TODO: Remove this workaround once https://github.com/gradle/gradle/issues/27576 is fixed
-            // Due to extra parallelism with configuration cache missing dependencies detection mechanism
-            // can report multiple errors instead of just one as is the case without configuration cache.
-            def messageMatchers = producedConsumedLocations.collect { producedConsumedLocation ->
-                def message = implicitDependency {
-                    at(producedConsumedLocation)
-                    consumer(consumerTask)
-                    producer(producerTask)
-                    includeLink()
-                }
-                containsNormalizedString(message)
-            }
-            failure.assertThatAllDescriptions(anyOf(messageMatchers))
-        } else {
-            def expectedMessage = implicitDependency {
-                at(producedConsumedLocations[0])
-                consumer(consumerTask)
-                producer(producerTask)
-                includeLink()
-            }
-            failure.assertThatDescription(containsNormalizedString(expectedMessage))
+        def expectedMessage = implicitDependency {
+            at(producedConsumedLocations[0])
+            consumer(consumerTask)
+            producer(producerTask)
+            includeLink()
         }
+        failure.assertThatDescription(containsNormalizedString(expectedMessage))
     }
 }

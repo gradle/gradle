@@ -33,7 +33,7 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
 
     @Override
     protected AbstractSkipEmptyWorkStep createStep() {
-        new SkipEmptyIncrementalWorkStep(
+        new SkipEmptyIncrementalWorkStep(problemHandler,
             outputChangeListener,
             workInputListeners,
             { -> outputsCleaner },
@@ -117,6 +117,7 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            _,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             ImmutableSortedMap.of(),
