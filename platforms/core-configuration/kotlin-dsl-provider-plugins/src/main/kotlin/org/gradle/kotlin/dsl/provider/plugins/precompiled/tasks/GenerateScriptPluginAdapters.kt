@@ -76,6 +76,7 @@ fun PrecompiledScriptPlugin.writeScriptPluginAdapterTo(outputDir: File) {
 
     outputFile.writeText(
         """
+        @file:org.gradle.api.Generated
 
         $packageDeclaration
 
