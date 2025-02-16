@@ -17,6 +17,7 @@
 package org.gradle.internal.deprecation;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.Action;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.GradleVersion;
@@ -30,6 +31,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     private static final GradleVersion GRADLE9 = GradleVersion.version("9.0");
     private static final GradleVersion GRADLE10 = GradleVersion.version("10.0");
+    private static final Action<DeprecationInfo.DeprecationInfoBuilder> NOOP = new Action<DeprecationInfo.DeprecationInfoBuilder>() {
+        @Override
+        public void execute(DeprecationInfo.DeprecationInfoBuilder deprecationInfoBuilder) {
+            // do nothing
+        }
+    };
 
     protected String summary;
     private DeprecationTimeline deprecationTimeline;
@@ -40,6 +47,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     protected String problemIdDisplayName;
     protected String problemId;
+    private DeprecationInfo.DeprecationInfoBuilder deprecationInfo = DeprecationInfo.builder();
 
     DeprecationMessageBuilder() {
     }
@@ -86,6 +94,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      */
     public WithDeprecationTimeline willBeRemovedInGradle9() {
         this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE9);
+        deprecationInfo.removedInVersion("9.0");
         return new WithDeprecationTimeline(this);
     }
 
@@ -93,6 +102,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This is scheduled to be removed in Gradle 10.0.
      */
     public WithDeprecationTimeline willBeRemovedInGradle10() {
+        deprecationInfo.removedInVersion("10.0");
         this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE10);
         return new WithDeprecationTimeline(this);
     }
@@ -101,6 +111,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This will fail with an error in Gradle 9.0.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle9() {
+        deprecationInfo.removedInVersion("9.0");
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE9);
         return new WithDeprecationTimeline(this);
     }
@@ -109,6 +120,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This will fail with an error in Gradle 10.0.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle10() {
+        deprecationInfo.removedInVersion("10.0");
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE10);
         return new WithDeprecationTimeline(this);
     }
@@ -131,10 +143,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     void setSummary(String summary) {
         this.summary = summary;
+        deprecationInfo.summary(summary);
     }
 
     void setAdvice(String advice) {
         this.advice = advice;
+        deprecationInfo.advice(advice);
     }
 
     void setDeprecationTimeline(DeprecationTimeline deprecationTimeline) {
@@ -154,11 +168,15 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
         }
 
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId, deprecationInfo.build());
     }
 
     public void setProblemId(String problemId) {
         this.problemId = problemId;
+    }
+
+    public void configureDeprecationInfo(Action<DeprecationInfo.DeprecationInfoBuilder> deprecationInfo) {
+        deprecationInfo.execute(this.deprecationInfo);
     }
 
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
@@ -222,6 +240,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         abstract String formatAdvice(T replacement);
 
+        abstract Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig();
 
         @Override
         DeprecationMessage build() {
@@ -237,6 +256,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
                 setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
             }
 
+           configureDeprecationInfo(getDeprecationInfoConfig());
             return super.build();
         }
     }
@@ -260,6 +280,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(String replacement) {
             return String.format("Please use %s instead.", replacement);
         }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
+        }
+
     }
 
     public static class DeprecateNamedParameter extends WithReplacement<String, DeprecateNamedParameter> {
@@ -276,6 +302,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return String.format("Please use the %s named parameter instead.", replacement);
+        }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
         }
     }
 
@@ -327,6 +358,16 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(String replacement) {
             return String.format("Please use the %s property instead.", replacement);
         }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return new Action<DeprecationInfo.DeprecationInfoBuilder>() {
+                @Override
+                public void execute(DeprecationInfo.DeprecationInfoBuilder deprecationInfoBuilder) {
+                    Documentation.dslReference(propertyClass, property).getUrl();
+                }
+            };
+        }
     }
 
     public static class DeprecateSystemProperty extends WithReplacement<String, DeprecateSystemProperty> {
@@ -352,6 +393,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return String.format("Please use the %s system property instead.", replacement);
+        }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
         }
     }
 
@@ -382,6 +428,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     public static class DeprecateConfiguration extends WithReplacement<List<String>, DeprecateConfiguration> {
         private final ConfigurationDeprecationType deprecationType;
+        private String replaceWith = null;
 
         DeprecateConfiguration(String configuration, ConfigurationDeprecationType deprecationType) {
             super(configuration);
@@ -401,7 +448,20 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (replacements.isEmpty()) {
                 return "Please " + deprecationType.usage + " another configuration instead.";
             }
-            return String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
+            replaceWith = Joiner.on(" or ").join(replacements);
+            return String.format("Please %s the %s configuration instead.", deprecationType.usage, replaceWith);
+        }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return new Action<DeprecationInfo.DeprecationInfoBuilder>() {
+                @Override
+                public void execute(DeprecationInfo.DeprecationInfoBuilder deprecationInfoBuilder) {
+                    if (replaceWith != null) {
+                        deprecationInfoBuilder.replaceWith(replaceWith);
+                    }
+                }
+            };
         }
     }
 
@@ -448,7 +508,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return cleanId;
     }
 
-    public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> {
+    public interface DeprecationDetails {}
+
+    public static class DeprecateMethod extends WithReplacement<String, DeprecateMethod> implements DeprecationDetails {
         private final Class<?> methodClass;
         private final String methodWithParams;
 
@@ -473,6 +535,16 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return pleaseUseThisMethodInstead(replacement);
         }
 
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return new Action<DeprecationInfo.DeprecationInfoBuilder>() {
+                @Override
+                public void execute(DeprecationInfo.DeprecationInfoBuilder deprecationInfoBuilder) {
+                    deprecationInfoBuilder.methodDeprecation(methodClass, methodWithParams);
+                }
+            };
+        }
+
         private static String pleaseUseThisMethodInstead(String replacement) {
             return String.format("Please use the %s method instead.", replacement);
         }
@@ -493,6 +565,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(String replacement) {
             return DeprecateMethod.pleaseUseThisMethodInstead(replacement);
         }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
+        }
     }
 
     public static class DeprecateType extends WithReplacement<String, DeprecateType> {
@@ -510,6 +587,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(String replacement) {
             return String.format("Please use the %s type instead.", replacement);
         }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
+        }
     }
 
     public static class DeprecateTask extends WithReplacement<String, DeprecateTask> {
@@ -525,6 +607,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return String.format("Please use the %s task instead.", replacement);
+        }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
         }
     }
 
@@ -545,11 +632,17 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         String formatAdvice(Class<?> replacement) {
             return String.format("Please use the %s type instead.", replacement.getCanonicalName());
         }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
+        }
     }
 
     public static class DeprecatePlugin extends WithReplacement<String, DeprecatePlugin> {
 
         private boolean externalReplacement = false;
+        private String plugin;
 
         DeprecatePlugin(String plugin) {
             super(plugin);
@@ -557,12 +650,23 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         String formatSummary(String plugin) {
+            this.plugin = plugin;
             return String.format("The %s plugin has been deprecated.", plugin);
         }
 
         @Override
         String formatAdvice(String replacement) {
             return externalReplacement ? String.format("Consider using the %s plugin instead.", replacement) : String.format("Please use the %s plugin instead.", replacement);
+        }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return new Action<DeprecationInfo.DeprecationInfoBuilder>() {
+                @Override
+                public void execute(DeprecationInfo.DeprecationInfoBuilder deprecationInfoBuilder) {
+                    deprecationInfoBuilder.replaceWith(plugin);
+                }
+            };
         }
 
         /**
@@ -587,6 +691,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatAdvice(String replacement) {
             return String.format("Please use %s instead.", replacement);
+        }
+
+        @Override
+        Action<DeprecationInfo.DeprecationInfoBuilder> getDeprecationInfoConfig() {
+            return NOOP;
         }
     }
 
@@ -613,4 +722,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             return super.build();
         }
     }
+
+
 }

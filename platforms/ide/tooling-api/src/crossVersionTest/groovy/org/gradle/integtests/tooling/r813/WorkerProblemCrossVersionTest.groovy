@@ -23,6 +23,7 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.IgnoreRest
 
 @ToolingApiVersion('>=8.13')
 @TargetGradleVersion('>=8.13')
@@ -148,6 +149,91 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
 
+    @IgnoreRest // TODO (donat) remove ignore annotation
+    def "deprecation from worker using #isolationMode"() {
+        setup:
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation(gradleApi())
+            }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
+            package org.gradle.test;
+
+            import org.gradle.workers.WorkParameters;
+
+            public interface ProblemsWorkerTaskParameter extends WorkParameters { }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
+            package org.gradle.test;
+
+            import java.io.File;
+            import java.io.FileWriter;
+            import org.gradle.api.Action;import org.gradle.api.problems.Problems;
+            import org.gradle.api.problems.ProblemId;
+            import org.gradle.api.problems.ProblemGroup;
+            import org.gradle.api.problems.deprecation.DeprecateMethodSpec;import org.gradle.internal.operations.CurrentBuildOperationRef;
+
+            import org.gradle.workers.WorkAction;
+
+            import javax.inject.Inject;
+
+            public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
+
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void execute() {
+                    ProblemId problemId = ProblemId.create("name", "Display name", ProblemGroup.create("generic", "Generic"));
+                    getProblems().getDeprecationReporter().deprecateMethod(ProblemWorkerTask.class, "execute", new Action<DeprecateMethodSpec>() {
+                        @Override
+                        public void execute(DeprecateMethodSpec spec) {
+                            spec.because("Should have better name");
+                        }});
+                }
+            }
+        """
+        buildFile << """
+            import javax.inject.Inject
+            import org.gradle.test.ProblemWorkerTask
+
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().${isolationMode}().submit(ProblemWorkerTask.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+        def problemProgressListener = new ProblemProgressListener()
+
+        when:
+
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks('reportProblem')
+                .addProgressListener(problemProgressListener)
+                .addJvmArguments('-agentlib:jdwp=transport=dt_socket,server=n,address=192.168.0.209:5005,suspend=y')
+                .run()
+        }
+
+        then:
+        def event = problemProgressListener.problemEvents.find {it.problem.definition.id.group.name == 'deprecation' }
+        event != null
+
+        where:
+        isolationMode << WorkerExecutorFixture.IsolationMode.values().collect {it.method }
+    }
 
     class ProblemProgressListener implements ProgressListener {
 

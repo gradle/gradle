@@ -19,8 +19,9 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
-public class DefaultDeprecationData implements DeprecationData {
+public class DefaultDeprecationData implements DeprecationData, Serializable {
 
     private final Type type;
 
