@@ -68,7 +68,7 @@ class FlakyTestQuarantine(
                 )
             val parameters =
                 (
-                    buildToolGradleParameters(true) +
+                    buildToolGradleParameters() +
                         listOf(
                             "-PflakyTests=only",
                             "-x",

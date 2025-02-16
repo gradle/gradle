@@ -49,7 +49,6 @@ class RerunFlakyTest(
         val testTaskParameterName = "testTask"
         val testNameParameterName = "testName"
         val testTaskOptionsParameterName = "testTaskOptions"
-        val daemon = true
         applyDefaultSettings(os, arch, buildJvm = BuildToolBuildJvm, timeout = 0)
 
         // Show all failed tests here, since that is what we are interested in
@@ -65,7 +64,7 @@ class RerunFlakyTest(
             )
         val parameters =
             (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters() +
                     listOf(extraParameters) +
                     functionalTestParameters(os, arch)
             ).joinToString(separator = " ")
