@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * <p>A {@code Transformer} transforms objects of type.</p>
+ * Marks interface that works with overloaded Kotlin assignment.
  *
- * <p>Implementations are free to return new objects or mutate the incoming value.</p>
- *
- * @param <OUT> The type the value is transformed to.
- * @param <IN> The type of the value to be transformed.
+ * @since 8.1
  */
-public interface Transformer<OUT extends @org.jetbrains.annotations.Nullable Object, IN> {
-    /**
-     * Transforms the given object, and returns the transformed value.
-     *
-     * @param in The object to transform.
-     * @return The transformed object.
-     */
-    OUT transform(IN in);
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface SupportsKotlinAssignmentOverloading {
 }
