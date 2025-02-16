@@ -102,7 +102,7 @@ fun isSoftwareType(objectOrigin: ObjectOrigin): Boolean =
 internal
 fun isDefaultsCall(parent: ObjectOrigin.ReceiverOrigin) = parent is ObjectOrigin.AccessAndConfigureReceiver &&
     isTopLevelReceiver(parent.receiver) &&
-    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == DefaultsTopLevelReceiver::defaults.name
+    (parent as? ObjectOrigin.AccessAndConfigureReceiver)?.function?.simpleName == DEFAULTS_BLOCK_NAME
 
 
 /**
