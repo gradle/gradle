@@ -45,6 +45,16 @@ class BuildTypeTest {
 
     @Test
     fun `CompileAll parameters are correct`() {
+        val linuxPaths =
+            listOf(
+                "%linux.java7.oracle.64bit%",
+                "%linux.java8.oracle.64bit%",
+                "%linux.java11.openjdk.64bit%",
+                "%linux.java17.openjdk.64bit%",
+                "%linux.java21.openjdk.64bit%",
+                "%linux.java23.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = linuxPaths.joinToString(",")
         val gradleStep = CompileAll(buildModel, buildModel.stages[0]).steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
         assertEquals(
             listOf(
@@ -61,7 +71,7 @@ class BuildTypeTest {
                 "-Porg.gradle.java.installations.auto-download=false",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",
-                "\"-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%,%linux.java8.oracle.64bit%,%linux.java11.openjdk.64bit%,%linux.java17.openjdk.64bit%,%linux.java21.openjdk.64bit%,%linux.java23.openjdk.64bit%\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-detect=false",
             ).joinToString(" "),
@@ -80,6 +90,16 @@ class BuildTypeTest {
                 TestCoverage(4, TestType.PLATFORM, Os.WINDOWS, JvmVersion.JAVA_23, JvmVendor.OPENJDK),
                 buildModel.stages[2],
             )
+
+        val windowsPaths =
+            listOf(
+                "%windows.java8.openjdk.64bit%",
+                "%windows.java11.openjdk.64bit%",
+                "%windows.java17.openjdk.64bit%",
+                "%windows.java21.openjdk.64bit%",
+                "%windows.java23.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = windowsPaths.joinToString(",")
         val gradleStep = functionalTest.steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
         assertEquals(
             listOf(
@@ -102,7 +122,7 @@ class BuildTypeTest {
                 "-PflakyTests=exclude",
                 "-Dscan.tag.Check",
                 "-PteamCityBuildId=%teamcity.build.id%",
-                "\"-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%,%windows.java11.openjdk.64bit%,%windows.java17.openjdk.64bit%,%windows.java21.openjdk.64bit%,%windows.java23.openjdk.64bit%\"",
+                "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
                 "-Porg.gradle.java.installations.auto-download=false",
                 "-Porg.gradle.java.installations.auto-detect=false",
             ).joinToString(" "),
