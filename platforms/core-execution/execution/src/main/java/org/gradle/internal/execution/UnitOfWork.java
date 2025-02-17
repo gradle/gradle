@@ -378,9 +378,15 @@ public interface UnitOfWork extends Describable {
      */
     default void validate(WorkValidationContext validationContext) {}
 
-    default void checkDependencies(WorkValidationContext validationContext) {}
+    /**
+     * Checks if outputs of the work are only consumed by inputs that declare a dependency on this unit of work.
+     */
+    default void checkOutputDependencies(WorkValidationContext validationContext) {}
 
-    default FileCollectionStructureVisitor getInputFileChecker(WorkValidationContext validationContext) {
+    /**
+     * Retuns a visitor that checks if inputs have declared dependencies on any consumed outputs.
+     */
+    default FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext validationContext) {
         return FileCollectionStructureVisitor.NO_OP;
     }
 

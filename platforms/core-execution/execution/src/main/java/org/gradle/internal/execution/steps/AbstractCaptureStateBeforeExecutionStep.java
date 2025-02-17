@@ -69,7 +69,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             work.visitRegularInputs(new UnitOfWork.InputVisitor() {
                 @Override
                 public void visitInputFileProperty(String propertyName, InputBehavior behavior, UnitOfWork.InputFileValueSupplier value) {
-                    ((FileCollectionInternal) value.getFiles()).visitStructure(work.getInputFileChecker(context.getValidationContext()));
+                    ((FileCollectionInternal) value.getFiles()).visitStructure(work.getInputDependencyChecker(context.getValidationContext()));
                 }
             });
         }
@@ -124,7 +124,7 @@ public abstract class AbstractCaptureStateBeforeExecutionStep<C extends Previous
             context.getInputProperties(),
             context.getInputFileProperties(),
             work::visitRegularInputs,
-            work.getInputFileChecker(context.getValidationContext())
+            work.getInputDependencyChecker(context.getValidationContext())
         );
 
         return new DefaultBeforeExecutionState(

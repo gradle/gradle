@@ -110,7 +110,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
                     }
                 }
             }),
-            work.getInputFileChecker(context.getValidationContext()));
+            work.getInputDependencyChecker(context.getValidationContext()));
     }
 
     abstract protected ImmutableSortedMap<String, ValueSnapshot> getKnownInputProperties(C context);
@@ -121,7 +121,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
     private CachingResult skipExecutionWithEmptySources(UnitOfWork work, C context) {
         // Make sure we check for missing dependencies even if we skip executing the work
         WorkValidationContext validationContext = context.getValidationContext();
-        work.checkDependencies(validationContext);
+        work.checkOutputDependencies(validationContext);
         problemHandler.handleReportedProblems(work, validationContext);
 
         CachingResult result = performSkip(work, context);

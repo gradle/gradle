@@ -29,11 +29,11 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     private final LocalTaskNode localTaskNode;
     private final TaskProperties properties;
     private final WorkValidationContext validationContext;
-    private final DependencyCheckAction dependencyCheckAction;
+    private final OutputDependencyCheckAction dependencyCheckAction;
     private TaskExecutionMode taskExecutionMode;
     private BuildOperationContext snapshotTaskInputsBuildOperationContext;
 
-    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, WorkValidationContext validationContext, DependencyCheckAction dependencyCheckAction) {
+    public DefaultTaskExecutionContext(LocalTaskNode localTaskNode, TaskProperties taskProperties, WorkValidationContext validationContext, OutputDependencyCheckAction dependencyCheckAction) {
         this.localTaskNode = localTaskNode;
         this.properties = taskProperties;
         this.validationContext = validationContext;
@@ -56,7 +56,7 @@ public class DefaultTaskExecutionContext implements TaskExecutionContext {
     }
 
     @Override
-    public DependencyCheckAction getDependencyCheckAction() {
+    public OutputDependencyCheckAction getOutputDependencyCheckAction() {
         return dependencyCheckAction;
     }
 

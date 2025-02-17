@@ -476,13 +476,13 @@ public class TaskExecution implements MutableUnitOfWork {
     }
 
     @Override
-    public void checkDependencies(WorkValidationContext workValidationContext) {
+    public void checkOutputDependencies(WorkValidationContext workValidationContext) {
         TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
-        context.getDependencyCheckAction().checkDependencies(validationContext);
+        context.getOutputDependencyCheckAction().checkOutputDependencies(validationContext);
     }
 
     @Override
-    public FileCollectionStructureVisitor getInputFileChecker(WorkValidationContext workValidationContext) {
+    public FileCollectionStructureVisitor getInputDependencyChecker(WorkValidationContext workValidationContext) {
         TypeValidationContext validationContext = getTypeValidationContext(workValidationContext);
         return new FileCollectionStructureVisitor() {
             @Override

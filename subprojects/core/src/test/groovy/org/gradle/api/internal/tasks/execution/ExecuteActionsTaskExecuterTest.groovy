@@ -189,7 +189,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         executionContext.getTaskExecutionMode() >> DefaultTaskExecutionMode.incremental()
         executionContext.getTaskProperties() >> taskProperties
         executionContext.getValidationContext() >> validationContext
-        executionContext.getDependencyCheckAction() >> { { c -> } as TaskExecutionContext.DependencyCheckAction }
+        executionContext.getOutputDependencyCheckAction() >> { { c -> } as TaskExecutionContext.OutputDependencyCheckAction }
         executionHistoryStore.load("task") >> Optional.of(previousState)
         taskProperties.getOutputFileProperties() >> ImmutableSortedSet.of()
         ProblemsProgressEventEmitterHolder.init(TestUtil.problemsService())

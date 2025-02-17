@@ -34,6 +34,21 @@ import java.util.Set;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
+/**
+ * Detects missing task dependencies between tasks producing and consuming file locations.
+ *
+ * <p>
+ * The detector is triggered both when a task produces an output location and when a task consumes an input location.
+ * This is to ensure that we detect an overlap regardless of what order producer and consumer runs in.
+ * </p>
+ *
+ * <p>
+ * An overlap between inputs and outputs requiring a declared dependency exists between tasks
+ * if <em>consumer</em> consumes any file produced by <em>producer.</em>
+ * This includes <em>consumer</em> consuming a filtered set of the produced files, or
+ * consuming a parent directory of the produced output.
+ * </p>
+ */
 public class MissingTaskDependencyDetector {
     private final ExecutionNodeAccessHierarchy outputHierarchy;
     private final ExecutionNodeAccessHierarchies.InputNodeAccessHierarchy inputHierarchy;
@@ -43,28 +58,28 @@ public class MissingTaskDependencyDetector {
         this.inputHierarchy = inputHierarchy;
     }
 
-    public void detectMissingDependencies(LocalTaskNode node, TypeValidationContext validationContext) {
-        for (String outputPath : node.getMutationInfo().getOutputPaths()) {
-            inputHierarchy.getNodesAccessing(outputPath).stream()
-                .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
-                .filter(MissingTaskDependencyDetector::isEnabled)
-                .forEach(consumerWithoutDependency -> collectValidationProblem(
-                    node,
-                    consumerWithoutDependency,
-                    validationContext,
-                    outputPath)
-                );
-        }
-    }
-
+    /**
+     * Records the given node accessing the given input location and checks if there are any nodes producing the location that the node does not depend on.
+     */
     public void visitUnfilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location) {
         inputHierarchy.recordNodeAccessingLocation(node, location);
         collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location));
     }
 
+    /**
+     * Records the given node accessing the given input location with a filter, and checks if there are any nodes producing the location that the node does not depend on.
+     */
     public void visitFilteredInputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location, Spec<FileTreeElement> spec) {
         inputHierarchy.recordNodeAccessingFileTree(node, location, spec);
         collectValidationProblemsForConsumer(node, validationContext, location, outputHierarchy.getNodesAccessing(location, spec));
+    }
+
+    /**
+     * Records the given node producing the given output location and checks if there are any nodes consuming the location without declaring a dependency on the producer.
+     */
+    public void visitOutputLocation(LocalTaskNode node, TypeValidationContext validationContext, String location) {
+        // TODO We should have already recorded outputs in ResolveMutationsNode, but we should probably do it here instead
+        collectValidationProblemsForProducer(node, validationContext, location, inputHierarchy.getNodesAccessing(location));
     }
 
     private static void collectValidationProblemsForConsumer(LocalTaskNode consumer, TypeValidationContext validationContext, String locationConsumedByThisTask, Collection<Node> producers) {
@@ -77,6 +92,18 @@ public class MissingTaskDependencyDetector {
                 validationContext,
                 locationConsumedByThisTask
             ));
+    }
+
+    private static void collectValidationProblemsForProducer(LocalTaskNode node, TypeValidationContext validationContext, String outputPath, Collection<Node> consumers) {
+        consumers.stream()
+            .filter(consumerNode -> hasNoSpecifiedOrder(node, consumerNode))
+            .filter(MissingTaskDependencyDetector::isEnabled)
+            .forEach(consumerWithoutDependency -> collectValidationProblem(
+                node,
+                consumerWithoutDependency,
+                validationContext,
+                outputPath)
+            );
     }
 
     private static boolean isEnabled(Node node) {

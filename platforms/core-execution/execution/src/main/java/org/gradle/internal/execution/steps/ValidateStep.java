@@ -53,7 +53,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
     public R execute(UnitOfWork work, C context) {
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
-        work.checkDependencies(validationContext);
+        work.checkOutputDependencies(validationContext);
         context.getBeforeExecutionState()
             .ifPresent(beforeExecutionState -> validateImplementations(work, beforeExecutionState, validationContext));
 
