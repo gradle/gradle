@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
+import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
@@ -54,6 +55,13 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
     @Override
     @Nullable
     GradleInternal getParent();
+
+    /**
+     * Executes previously registered actions against root project.
+     * Must be called only after base classloader scope has been locked.
+     * @throws IllegalStateException when base project classloader scope is not locked
+     * */
+    void executeRootProjectActions();
 
     GradleInternal getRoot();
 
@@ -150,6 +158,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * @throws IllegalStateException if called before {@link #setBaseProjectClassLoaderScope(ClassLoaderScope)}
      */
     ClassLoaderScope baseProjectClassLoaderScope();
+
+    void baseProjectClassLoaderLocked(Action<? super GradleInternal> action);
 
     /**
      * @throws IllegalStateException if called more than once
