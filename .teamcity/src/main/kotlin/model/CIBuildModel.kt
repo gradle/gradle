@@ -57,11 +57,6 @@ enum class StageName(
         "Once a week: Run performance tests for multiple Gradle versions",
         "HistoricalPerformance",
     ),
-    EXPERIMENTAL_VFS_RETENTION(
-        "Experimental FS Watching",
-        "On demand checks to run tests with file system watching enabled",
-        "ExperimentalVfsRetention",
-    ),
     EXPERIMENTAL_PERFORMANCE(
         "Experimental Performance",
         "Try out new performance test running",
@@ -418,27 +413,6 @@ data class CIBuildModel(
                         ),
                         PerformanceTestCoverage(8, PerformanceTestType.PER_WEEK, Os.WINDOWS, numberOfBuckets = 5),
                         PerformanceTestCoverage(9, PerformanceTestType.PER_WEEK, Os.MACOS, numberOfBuckets = 5),
-                    ),
-            ),
-            Stage(
-                StageName.EXPERIMENTAL_VFS_RETENTION,
-                trigger = Trigger.NEVER,
-                runsIndependent = true,
-                flameGraphs =
-                    listOf(
-                        FlameGraphGeneration(
-                            14,
-                            "File System Watching",
-                            listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
-                                PerformanceScenario(
-                                    Scenario(
-                                        "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest",
-                                        "assemble for non-abi change with file system watching and configuration caching",
-                                    ),
-                                    it,
-                                )
-                            },
-                        ),
                     ),
             ),
             Stage(
