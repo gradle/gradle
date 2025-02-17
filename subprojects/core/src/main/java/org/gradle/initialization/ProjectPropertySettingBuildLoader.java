@@ -68,7 +68,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     }
 
     private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
-        applicator.beginProperties();
+        applicator.beginProjectProperties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
         fileResourceListener.fileObserved(projectPropertiesFile);
@@ -82,7 +82,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             configurePropertiesOf(project, applicator, emptyMap());
         }
         ((ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties())
-            .setGradleProperties(applicator.endProperties());
+            .setGradleProperties(applicator.endProjectProperties());
     }
 
     // {@code mergedProperties} should really be <String, Object>, however properties loader signature expects a <String, String>
@@ -101,7 +101,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static class CachingPropertyApplicator {
         private final Class<? extends Project> projectClass;
         private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = new HashMap<>();
-        private final Map<String, Object> projectProperties = new HashMap<>();
+        private ImmutableMap.Builder<String, Object> extraProjectProperties;
 
         CachingPropertyApplicator(Class<? extends Project> projectClass) {
             this.projectClass = projectClass;
@@ -114,13 +114,16 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
                 if (propertyMutator != null) {
                     propertyMutator.setValue(project, value);
                 } else {
-                    setExtraPropertyOf(project, name, value);
+                    setExtraProjectProperty(name, value);
                 }
             }
         }
 
-        private void setExtraPropertyOf(Project project, String name, @Nullable Object value) {
-            project.getExtensions().getExtraProperties().set(name, value);
+        private void setExtraProjectProperty(String name, @Nullable Object value) {
+            if (extraProjectProperties == null) {
+                extraProjectProperties = ImmutableMap.builder();
+            }
+            extraProjectProperties.put(name, value);
         }
 
         @Nullable
@@ -153,14 +156,18 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             return !name.isEmpty();
         }
 
-        public void beginProperties() {
-            projectProperties.clear();
+        public void beginProjectProperties() {
+            // For symmetry only
         }
 
-        public Map<String, Object> endProperties() {
-            ImmutableMap<String, Object> result = ImmutableMap.copyOf(projectProperties);
-            projectProperties.clear();
-            return result;
+        public Map<String, Object> endProjectProperties() {
+            try {
+                return extraProjectProperties != null
+                    ? extraProjectProperties.buildKeepingLast()
+                    : ImmutableMap.of();
+            } finally {
+                extraProjectProperties = null;
+            }
         }
     }
 }
