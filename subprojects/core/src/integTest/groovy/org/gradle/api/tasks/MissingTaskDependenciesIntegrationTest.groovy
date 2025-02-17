@@ -565,6 +565,42 @@ The following types/formats are supported:
         failureCauseContains(cause)
     }
 
+    def "detects missing dependency when executed in #firstTask -> #secondTask order"() {
+        def producerOutput = file("build/producerOutput.txt")
+
+        buildFile << """
+            def producerOutput = file("$producerOutput")
+
+            task producer {
+                outputs.file(producerOutput)
+                doLast {
+                    producerOutput.text = "produced"
+                }
+            }
+
+            task consumer {
+                def consumerOutput = file("build/comsumer/consumerOutput.txt")
+                inputs.files(producerOutput)
+                outputs.file(consumerOutput)
+                doLast {
+                    consumerOutput.text = "consumed"
+                }
+            }
+        """
+
+        when:
+        // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
+        runAndFail(firstTask, secondTask, "--max-workers=1")
+
+        then:
+        assertMissingDependency(":producer", ":consumer", producerOutput)
+
+        where:
+        firstTask  | secondTask
+        "producer" | "consumer"
+        "consumer" | "producer"
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/27576")
     def "detects missing dependency when producer task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
         def producerOutput = file("build/producerOutput.txt")
