@@ -16,6 +16,8 @@
 
 plugins {
     id("gradlebuild.distribution.implementation-java")
+    // TODO Make :serialization not depend on this and then we can unpublish this library
+    id("gradlebuild.publish-public-libraries")
 }
 
 description = "Tools to handle classloaders"
