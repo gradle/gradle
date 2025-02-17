@@ -39,15 +39,11 @@ public class JavadocOptionFile {
     private final Map<String, JavadocOptionFileOptionInternal<?>> options;
 
     public JavadocOptionFile() {
-        this(new LinkedHashMap<>());
-    }
-
-    private JavadocOptionFile(Map<String, JavadocOptionFileOptionInternal<?>> options) {
-        this.options = options;
+        this.options = new LinkedHashMap<>();
     }
 
     public JavadocOptionFile(JavadocOptionFile original) {
-        this(duplicateOptions(original.options));
+        this.options = duplicateOptions(original.options);
     }
 
     private static Map<String, JavadocOptionFileOptionInternal<?>> duplicateOptions(Map<String, JavadocOptionFileOptionInternal<?>> original) {

@@ -17,6 +17,7 @@
 package org.gradle.external.javadoc;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -63,6 +64,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         OPTION_LOCALE("locale", CoreJavadocOptions::getLocale),
         OPTION_ENCODING("encoding", CoreJavadocOptions::getEncoding);
 
+        private final static Map<String, KnownOption> BY_OPTION_NAME = Arrays.stream(KnownOption.values())
+            .collect(ImmutableMap.toImmutableMap(option -> option.option, option -> option));
+
         private final String option;
         @SuppressWarnings("ImmutableEnumChecker")
         private final Function<CoreJavadocOptions, Object> richProperty;
@@ -73,29 +77,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         }
     }
 
-    static final List<KnownOption> KNOWN_OPTIONS;
-    static final Set<String> KNOWN_OPTION_NAMES;
-
-    static {
-        ImmutableList.Builder<KnownOption> knownOptions = ImmutableList.builder();
-        for (KnownOption knownOption : KnownOption.values()) {
-            knownOptions.add(knownOption);
-        }
-        KNOWN_OPTIONS = knownOptions.build();
-        KNOWN_OPTION_NAMES = KNOWN_OPTIONS.stream()
-            .map(option -> option.option)
-            .collect(ImmutableSet.toImmutableSet());
-    }
+    private static final List<KnownOption> KNOWN_OPTIONS = ImmutableList.copyOf(KnownOption.BY_OPTION_NAME.values());
+    static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
 
     protected JavadocOptionFile optionFile;
-
-    /**
-     * Core options which are known, and have corresponding fields in this class.
-     *
-     * @since 7.5
-     */
-    @Incubating
-    protected Set<String> knownCoreOptionNames;
 
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;

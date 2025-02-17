@@ -17,6 +17,7 @@
 package org.gradle.external.javadoc;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
@@ -98,6 +99,9 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         OPTION_NOTIMESTAMP("notimestamp", StandardJavadocDocletOptions::getNoTimestamp),
         OPTION_NOCOMMENT("nocomment", StandardJavadocDocletOptions::getNoComment);
 
+        private final static Map<String, KnownOption> BY_OPTION_NAME = Arrays.stream(KnownOption.values())
+            .collect(ImmutableMap.toImmutableMap(option -> option.option, option -> option));
+
         private final String option;
         @SuppressWarnings("ImmutableEnumChecker")
         private final Function<StandardJavadocDocletOptions, Object> richProperty;
@@ -108,19 +112,8 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         }
     }
 
-    private static final List<KnownOption> KNOWN_OPTIONS;
-    private static final Set<String> KNOWN_OPTION_NAMES;
-
-    static {
-        ImmutableList.Builder<KnownOption> knownOptions = ImmutableList.builder();
-        for (KnownOption knownOption : KnownOption.values()) {
-            knownOptions.add(knownOption);
-        }
-        KNOWN_OPTIONS = knownOptions.build();
-        KNOWN_OPTION_NAMES = KNOWN_OPTIONS.stream()
-            .map(option -> option.option)
-            .collect(ImmutableSet.toImmutableSet());
-    }
+    private static final List<KnownOption> KNOWN_OPTIONS = ImmutableList.copyOf(KnownOption.BY_OPTION_NAME.values());
+    private static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
 
     @Inject
     public StandardJavadocDocletOptions() {
