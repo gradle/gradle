@@ -19,11 +19,10 @@ package org.gradle.internal.execution.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.ForwardingFileCollectionStructureVisitor;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.FileCollectionFingerprinterRegistry;
@@ -151,20 +150,10 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             try {
                 MutableBoolean containsArchiveTrees = new MutableBoolean(false);
-                FileSystemSnapshot snapshot = snapshotter.snapshot(value.getFiles(), new FileCollectionStructureVisitor() {
-                    @Override
-                    public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                        validatingVisitor.visitCollection(source, contents);
-                    }
-
-                    @Override
-                    public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-                        validatingVisitor.visitFileTree(root, patterns, fileTree);
-                    }
-
+                FileSystemSnapshot snapshot = snapshotter.snapshot(value.getFiles(), new ForwardingFileCollectionStructureVisitor(validatingVisitor) {
                     @Override
                     public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
-                        validatingVisitor.visitFileTreeBackedByFile(file, fileTree, sourceTree);
+                        super.visitFileTreeBackedByFile(file, fileTree, sourceTree);
                         containsArchiveTrees.set(true);
                     }
                 });
