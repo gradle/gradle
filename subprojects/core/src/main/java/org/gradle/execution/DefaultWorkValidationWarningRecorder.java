@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.stream.Collectors.joining;
@@ -34,11 +35,11 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 public class DefaultWorkValidationWarningRecorder implements ValidateStep.ValidationWarningRecorder, WorkValidationWarningReporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
 
-    private final ConcurrentHashMap<UnitOfWork, Boolean> workWithWarnings = new ConcurrentHashMap<>();
+    private final Set<UnitOfWork> workWithWarnings = ConcurrentHashMap.newKeySet();
 
     @Override
     public void recordValidationWarnings(UnitOfWork work, Collection<? extends InternalProblem> warnings) {
-        workWithWarnings.put(work, Boolean.TRUE);
+        workWithWarnings.add(work);
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))
             .map(warning -> "\n  - " + warning)
