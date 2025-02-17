@@ -490,7 +490,6 @@ data class TestCoverage(
     val vendor: JvmVendor = JvmVendor.ORACLE,
     val buildJvm: Jvm = BuildToolBuildJvm,
     val expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
-    val withoutDependencies: Boolean = false,
     val arch: Arch = os.defaultArch,
     val failStage: Boolean = true,
 ) {
@@ -501,7 +500,6 @@ data class TestCoverage(
         testJvm: JvmCategory,
         expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
         buildJvm: Jvm = BuildToolBuildJvm,
-        withoutDependencies: Boolean = false,
         arch: Arch = Arch.AMD64,
         failStage: Boolean = true,
     ) : this(
@@ -512,7 +510,6 @@ data class TestCoverage(
         testJvm.vendor,
         buildJvm,
         expectedBucketNumber,
-        withoutDependencies,
         arch,
         failStage,
     )
@@ -554,7 +551,7 @@ data class TestCoverage(
             vendor.displayName,
             os.asName(),
             arch.asName(),
-        ).joinToString(" ") + if (withoutDependencies) " without dependencies" else ""
+        ).joinToString(" ")
 }
 
 enum class TestType(
