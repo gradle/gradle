@@ -566,14 +566,14 @@ The following types/formats are supported:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/27576")
-    def "#description missing dependency when #noSourceTask task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
+    def "detects missing dependency when producer task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
         def producerOutput = file("build/producerOutput.txt")
 
         buildFile << """
             def producerOutput = file("$producerOutput")
 
             task producer {
-                inputs.files("empty-input").skipWhenEmpty(${noSourceTask == "producer"})
+                inputs.files("empty-input").skipWhenEmpty(true)
                 outputs.file(producerOutput)
                 doLast {
                     producerOutput.text = "produced"
@@ -581,7 +581,6 @@ The following types/formats are supported:
             }
 
             task consumer {
-                inputs.files("empty-input").skipWhenEmpty(${noSourceTask == "consumer"})
                 def consumerOutput = file("build/comsumer/consumerOutput.txt")
                 inputs.files(producerOutput)
                 outputs.file(consumerOutput)
@@ -593,24 +592,50 @@ The following types/formats are supported:
 
         when:
         // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
-        if (detected) {
-            runAndFail(firstTask, secondTask, "--max-workers=1")
-        } else {
-            succeeds(firstTask, secondTask, "--max-workers=1")
-        }
+        runAndFail(firstTask, secondTask, "--max-workers=1")
 
         then:
-        if (detected) {
-            assertMissingDependency(":producer", ":consumer", producerOutput)
-        }
+        assertMissingDependency(":producer", ":consumer", producerOutput)
 
         where:
-        noSourceTask | firstTask  | secondTask | detected
-        "producer"   | "producer" | "consumer" | true
-        "producer"   | "consumer" | "producer" | true
-        "consumer"   | "consumer" | "producer" | false
-        "consumer"   | "producer" | "consumer" | false
-        description = detected ? "detects" : "does not detect"
+        firstTask  | secondTask
+        "producer" | "consumer"
+        "consumer" | "producer"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27576")
+    def "does not detect missing dependency when consumer task has NO-SOURCE, executed in #firstTask -> #secondTask order"() {
+        def producerOutput = file("build/producerOutput.txt")
+
+        buildFile << """
+            def producerOutput = file("$producerOutput")
+
+            task producer {
+                outputs.file(producerOutput)
+                doLast {
+                    producerOutput.text = "produced"
+                }
+            }
+
+            task consumer {
+                inputs.files("empty-input").skipWhenEmpty(true)
+                def consumerOutput = file("build/comsumer/consumerOutput.txt")
+                inputs.files(producerOutput)
+                outputs.file(consumerOutput)
+                doLast {
+                    consumerOutput.text = "consumed"
+                }
+            }
+        """
+
+        expect:
+        // Using max-workers=1 to avoid parallel execution and re-ordering of tasks
+        succeeds(firstTask, secondTask, "--max-workers=1")
+
+        where:
+        firstTask  | secondTask
+        "producer" | "consumer"
+        "consumer" | "producer"
     }
 
     void assertMissingDependency(String producerTask, String consumerTask, File... producedConsumedLocations) {
