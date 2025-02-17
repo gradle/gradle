@@ -173,29 +173,31 @@ class ApplyDefaultConfigurationTest {
     ): String {
         val linuxPaths =
             listOf(
-                "-Porg.gradle.java.installations.paths=%linux.java7.oracle.64bit%",
+                "%linux.java7.oracle.64bit%",
                 "%linux.java8.oracle.64bit%",
                 "%linux.java11.openjdk.64bit%",
                 "%linux.java17.openjdk.64bit%",
                 "%linux.java21.openjdk.64bit%",
                 "%linux.java23.openjdk.64bit%",
-            ).joinToString(",")
+                "%linux.java24.openjdk.64bit%",
+            )
         val windowsPaths =
             listOf(
-                "-Porg.gradle.java.installations.paths=%windows.java8.openjdk.64bit%",
+                "%windows.java8.openjdk.64bit%",
                 "%windows.java11.openjdk.64bit%",
                 "%windows.java17.openjdk.64bit%",
                 "%windows.java21.openjdk.64bit%",
                 "%windows.java23.openjdk.64bit%",
-            ).joinToString(",")
-        val expectedInstallationPaths = if (os == Os.WINDOWS) windowsPaths else linuxPaths
+                "%windows.java24.openjdk.64bit%",
+            )
+        val expectedInstallationPaths = (if (os == Os.WINDOWS) windowsPaths else linuxPaths).joinToString(",")
         return listOf(
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks% $PLUGINS_PORTAL_URL_OVERRIDE -s",
             "--no-configuration-cache %additional.gradle.parameters% $daemon",
             "--continue $extraParameters -Dscan.tag.Check",
             "-Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id%",
-            "\"$expectedInstallationPaths\"",
+            "\"-Porg.gradle.java.installations.paths=$expectedInstallationPaths\"",
             "-Porg.gradle.java.installations.auto-download=false",
             "-Porg.gradle.java.installations.auto-detect=false",
         ).joinToString(" ")
