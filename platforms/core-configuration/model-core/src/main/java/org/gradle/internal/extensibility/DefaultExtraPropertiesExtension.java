@@ -39,7 +39,8 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         if (storage.containsKey(name)) {
             return true;
         }
-        onGradlePropertyLookup(name);
+        // TODO:configuration-cache track Gradle property lookup
+//        onGradlePropertyLookup(name);
         return gradleProperties.containsKey(name);
     }
 
@@ -58,7 +59,8 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         if (storage.containsKey(name)) {
             return storage.get(name);
         }
-        onGradlePropertyLookup(name);
+        // TODO:configuration-cache track Gradle property lookup
+//        onGradlePropertyLookup(name);
         return gradleProperties.get(name);
     }
 
@@ -78,7 +80,8 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
             return storage.get(name);
         }
 
-        onGradlePropertyLookup(name);
+        // TODO:configuration-cache track Gradle property lookup
+//        onGradlePropertyLookup(name);
         if (gradleProperties.containsKey(name)) {
             return gradleProperties.get(name);
         }
@@ -100,7 +103,8 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         HashMap<String, Object> properties = new HashMap<>(storage);
         for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
             if (!properties.containsKey(entry.getKey())) {
-                onGradlePropertyLookup(entry.getKey());
+                // TODO:configuration-cache track Gradle property lookup
+//                onGradlePropertyLookup(entry.getKey());
                 properties.put(entry.getKey(), entry.getValue());
             }
         }
@@ -120,9 +124,5 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     @Override
     public void setGradleProperties(Map<String, Object> properties) {
         gradleProperties = ImmutableMap.copyOf(properties);
-    }
-
-    private void onGradlePropertyLookup(@SuppressWarnings("unused") String name) {
-        // TODO:configuration-cache track property usage
     }
 }

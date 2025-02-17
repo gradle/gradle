@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static java.util.Collections.emptyMap;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -79,7 +78,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             configurePropertiesOf(project, applicator, uncheckedCast(projectProperties));
         } else {
             LOGGER.debug("project property file does not exists. We continue!");
-            configurePropertiesOf(project, applicator, emptyMap());
+            configurePropertiesOf(project, applicator, ImmutableMap.of());
         }
         ((ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties())
             .setGradleProperties(applicator.endProjectProperties());
@@ -123,11 +122,12 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             if (extraProjectProperties == null) {
                 extraProjectProperties = ImmutableMap.builder();
             }
+            // TODO:wip Handle null values
             extraProjectProperties.put(name, value);
         }
 
         @Nullable
-        private Class<?> typeOf(@Nullable Object value) {
+        private static Class<?> typeOf(@Nullable Object value) {
             return value == null ? null : value.getClass();
         }
 
@@ -152,7 +152,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
          *
          * @see java.util.Properties#load(java.io.Reader)
          */
-        private boolean isPossibleProperty(String name) {
+        private static boolean isPossibleProperty(String name) {
             return !name.isEmpty();
         }
 
@@ -161,10 +161,11 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         }
 
         public Map<String, Object> endProjectProperties() {
+            if (extraProjectProperties == null) {
+                return ImmutableMap.of();
+            }
             try {
-                return extraProjectProperties != null
-                    ? extraProjectProperties.buildKeepingLast()
-                    : ImmutableMap.of();
+                return extraProjectProperties.build();
             } finally {
                 extraProjectProperties = null;
             }
