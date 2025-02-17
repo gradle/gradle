@@ -42,6 +42,7 @@ import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 import org.gradle.process.internal.worker.problem.WorkerProblemEmitter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
@@ -70,7 +71,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Nonnull
     private static PayloadSerializer createPayloadSerializer() {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
-        return new PayloadSerializer(
+        return new DefaultPayloadSerializer(
             new WellKnownClassLoaderRegistry(
                 new DefaultPayloadClassLoaderRegistry(
                     classLoaderCache,
