@@ -57,11 +57,6 @@ enum class StageName(
         "Once a week: Run performance tests for multiple Gradle versions",
         "HistoricalPerformance",
     ),
-    EXPERIMENTAL_VFS_RETENTION(
-        "Experimental FS Watching",
-        "On demand checks to run tests with file system watching enabled",
-        "ExperimentalVfsRetention",
-    ),
     EXPERIMENTAL_PERFORMANCE(
         "Experimental Performance",
         "Try out new performance test running",
@@ -421,27 +416,6 @@ data class CIBuildModel(
                     ),
             ),
             Stage(
-                StageName.EXPERIMENTAL_VFS_RETENTION,
-                trigger = Trigger.NEVER,
-                runsIndependent = true,
-                flameGraphs =
-                    listOf(
-                        FlameGraphGeneration(
-                            14,
-                            "File System Watching",
-                            listOf("santaTrackerAndroidBuild", "largeJavaMultiProject").map {
-                                PerformanceScenario(
-                                    Scenario(
-                                        "org.gradle.performance.regression.corefeature.FileSystemWatchingPerformanceTest",
-                                        "assemble for non-abi change with file system watching and configuration caching",
-                                    ),
-                                    it,
-                                )
-                            },
-                        ),
-                    ),
-            ),
-            Stage(
                 StageName.EXPERIMENTAL_PERFORMANCE,
                 trigger = Trigger.NEVER,
                 runsIndependent = true,
@@ -516,7 +490,6 @@ data class TestCoverage(
     val vendor: JvmVendor = JvmVendor.ORACLE,
     val buildJvm: Jvm = BuildToolBuildJvm,
     val expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
-    val withoutDependencies: Boolean = false,
     val arch: Arch = os.defaultArch,
     val failStage: Boolean = true,
 ) {
@@ -527,7 +500,6 @@ data class TestCoverage(
         testJvm: JvmCategory,
         expectedBucketNumber: Int = DEFAULT_FUNCTIONAL_TEST_BUCKET_SIZE,
         buildJvm: Jvm = BuildToolBuildJvm,
-        withoutDependencies: Boolean = false,
         arch: Arch = Arch.AMD64,
         failStage: Boolean = true,
     ) : this(
@@ -538,7 +510,6 @@ data class TestCoverage(
         testJvm.vendor,
         buildJvm,
         expectedBucketNumber,
-        withoutDependencies,
         arch,
         failStage,
     )
@@ -580,7 +551,7 @@ data class TestCoverage(
             vendor.displayName,
             os.asName(),
             arch.asName(),
-        ).joinToString(" ") + if (withoutDependencies) " without dependencies" else ""
+        ).joinToString(" ")
 }
 
 enum class TestType(
