@@ -28,7 +28,6 @@ dependencies {
 
     api(libs.jsr305)
 
-    implementation(projects.baseAsm)
     implementation(projects.concurrent)
     implementation(projects.io)
 
