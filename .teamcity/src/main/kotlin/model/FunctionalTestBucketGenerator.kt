@@ -9,6 +9,7 @@ import common.VersionedSettingsBranch
 import configurations.ParallelizationMethod
 import java.io.File
 import java.util.LinkedList
+import java.util.SortedSet
 
 const val MASTER_CHECK_CONFIGURATION = "Gradle_Master_Check"
 const val MAX_PROJECT_NUMBER_IN_BUCKET = 11
@@ -52,9 +53,14 @@ data class TestCoverageAndBucketSplits(
 )
 
 data class FunctionalTestBucket(
-    val subprojects: List<String>,
+    val subprojects: SortedSet<String>,
     val parallelizationMethod: ParallelizationMethod,
 ) {
+    constructor(subprojectList: List<String>, parallelizationMethod: ParallelizationMethod) : this(
+        subprojectList.toSortedSet(),
+        parallelizationMethod,
+    )
+
     constructor(jsonObject: Map<String, Any>) : this(
         (jsonObject["subprojects"] as List<*>).map { it.toString() },
         ParallelizationMethod.fromJson(jsonObject),
