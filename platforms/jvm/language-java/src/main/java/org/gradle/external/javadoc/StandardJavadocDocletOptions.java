@@ -39,8 +39,10 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.external.javadoc.internal.AbstractJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
+import org.gradle.external.javadoc.internal.KnownOption2;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.MultilineStringsJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.PropertyKnownOption;
 import org.gradle.external.javadoc.internal.StringsJavadocOptionFileOption;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
@@ -112,6 +114,10 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
         }
     }
 
+    private static final List<KnownOption2<StandardJavadocDocletOptions>> KNOWN_OPTIONS2 = ImmutableList.<KnownOption2<StandardJavadocDocletOptions>>builder()
+        .add(new PropertyKnownOption<>("d", StandardJavadocDocletOptions::getDestinationDirectory))
+        .build();
+
     private static final List<KnownOption> KNOWN_OPTIONS = ImmutableList.copyOf(KnownOption.BY_OPTION_NAME.values());
     private static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
 
@@ -147,7 +153,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     @Incubating
     @Override
     public Set<String> knownOptionNames() {
-        return Sets.union(CoreJavadocOptions.KNOWN_OPTION_NAMES, KNOWN_OPTION_NAMES);
+        return Sets.union(super.knownOptionNames(), KNOWN_OPTION_NAMES);
     }
 
     /**
@@ -1080,6 +1086,9 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     }
 
     private void copyKnownOptionValues() {
+        for (KnownOption2<StandardJavadocDocletOptions> knownOption : KNOWN_OPTIONS2) {
+            knownOption.copyValueFromOptionFile(this, optionFile);
+        }
         for (KnownOption knownOption : KNOWN_OPTIONS) {
             copyKnownOptionValue(knownOption.option, knownOption.richProperty.apply(this), optionFile);
         }

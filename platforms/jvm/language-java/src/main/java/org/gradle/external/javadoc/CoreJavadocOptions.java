@@ -31,6 +31,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
+import org.gradle.external.javadoc.internal.KnownOption2;
+import org.gradle.external.javadoc.internal.PropertyKnownOption;
 import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
@@ -77,8 +79,12 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         }
     }
 
+    private static final List<KnownOption2<CoreJavadocOptions>> KNOWN_OPTIONS2 = ImmutableList.<KnownOption2<CoreJavadocOptions>>builder()
+        .add(new PropertyKnownOption<>("overview", CoreJavadocOptions::getOverview))
+        .build();
+
     private static final List<KnownOption> KNOWN_OPTIONS = ImmutableList.copyOf(KnownOption.BY_OPTION_NAME.values());
-    static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
+    private static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
 
     protected JavadocOptionFile optionFile;
 
@@ -644,6 +650,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     private void copyKnownOptions() {
+        for (KnownOption2<CoreJavadocOptions> knownOption : KNOWN_OPTIONS2) {
+            knownOption.copyValueFromOptionFile(this, optionFile);
+        }
         for (KnownOption knownOption : KNOWN_OPTIONS) {
             copyKnownOptionValue(knownOption.option, knownOption.richProperty.apply(this), optionFile);
         }
@@ -684,6 +693,9 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     private void addKnownOptionsToOptionFile() {
+        for (KnownOption2<CoreJavadocOptions> knownOption : KNOWN_OPTIONS2) {
+            knownOption.addToOptionFile(this, optionFile);
+        }
         for (KnownOption knownOption : KNOWN_OPTIONS) {
             Object richProperty = knownOption.richProperty.apply(this);
             switch (knownOption) {
