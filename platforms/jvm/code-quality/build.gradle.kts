@@ -25,6 +25,7 @@ dependencies {
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.modelCore)
     api(projects.platformJvm)
     api(projects.pluginsJavaBase)

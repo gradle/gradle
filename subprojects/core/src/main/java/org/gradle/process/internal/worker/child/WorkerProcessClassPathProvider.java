@@ -76,66 +76,9 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
     private final GlobalScopedCacheBuilderFactory cacheBuilderFactory;
     private final ModuleRegistry moduleRegistry;
     private final Object lock = new Object();
+
     private ClassPath workerClassPath;
-
-    public static final String[] RUNTIME_MODULES = new String[]{
-        "gradle-core-api",
-        "gradle-core",
-        "gradle-logging",
-        "gradle-logging-api",
-        "gradle-messaging",
-        "gradle-base-asm",
-        "gradle-base-services",
-        "gradle-enterprise-logging",
-        "gradle-enterprise-workers",
-        "gradle-classloaders",
-        "gradle-cli",
-        "gradle-concurrent",
-        "gradle-functional",
-        "gradle-io",
-        "gradle-wrapper-shared",
-        "gradle-native",
-        "gradle-dependency-management",
-        "gradle-workers",
-        "gradle-worker-main",
-        "gradle-build-process-services",
-        "gradle-problems-api",
-        "gradle-process-memory-services",
-        "gradle-process-services",
-        "gradle-persistent-cache",
-        "gradle-model-core",
-        "gradle-model-reflect",
-        "gradle-jvm-services",
-        "gradle-files",
-        "gradle-file-collections",
-        "gradle-file-operations",
-        "gradle-file-temp",
-        "gradle-hashing",
-        "gradle-service-lookup",
-        "gradle-service-provider",
-        "gradle-service-registry-builder",
-        "gradle-service-registry-impl",
-        "gradle-snapshots",
-        "gradle-serialization",
-        "gradle-time",
-        "gradle-stdlib-java-extensions",
-        "gradle-build-operations"
-    };
-
-    public static final String[] RUNTIME_EXTERNAL_MODULES = new String[]{
-        "slf4j-api",
-        "jul-to-slf4j",
-        "native-platform",
-        "kryo",
-        "commons-lang",
-        "guava",
-        "javax.inject",
-        "groovy",
-        "groovy-ant",
-        "groovy-json",
-        "groovy-xml",
-        "asm"
-    };
+    private ClassPath daemonServerWorkerClasspath;
 
     public WorkerProcessClassPathProvider(GlobalScopedCacheBuilderFactory cacheBuilderFactory, ModuleRegistry moduleRegistry) {
         this.cacheBuilderFactory = cacheBuilderFactory;
@@ -163,29 +106,13 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider {
             }
         }
 
-        // Gradle core plus worker implementation classes
-        if (name.equals("CORE_WORKER_RUNTIME")) {
-            ClassPath classpath = ClassPath.EMPTY;
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-core").getAllRequiredModulesClasspath());
-            // If a real Gradle installation is used, the following modules will be force-loaded anyway by gradle-core through the getClassPath("GRADLE_EXTENSIONS") call in the DefaultClassLoaderRegistry constructor
-            // See also: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-dependency-management").getAllRequiredModulesClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-plugin-use").getAllRequiredModulesClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-workers").getAllRequiredModulesClasspath());
-            classpath = classpath.plus(moduleRegistry.getModule("gradle-instrumentation-declarations").getAllRequiredModulesClasspath());
-            return classpath;
-        }
-
-        // Just the minimal stuff necessary for the worker infrastructure
-        if (name.equals("MINIMUM_WORKER_RUNTIME")) {
-            ClassPath classpath = ClassPath.EMPTY;
-            for (String module : RUNTIME_MODULES) {
-                classpath = classpath.plus(moduleRegistry.getModule(module).getImplementationClasspath());
+        if (name.equals("DAEMON_SERVER_WORKER")) {
+            synchronized (lock) {
+                if (daemonServerWorkerClasspath == null) {
+                    daemonServerWorkerClasspath = moduleRegistry.getModule("gradle-daemon-server-worker").getAllRequiredModulesClasspath();
+                }
             }
-            for (String externalModule : RUNTIME_EXTERNAL_MODULES) {
-                classpath = classpath.plus(moduleRegistry.getExternalModule(externalModule).getImplementationClasspath());
-            }
-            return classpath;
+            return daemonServerWorkerClasspath;
         }
 
         return null;
