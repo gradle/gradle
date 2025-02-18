@@ -36,7 +36,7 @@ public class ClassDocSuperTypeBuilder {
     void build(ClassDoc classDoc) {
         ClassMetaData classMetaData = classDoc.getClassMetaData();
         String superClassName = classMetaData.getSuperClassName();
-        if (superClassName != null) {
+        if (superClassName != null && !superClassName.equals("org.gradle.api.DefaultTask")) {
             // Assume this is a class and so has implemented all properties and methods somewhere in the superclass hierarchy
             ClassDoc superClass = model.getClassDoc(superClassName);
             classDoc.setSuperClass(superClass);
