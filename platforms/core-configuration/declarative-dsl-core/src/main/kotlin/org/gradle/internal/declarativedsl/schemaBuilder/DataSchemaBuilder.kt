@@ -29,6 +29,7 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.internal.declarativedsl.Workarounds
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
@@ -47,7 +48,6 @@ import org.gradle.internal.declarativedsl.schemaBuilder.SchemaBuildingTags.varar
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
-import kotlin.reflect.KClassifier
 import kotlin.reflect.KFunction
 import kotlin.reflect.KType
 import kotlin.reflect.KTypeParameter
@@ -207,30 +207,9 @@ class DataSchemaBuilder(
         private fun isAllowedTypeParameter(typeParameter: KTypeParameter): Boolean =
             currentContextStack.any { contextElement ->
                 contextElement is SchemaBuildingContextElement.ModelMemberContextElement && contextElement.kCallable.typeParameters.any {
-                    typeParameterMatches(it, typeParameter)
+                    Workarounds.typeParameterMatches(it, typeParameter)
                 }
             }
-
-        /**
-         * Workaround: the Kotlin standard library functions have their type parameter `T` represented by different [KTypeParameter] objects when seen in the functions [KFunction.typeParameters] and when
-         * found in the function's [kotlin.reflect.KParameter.type].
-         *
-         * Therefore, it is not possible to identify the `KTypeParameter` that appears in the function signature to check if it is declared by the function.
-         * The `KTypeParameter`s, however, share the descriptor.
-         *
-         * As a workaround, access the descriptor via the internal API.
-         */
-        private fun typeParameterMatches(left: KTypeParameter, right: KTypeParameter): Boolean {
-            if (left == right)
-                return true
-
-            fun KClassifier.descriptor() =
-                Class.forName("kotlin.reflect.jvm.internal.KClassifierImpl").methods.single { it.name == "getDescriptor" }.invoke(this)
-
-            val leftDescriptor = left.descriptor()
-            val rightDescriptor = right.descriptor()
-            return leftDescriptor == rightDescriptor
-        }
 
         private fun instantiateGenericOpaqueType(kType: KType): DataTypeRef {
             require(kType.arguments.isNotEmpty())

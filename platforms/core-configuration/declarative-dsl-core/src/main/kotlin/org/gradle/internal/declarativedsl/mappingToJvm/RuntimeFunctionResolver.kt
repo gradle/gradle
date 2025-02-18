@@ -23,6 +23,7 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.Workarounds
 import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
@@ -31,8 +32,6 @@ import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.allSuperclasses
 import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.kotlinFunction
 
 
@@ -84,19 +83,12 @@ object DefaultRuntimeFunctionCandidatesProvider : RuntimeFunctionCandidatesProvi
         if (function.annotations.any(predicate)) {
             true
         } else {
-            val functionSignature = signature(function)
+            val functionSignature = Workarounds.kFunctionSignature(function)
             receiverClass.allSuperclasses.any { parentClass ->
-                val parentFunction = parentClass.memberFunctions.firstOrNull { signature(it) == functionSignature }
+                val parentFunction = parentClass.memberFunctions.firstOrNull { Workarounds.kFunctionSignature(it) == functionSignature }
                 parentFunction?.annotations?.any(predicate) ?: false
             }
         }
-
-    private fun signature(function: KFunction<*>): String {
-        return function::class.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }.call(function) as String
-        // It is not very nice that we rely on this internal signature, but we don't have much of a choice...
-        // We have also tried using the "descriptor" field and the "overriddenDescriptors" and/or "overriddenFunctions" from that,
-        // but it's even uglier with a lot of weird lazy types involved and the code for doing so becomes very brittle.
-    }
 }
 
 
