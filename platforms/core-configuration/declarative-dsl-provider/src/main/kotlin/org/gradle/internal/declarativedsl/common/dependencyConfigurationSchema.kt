@@ -26,7 +26,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.ObjectConversionCompo
 import org.gradle.internal.declarativedsl.evaluationSchema.ifConversionSupported
 import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionResolver
 import org.gradle.internal.declarativedsl.schemaBuilder.FunctionExtractor
-import org.gradle.internal.declarativedsl.schemaBuilder.toDataTypeRef
+import kotlin.reflect.typeOf
 
 
 internal
@@ -49,8 +49,8 @@ private
 class DependencyCollectorsComponent : AnalysisSchemaComponent, ObjectConversionComponent {
     private
     val dependencyCollectorFunctionExtractorAndRuntimeResolver = DependencyCollectorFunctionExtractorAndRuntimeResolver(
-        gavDependencyParam = DefaultDataParameter("dependency", String::class.toDataTypeRef(), false, DefaultUnknown),
-        projectDependencyParam = DefaultDataParameter("dependency", ProjectDependency::class.toDataTypeRef(), false, DefaultUnknown)
+        gavDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<String>()), false, DefaultUnknown) },
+        projectDependencyParam = { host -> DefaultDataParameter("dependency", host.modelTypeRef(typeOf<ProjectDependency>()), false, DefaultUnknown) }
     )
 
     override fun functionExtractors(): List<FunctionExtractor> = listOf(

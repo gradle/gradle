@@ -17,13 +17,16 @@
 package org.gradle.internal.declarativedsl.schemaBuidler
 
 import org.gradle.api.provider.ListProperty
+import org.gradle.declarative.dsl.model.annotations.Configuring
 import org.gradle.declarative.dsl.model.annotations.Restricted
 import org.gradle.internal.declarativedsl.analysis.DeclarativeDslInterpretationException
 import org.gradle.internal.declarativedsl.assertFailsWith
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
+import org.junit.Assert.assertEquals
 import org.junit.Test
+import java.io.File
 
 
 class SchemeExtractionErrorTest {
@@ -33,15 +36,20 @@ class SchemeExtractionErrorTest {
         val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = { schemaFromTypes(ReceiverGetterReturn::class, listOf(ReceiverGetterReturn::class)) }
         )
-        assertThat(
-            exception.message,
-            equalTo("Conversion to data types failed for return type of ReceiverGetterReturn.getList: kotlin.collections.List<kotlin.String?>?")
+        assertEquals(
+            "Illegal 'IN' variance\n" +
+                "  in type argument 'in kotlin.String?'\n" +
+                "  in return value type 'kotlin.collections.MutableList<in kotlin.String?>?'\n" +
+                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn<T>.getList(): kotlin.collections.MutableList<in kotlin.String?>?'\n" +
+                "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverGetterReturn'",
+            exception.message
         )
     }
 
-    abstract class ReceiverGetterReturn {
+    @Suppress("unused")
+    abstract class ReceiverGetterReturn<T> {
         @Restricted
-        abstract fun getList(): List<String?>?
+        abstract fun getList(): MutableList<in String?>?
     }
 
     @Test
@@ -49,16 +57,20 @@ class SchemeExtractionErrorTest {
         val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = { schemaFromTypes(ReceiverPropertyReturn::class, listOf(ReceiverPropertyReturn::class)) }
         )
-        assertThat(
+        assertEquals(
+            "Illegal 'OUT' variance\n" +
+                "  in type argument 'out kotlin.String'\n" +
+                "  in return value type 'kotlin.collections.MutableList<out kotlin.String>'\n" +
+                "  in member 'var org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverPropertyReturn.x: kotlin.collections.MutableList<out kotlin.String>'\n" +
+                "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverPropertyReturn'",
             exception.message,
-            equalTo("Conversion to data types failed for return type of ReceiverPropertyReturn.x: kotlin.collections.List<kotlin.String>")
         )
     }
 
     abstract class ReceiverPropertyReturn {
 
         @get:Restricted
-        var x: List<String> = emptyList()
+        var x: MutableList<out String> = mutableListOf()
     }
 
     @Test
@@ -71,16 +83,19 @@ class SchemeExtractionErrorTest {
                 )
             }
         )
-        assertThat(
+        assertEquals(
+            "Illegal 'IN' variance\n" +
+                "  in type argument 'in kotlin.String'\n" +
+                "  in parameter 'list'\n" +
+                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverFunctionParam.size(org.gradle.api.provider.ListProperty<in kotlin.String>): kotlin.Int'\n" +
+                "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverFunctionParam'",
             exception.message,
-            equalTo("Conversion to data types failed for parameter `list` of function ReceiverFunctionParam.size: org.gradle.api.provider.ListProperty<kotlin.String>")
         )
     }
 
     abstract class ReceiverFunctionParam {
-
         @Restricted
-        abstract fun size(list: ListProperty<String>): Int
+        abstract fun size(list: ListProperty<in String>): Int
     }
 
     @Test
@@ -93,10 +108,21 @@ class SchemeExtractionErrorTest {
                 )
             }
         )
-        assertThat(
+        assertEquals(
+            "Illegal 'IN' variance\n" +
+                "  in type argument 'in kotlin.String'\n" +
+                "  in return value type 'org.gradle.api.provider.ListProperty<in kotlin.String>'\n" +
+                "  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverFunctionReturn.mood(): org.gradle.api.provider.ListProperty<in kotlin.String>'\n" +
+                "  in class 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.ReceiverFunctionReturn'",
             exception.message,
-            equalTo("Conversion to data types failed for return type of ReceiverFunctionReturn.mood: org.gradle.api.provider.ListProperty<kotlin.String>")
         )
+    }
+
+    @Suppress("unused")
+    abstract class ReceiverFunctionReturn {
+
+        @Restricted
+        abstract fun mood(): ListProperty<in String>
     }
 
     @Test
@@ -104,20 +130,24 @@ class SchemeExtractionErrorTest {
         val exception = assertFailsWith<DeclarativeDslInterpretationException>(
             block = {
                 schemaFromTypes(
-                    ReceiverFunctionReturn::class,
-                    listOf(ReceiverFunctionReturn::class)
+                    UsageOfTypeOutsideSchema::class,
+                    listOf(UsageOfTypeOutsideSchema::class)
                 )
             }
         )
         assertThat(
             exception.message,
-            equalTo("Type used in function ReceiverFunctionReturn.mood is not in schema scope: org.gradle.api.provider.ListProperty<kotlin.String>")
+            equalTo(
+                "Type 'File' is not in the schema\n" +
+                    "  in configured type 'File'\n" +
+                    "  in schema function 'configure(): Unit'\n" +
+                    "  in schema type 'org.gradle.internal.declarativedsl.schemaBuidler.SchemeExtractionErrorTest.UsageOfTypeOutsideSchema'"
+            )
         )
     }
 
-    abstract class ReceiverFunctionReturn {
-
-        @Restricted
-        abstract fun mood(): ListProperty<String>
+    interface UsageOfTypeOutsideSchema {
+        @Configuring
+        fun configure(fn: File.() -> Unit)
     }
 }
