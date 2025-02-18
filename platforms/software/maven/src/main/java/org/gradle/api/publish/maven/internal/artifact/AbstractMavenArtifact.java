@@ -17,30 +17,28 @@
 package org.gradle.api.publish.maven.internal.artifact;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
 
 public abstract class AbstractMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
-    private final TaskDependency allBuildDependencies;
-    private final DefaultTaskDependency additionalBuildDependencies;
+    private final DefaultTaskDependency buildDependencies;
     private String extension;
     private String classifier;
 
-    protected AbstractMavenArtifact(TaskDependencyFactory taskDependencyFactory) {
-        this.additionalBuildDependencies = new DefaultTaskDependency();
-        this.allBuildDependencies = taskDependencyFactory.visitingDependencies(context -> {
-            context.add(getDefaultBuildDependencies());
-            additionalBuildDependencies.visitDependencies(context);
-        });
+    protected AbstractMavenArtifact(TaskDependencyFactory taskDependencyFactory, Object... dependencies) {
+        this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.copyOf(dependencies));
     }
 
     @Override
-    public abstract File getFile();
+    public final File getFile() {
+        return getFileProvider().get().getAsFile();
+    }
 
     @Override
     public final String getExtension() {
@@ -68,15 +66,13 @@ public abstract class AbstractMavenArtifact implements MavenArtifact, Publicatio
 
     @Override
     public final void builtBy(Object... tasks) {
-        additionalBuildDependencies.add(tasks);
+        buildDependencies.add(tasks);
     }
 
     @Override
     public final TaskDependency getBuildDependencies() {
-        return allBuildDependencies;
+        return buildDependencies;
     }
-
-    protected abstract TaskDependency getDefaultBuildDependencies();
 
     @Override
     public final String toString() {

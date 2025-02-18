@@ -15,44 +15,36 @@
  */
 package org.gradle.api.publish.maven.internal.artifact;
 
+import com.google.common.collect.Collections2;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.provider.MergeProvider;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifact> implements MavenArtifactSet, PublicationArtifactSet<MavenArtifact> {
-    private final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, MavenArtifact> mavenArtifactParser;
 
     @Inject
     public DefaultMavenArtifactSet(
-        String publicationName,
         NotationParser<Object, MavenArtifact> mavenArtifactParser,
         FileCollectionFactory fileCollectionFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         super(MavenArtifact.class, collectionCallbackActionDecorator);
-        this.publicationName = publicationName;
         this.mavenArtifactParser = mavenArtifactParser;
-        this.files = fileCollectionFactory.create(
-            new ArtifactsFileCollection(), context -> {
-                for (MavenArtifact mavenArtifact : DefaultMavenArtifactSet.this) {
-                    context.add(mavenArtifact);
-                }
-            }
-        );
+        this.files = fileCollectionFactory.fromProvider(MergeProvider.of(
+            Collections2.transform(this, artifact -> ((PublicationArtifactInternal) artifact).getFileProvider())
+        ));
     }
 
     @Override
@@ -74,19 +66,4 @@ public class DefaultMavenArtifactSet extends DefaultDomainObjectSet<MavenArtifac
         return files;
     }
 
-    private class ArtifactsFileCollection implements MinimalFileSet {
-        @Override
-        public String getDisplayName() {
-            return "artifacts for Maven publication '" + publicationName + "'";
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<File>();
-            for (MavenArtifact artifact : DefaultMavenArtifactSet.this) {
-                files.add(artifact.getFile());
-            }
-            return files;
-        }
-    }
 }
