@@ -122,12 +122,6 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
         return convention.getExtraProperties();
     }
 
-    public void addProperties(Map<String, ?> properties) {
-        for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            getDynamicProperties().set(entry.getKey(), entry.getValue());
-        }
-    }
-
     public DynamicObject getParent() {
         return parent;
     }
