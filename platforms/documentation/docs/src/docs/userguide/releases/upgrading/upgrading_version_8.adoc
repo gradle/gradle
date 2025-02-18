@@ -181,6 +181,8 @@ Should be replaced with the following:
 [source,java]
 ```
 class MyValue {
+    private Boolean property = Boolean.TRUE;
+
     @Deprecated
     @ReplacedBy("getProperty")
     Boolean isProperty() { return property; }
