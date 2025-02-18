@@ -21,10 +21,10 @@ import org.gradle.api.tasks.util.PatternSet;
 
 import java.io.File;
 
-public class ForwardingFileCollectionStructureVisitor implements FileCollectionStructureVisitor {
+public class DelegatingFileCollectionStructureVisitor implements FileCollectionStructureVisitor {
     private final FileCollectionStructureVisitor delegate;
 
-    public ForwardingFileCollectionStructureVisitor(FileCollectionStructureVisitor delegate) {
+    public DelegatingFileCollectionStructureVisitor(FileCollectionStructureVisitor delegate) {
         this.delegate = delegate;
     }
 

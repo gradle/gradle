@@ -19,9 +19,9 @@ package org.gradle.internal.execution.impl;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.api.internal.file.DelegatingFileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.ForwardingFileCollectionStructureVisitor;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.execution.FileCollectionFingerprinter;
@@ -150,7 +150,7 @@ public class DefaultInputFingerprinter implements InputFingerprinter {
             FileCollectionFingerprinter fingerprinter = fingerprinterRegistry.getFingerprinter(normalizationSpec);
             try {
                 MutableBoolean containsArchiveTrees = new MutableBoolean(false);
-                FileSystemSnapshot snapshot = snapshotter.snapshot(value.getFiles(), new ForwardingFileCollectionStructureVisitor(validatingVisitor) {
+                FileSystemSnapshot snapshot = snapshotter.snapshot(value.getFiles(), new DelegatingFileCollectionStructureVisitor(validatingVisitor) {
                     @Override
                     public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                         super.visitFileTreeBackedByFile(file, fileTree, sourceTree);
