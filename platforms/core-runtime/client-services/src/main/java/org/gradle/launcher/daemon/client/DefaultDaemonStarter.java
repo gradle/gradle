@@ -151,9 +151,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         daemonArgs.addAll(getPriorityArgs(daemonRequestContext.getPriority()));
         daemonArgs.add(resolvedJava.getAbsolutePath());
         Collection<String> daemonOpts = daemonRequestContext.getDaemonOpts();
-        if (majorJavaVersion >= 9) {
-            daemonArgs.addAll(JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS);
-        }
+        daemonOpts.addAll(JpmsConfiguration.getDaemonArgs(majorJavaVersion, daemonRequestContext.getNativeServicesMode().isPotentiallyEnabled()));
         daemonArgs.addAll(daemonOpts);
         daemonArgs.add("-cp");
         daemonArgs.add(CollectionUtils.join(File.pathSeparator, classpath.getAsFiles()));
