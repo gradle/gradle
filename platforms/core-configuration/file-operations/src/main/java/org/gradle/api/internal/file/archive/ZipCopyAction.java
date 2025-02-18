@@ -98,36 +98,24 @@ public class ZipCopyAction implements CopyAction {
 
         @Override
         public void processFile(FileCopyDetailsInternal details) {
-            if (details.isDirectory()) {
-                visitDir(details);
-            } else {
-                visitFile(details);
-            }
-        }
-
-        private void visitFile(FileCopyDetails fileDetails) {
             try {
-                ZipArchiveEntry archiveEntry = new ZipArchiveEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setTime(getArchiveTimeFor(fileDetails));
-                archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getPermissions().toUnixNumeric());
+                boolean isDirectory = details.isDirectory();
+                String entryName = details.getRelativePath().getPathString();
+                if (isDirectory) {
+                    // Trailing slash in name indicates that entry is a directory.
+                    entryName += '/';
+                }
+                ZipArchiveEntry archiveEntry = new ZipArchiveEntry(entryName);
+                archiveEntry.setTime(getArchiveTimeFor(details));
+                int flag = isDirectory ? UnixStat.DIR_FLAG : UnixStat.FILE_FLAG;
+                archiveEntry.setUnixMode(flag | details.getPermissions().toUnixNumeric());
                 zipOutStr.putArchiveEntry(archiveEntry);
-                fileDetails.copyTo(zipOutStr);
+                if (!isDirectory) {
+                    details.copyTo(zipOutStr);
+                }
                 zipOutStr.closeArchiveEntry();
             } catch (Exception e) {
-                throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
-            }
-        }
-
-        private void visitDir(FileCopyDetails dirDetails) {
-            try {
-                // Trailing slash in name indicates that entry is a directory
-                ZipArchiveEntry archiveEntry = new ZipArchiveEntry(dirDetails.getRelativePath().getPathString() + '/');
-                archiveEntry.setTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getPermissions().toUnixNumeric());
-                zipOutStr.putArchiveEntry(archiveEntry);
-                zipOutStr.closeArchiveEntry();
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
+                throw new GradleException(String.format("Could not add %s to ZIP '%s'.", details, zipFile), e);
             }
         }
     }
