@@ -211,10 +211,6 @@ fun BuildType.paramsForBuildToolBuild(
         param("env.ANDROID_HOME", os.androidHome)
         param("env.ANDROID_SDK_ROOT", os.androidHome)
         param("env.GRADLE_INTERNAL_REPO_URL", "%gradle.internal.repository.url%")
-        if (os == Os.MACOS) {
-            // Use fewer parallel forks on macOs, since the agents are not very powerful.
-            param("maxParallelForks", "2")
-        }
         if (os == Os.LINUX || os == Os.MACOS) {
             param("env.LC_ALL", "en_US.UTF-8")
         }
@@ -268,14 +264,8 @@ fun BuildStep.skipConditionally(buildType: BuildType? = null) {
 fun buildToolGradleParameters(
     daemon: Boolean = true,
     isContinue: Boolean = true,
-    maxParallelForks: String = "%maxParallelForks%",
 ): List<String> =
     listOf(
-        // We pass the 'maxParallelForks' setting as 'workers.max' to limit the maximum number of executers even
-        // if multiple test tasks run in parallel. We also pass it to the Gradle build as a maximum (maxParallelForks)
-        // for each test task, such that we are independent of whatever default value is defined in the build itself.
-        "-Dorg.gradle.workers.max=$maxParallelForks",
-        "-PmaxParallelForks=$maxParallelForks",
         PLUGINS_PORTAL_URL_OVERRIDE,
         "-s",
         "--no-configuration-cache",
