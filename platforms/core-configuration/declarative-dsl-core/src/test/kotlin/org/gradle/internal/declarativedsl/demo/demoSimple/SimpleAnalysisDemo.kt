@@ -7,13 +7,14 @@ import com.example.newD
 import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.demo.printResolutionResults
 import org.gradle.internal.declarativedsl.demo.resolve
+import org.gradle.internal.declarativedsl.schemaBuilder.FixedTopLevelFunctionDiscovery
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 
 
 val schema = schemaFromTypes(
     topLevelReceiver = Abc::class,
     types = listOf(Abc::class, C::class, D::class),
-    externalFunctions = listOf(::newD),
+    externalFunctionDiscovery = FixedTopLevelFunctionDiscovery(listOf(::newD)),
     defaultImports = listOf(DefaultFqName("com.example", "newD"))
 )
 

@@ -105,7 +105,7 @@ class DefaultDeclarativeKotlinScriptEvaluator(
                 scriptSource.fileName,
                 scriptSource.resource.text,
                 step,
-                ConversionStepContext(target, { classLoaderScope.localClassLoader }, defaultAnalysisContext)
+                ConversionStepContext(target, { classLoaderScope.localClassLoader }, { classLoaderScope.parent.localClassLoader },defaultAnalysisContext)
             )
                 .also { if (it is NotEvaluated) return it }
         }.lastOrNull() ?: NotEvaluated(stageFailures = emptyList(), partialStepResult = ConversionStepResult.CannotRunStep)

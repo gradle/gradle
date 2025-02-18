@@ -104,8 +104,8 @@ sealed interface DataType : Serializable {
     // In the future, a type signature may become resolvable to a generic DataClass, but for now, it should not be associated with any DataClass, even if
     // a data class with the same name appears in the schema.
     @ToolingModelContract(subTypes = [VarargSignature::class])
-    interface ParameterizedTypeSignature : HasTypeName {
-        interface TypeParameter {
+    interface ParameterizedTypeSignature : HasTypeName, Serializable {
+        interface TypeParameter : Serializable {
             val name: String
             val isOutVariant: Boolean
         }
@@ -133,7 +133,7 @@ sealed interface DataType : Serializable {
             ConcreteTypeArgument::class,
             StarProjection::class
         ])
-        sealed interface TypeArgument {
+        sealed interface TypeArgument : Serializable {
             interface ConcreteTypeArgument : TypeArgument {
                 val type: DataTypeRef
             }

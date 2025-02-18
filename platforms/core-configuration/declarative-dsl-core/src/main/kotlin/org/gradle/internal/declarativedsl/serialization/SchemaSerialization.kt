@@ -27,6 +27,7 @@ import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataProperty
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.EnumClass
@@ -132,6 +133,9 @@ object SchemaSerialization {
                 subclass(FunctionSemanticsInternal.DefaultBuilder::class)
                 subclass(FunctionSemanticsInternal.DefaultPure::class)
             }
+            polymorphic(FunctionSemantics.Pure::class) {
+                subclass(FunctionSemanticsInternal.DefaultPure::class)
+            }
             polymorphic(FunctionSemantics.AccessAndConfigure.ReturnType::class) {
                 subclass(FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit::class)
                 subclass(FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject::class)
@@ -156,6 +160,9 @@ object SchemaSerialization {
                 }
                 subclass(DefaultDataTopLevelFunction::class)
                 subclass(DefaultDataConstructor::class)
+            }
+            polymorphic(DataTopLevelFunction::class) {
+                subclass(DefaultDataTopLevelFunction::class)
             }
             polymorphic(SchemaItemMetadata::class) {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
