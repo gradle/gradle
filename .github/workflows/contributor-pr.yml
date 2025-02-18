@@ -10,9 +10,8 @@ on:
 
 concurrency:
   # On master/release, we don't want any jobs cancelled so the sha is used to name the group
-  # On PR branches, we cancel the job if new commits are pushed
   group: ${{ (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/release' ) && format('contributor-pr-base-{0}', github.sha) || format('contributor-pr-{0}', github.ref) }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   # Set the DEVELOCITY_ACCESS_KEY so that Gradle Build Scans are generated
