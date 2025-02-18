@@ -27,6 +27,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
@@ -53,7 +54,7 @@ public class DaemonServices extends AbstractGradleModuleServices {
 
         @Provides
         PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
-            return new PayloadSerializer(
+            return new DefaultPayloadSerializer(
                 new WellKnownClassLoaderRegistry(
                     new DefaultPayloadClassLoaderRegistry(
                         classLoaderCache,
