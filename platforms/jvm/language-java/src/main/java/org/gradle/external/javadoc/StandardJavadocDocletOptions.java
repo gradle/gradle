@@ -17,33 +17,32 @@
 package org.gradle.external.javadoc;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableBiFunction;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
-import org.gradle.external.javadoc.internal.AbstractJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
-import org.gradle.external.javadoc.internal.KnownOption2;
 import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 import org.gradle.external.javadoc.internal.MultilineStringsJavadocOptionFileOption;
-import org.gradle.external.javadoc.internal.PropertyKnownOption;
 import org.gradle.external.javadoc.internal.StringsJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.options.ConfigurableFileCollectionKnownOption;
+import org.gradle.external.javadoc.internal.options.HasMultipleValuesKnownOption;
+import org.gradle.external.javadoc.internal.options.KnownOption;
+import org.gradle.external.javadoc.internal.options.MapPropertyKnownOption;
+import org.gradle.external.javadoc.internal.options.PropertyKnownOption;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
@@ -52,11 +51,9 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
 
@@ -64,62 +61,55 @@ import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY;
  * Provides the options for the standard Javadoc doclet.
  */
 public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
-    private enum KnownOption {
-        OPTION_D("d", StandardJavadocDocletOptions::getDestinationDirectory),
-        OPTION_USE("use", StandardJavadocDocletOptions::getUse),
-        OPTION_VERSION("version", StandardJavadocDocletOptions::getVersion),
-        OPTION_AUTHOR("author", StandardJavadocDocletOptions::getAuthor),
-        OPTION_SPLITINDEX("splitindex", StandardJavadocDocletOptions::getSplitIndex),
-        OPTION_HEADER("header", StandardJavadocDocletOptions::getHeader),
-        OPTION_WINDOWTITLE("windowtitle", StandardJavadocDocletOptions::getWindowTitle),
-        OPTION_DOCTITLE("doctitle", StandardJavadocDocletOptions::getDocTitle),
-        OPTION_FOOTER("footer", StandardJavadocDocletOptions::getFooter),
-        OPTION_BOTTOM("bottom", StandardJavadocDocletOptions::getBottom),
-        OPTION_LINK("link", StandardJavadocDocletOptions::getLinks),
-        OPTION_LINKOFFLINE("linkoffline", StandardJavadocDocletOptions::getLinksOffline),
-        OPTION_LINKSOURCE("linksource", StandardJavadocDocletOptions::getLinkSource),
-        OPTION_GROUP("group", StandardJavadocDocletOptions::getGroups),
-        OPTION_NODEPRECATED("nodeprecated", StandardJavadocDocletOptions::getNoDeprecated),
-        OPTION_NODEPRECATEDLIST("nodeprecatedlist", StandardJavadocDocletOptions::getNoDeprecatedList),
-        OPTION_NOSINCE("nosince", StandardJavadocDocletOptions::getNoSince),
-        OPTION_NOTREE("notree", StandardJavadocDocletOptions::getNoTree),
-        OPTION_NOINDEX("noindex", StandardJavadocDocletOptions::getNoIndex),
-        OPTION_NOHELP("nohelp", StandardJavadocDocletOptions::getNoHelp),
-        OPTION_NONAVBAR("nonavbar", StandardJavadocDocletOptions::getNoNavBar),
-        OPTION_HELPFILE("helpfile", StandardJavadocDocletOptions::getHelpFile),
-        OPTION_STYLESHEETFILE("stylesheetfile", StandardJavadocDocletOptions::getStylesheetFile),
-        OPTION_SERIALWARN("serialwarn", StandardJavadocDocletOptions::getSerialWarn),
-        OPTION_CHARSET("charset", StandardJavadocDocletOptions::getCharSet),
-        OPTION_DOCENCODING("docencoding", StandardJavadocDocletOptions::getDocEncoding),
-        OPTION_KEYWORDS("keywords", StandardJavadocDocletOptions::getKeyWords),
-        OPTION_TAG("tag", StandardJavadocDocletOptions::getTags),
-        OPTION_TAGLET("taglet", StandardJavadocDocletOptions::getTaglets),
-        OPTION_TAGLETPATH("tagletpath", StandardJavadocDocletOptions::getTagletPath),
-        OPTION_DOCFILESSUBDIRS("docfilessubdirs", StandardJavadocDocletOptions::getDocFilesSubDirs),
-        OPTION_EXCLUDEDOCFILESSUBDIR("excludedocfilessubdir", StandardJavadocDocletOptions::getExcludeDocFilesSubDir),
-        OPTION_NOQUALIFIER("noqualifier", StandardJavadocDocletOptions::getNoQualifiers),
-        OPTION_NOTIMESTAMP("notimestamp", StandardJavadocDocletOptions::getNoTimestamp),
-        OPTION_NOCOMMENT("nocomment", StandardJavadocDocletOptions::getNoComment);
 
-        private final static Map<String, KnownOption> BY_OPTION_NAME = Arrays.stream(KnownOption.values())
-            .collect(ImmutableMap.toImmutableMap(option -> option.option, option -> option));
-
-        private final String option;
-        @SuppressWarnings("ImmutableEnumChecker")
-        private final Function<StandardJavadocDocletOptions, Object> richProperty;
-
-        KnownOption(String option, Function<StandardJavadocDocletOptions, Object> richProperty) {
-            this.option = option;
-            this.richProperty = richProperty;
-        }
-    }
-
-    private static final List<KnownOption2<StandardJavadocDocletOptions>> KNOWN_OPTIONS2 = ImmutableList.<KnownOption2<StandardJavadocDocletOptions>>builder()
+    private static final List<KnownOption<StandardJavadocDocletOptions>> KNOWN_OPTIONS = ImmutableList.<KnownOption<StandardJavadocDocletOptions>>builder()
         .add(new PropertyKnownOption<>("d", StandardJavadocDocletOptions::getDestinationDirectory))
+        .add(new PropertyKnownOption<>("use", StandardJavadocDocletOptions::getUse))
+        .add(new PropertyKnownOption<>("version", StandardJavadocDocletOptions::getVersion))
+        .add(new PropertyKnownOption<>("author", StandardJavadocDocletOptions::getAuthor))
+        .add(new PropertyKnownOption<>("splitindex", StandardJavadocDocletOptions::getSplitIndex))
+        .add(new PropertyKnownOption<>("header", StandardJavadocDocletOptions::getHeader))
+        .add(new PropertyKnownOption<>("windowtitle", StandardJavadocDocletOptions::getWindowTitle))
+        .add(new PropertyKnownOption<>("doctitle", StandardJavadocDocletOptions::getDocTitle))
+        .add(new PropertyKnownOption<>("footer", StandardJavadocDocletOptions::getFooter))
+        .add(new PropertyKnownOption<>("bottom", StandardJavadocDocletOptions::getBottom))
+        .add(new PropertyKnownOption<>("linksource", StandardJavadocDocletOptions::getLinkSource))
+        .add(new PropertyKnownOption<>("nodeprecated", StandardJavadocDocletOptions::getNoDeprecated))
+        .add(new PropertyKnownOption<>("nodeprecatedlist", StandardJavadocDocletOptions::getNoDeprecatedList))
+        .add(new PropertyKnownOption<>("nosince", StandardJavadocDocletOptions::getNoSince))
+        .add(new PropertyKnownOption<>("notree", StandardJavadocDocletOptions::getNoTree))
+        .add(new PropertyKnownOption<>("noindex", StandardJavadocDocletOptions::getNoIndex))
+        .add(new PropertyKnownOption<>("nohelp", StandardJavadocDocletOptions::getNoHelp))
+        .add(new PropertyKnownOption<>("nonavbar", StandardJavadocDocletOptions::getNoNavBar))
+        .add(new PropertyKnownOption<>("helpfile", StandardJavadocDocletOptions::getHelpFile))
+        .add(new PropertyKnownOption<>("stylesheetfile", StandardJavadocDocletOptions::getStylesheetFile))
+        .add(new PropertyKnownOption<>("serialwarn", StandardJavadocDocletOptions::getSerialWarn))
+        .add(new PropertyKnownOption<>("charset", StandardJavadocDocletOptions::getCharSet))
+        .add(new PropertyKnownOption<>("docencoding", StandardJavadocDocletOptions::getDocEncoding))
+        .add(new PropertyKnownOption<>("keywords", StandardJavadocDocletOptions::getKeyWords))
+        .add(new PropertyKnownOption<>("docfilessubdirs", StandardJavadocDocletOptions::getDocFilesSubDirs))
+        .add(new PropertyKnownOption<>("notimestamp", StandardJavadocDocletOptions::getNoTimestamp))
+        .add(new PropertyKnownOption<>("nocomment", StandardJavadocDocletOptions::getNoComment))
+        .add(new ConfigurableFileCollectionKnownOption<>("tagletpath", StandardJavadocDocletOptions::getTagletPath))
+        .add(new HasMultipleValuesKnownOption<>("linkoffline", StandardJavadocDocletOptions::getLinksOffline,
+            (option, value) -> new LinksOfflineJavadocOptionFileOption(option, Cast.uncheckedCast(value))))
+        .add(new HasMultipleValuesKnownOption<>("link", StandardJavadocDocletOptions::getLinks,
+            (option, value) -> new MultilineStringsJavadocOptionFileOption(option, Cast.uncheckedCast(value))))
+        .add(new HasMultipleValuesKnownOption<>("tag", StandardJavadocDocletOptions::getTags,
+            (option, value) -> new MultilineStringsJavadocOptionFileOption(option, Cast.uncheckedCast(value))))
+        .add(new HasMultipleValuesKnownOption<>("taglet", StandardJavadocDocletOptions::getTaglets,
+            (option, value) -> new MultilineStringsJavadocOptionFileOption(option, Cast.uncheckedCast(value))))
+        .add(new HasMultipleValuesKnownOption<>("excludedocfilessubdir", StandardJavadocDocletOptions::getExcludeDocFilesSubDir,
+            (option, value) -> new StringsJavadocOptionFileOption(option, Cast.uncheckedCast(value), ":")))
+        .add(new HasMultipleValuesKnownOption<>("noqualifier", StandardJavadocDocletOptions::getNoQualifiers,
+            (option, value) -> new StringsJavadocOptionFileOption(option, Cast.uncheckedCast(value), ":")))
+        .add(new MapPropertyKnownOption<>("group", StandardJavadocDocletOptions::getGroups,
+            (option, value) -> new GroupsJavadocOptionFileOption(option, Cast.uncheckedCast(value))))
         .build();
 
-    private static final List<KnownOption> KNOWN_OPTIONS = ImmutableList.copyOf(KnownOption.BY_OPTION_NAME.values());
-    private static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
+    private static final Set<String> KNOWN_OPTION_NAMES = KNOWN_OPTIONS.stream()
+        .map(KnownOption::getOption)
+        .collect(ImmutableSet.toImmutableSet());
 
     @Inject
     public StandardJavadocDocletOptions() {
@@ -1086,82 +1076,15 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
     }
 
     private void copyKnownOptionValues() {
-        for (KnownOption2<StandardJavadocDocletOptions> knownOption : KNOWN_OPTIONS2) {
+        for (KnownOption<StandardJavadocDocletOptions> knownOption : KNOWN_OPTIONS) {
             knownOption.copyValueFromOptionFile(this, optionFile);
         }
-        for (KnownOption knownOption : KNOWN_OPTIONS) {
-            copyKnownOptionValue(knownOption.option, knownOption.richProperty.apply(this), optionFile);
-        }
     }
 
-    @SuppressWarnings("unchecked")
     private void addKnownOptionsToOptionFile() {
-        for (KnownOption knownOption : KNOWN_OPTIONS) {
-            Object richProperty = knownOption.richProperty.apply(this);
-            switch (knownOption) {
-                case OPTION_D:
-                case OPTION_USE:
-                case OPTION_VERSION:
-                case OPTION_AUTHOR:
-                case OPTION_SPLITINDEX:
-                case OPTION_HEADER:
-                case OPTION_WINDOWTITLE:
-                case OPTION_DOCTITLE:
-                case OPTION_FOOTER:
-                case OPTION_BOTTOM:
-                case OPTION_LINKSOURCE:
-                case OPTION_NODEPRECATED:
-                case OPTION_NODEPRECATEDLIST:
-                case OPTION_NOSINCE:
-                case OPTION_NOTREE:
-                case OPTION_NOINDEX:
-                case OPTION_NOHELP:
-                case OPTION_NONAVBAR:
-                case OPTION_HELPFILE:
-                case OPTION_STYLESHEETFILE:
-                case OPTION_SERIALWARN:
-                case OPTION_CHARSET:
-                case OPTION_DOCENCODING:
-                case OPTION_KEYWORDS:
-                case OPTION_DOCFILESSUBDIRS:
-                case OPTION_NOTIMESTAMP:
-                case OPTION_NOCOMMENT:
-                    addPropertyOption(knownOption.option, (Property<?>) richProperty);
-                    break;
-                case OPTION_TAGLETPATH:
-                    addConfigurableFileCollectionOption(knownOption.option, (ConfigurableFileCollection) richProperty);
-                    break;
-                case OPTION_LINK:
-                case OPTION_TAG:
-                case OPTION_TAGLET:
-                    addMultiValuePropertyOption(knownOption.option, (Provider<? extends Collection<?>>) richProperty,
-                        (option, value) -> new MultilineStringsJavadocOptionFileOption(option, Cast.uncheckedCast(value)));
-                    break;
-                case OPTION_LINKOFFLINE:
-                    addMultiValuePropertyOption(knownOption.option, (Provider<? extends Collection<?>>) richProperty,
-                        (option, value) -> new LinksOfflineJavadocOptionFileOption(option, Cast.uncheckedCast(value)));
-                    break;
-                case OPTION_EXCLUDEDOCFILESSUBDIR:
-                case OPTION_NOQUALIFIER:
-                    addMultiValuePropertyOption(knownOption.option, (Provider<? extends Collection<?>>) richProperty,
-                        (option, value) -> new StringsJavadocOptionFileOption(option, Cast.uncheckedCast(value), ":"));
-                    break;
-                case OPTION_GROUP:
-                    addMapPropertyOption(knownOption.option, (MapProperty<?, ?>) richProperty,
-                        (option, value) -> new GroupsJavadocOptionFileOption(option, Cast.uncheckedCast(value)));
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown known option: " + knownOption);
-            }
+        for (KnownOption<StandardJavadocDocletOptions> knownOption : KNOWN_OPTIONS) {
+            knownOption.addToOptionFile(this, optionFile);
         }
-    }
-
-    private void addMultiValuePropertyOption(String option, Provider<? extends Collection<?>> value, SerializableBiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
-        optionFile.addMultiValuePropertyOption(option, value, valueWriter);
-    }
-
-    private void addMapPropertyOption(String option, Provider<? extends Map<?, ?>> value, SerializableBiFunction<String, Object, AbstractJavadocOptionFileOption<?>> valueWriter) {
-        optionFile.addMapPropertyOption(option, value, valueWriter);
     }
 
     /**

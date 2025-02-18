@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.external.javadoc.internal;
+package org.gradle.external.javadoc.internal.options;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.external.javadoc.CoreJavadocOptions;
+import org.gradle.external.javadoc.internal.JavadocOptionFile;
 
 import java.util.function.Function;
 
-public class PropertyKnownOption<T extends CoreJavadocOptions> implements KnownOption2<T> {
+public class PropertyKnownOption<T extends CoreJavadocOptions> implements KnownOption<T> {
 
     private final String option;
     private final Function<T, Property<?>> propertyGetter;
@@ -30,6 +31,11 @@ public class PropertyKnownOption<T extends CoreJavadocOptions> implements KnownO
     public PropertyKnownOption(String option, Function<T, Property<?>> propertyGetter) {
         this.option = option;
         this.propertyGetter = propertyGetter;
+    }
+
+    @Override
+    public String getOption() {
+        return option;
     }
 
     @Override

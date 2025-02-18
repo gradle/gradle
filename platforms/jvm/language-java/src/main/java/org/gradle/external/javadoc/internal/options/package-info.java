@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.external.javadoc.internal;
 
-import org.gradle.external.javadoc.CoreJavadocOptions;
-
-public interface KnownOption2<T extends CoreJavadocOptions> {
-    void addToOptionFile(T options, JavadocOptionFile optionFile);
-    void copyValueFromOptionFile(T options, JavadocOptionFile optionFile);
-}
+/**
+ * Contains classes that represent known options for the Javadoc tool.
+ */
+@org.gradle.api.NonNullApi
+package org.gradle.external.javadoc.internal.options;

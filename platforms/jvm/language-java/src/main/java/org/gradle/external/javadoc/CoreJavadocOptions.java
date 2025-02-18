@@ -17,22 +17,20 @@
 package org.gradle.external.javadoc;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
-import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
-import org.gradle.external.javadoc.internal.KnownOption2;
-import org.gradle.external.javadoc.internal.PropertyKnownOption;
+import org.gradle.external.javadoc.internal.options.ConfigurableFileCollectionKnownOption;
+import org.gradle.external.javadoc.internal.options.KnownOption;
+import org.gradle.external.javadoc.internal.options.PropertyKnownOption;
 import org.gradle.internal.Cast;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
@@ -42,49 +40,33 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
-    private enum KnownOption {
-        OPTION_OVERVIEW("overview", CoreJavadocOptions::getOverview),
-        OPTION_MEMBERLEVEL("memberLevel", CoreJavadocOptions::getMemberLevel),
-        OPTION_DOCLET("doclet", CoreJavadocOptions::getDoclet),
-        OPTION_DOCLETPATH("docletpath", CoreJavadocOptions::getDocletpath),
-        OPTION_SOURCE("source", CoreJavadocOptions::getSource),
-        OPTION_CLASSPATH("classpath", CoreJavadocOptions::getClasspath),
-        OPTION_MODULE_PATH("-module-path", CoreJavadocOptions::getModulePath),
-        OPTION_BOOTCLASSPATH("bootclasspath", CoreJavadocOptions::getBootClasspath),
-        OPTION_EXTDIRS("extdirs", CoreJavadocOptions::getExtDirs),
-        OPTION_OUTPUTLEVEL("outputLevel", CoreJavadocOptions::getOutputLevel),
-        OPTION_BREAKITERATOR("breakiterator", CoreJavadocOptions::getBreakIterator),
-        OPTION_LOCALE("locale", CoreJavadocOptions::getLocale),
-        OPTION_ENCODING("encoding", CoreJavadocOptions::getEncoding);
 
-        private final static Map<String, KnownOption> BY_OPTION_NAME = Arrays.stream(KnownOption.values())
-            .collect(ImmutableMap.toImmutableMap(option -> option.option, option -> option));
-
-        private final String option;
-        @SuppressWarnings("ImmutableEnumChecker")
-        private final Function<CoreJavadocOptions, Object> richProperty;
-
-        KnownOption(String option, Function<CoreJavadocOptions, Object> richProperty) {
-            this.option = option;
-            this.richProperty = richProperty;
-        }
-    }
-
-    private static final List<KnownOption2<CoreJavadocOptions>> KNOWN_OPTIONS2 = ImmutableList.<KnownOption2<CoreJavadocOptions>>builder()
+    private static final List<KnownOption<CoreJavadocOptions>> KNOWN_OPTIONS = ImmutableList.<KnownOption<CoreJavadocOptions>>builder()
         .add(new PropertyKnownOption<>("overview", CoreJavadocOptions::getOverview))
+        .add(new PropertyKnownOption<>("memberLevel", CoreJavadocOptions::getMemberLevel))
+        .add(new PropertyKnownOption<>("doclet", CoreJavadocOptions::getDoclet))
+        .add(new PropertyKnownOption<>("source", CoreJavadocOptions::getSource))
+        .add(new PropertyKnownOption<>("outputLevel", CoreJavadocOptions::getOutputLevel))
+        .add(new PropertyKnownOption<>("breakiterator", CoreJavadocOptions::getBreakIterator))
+        .add(new PropertyKnownOption<>("locale", CoreJavadocOptions::getLocale))
+        .add(new PropertyKnownOption<>("encoding", CoreJavadocOptions::getEncoding))
+        .add(new ConfigurableFileCollectionKnownOption<>("docletpath", CoreJavadocOptions::getDocletpath))
+        .add(new ConfigurableFileCollectionKnownOption<>("classpath", CoreJavadocOptions::getClasspath))
+        .add(new ConfigurableFileCollectionKnownOption<>("-module-path", CoreJavadocOptions::getModulePath))
+        .add(new ConfigurableFileCollectionKnownOption<>("bootclasspath", CoreJavadocOptions::getBootClasspath))
+        .add(new ConfigurableFileCollectionKnownOption<>("extdirs", CoreJavadocOptions::getExtDirs))
         .build();
 
-    private static final List<KnownOption> KNOWN_OPTIONS = ImmutableList.copyOf(KnownOption.BY_OPTION_NAME.values());
-    private static final Set<String> KNOWN_OPTION_NAMES = ImmutableSet.copyOf(KnownOption.BY_OPTION_NAME.keySet());
+    private static final Set<String> KNOWN_OPTION_NAMES = KNOWN_OPTIONS.stream()
+        .map(KnownOption::getOption)
+        .collect(ImmutableSet.toImmutableSet());
 
     protected JavadocOptionFile optionFile;
 
@@ -103,7 +85,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Incubating
     public Set<String> knownOptionNames() {
-        return CoreJavadocOptions.KNOWN_OPTION_NAMES;
+        return KNOWN_OPTION_NAMES;
     }
 
     /**
@@ -521,14 +503,6 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.addStringOption(option);
     }
 
-    void addPropertyOption(String option, Property<?> value) {
-        optionFile.addPropertyOption(option, value);
-    }
-
-    void addConfigurableFileCollectionOption(String option, ConfigurableFileCollection value) {
-        optionFile.addConfigurableFileCollectionOption(option, value);
-    }
-
     public JavadocOptionFileOption<String> addStringOption(String option, String value) {
         return optionFile.addStringOption(option, value);
     }
@@ -650,75 +624,14 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     private void copyKnownOptions() {
-        for (KnownOption2<CoreJavadocOptions> knownOption : KNOWN_OPTIONS2) {
+        for (KnownOption<CoreJavadocOptions> knownOption : KNOWN_OPTIONS) {
             knownOption.copyValueFromOptionFile(this, optionFile);
-        }
-        for (KnownOption knownOption : KNOWN_OPTIONS) {
-            copyKnownOptionValue(knownOption.option, knownOption.richProperty.apply(this), optionFile);
-        }
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    void copyKnownOptionValue(String option, Object richProperty, JavadocOptionFile optionFile) {
-        // Known option values can be also set using addOption methods, e.g. addStringOption("source", "8"),
-        // so we need to handle the case where the value is either a Provider or an eager value
-        Object value = optionFile.getOption(option).getValue();
-        if (richProperty instanceof Property) {
-            if (value instanceof Provider) {
-                ((Property<Object>) richProperty).set((Provider) value);
-            } else {
-                ((Property<Object>) richProperty).set(value);
-            }
-        } else if (richProperty instanceof HasMultipleValues) {
-            if (value instanceof Provider) {
-                ((HasMultipleValues<?>) richProperty).set((Provider) value);
-            } else if (value == null || value instanceof Iterable) {
-                ((HasMultipleValues<?>) richProperty).set((Iterable) value);
-            } else {
-                throw new IllegalArgumentException("Cannot set the value of Javadoc option '" + option + "' using an instance of type " + value.getClass());
-            }
-        } else if (richProperty instanceof MapProperty) {
-            if (value instanceof Provider) {
-                ((MapProperty<?, ?>) richProperty).set((Provider) value);
-            } else if (value == null || value instanceof Map) {
-                ((MapProperty<?, ?>) richProperty).set((Map) value);
-            } else {
-                throw new IllegalArgumentException("Cannot set the value of Javadoc option '" + option + "' using an instance of type " + value.getClass());
-            }
-        } else if (richProperty instanceof ConfigurableFileCollection) {
-            ((ConfigurableFileCollection) richProperty).setFrom(optionFile.getOption(option).getValue());
-        } else {
-            throw new IllegalStateException("Unknown rich property type: " + richProperty + " for option: " + option);
         }
     }
 
     private void addKnownOptionsToOptionFile() {
-        for (KnownOption2<CoreJavadocOptions> knownOption : KNOWN_OPTIONS2) {
+        for (KnownOption<CoreJavadocOptions> knownOption : KNOWN_OPTIONS) {
             knownOption.addToOptionFile(this, optionFile);
-        }
-        for (KnownOption knownOption : KNOWN_OPTIONS) {
-            Object richProperty = knownOption.richProperty.apply(this);
-            switch (knownOption) {
-                case OPTION_OVERVIEW:
-                case OPTION_MEMBERLEVEL:
-                case OPTION_DOCLET:
-                case OPTION_SOURCE:
-                case OPTION_OUTPUTLEVEL:
-                case OPTION_BREAKITERATOR:
-                case OPTION_LOCALE:
-                case OPTION_ENCODING:
-                    addPropertyOption(knownOption.option, (Property<?>) richProperty);
-                    break;
-                case OPTION_DOCLETPATH:
-                case OPTION_CLASSPATH:
-                case OPTION_MODULE_PATH:
-                case OPTION_BOOTCLASSPATH:
-                case OPTION_EXTDIRS:
-                    addConfigurableFileCollectionOption(knownOption.option, (ConfigurableFileCollection) richProperty);
-                    break;
-                default:
-                    throw new IllegalStateException("Unknown known option: " + knownOption);
-            }
         }
     }
 }
