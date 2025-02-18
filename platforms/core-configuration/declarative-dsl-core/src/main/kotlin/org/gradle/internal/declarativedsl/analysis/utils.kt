@@ -45,6 +45,7 @@ fun sameType(left: DataType, right: DataType) = when (left) {
     is DataType.StringDataType -> right is DataType.StringDataType
     is DataType.NullType -> right is DataType.NullType
     is DataType.UnitType -> right is DataType.UnitType
+    is DataType.TypeVariableUsage -> right is DataType.TypeVariableUsage && left.variableId == right.variableId
 }
 
 
