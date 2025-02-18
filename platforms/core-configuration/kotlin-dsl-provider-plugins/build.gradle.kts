@@ -8,6 +8,7 @@ dependencies {
     api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.execution)
     api(projects.kotlinDsl)
     api(projects.logging)
     api(projects.serviceProvider)
