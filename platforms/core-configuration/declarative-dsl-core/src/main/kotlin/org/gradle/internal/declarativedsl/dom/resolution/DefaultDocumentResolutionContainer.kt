@@ -277,7 +277,7 @@ class DocumentResolver(
             is ErrorReason.NonReadableProperty,
             is ErrorReason.OpaqueArgumentForIdentityParameter,
             ErrorReason.UnitAssignment, // TODO: should we still check for this?
-            ErrorReason.AccessOnCurrentReceiverOnlyViolation -> error("not expected here")
+            ErrorReason.AccessOnCurrentReceiverOnlyViolation -> error("${it.errorReason.javaClass.simpleName}: ${it.element}, at: ${it.element.sourceData.sourceIdentifier.fileIdentifier}:${it.element.sourceData.lineRange.start}")
         }
     }.distinct()
 
@@ -309,7 +309,7 @@ class DocumentResolver(
             is ErrorReason.ValReassignment,
             ErrorReason.AccessOnCurrentReceiverOnlyViolation,
             is ErrorReason.NonReadableProperty,
-            is ErrorReason.AmbiguousImport -> error("not expected here")
+            is ErrorReason.AmbiguousImport -> error("${it.errorReason.javaClass.simpleName}: ${it.element}, at: ${it.element.sourceData.sourceIdentifier.fileIdentifier}:${it.element.sourceData.lineRange.start}")
         }
     }.distinct()
 }

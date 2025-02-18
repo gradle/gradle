@@ -351,6 +351,30 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'testSoftwareType' does not match the value of the property.")
     }
 
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Not a problem with Groovy")
+    def 'sensible error when declarative script uses a property as value for another property'() {
+        given:
+        withSoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
+
+        settingsFile() << pluginsFromIncludedBuild
+
+        buildFile() << """
+            testSoftwareType {
+                id = "test"
+
+                foo {
+                    bar = id
+                }
+            }
+        """
+
+        when:
+        fails(":printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        failure.assertHasCause("NonReadableProperty: id, at: ${buildFile().path}:6")
+    }
+
     static String getPluginsFromIncludedBuild() {
         return """
             pluginManagement {
