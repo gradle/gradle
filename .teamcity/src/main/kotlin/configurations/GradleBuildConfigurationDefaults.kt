@@ -53,7 +53,7 @@ fun checkCleanDirWindows(
     dir: String,
     exitOnFailure: Boolean = true,
 ) = """
-    
+
     IF exist $dir (
         TREE $dir
         RMDIR /S /Q $dir
@@ -127,7 +127,6 @@ fun BaseGradleBuildType.gradleRunnerStep(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
-    maxParallelForks: String = "%maxParallelForks%",
     isRetry: Boolean = false,
 ) {
     val stepName: String = if (isRetry) GRADLE_RETRY_RUNNER_STEP_NAME else GRADLE_RUNNER_STEP_NAME
@@ -137,7 +136,7 @@ fun BaseGradleBuildType.gradleRunnerStep(
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id) + extraBuildScanTags
     val parameters =
         (
-            buildToolGradleParameters(maxParallelForks = maxParallelForks) +
+            buildToolGradleParameters() +
                 listOf(extraParameters) +
                 buildScanTags.map { buildScanTagParam(it) } +
                 functionalTestParameters(os, arch)
@@ -205,11 +204,10 @@ private fun BaseGradleBuildType.addRetrySteps(
     os: Os = Os.LINUX,
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
-    maxParallelForks: String = "%maxParallelForks%",
 ) {
     killProcessStep(KILL_ALL_GRADLE_PROCESSES, os, arch, executionMode = ExecutionMode.RUN_ONLY_ON_FAILURE)
     cleanUpGitUntrackedFilesAndDirectories()
-    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks, isRetry = true)
+    gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, isRetry = true)
 }
 
 fun applyTestDefaults(
@@ -221,7 +219,6 @@ fun applyTestDefaults(
     arch: Arch = Arch.AMD64,
     extraParameters: String = "",
     timeout: Int = 90,
-    maxParallelForks: String = "%maxParallelForks%",
     extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
     preSteps: BuildSteps.() -> Unit = {}, // the steps before runner steps
 ) {
@@ -232,7 +229,7 @@ fun applyTestDefaults(
     }
 
     buildType.killProcessStep(KILL_LEAKED_PROCESSES_FROM_PREVIOUS_BUILDS, os, arch)
-    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters, maxParallelForks = maxParallelForks)
+    buildType.gradleRunnerStep(model, gradleTasks, os, arch, extraParameters)
     buildType.addRetrySteps(model, gradleTasks, os, arch, extraParameters)
     buildType.killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, executionMode = ExecutionMode.ALWAYS)
 

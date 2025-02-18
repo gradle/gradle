@@ -59,8 +59,6 @@ class BuildTypeTest {
         val gradleStep = CompileAll(buildModel, buildModel.stages[0]).steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
         assertEquals(
             listOf(
-                "-Dorg.gradle.workers.max=%maxParallelForks%",
-                "-PmaxParallelForks=%maxParallelForks%",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
                 "-s",
                 "%additional.gradle.parameters%",
@@ -103,8 +101,6 @@ class BuildTypeTest {
         val gradleStep = functionalTest.steps.getGradleStep(GRADLE_RUNNER_STEP_NAME)
         assertEquals(
             listOf(
-                "-Dorg.gradle.workers.max=4",
-                "-PmaxParallelForks=4",
                 "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
                 "-s",
                 "%additional.gradle.parameters%",

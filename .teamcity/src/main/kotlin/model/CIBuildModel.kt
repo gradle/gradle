@@ -559,10 +559,9 @@ enum class TestType(
     val functionalTests: Boolean = true,
     val crossVersionTests: Boolean = false,
     val timeout: Int = 180,
-    val maxParallelForks: Int = 4,
 ) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
-    QUICK(true, true, true, 120, 4),
+    QUICK(true, true, true, 120),
 
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     PLATFORM(true, true, true),

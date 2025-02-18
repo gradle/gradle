@@ -119,7 +119,6 @@ class FunctionalTest(
             arch = testCoverage.arch,
             extraParameters = assembledExtraParameters,
             timeout = testCoverage.testType.timeout,
-            maxParallelForks = testCoverage.testType.maxParallelForks.toString(),
             extraSteps = extraBuildSteps,
             preSteps = preBuildSteps,
         )

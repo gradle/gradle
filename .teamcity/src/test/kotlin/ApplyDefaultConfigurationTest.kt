@@ -183,8 +183,7 @@ class ApplyDefaultConfigurationTest {
             )
         val expectedInstallationPaths = (if (os == Os.WINDOWS) windowsPaths else linuxPaths).joinToString(",")
         return listOf(
-            "-Dorg.gradle.workers.max=%maxParallelForks%",
-            "-PmaxParallelForks=%maxParallelForks% $PLUGINS_PORTAL_URL_OVERRIDE -s",
+            "$PLUGINS_PORTAL_URL_OVERRIDE -s",
             "%additional.gradle.parameters%",
             "--continue $extraParameters -Dscan.tag.Check",
             "-Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id%",
