@@ -89,6 +89,7 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_11, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_23, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_24, JvmVendor.OPENJDK),
                     )
 
