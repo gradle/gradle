@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.evaluator
+package org.gradle.internal.declarativedsl.interpreter
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
@@ -34,7 +34,7 @@ import org.gradle.internal.declarativedsl.evaluator.features.ResolutionResultHan
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
