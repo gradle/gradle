@@ -106,24 +106,16 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             this.projectClass = projectClass;
         }
 
-        void configureProperty(Project project, String name, @Nullable Object value) {
+        void configureProperty(Project project, String name, Object value) {
             if (isPossibleProperty(name)) {
                 assert project.getClass() == projectClass;
                 PropertyMutator propertyMutator = propertyMutatorFor(name, typeOf(value));
                 if (propertyMutator != null) {
                     propertyMutator.setValue(project, value);
                 } else {
-                    setExtraProjectProperty(name, value);
+                    extraProjectProperties.put(name, value);
                 }
             }
-        }
-
-        private void setExtraProjectProperty(String name, @Nullable Object value) {
-            if (extraProjectProperties == null) {
-                extraProjectProperties = ImmutableMap.builder();
-            }
-            // TODO:wip Handle null values
-            extraProjectProperties.put(name, value);
         }
 
         @Nullable
@@ -157,13 +149,10 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         }
 
         public void beginProjectProperties() {
-            // For symmetry only
+            extraProjectProperties = ImmutableMap.builder();
         }
 
         public Map<String, Object> endProjectProperties() {
-            if (extraProjectProperties == null) {
-                return ImmutableMap.of();
-            }
             try {
                 return extraProjectProperties.build();
             } finally {
