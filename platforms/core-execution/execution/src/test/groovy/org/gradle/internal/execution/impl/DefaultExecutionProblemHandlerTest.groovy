@@ -40,6 +40,7 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 
 class DefaultExecutionProblemHandlerTest extends Specification implements ValidationMessageChecker {
 
+    def identity = Mock(UnitOfWork.Identity)
     def work = Stub(UnitOfWork)
     def warningReporter = Mock(ValidateStep.ValidationWarningRecorder)
     def virtualFileSystem = Mock(VirtualFileSystem)
@@ -64,7 +65,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         }
 
         when:
-        handler.handleReportedProblems(work, validationContext)
+        handler.handleReportedProblems(identity, work, validationContext)
 
         then:
         def ex = thrown(WorkValidationException)
@@ -96,7 +97,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .details("Test")
         }
         when:
-        handler.handleReportedProblems(work, validationContext)
+        handler.handleReportedProblems(identity, work, validationContext)
 
         then:
         def ex = thrown WorkValidationException
@@ -123,10 +124,10 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
                 .details("Test")
         }
         when:
-        handler.handleReportedProblems(work, validationContext)
+        handler.handleReportedProblems(identity, work, validationContext)
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { List<Problem> warnings ->
+        1 * warningReporter.recordValidationWarnings(identity, work, { List<Problem> warnings ->
             convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, false, false)) == expectedWarning
         })
 
@@ -161,10 +162,10 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         }
 
         when:
-        handler.handleReportedProblems(work, validationContext)
+        handler.handleReportedProblems(identity, work, validationContext)
 
         then:
-        1 * warningReporter.recordValidationWarnings(work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, true, false)) == expectedWarning })
+        1 * warningReporter.recordValidationWarnings(identity, work, { warnings -> convertToSingleLine(renderMinimalInformationAbout(warnings.first() as InternalProblem, true, false)) == expectedWarning })
 
         then:
         def ex = thrown WorkValidationException

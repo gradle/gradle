@@ -122,7 +122,7 @@ public abstract class AbstractSkipEmptyWorkStep<C extends WorkspaceContext> impl
         // Make sure we check for missing dependencies even if we skip executing the work
         WorkValidationContext validationContext = context.getValidationContext();
         work.checkOutputDependencies(validationContext);
-        problemHandler.handleReportedProblems(work, validationContext);
+        problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
 
         CachingResult result = performSkip(work, context);
         broadcastWorkInputs(work, true);

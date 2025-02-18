@@ -42,7 +42,7 @@ class ValidateStepTest extends StepSpec<BeforeExecutionContext> {
 
         1 * delegate.execute(work, { ValidationFinishedContext context -> context.validationProblems.empty }) >> delegateResult
         _ * work.validate(_ as WorkValidationContext) >> { validated = true }
-        1 * problemHandler.handleReportedProblems(work, _ as WorkValidationContext)
+        1 * problemHandler.handleReportedProblems(identity, work, _ as WorkValidationContext)
 
         then:
         validated

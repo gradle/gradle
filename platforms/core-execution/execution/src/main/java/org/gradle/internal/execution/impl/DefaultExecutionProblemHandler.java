@@ -58,7 +58,7 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
     }
 
     @Override
-    public void handleReportedProblems(UnitOfWork work, WorkValidationContext validationContext) {
+    public void handleReportedProblems(UnitOfWork.Identity identity, UnitOfWork work, WorkValidationContext validationContext) {
         InternalProblems problemsService = validationContext.getProblemsService();
         InternalProblemReporter reporter = problemsService.getInternalReporter();
         List<InternalProblem> problems = validationContext.getProblems();
@@ -74,7 +74,7 @@ public class DefaultExecutionProblemHandler implements ExecutionProblemHandler {
             for (InternalProblem warning : warnings) {
                 reporter.report(warning);
             }
-            warningReporter.recordValidationWarnings(work, warnings);
+            warningReporter.recordValidationWarnings(identity, work, warnings);
         }
 
         if (!errors.isEmpty()) {

@@ -56,7 +56,7 @@ class SkipEmptyIncrementalWorkStepTest extends AbstractSkipEmptyWorkStepTest<Pre
         }
 
         and:
-        1 * problemHandler.handleReportedProblems(work, _)
+        1 * problemHandler.handleReportedProblems(identity, work, _)
 
         and:
         1 * outputChangeListener.invalidateCachesFor(rootPaths(previousOutputFile))

@@ -24,5 +24,5 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.Build.class)
 public interface ExecutionProblemHandler {
-    void handleReportedProblems(UnitOfWork work, WorkValidationContext validationContext);
+    void handleReportedProblems(UnitOfWork.Identity identity, UnitOfWork work, WorkValidationContext validationContext);
 }

@@ -35,11 +35,12 @@ import static org.gradle.internal.reflect.validation.TypeValidationProblemRender
 public class DefaultWorkValidationWarningRecorder implements ValidateStep.ValidationWarningRecorder, WorkValidationWarningReporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkValidationWarningRecorder.class);
 
-    private final Set<UnitOfWork> workWithWarnings = ConcurrentHashMap.newKeySet();
+    // TODO If we can ensure that the recorder is only called once per work execution, then we can demote this to a simple counter
+    private final Set<UnitOfWork.Identity> workWithWarnings = ConcurrentHashMap.newKeySet();
 
     @Override
-    public void recordValidationWarnings(UnitOfWork work, Collection<? extends InternalProblem> warnings) {
-        workWithWarnings.add(work);
+    public void recordValidationWarnings(UnitOfWork.Identity identity, UnitOfWork work, Collection<? extends InternalProblem> warnings) {
+        workWithWarnings.add(identity);
         String uniqueWarnings = warnings.stream()
             .map(warning -> convertToSingleLine(renderMinimalInformationAbout(warning, true, false)))
             .map(warning -> "\n  - " + warning)
