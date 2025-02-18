@@ -37,6 +37,13 @@ configurations {
 // end::locking-single[]
 
 dependencies {
-    implementation("org.springframework:spring-beans:[5.0,6.0)")
+    implementation("org.springframework:spring-beans:5.2.22")
+    constraints {
+        implementation("org.springframework:spring-webmvc:5.2.22")
+        implementation("org.springframework:spring-web:5.2.22")
+        implementation("org.springframework:spring-core:5.2.22")
+        implementation("org.springframework:spring-expression:5.2.22")
+        implementation("org.springframework:spring-context:5.2.22")
+    }
 }
 // end::locking-explicit[]
