@@ -15,13 +15,14 @@
  */
 package org.gradle.initialization
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.properties.GradleProperties
-import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.internal.GUtil
@@ -42,9 +43,9 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final FileResourceListener fileResourceListener = Mock(FileResourceListener)
     final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target, fileResourceListener)
     final ExtensionContainerInternal rootExtension = Mock()
-    final ExtraPropertiesExtension rootProperties = Mock()
+    final ExtraPropertiesExtensionInternal rootProperties = Mock()
     final ExtensionContainerInternal childExtension = Mock()
-    final ExtraPropertiesExtension childProperties = Mock()
+    final ExtraPropertiesExtensionInternal childProperties = Mock()
 
     def setup() {
         _ * gradle.rootProject >> rootProject
@@ -80,8 +81,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(settings, gradle)
 
         then:
-        1 * rootProperties.set('prop', 'value')
-        1 * childProperties.set('prop', 'value')
+        1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'value'))
+        1 * childProperties.setGradleProperties(ImmutableMap.of('prop', 'value'))
     }
 
     def "defines extra property for unknown property"() {
@@ -92,7 +93,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(settings, gradle)
 
         then:
-        1 * rootProperties.set('prop', 'value')
+        1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'value'))
     }
 
     def "loads project properties from gradle.properties file in project dir"() {
@@ -106,8 +107,8 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         then:
         1 * gradleProperties.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
         1 * gradleProperties.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
-        1 * rootProperties.set('prop', 'rootValue')
-        1 * childProperties.set('prop', 'childValue')
+        1 * rootProperties.setGradleProperties(ImmutableMap.of('prop', 'rootValue'))
+        1 * childProperties.setGradleProperties(ImmutableMap.of('prop', 'childValue'))
     }
 
     def "defines project properties from Project class"() {
