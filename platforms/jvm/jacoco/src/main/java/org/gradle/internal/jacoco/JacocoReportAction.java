@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis
+package org.gradle.internal.jacoco;
 
-open class DeclarativeDslInterpretationException(message: String) : RuntimeException(message)
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 
-internal
-fun interpretationFailure(message: String): Nothing = throw DeclarativeDslInterpretationException(message)
+public abstract class JacocoReportAction extends AntWorkAction<JacocoReportParameters> {
 
-internal
-fun interpretationCheck(value: Boolean, lazyMessage: () -> String) {
-    if (!value) {
-        interpretationFailure(lazyMessage())
+    @Override
+    protected String getActionName() {
+        return "jacoco-report";
+    }
+
+    @Override
+    protected Action<AntBuilderDelegate> getAntAction() {
+        return new AntJacocoReport(getParameters());
     }
 }

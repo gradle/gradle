@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.api.plugins.internal.ant;
 
-package org.gradle.internal.declarativedsl.analysis
-
-open class DeclarativeDslInterpretationException(message: String) : RuntimeException(message)
-
-internal
-fun interpretationFailure(message: String): Nothing = throw DeclarativeDslInterpretationException(message)
-
-internal
-fun interpretationCheck(value: Boolean, lazyMessage: () -> String) {
-    if (!value) {
-        interpretationFailure(lazyMessage())
-    }
-}
+import org.gradle.api.NonNullApi;

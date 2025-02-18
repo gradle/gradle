@@ -19,6 +19,7 @@ dependencies {
     api(projects.fileOperations)
     api(projects.platformJvm)
     api(projects.reporting)
+    api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)

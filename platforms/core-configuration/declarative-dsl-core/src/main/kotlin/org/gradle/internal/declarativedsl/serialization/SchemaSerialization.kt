@@ -18,6 +18,7 @@ package org.gradle.internal.declarativedsl.serialization
 
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.PolymorphicModuleBuilder
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
@@ -51,6 +52,7 @@ import org.gradle.internal.declarativedsl.analysis.DefaultFqName
 import org.gradle.internal.declarativedsl.analysis.FunctionSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.ParameterSemanticsInternal
 import org.gradle.internal.declarativedsl.analysis.SchemaItemMetadataInternal
+import org.gradle.internal.declarativedsl.analysis.TypeArgumentInternal
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
 
 
@@ -64,19 +66,29 @@ object SchemaSerialization {
                 subclass(ConfigureAccessorInternal.DefaultCustom::class)
                 subclass(ConfigureAccessorInternal.DefaultProperty::class)
             }
-            polymorphic(DataType::class) {
+
+            fun PolymorphicModuleBuilder<DataType.PrimitiveType>.allPrimitiveTypes() {
                 subclass(DataTypeInternal.DefaultIntDataType::class)
                 subclass(DataTypeInternal.DefaultLongDataType::class)
                 subclass(DataTypeInternal.DefaultStringDataType::class)
                 subclass(DataTypeInternal.DefaultBooleanDataType::class)
                 subclass(DataTypeInternal.DefaultNullType::class)
                 subclass(DataTypeInternal.DefaultUnitType::class)
+                subclass(DataTypeInternal.DefaultTypeVariableUsage::class)
+            }
+
+            polymorphic(DataType::class) {
+                allPrimitiveTypes()
                 subclass(DefaultDataClass::class)
                 subclass(DefaultEnumClass::class)
+            }
+            polymorphic(DataType.PrimitiveType::class) {
+                allPrimitiveTypes()
             }
             polymorphic(DataType.ClassDataType::class) {
                 subclass(DefaultDataClass::class)
                 subclass(DefaultEnumClass::class)
+                subclass(DataTypeInternal.DefaultParameterizedTypeInstance::class)
             }
             polymorphic(EnumClass::class) {
                 subclass(DefaultEnumClass::class)
@@ -84,9 +96,14 @@ object SchemaSerialization {
             polymorphic(DataClass::class) {
                 subclass(DefaultDataClass::class)
             }
+            polymorphic(DataType.ParameterizedTypeInstance.TypeArgument::class) {
+                subclass(TypeArgumentInternal.DefaultConcreteTypeArgument::class)
+                subclass(TypeArgumentInternal.DefaultStarProjection::class)
+            }
             polymorphic(DataTypeRef::class) {
                 subclass(DataTypeRefInternal.DefaultName::class)
                 subclass(DataTypeRefInternal.DefaultType::class)
+                subclass(DataTypeRefInternal.DefaultNameWithArgs::class)
             }
             polymorphic(DataParameter::class) {
                 subclass(DefaultDataParameter::class)
@@ -138,6 +155,9 @@ object SchemaSerialization {
             }
             polymorphic(SchemaMemberOrigin::class) {
                 subclass(SchemaItemMetadataInternal.SchemaMemberOriginInternal.DefaultContainerElementFactory::class)
+            }
+            polymorphic(DataType.TypeVariableUsage::class) {
+                subclass(DataTypeInternal.DefaultTypeVariableUsage::class)
             }
         }
         prettyPrint = true

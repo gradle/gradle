@@ -24,7 +24,6 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.internal.declarativedsl.analysis.SchemaTypeRefContext
-import org.gradle.internal.declarativedsl.analysis.ref
 import org.gradle.internal.declarativedsl.analysis.sameType
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.ElementNode
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode
@@ -181,7 +180,7 @@ class DocumentMemberAndTypeMatcher(
     val typeRefContext = SchemaTypeRefContext(schema)
 
     fun typeIsSubtypeOf(subtype: DataType, supertype: DataType): Boolean =
-        subtype.ref.isEquivalentTo(supertype.ref) ||
+        sameType(subtype, supertype) ||
             subtype is DataClass && supertype is DataClass && supertype.name in subtype.supertypes
 
     fun <T> ifScopeMatchesType(scope: Scope, typedMember: TypedMember, then: (ElementNode) -> T): T? {

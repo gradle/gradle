@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
+import org.gradle.api.plugins.internal.ant.AntWorkAction;
 
 public abstract class CheckstyleAction extends AntWorkAction<CheckstyleActionParameters> {
 

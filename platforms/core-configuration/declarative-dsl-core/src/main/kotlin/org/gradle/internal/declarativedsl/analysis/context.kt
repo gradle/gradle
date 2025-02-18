@@ -52,6 +52,7 @@ class AnalysisScope(
 
 interface TypeRefContext {
     fun resolveRef(dataTypeRef: DataTypeRef): DataType
+    fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType?
 }
 
 
@@ -64,10 +65,19 @@ interface AnalysisContextView : TypeRefContext {
 
 
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
-    override fun resolveRef(dataTypeRef: DataTypeRef): DataType = when (dataTypeRef) {
-        is DataTypeRef.Name -> schema.dataClassTypesByFqName.getValue(dataTypeRef.fqName)
+    override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? =when (dataTypeRef) {
+        is DataTypeRef.Name ->
+            schema.dataClassTypesByFqName[dataTypeRef.fqName]
+
+        is DataTypeRef.NameWithArgs ->
+            schema.genericInstantiationsByFqName[dataTypeRef.fqName]?.get(dataTypeRef.typeArguments)
+
         is DataTypeRef.Type -> dataTypeRef.dataType
     }
+
+    override fun resolveRef(dataTypeRef: DataTypeRef): DataType =
+        maybeResolveRef(dataTypeRef)
+            ?: interpretationFailure("cannot resolve a type reference to '$dataTypeRef'")
 }
 
 
@@ -117,6 +127,7 @@ class AnalysisContext(
     val typeRefContext = SchemaTypeRefContext(schema)
 
     override fun resolveRef(dataTypeRef: DataTypeRef): DataType = typeRefContext.resolveRef(dataTypeRef)
+    override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? = typeRefContext.maybeResolveRef(dataTypeRef)
 
     fun enterScope(newScope: AnalysisScope) {
         mutableScopes.add(newScope)

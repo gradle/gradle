@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.declarativedsl.analysis
+package org.gradle.api.plugins.internal.ant;
 
-open class DeclarativeDslInterpretationException(message: String) : RuntimeException(message)
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.workers.WorkParameters;
 
-internal
-fun interpretationFailure(message: String): Nothing = throw DeclarativeDslInterpretationException(message)
-
-internal
-fun interpretationCheck(value: Boolean, lazyMessage: () -> String) {
-    if (!value) {
-        interpretationFailure(lazyMessage())
-    }
+public interface AntWorkParameters extends WorkParameters {
+    ConfigurableFileCollection getAntLibraryClasspath();
 }

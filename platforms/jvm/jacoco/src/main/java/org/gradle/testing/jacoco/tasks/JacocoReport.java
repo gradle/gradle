@@ -24,11 +24,13 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.Describables;
-import org.gradle.internal.jacoco.AntJacocoReport;
+import org.gradle.internal.jacoco.JacocoReportAction;
 import org.gradle.internal.jacoco.JacocoReportsContainerImpl;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
-import java.io.File;
+import javax.inject.Inject;
 
 /**
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
@@ -79,16 +81,27 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
         return reports;
     }
 
+    @Inject
+    protected abstract WorkerExecutor getWorkerExecutor();
+
     @TaskAction
     public void generate() {
-        new AntJacocoReport(getAntBuilder()).execute(
-            getJacocoClasspath(),
-            projectName.get(),
-            getAllClassDirs().filter(File::exists),
-            getAllSourceDirs().filter(File::exists),
-            getSourceEncoding().getOrNull(),
-            getExecutionData().filter(File::exists),
-            getReports()
-        );
+        WorkQueue queue = getWorkerExecutor().classLoaderIsolation();
+
+        queue.submit(JacocoReportAction.class, parameters -> {
+            parameters.getAntLibraryClasspath().convention(getJacocoClasspath());
+            parameters.getProjectName().convention(getReportProjectName());
+            parameters.getEncoding().convention(getSourceEncoding());
+            parameters.getAllSourcesDirs().convention(getAllSourceDirs());
+            parameters.getAllClassesDirs().convention(getAllClassDirs());
+            parameters.getExecutionData().convention(getExecutionData());
+
+            parameters.getGenerateHtml().convention(reports.getHtml().getRequired());
+            parameters.getHtmlDestination().convention(reports.getHtml().getOutputLocation());
+            parameters.getGenerateXml().convention(reports.getXml().getRequired());
+            parameters.getXmlDestination().convention(reports.getXml().getOutputLocation());
+            parameters.getGenerateCsv().convention(reports.getCsv().getRequired());
+            parameters.getCsvDestination().convention(reports.getCsv().getOutputLocation());
+        });
     }
 }
