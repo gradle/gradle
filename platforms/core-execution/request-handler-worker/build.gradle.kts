@@ -1,5 +1,5 @@
 plugins {
-    id("gradlebuild.distribution.api-java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 description = "Worker action that implements RequestHandler worker protocol. " +
