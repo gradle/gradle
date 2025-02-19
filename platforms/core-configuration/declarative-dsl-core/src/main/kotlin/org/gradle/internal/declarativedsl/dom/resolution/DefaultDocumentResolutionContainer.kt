@@ -250,8 +250,14 @@ class DocumentResolver(
         mapElementErrors(errors).map { it as ValueFactoryNotResolvedReason }
 
     private
-    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>) : List<NamedReferenceNotResolvedReason> =
-        mapElementErrors(errors).map { it as NamedReferenceNotResolvedReason}
+    fun mapNamedReferenceErrors(errors: Iterable<ResolutionError>) : List<NamedReferenceNotResolvedReason> = errors.map {
+        when (it.errorReason) {
+            is ErrorReason.NonReadableProperty -> NonEnumValueNamedReference
+            is ErrorReason.UnresolvedReference -> UnresolvedName
+
+            else -> unexpectedErrorInErrorMapping(it)
+        }
+    }
 
     private
     fun mapPropertyErrors(errors: Iterable<ResolutionError>): List<PropertyNotAssignedReason> = errors.map {
@@ -277,7 +283,7 @@ class DocumentResolver(
             is ErrorReason.NonReadableProperty,
             is ErrorReason.OpaqueArgumentForIdentityParameter,
             ErrorReason.UnitAssignment, // TODO: should we still check for this?
-            ErrorReason.AccessOnCurrentReceiverOnlyViolation -> error("${it.errorReason.javaClass.simpleName}: ${it.element}, at: ${it.element.sourceData.sourceIdentifier.fileIdentifier}:${it.element.sourceData.lineRange.start}")
+            ErrorReason.AccessOnCurrentReceiverOnlyViolation -> unexpectedErrorInErrorMapping(it)
         }
     }.distinct()
 
@@ -309,7 +315,19 @@ class DocumentResolver(
             is ErrorReason.ValReassignment,
             ErrorReason.AccessOnCurrentReceiverOnlyViolation,
             is ErrorReason.NonReadableProperty,
-            is ErrorReason.AmbiguousImport -> error("${it.errorReason.javaClass.simpleName}: ${it.element}, at: ${it.element.sourceData.sourceIdentifier.fileIdentifier}:${it.element.sourceData.lineRange.start}")
+            is ErrorReason.AmbiguousImport -> unexpectedErrorInErrorMapping(it)
         }
     }.distinct()
+
+    /**
+     * Throws an exception because the [error] is not expected in this case.
+     *
+     * Therefore, this is not a user-facing error but rather a violation of the DOM contract, which should be investigated.
+     */
+    private fun unexpectedErrorInErrorMapping(error: ResolutionError): Nothing {
+        error(
+            "Unexpected error ${error.errorReason} on ${error.element} at: " +
+                "${error.element.sourceData.sourceIdentifier.fileIdentifier}:${error.element.sourceData.lineRange.start}"
+        )
+    }
 }

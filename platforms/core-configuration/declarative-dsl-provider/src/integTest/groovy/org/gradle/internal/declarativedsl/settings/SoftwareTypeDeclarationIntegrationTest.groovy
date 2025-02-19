@@ -351,10 +351,11 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("Type 'org.gradle.test.SoftwareTypeImplPlugin' property 'testSoftwareTypeExtension' has @SoftwareType annotation with 'disableModelManagement' set to true, but the extension with name 'testSoftwareType' does not match the value of the property.")
     }
 
-    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Not a problem with Groovy")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy can use a property value on the assignment RHS")
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin can use a property value on the assignment RHS")
     def 'sensible error when declarative script uses a property as value for another property'() {
         given:
-        withSoftwareTypePluginThatRegistersTheWrongExtension().prepareToExecute()
+        withSoftwareTypePluginThatRegistersItsOwnExtension().prepareToExecute()
 
         settingsFile() << pluginsFromIncludedBuild
 
@@ -372,7 +373,9 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
         fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        failure.assertHasCause("NonReadableProperty: id, at: ${buildFile().path}:6")
+        errorOutput.contains(
+            "6:27: property cannot be used as a value: 'id'"
+        )
     }
 
     static String getPluginsFromIncludedBuild() {
