@@ -30,13 +30,14 @@ import java.util.Map;
 
 public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
 
-    private final Map<String, Object> storage = new HashMap<>();
-
     private ImmutableMap<String, Object> gradleProperties = ImmutableMap.of();
+
+    @Nullable
+    private Map<String, Object> storage = null;
 
     @Override
     public boolean has(String name) {
-        if (storage.containsKey(name)) {
+        if (storage != null && storage.containsKey(name)) {
             return true;
         }
         // TODO:configuration-cache track Gradle property lookup
@@ -55,9 +56,12 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     }
 
     @Nullable
-    public Object find(String name) {
-        if (storage.containsKey(name)) {
-            return storage.get(name);
+    private Object find(String name) {
+        if (storage != null) {
+            Object value = storage.get(name);
+            if (value != null || storage.containsKey(name)) {
+                return value;
+            }
         }
         // TODO:configuration-cache track Gradle property lookup
 //        onGradlePropertyLookup(name);
@@ -66,6 +70,9 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Override
     public void set(String name, @Nullable Object value) {
+        if (storage == null) {
+            storage = new HashMap<>();
+        }
         storage.put(name, value);
     }
 
@@ -76,8 +83,11 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
             return getProperties();
         }
 
-        if (storage.containsKey(name)) {
-            return storage.get(name);
+        if (storage != null) {
+            Object value = storage.get(name);
+            if (value != null || storage.containsKey(name)) {
+                return value;
+            }
         }
 
         // TODO:configuration-cache track Gradle property lookup
@@ -100,17 +110,22 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
     @Override
     public Map<String, Object> getProperties() {
         // TODO:configuration-cache use a tracking map here
-        HashMap<String, Object> properties = new HashMap<>(storage);
+        if (storage == null) {
+            return gradleProperties;
+        }
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builderWithExpectedSize(storage.size());
+        builder.putAll(storage);
         for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
-            if (!properties.containsKey(entry.getKey())) {
+            if (!storage.containsKey(entry.getKey())) {
                 // TODO:configuration-cache track Gradle property lookup
 //                onGradlePropertyLookup(entry.getKey());
-                properties.put(entry.getKey(), entry.getValue());
+                builder.put(entry.getKey(), entry.getValue());
             }
         }
-        return properties;
+        return builder.build();
     }
 
+    @SuppressWarnings("rawtypes")
     public Object methodMissing(String name, Object args) {
         Object item = find(name);
         if (item instanceof Closure) {
