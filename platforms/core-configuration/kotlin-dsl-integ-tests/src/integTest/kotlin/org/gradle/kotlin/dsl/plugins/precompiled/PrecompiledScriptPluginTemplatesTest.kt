@@ -667,7 +667,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         givenPrecompiledKotlinScript(
             fileName,
             """
-            fun <T> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
+            fun <T : Any> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
             object receiver
             applyActionTo(receiver) {
                 require(this === receiver)
