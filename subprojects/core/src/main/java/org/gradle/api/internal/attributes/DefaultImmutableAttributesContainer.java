@@ -24,8 +24,8 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.Map;

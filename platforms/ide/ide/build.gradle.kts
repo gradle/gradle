@@ -20,7 +20,7 @@ dependencies {
     api(libs.guava)
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.ear)

@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.Instant;
 import java.util.Map;
 
-@NonNullApi
+@NullMarked
 class LifecycleTrackingTestEventReporter<T extends TestEventReporter> implements TestEventReporter {
     protected final T delegate;
 
-    @NonNullApi
+    @NullMarked
     private enum State {
         CREATED, STARTED, COMPLETED, CLOSED;
     }

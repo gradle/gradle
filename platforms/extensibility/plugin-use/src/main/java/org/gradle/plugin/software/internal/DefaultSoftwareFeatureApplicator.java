@@ -17,7 +17,6 @@
 package org.gradle.plugin.software.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -36,6 +35,7 @@ import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -106,7 +106,7 @@ public class DefaultSoftwareFeatureApplicator implements SoftwareFeatureApplicat
         return ModelType.of(new DslObject(parameterObject).getDeclaredType()).getDisplayName();
     }
 
-    @NonNullApi
+    @NullMarked
     public static class ExtensionAddingVisitor<T> implements PropertyVisitor {
         private final ExtensionAware target;
         private final DefaultTypeValidationContext validationContext;

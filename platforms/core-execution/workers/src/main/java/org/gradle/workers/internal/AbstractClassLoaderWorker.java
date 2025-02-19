@@ -25,8 +25,8 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader;

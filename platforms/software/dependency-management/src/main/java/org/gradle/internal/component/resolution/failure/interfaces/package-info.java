@@ -39,5 +39,5 @@
  * All concrete failures in the {@link org.gradle.internal.component.resolution.failure.type} package should
  * implement exactly one of these interfaces.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.component.resolution.failure.interfaces;

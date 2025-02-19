@@ -22,7 +22,7 @@ dependencies {
 
     api(libs.groovy)
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.loggingApi)
     implementation(projects.modelCore)

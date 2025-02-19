@@ -23,8 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Patte
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.IvyPatternMatcherExcludeRuleSpec;
 import org.gradle.internal.component.model.IvyArtifactName;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 final class DefaultIvyPatternMatcherExcludeRuleSpec implements IvyPatternMatcherExcludeRuleSpec {
     private final ModuleIdentifier moduleId;

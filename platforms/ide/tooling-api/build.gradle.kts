@@ -6,7 +6,11 @@ plugins {
 
 description = "Gradle Tooling API - the programmatic API to invoke Gradle"
 
-gradlebuildJava.usedInToolingApi()
+gradlebuildJava {
+    usedInToolingApi()
+    // JSpecify annotations on static inner type return types
+    usesJdkInternals = true
+}
 
 tasks.named<Jar>("sourcesJar") {
     // duplicate package-info.java because of split packages
@@ -40,6 +44,7 @@ dependencies {
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
     api(projects.baseServices)
     api(projects.buildOperations)
@@ -51,7 +56,7 @@ dependencies {
     api(projects.time)
     api(projects.wrapperShared)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     testFixturesImplementation(projects.coreApi)
     testFixturesImplementation(projects.core)

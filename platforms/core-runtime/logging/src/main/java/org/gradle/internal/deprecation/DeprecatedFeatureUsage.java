@@ -22,8 +22,7 @@ import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.InternalDocLink;
 import org.gradle.internal.featurelifecycle.FeatureUsage;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 

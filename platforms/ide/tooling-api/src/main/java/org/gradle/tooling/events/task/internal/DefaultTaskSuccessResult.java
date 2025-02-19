@@ -18,8 +18,8 @@ package org.gradle.tooling.events.task.internal;
 
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.task.TaskSuccessResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

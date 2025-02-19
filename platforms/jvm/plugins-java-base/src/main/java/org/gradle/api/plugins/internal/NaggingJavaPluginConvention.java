@@ -27,7 +27,7 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import java.io.File;
 
 @SuppressWarnings("deprecation")
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 public class NaggingJavaPluginConvention extends org.gradle.api.plugins.JavaPluginConvention {
     private final DefaultJavaPluginConvention delegate;
 

@@ -17,17 +17,16 @@
 package org.gradle.internal.classpath;
 
 import groovy.lang.Closure;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -55,7 +54,7 @@ import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
  *     <li> Implements {@link InstrumentableClosure#makeEffectivelyInstrumented}, adding a call to {@link InstrumentedGroovyMetaClassHelper#addInvocationHooksToEffectivelyInstrumentClosure}.
  * </ul>
  */
-@NonNullApi
+@NullMarked
 public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisitor {
 
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -67,13 +66,13 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         this.interceptorFilter = interceptorFilter;
     }
 
-    @NonNullApi
+    @NullMarked
     private enum MethodInstrumentationStrategy {
         /**
          * Whenever the closure's delegate is set, we want to make sure that the call interception hooks are added to the new delegate's metaclass.
          */
         SET_DELEGATE("setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true, (classData, mv) -> {
-            @NonNullApi
+            @NullMarked
             class MethodVisitorScopeImpl extends MethodVisitorScope {
                 public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
                     super(methodVisitor);
@@ -112,7 +111,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             String methodNameToVisit = isValidDoCallMethod ? "doCall$original" : methodData.name;
             MethodVisitor original = clazz.visitor.visitMethod(methodData.access, methodNameToVisit, methodData.descriptor, methodData.signature, methodData.exceptions);
             if (isValidDoCallMethod) {
-                @NonNullApi
+                @NullMarked
                 class MethodVisitorScopeImpl extends MethodVisitorScope {
                     public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
                         super(methodVisitor);
@@ -179,7 +178,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         }),
 
         ADD_MAKE_EFFECTIVELY_INSTRUMENTED_METHOD("makeEffectivelyInstrumented", "()V", true, (classData, methodData) -> {
-            @NonNullApi
+            @NullMarked
             class MethodVisitorScopeImpl extends MethodVisitorScope {
                 public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
                     super(methodVisitor);
@@ -216,7 +215,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         public final boolean generateIfNotPresent;
         private final BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory;
 
-        @NonNullApi
+        @NullMarked
         static final class MethodData {
             public final int access;
             public final String name;
@@ -237,7 +236,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             }
         }
 
-        @NonNullApi
+        @NullMarked
         static final class ClassData {
             public final ClassVisitor visitor;
             public final String className;
@@ -278,7 +277,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         super.visit(version, access, name, signature, superName, modifiedInterfaces);
     }
 
-    @Nonnull
+    @NullMarked
     private static String[] interfacesWithInstrumentableClosure(String[] interfaces, boolean isClosureImplementation) {
         String[] modifiedInterfaces = isClosureImplementation ? Arrays.copyOf(interfaces, interfaces.length + 1) : interfaces;
         if (isClosureImplementation) {

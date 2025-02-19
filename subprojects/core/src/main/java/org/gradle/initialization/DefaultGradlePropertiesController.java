@@ -20,8 +20,8 @@ import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.initialization.properties.MutableGradleProperties;
 import org.gradle.initialization.properties.ProjectPropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 

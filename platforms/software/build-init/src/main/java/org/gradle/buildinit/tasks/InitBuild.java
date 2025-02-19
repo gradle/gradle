@@ -61,9 +61,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.lang.model.SourceVersion;
 import java.io.File;
@@ -326,13 +326,13 @@ public abstract class InitBuild extends DefaultTask {
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
         return new BuildInitConfig() {
             @Override
-            @Nonnull
+            @NullMarked
             public BuildInitSpec getBuildSpec() {
                 return spec;
             }
 
             @Override
-            @Nonnull
+            @NullMarked
             public Map<BuildInitParameter<?>, Object> getArguments() {
                 return Collections.emptyMap();
             }

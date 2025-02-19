@@ -16,11 +16,11 @@
 
 package org.gradle.internal.serialization;
 
-import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.Try;
+import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationOwner;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.concurrent.Callable;
 
 /**
@@ -76,7 +76,7 @@ public abstract class Cached<T> {
             return result;
         }
 
-        @Nonnull
+        @NullMarked
         private Try<T> tryComputation(Callable<T> toCompute) {
             // wrap computation as an "evaluation" so it can be treated specially as other evaluations
             return EvaluationContext.current().evaluate(this, () -> Try.ofFailable(toCompute));

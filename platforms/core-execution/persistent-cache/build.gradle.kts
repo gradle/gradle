@@ -15,12 +15,13 @@ dependencies {
     api(projects.buildOperations)
     api(projects.files)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.io)
     implementation(projects.time)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)

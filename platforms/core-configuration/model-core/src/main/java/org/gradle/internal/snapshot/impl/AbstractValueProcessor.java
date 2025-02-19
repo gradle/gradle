@@ -27,8 +27,8 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
 import org.gradle.internal.state.Managed;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;

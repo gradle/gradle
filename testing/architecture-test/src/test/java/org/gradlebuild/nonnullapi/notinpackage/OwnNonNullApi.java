@@ -16,8 +16,8 @@
 
 package org.gradlebuild.nonnullapi.notinpackage;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface OwnNonNullApi {
 }

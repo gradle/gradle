@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * This is a deprecated internal class that exists specifically to be used by the

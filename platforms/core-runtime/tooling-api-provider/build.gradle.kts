@@ -27,7 +27,7 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
     implementation(libs.slf4jApi)
     implementation(projects.launcher)
     implementation(projects.buildState)

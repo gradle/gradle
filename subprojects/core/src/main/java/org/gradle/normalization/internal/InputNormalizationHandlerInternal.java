@@ -17,8 +17,7 @@
 package org.gradle.normalization.internal;
 
 import org.gradle.normalization.InputNormalizationHandler;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface InputNormalizationHandlerInternal extends InputNormalizationHandler {
     @Override

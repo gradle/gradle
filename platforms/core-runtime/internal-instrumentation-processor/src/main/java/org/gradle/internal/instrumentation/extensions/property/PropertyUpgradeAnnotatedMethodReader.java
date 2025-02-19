@@ -48,10 +48,10 @@ import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterce
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.Result.Success;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
@@ -626,7 +626,7 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         );
     }
 
-    @Nonnull
+    @NullMarked
     private List<RequestExtra> getJvmRequestExtras(AccessorSpec accessor, ExecutableElement method, BinaryCompatibility binaryCompatibility) {
         String interceptorsClassName = getJavaInterceptorsClassName(accessor.interceptorType);
         List<RequestExtra> extras = new ArrayList<>();

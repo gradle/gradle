@@ -34,9 +34,9 @@ import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -218,12 +218,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return addFileLocation(DefaultLineInFileLocation.from(path, line));
     }
 
-    @Nonnull
+    @NullMarked
     private DefaultProblemBuilder addFileLocation(FileLocation from) {
         return addFileLocationTo(this.locations, from);
     }
 
-    @Nonnull
+    @NullMarked
     private DefaultProblemBuilder addFileLocationTo(List<ProblemLocation> problemLocations, FileLocation from) {
         if (problemLocations.contains(from)) {
             return this;
@@ -334,7 +334,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return this;
     }
 
-    @Nonnull
+    @NullMarked
     private static <T extends AdditionalData> Map<String, Object> getAdditionalDataMap(Class<T> type, AdditionalData additionalDataInstance) {
         Map<String, Object> methodValues = new HashMap<String, Object>();
         for (Method method : type.getMethods()) {
@@ -354,7 +354,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         return methodValues;
     }
 
-    @Nonnull
+    @NullMarked
     private <T extends AdditionalData> AdditionalData createAdditionalData(Class<T> type, Action<? super T> config) {
         T additionalDataInstance = getInstantiator().newInstance(type);
         config.execute(additionalDataInstance);

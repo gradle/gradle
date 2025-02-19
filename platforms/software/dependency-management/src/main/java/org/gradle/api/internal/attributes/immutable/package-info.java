@@ -17,7 +17,7 @@
 /**
  * Classes for creating and working with immutable attribute schemas.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.internal.attributes.immutable;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

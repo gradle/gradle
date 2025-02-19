@@ -16,7 +16,8 @@
 
 package org.gradle.model.internal.asm;
 
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
@@ -185,7 +186,7 @@ public class AsmClassGeneratorUtils {
         }
     }
 
-    @Nonnull
+    @NullMarked
     private static String descriptorOf(Class<?> cl) {
         return getType(cl).getDescriptor();
     }

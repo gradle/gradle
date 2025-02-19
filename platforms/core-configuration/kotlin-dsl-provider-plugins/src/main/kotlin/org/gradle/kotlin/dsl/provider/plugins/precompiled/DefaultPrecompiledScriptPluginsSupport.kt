@@ -290,7 +290,7 @@ fun Project.enableScriptCompilationOf(
 private fun Project.registerCompilePluginsBlocksTask(
     compileClasspath: FileCollection,
     jvmTarget: Provider<JavaVersion>,
-    extractPluginsBlocksTask: TaskProvider<ExtractPrecompiledScriptPluginPlugins>?,
+    extractPluginsBlocksTask: TaskProvider<ExtractPrecompiledScriptPluginPlugins>,
     extractedPluginsBlocksDir: Provider<Directory>,
     externalPluginSpecBuildersTask: TaskProvider<GenerateExternalPluginSpecBuilders>,
     externalPluginSpecBuildersDir: Provider<Directory>,

@@ -18,8 +18,8 @@ package org.gradle.internal.service;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.DirectInstantiator;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -187,7 +187,7 @@ public class DefaultServiceLocator implements ServiceLocator {
         }
 
         @Override
-        @Nonnull
+        @NullMarked
         public T create() {
             return newInstance();
         }

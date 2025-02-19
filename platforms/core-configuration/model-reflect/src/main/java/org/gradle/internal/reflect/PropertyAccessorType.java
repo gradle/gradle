@@ -17,8 +17,8 @@
 package org.gradle.internal.reflect;
 
 import groovy.lang.GroovySystem;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.Introspector;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;

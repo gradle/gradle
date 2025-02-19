@@ -23,9 +23,9 @@ import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
@@ -43,7 +43,7 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
         this.allVariants = dependency.getAllVariants();
     }
 
-    @Nonnull
+    @NullMarked
     @Override
     public ComponentIdentifier getId() {
         return dependency.getActual();

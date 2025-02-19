@@ -25,5 +25,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
+
+    implementation(libs.jsr305)
 }

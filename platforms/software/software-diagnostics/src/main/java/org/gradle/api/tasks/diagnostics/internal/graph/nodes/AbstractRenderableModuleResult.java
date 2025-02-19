@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 public abstract class AbstractRenderableModuleResult extends AbstractRenderableDependency {
@@ -32,7 +32,7 @@ public abstract class AbstractRenderableModuleResult extends AbstractRenderableD
         this.module = module;
     }
 
-    @Nonnull
+    @NullMarked
     @Override
     public ComponentIdentifier getId() {
         return module.getId();

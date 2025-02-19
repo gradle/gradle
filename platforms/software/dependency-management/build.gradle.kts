@@ -75,6 +75,7 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.ivy)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.maven3Settings)
     api(libs.maven3SettingsBuilder)

@@ -17,8 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A {@code PropertyReportRenderer} is responsible for rendering the model of a property report.</p>

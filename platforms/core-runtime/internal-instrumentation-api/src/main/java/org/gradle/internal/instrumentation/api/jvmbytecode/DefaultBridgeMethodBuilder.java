@@ -18,12 +18,12 @@ package org.gradle.internal.instrumentation.api.jvmbytecode;
 
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -240,7 +240,7 @@ public abstract class DefaultBridgeMethodBuilder implements BridgeMethodBuilder 
         }
     }
 
-    private @Nonnull Type getBridgeMethod() {
+    private @NullMarked Type getBridgeMethod() {
         return Type.getMethodType(bridgeDesc);
     }
 

@@ -25,8 +25,7 @@ import org.gradle.model.internal.core.ModelRegistration;
 import org.gradle.model.internal.core.ModelSpec;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.type.ModelType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface ModelRegistry {
 

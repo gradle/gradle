@@ -19,8 +19,8 @@ package org.gradle.buildinit.plugins.internal.action;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class InitBuiltInCommand implements BuiltInCommand {
     public static final String NAME = "init";
 
     @Override
-    @Nonnull
+    @NullMarked
     public String getDisplayName() {
         return NAME;
     }

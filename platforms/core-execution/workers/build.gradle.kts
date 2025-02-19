@@ -25,7 +25,7 @@ dependencies {
     api(projects.buildProcessServices)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.fileTemp)
     implementation(projects.fileCollections)
@@ -33,6 +33,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
     implementation(libs.guava)
 

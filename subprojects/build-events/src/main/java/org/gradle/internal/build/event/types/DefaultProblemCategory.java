@@ -16,13 +16,13 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblemCategory implements InternalProblemCategory, Serializable {
 
     private final String namespace;

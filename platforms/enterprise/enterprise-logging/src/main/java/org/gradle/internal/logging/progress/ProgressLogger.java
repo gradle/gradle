@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.progress;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Used to log the progress of a potentially long running operation.

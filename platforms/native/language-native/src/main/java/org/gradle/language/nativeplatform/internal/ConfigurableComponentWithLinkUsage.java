@@ -23,8 +23,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.nativeplatform.ComponentWithLinkUsage;
 import org.gradle.nativeplatform.Linkage;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A configurable view of a component that has a link usage. This should become public in some form.

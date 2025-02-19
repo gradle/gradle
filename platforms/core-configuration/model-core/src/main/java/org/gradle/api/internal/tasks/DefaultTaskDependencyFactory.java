@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.ImmutableSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 
 public class DefaultTaskDependencyFactory implements TaskDependencyFactory {

@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks.testing.results.serializable;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializedMetadata.SerializedMetadataElement;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 
@@ -33,13 +33,13 @@ import java.io.IOException;
  * Specifically, this class does not contain exception objects.
  * </p>
  */
-@NonNullApi
+@NullMarked
 public final class SerializableTestResult {
     public static Builder builder() {
         return new Builder();
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class Builder {
         private String name;
         private String displayName;
@@ -106,7 +106,7 @@ public final class SerializableTestResult {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     public static final class Serializer {
         private Serializer() { /* static util class is not instantiable */ }
 

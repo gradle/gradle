@@ -21,6 +21,7 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Global.class)
 public interface InstanceGenerator extends Instantiator {
@@ -29,5 +30,5 @@ public interface InstanceGenerator extends Instantiator {
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
      */
-    <T> T newInstanceWithDisplayName(Class<? extends T> type, Describable displayName, Object... parameters) throws ObjectInstantiationException;
+    <T> T newInstanceWithDisplayName(Class<? extends T> type, Describable displayName, @Nullable Object... parameters) throws ObjectInstantiationException;
 }

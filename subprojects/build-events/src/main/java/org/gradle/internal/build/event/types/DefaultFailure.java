@@ -21,8 +21,8 @@ import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.tooling.internal.protocol.InternalBasicProblemDetailsVersion3;
 import org.gradle.tooling.internal.protocol.InternalFailure;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.io.PrintWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
@@ -95,7 +95,7 @@ public class DefaultFailure implements Serializable, InternalFailure {
         return new DefaultFailure(t.getMessage(), out.toString(), causeFailures, problemMapping);
     }
 
-    @Nonnull
+    @NullMarked
     private static List<InternalFailure> getCauseFailures(ProblemLocator problemLocator, Function<InternalProblem, InternalBasicProblemDetailsVersion3> mapper, Throwable cause) {
         if (cause == null) {
             return Collections.emptyList();

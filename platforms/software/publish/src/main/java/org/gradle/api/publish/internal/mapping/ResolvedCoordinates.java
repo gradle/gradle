@@ -17,8 +17,7 @@
 package org.gradle.api.publish.internal.mapping;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the coordinates that a declared dependency should be published to.

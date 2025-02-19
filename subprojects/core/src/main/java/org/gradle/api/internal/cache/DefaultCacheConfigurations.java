@@ -35,9 +35,9 @@ import org.gradle.cache.internal.WrapperDistributionCleanupAction;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.time.Instant;
@@ -279,7 +279,7 @@ abstract public class DefaultCacheConfigurations implements CacheConfigurationsI
         }
 
         @Override
-        @Nonnull
+        @NullMarked
         protected DisplayName getDisplayName() {
             if (displayName != null) {
                 return Describables.of(displayName);

@@ -31,9 +31,9 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.process.ExecOperations;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -103,7 +103,7 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
      *
      * When we come to {@code Baz<T>}, we can then query the mapping for {@code T} and get {@code String}.
      */
-    @Nonnull
+    @NullMarked
     private <T extends IMPLEMENTATION, P extends PARAMS> Class<P> inferParameterType(Class<T> implementationType, int typeArgumentIndex) {
         AtomicReference<Type> foundType = new AtomicReference<>();
         Map<Type, Type> collectedTypes = new HashMap<>();

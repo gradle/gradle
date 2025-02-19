@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.protocol.problem;
 
 import org.gradle.tooling.internal.protocol.InternalProblemDetails;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public interface InternalBasicProblemDetails extends InternalProblemDetails {

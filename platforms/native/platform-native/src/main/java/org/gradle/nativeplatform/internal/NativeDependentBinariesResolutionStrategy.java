@@ -40,8 +40,8 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesResolutionStrategy;
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;

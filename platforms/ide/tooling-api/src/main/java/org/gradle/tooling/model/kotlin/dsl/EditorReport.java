@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.model.kotlin.dsl;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 
 /**

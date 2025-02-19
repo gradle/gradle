@@ -69,8 +69,8 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -241,7 +241,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return builder.build();
     }
 
-    @Nonnull
+    @NullMarked
     protected URI validateUrl() {
         return urlArtifactRepository.validateUrl();
     }

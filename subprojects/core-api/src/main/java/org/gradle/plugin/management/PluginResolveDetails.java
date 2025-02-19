@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.management;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Allows plugin resolution rules to inspect a requested plugin and modify which

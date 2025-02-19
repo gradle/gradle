@@ -406,7 +406,7 @@ class ConfigurationCacheFingerprintWriter(
         obtainedValue: ValueSourceProviderFactory.ValueListener.ObtainedValue<T, P>,
         source: org.gradle.api.provider.ValueSource<T, P>
     ) {
-        obtainedValue.value.failure.ifPresent { exception ->
+        obtainedValue.value.failure.ifPresent { exception: Throwable ->
             host.reportProblem(exception) {
                 text("failed to compute value with custom source ")
                 reference(obtainedValue.valueSourceType)
@@ -443,7 +443,7 @@ class ConfigurationCacheFingerprintWriter(
 
             is SystemPropertiesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get().uncheckedCast())
+                addSystemPropertiesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
                 reportUniqueSystemPropertiesPrefixedByInput(prefix)
             }
 
@@ -453,7 +453,7 @@ class ConfigurationCacheFingerprintWriter(
 
             is EnvironmentVariablesPrefixedByValueSource.Parameters -> {
                 val prefix = parameters.prefix.get()
-                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get().uncheckedCast())
+                addEnvVariablesPrefixedByToFingerprint(prefix, obtainedValue.value.get()?.uncheckedCast() ?: emptyMap())
                 reportUniqueEnvironmentVariablesPrefixedByInput(prefix)
             }
 

@@ -23,8 +23,8 @@ import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -78,17 +78,17 @@ public class DefaultCatalogProblemBuilder {
         return formatter.toString();
     }
 
-    @Nonnull
+    @NullMarked
     public static String getProblemInVersionCatalog(VersionCatalogBuilder builder) {
         return getProblemInVersionCatalog(builder.getName());
     }
 
-    @Nonnull
+    @NullMarked
     public static String getProblemInVersionCatalog(String name) {
         return "Problem: " + getInVersionCatalog(name);
     }
 
-    @Nonnull
+    @NullMarked
     public static String getInVersionCatalog(String name) {
         return "In version catalog " + name;
     }

@@ -17,8 +17,8 @@
 package org.gradle.model.internal.registry;
 
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 

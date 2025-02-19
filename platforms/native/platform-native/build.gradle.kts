@@ -39,7 +39,7 @@ dependencies {
     api(projects.platformBase)
     api(projects.workers)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
     api(libs.nativePlatform)
     api(libs.slf4jApi)

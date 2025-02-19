@@ -17,5 +17,5 @@
 /**
  * Package with classes related to instrumentation reporting.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.instrumentation.reporting;

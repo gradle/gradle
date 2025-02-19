@@ -17,5 +17,5 @@
 /**
  * Attributes specific to Gradle's plugin system.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.attributes.plugin;

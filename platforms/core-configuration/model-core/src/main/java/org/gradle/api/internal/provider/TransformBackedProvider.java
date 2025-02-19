@@ -19,9 +19,8 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A mapping provider that uses a transform for which {@link MappingProvider} cannot be used.
@@ -84,7 +83,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
         }
     }
 
-    @Nonnull
+    @NullMarked
     protected Value<OUT> mapValue(EvaluationScopeContext context, Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();

@@ -19,8 +19,7 @@ package org.gradle.api.reporting;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A HTML Report whose generation can be customized with a XSLT stylesheet.

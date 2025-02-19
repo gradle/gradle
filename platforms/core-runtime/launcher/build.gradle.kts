@@ -46,7 +46,7 @@ dependencies {
     api(projects.daemonServices)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.enterpriseOperations)
     implementation(projects.functional)

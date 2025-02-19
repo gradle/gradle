@@ -43,11 +43,11 @@ import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
 import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
 import org.gradle.internal.instrumentation.util.NameUtil;
 import org.gradle.model.internal.asm.MethodVisitorScope;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
-import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
 import java.util.Arrays;
 import java.util.Collection;

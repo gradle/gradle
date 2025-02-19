@@ -25,7 +25,7 @@ dependencies {
     api(projects.buildProcessServices)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)

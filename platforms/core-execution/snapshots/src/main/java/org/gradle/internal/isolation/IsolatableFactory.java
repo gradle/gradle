@@ -18,8 +18,7 @@ package org.gradle.internal.isolation;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A factory for creating {@link Isolatable} instances from an object graph. These hold a snapshot of the object graph's state and can be used to:

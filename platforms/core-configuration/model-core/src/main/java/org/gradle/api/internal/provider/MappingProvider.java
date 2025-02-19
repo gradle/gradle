@@ -18,9 +18,8 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * <p>A mapping provider that uses a transform that:</p>
@@ -64,7 +63,7 @@ public class MappingProvider<OUT, IN> extends TransformBackedProvider<OUT, IN> {
         }
     }
 
-    @Nonnull
+    @NullMarked
     @Override
     protected Value<OUT> mapValue(EvaluationScopeContext context, Value<? extends IN> value) {
         Value<OUT> transformedValue = super.mapValue(context, value);

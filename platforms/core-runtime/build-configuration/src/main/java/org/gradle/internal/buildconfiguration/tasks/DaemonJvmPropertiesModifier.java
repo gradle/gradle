@@ -23,8 +23,8 @@ import org.gradle.internal.util.PropertiesUtils;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.platform.BuildPlatform;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;

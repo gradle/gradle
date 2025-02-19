@@ -18,8 +18,8 @@ package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.resolve.ArtifactResolveException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public interface BuildableArtifactFileResolveResult extends ResolveResult, BuildableTypedResolveResult<File, ArtifactResolveException>, ResourceAwareResolveResult {

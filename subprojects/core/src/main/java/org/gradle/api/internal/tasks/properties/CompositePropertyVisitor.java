@@ -25,8 +25,7 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class CompositePropertyVisitor implements PropertyVisitor {
     private final PropertyVisitor[] visitors;

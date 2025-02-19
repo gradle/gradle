@@ -31,8 +31,8 @@ import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterce
 import org.gradle.internal.instrumentation.processor.modelreader.api.CallInterceptionRequestReader.ReadRequestContext;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.AnnotationUtils;
 import org.gradle.internal.instrumentation.processor.modelreader.impl.TypeUtils;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.RoundEnvironment;
@@ -155,7 +155,7 @@ public abstract class AbstractInstrumentationProcessor extends AbstractProcessor
         }
     }
 
-    @Nonnull
+    @NullMarked
     private List<CallInterceptionRequest> postProcessRequests(List<CallInterceptionRequestReader.Result.Success> successResults) {
         List<CallInterceptionRequest> requests = successResults.stream().map(CallInterceptionRequestReader.Result.Success::getRequest).collect(Collectors.toList());
         for (RequestPostProcessorExtension postProcessor : getExtensionsByType(RequestPostProcessorExtension.class)) {

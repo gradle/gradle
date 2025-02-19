@@ -17,8 +17,7 @@ package org.gradle.cache;
 
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Serializer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class IndexedCacheParameters<K, V> {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();

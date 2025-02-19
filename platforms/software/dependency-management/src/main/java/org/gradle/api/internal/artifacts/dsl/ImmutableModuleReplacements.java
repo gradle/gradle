@@ -19,8 +19,7 @@ package org.gradle.api.internal.artifacts.dsl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Immutable user-configured description of which modules replace other

@@ -26,8 +26,8 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
@@ -69,7 +69,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         report(problemBuilder.build());
     }
 
-    @Nonnull
+    @NullMarked
     private DefaultProblemBuilder createProblemBuilder() {
         return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
@@ -99,7 +99,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         throw runtimeException(exception);
     }
 
-    @Nonnull
+    @NullMarked
     private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
         return getBuilder(problem).withException(transform(exception)).build();
     }
@@ -169,7 +169,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         problemSummarizer.emit(internalProblem, id);
     }
 
-    @Nonnull
+    @NullMarked
     private InternalProblemBuilder getBuilder(Problem problem) {
         return ((InternalProblem) problem).toBuilder(additionalDataBuilderFactory, instantiator, payloadSerializer);
     }

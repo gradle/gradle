@@ -19,5 +19,5 @@
  * that exist to categorize types of failure conditions that can occur during dependency resolution and package contextual information
  * specific to each type of failure.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.component.resolution.failure.type;

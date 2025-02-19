@@ -23,15 +23,14 @@ import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.WrapUtil;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * <p>A {@link Plugin} which adds some project visualization report tasks to a project.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>
  */
-@Nonnull
+@NullMarked
 public abstract class ProjectReportsPlugin implements Plugin<Project> {
     public static final String TASK_REPORT = "taskReport";
     public static final String PROPERTY_REPORT = "propertyReport";

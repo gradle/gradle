@@ -19,14 +19,14 @@ import com.google.common.base.Objects;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
 import org.gradle.internal.resolve.caching.ImplicitInputRecord;
-import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
+import org.gradle.internal.resolve.caching.ImplicitInputsProvidingService;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.InputStream;
 import java.net.URI;
 

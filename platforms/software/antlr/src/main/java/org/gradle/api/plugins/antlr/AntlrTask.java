@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.antlr;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
@@ -45,6 +44,7 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -59,7 +59,7 @@ import java.util.concurrent.Callable;
 /**
  * Generates parsers from Antlr grammars.
  */
-@NonNullApi
+@NullMarked
 @CacheableTask
 public abstract class AntlrTask extends SourceTask {
 

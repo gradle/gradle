@@ -18,8 +18,7 @@ package org.gradle.initialization;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.BuildTree.class)
 public interface EnvironmentChangeTracker {

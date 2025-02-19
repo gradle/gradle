@@ -17,7 +17,7 @@
 /**
  * Continuous build execution and triggering.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.tooling.internal.provider.continuous;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

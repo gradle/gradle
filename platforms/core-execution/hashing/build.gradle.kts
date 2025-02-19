@@ -10,6 +10,7 @@ gradlebuildJava.usedInWorkers() // org.gradle.internal.nativeintegration.filesys
 dependencies {
     api(projects.stdlibJavaExtensions)
 
+    api(libs.jspecify)
+
     implementation(libs.guava)
-    api(libs.jsr305)
 }

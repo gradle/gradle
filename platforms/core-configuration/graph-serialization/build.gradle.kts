@@ -29,7 +29,6 @@ dependencies {
     api(projects.serialization)
 
     api(libs.guava)
-    api(libs.jsr305)
     api(libs.kotlinStdlib)
 
     implementation(projects.baseServices)
@@ -37,4 +36,5 @@ dependencies {
     implementation(projects.stdlibKotlinExtensions)
 
     implementation(libs.fastutil)
+    implementation(libs.jspecify)
 }

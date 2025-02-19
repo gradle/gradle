@@ -17,8 +17,8 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.internal.attributes.CompatibilityCheckResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 
 public class DefaultCompatibilityCheckResult<T> implements CompatibilityCheckResult<T> {

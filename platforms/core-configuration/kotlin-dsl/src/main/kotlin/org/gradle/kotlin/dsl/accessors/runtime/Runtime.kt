@@ -165,5 +165,5 @@ fun applySoftwareType(
 }
 
 
-fun functionToAction(f: (Any?) -> Unit): Action<Any?> =
+fun functionToAction(f: (Any?) -> Unit): Action<Any> =
     Action { f(this) }

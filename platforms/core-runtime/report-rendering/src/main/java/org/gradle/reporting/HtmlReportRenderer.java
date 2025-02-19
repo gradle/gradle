@@ -17,12 +17,12 @@ package org.gradle.reporting;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.html.SimpleHtmlWriter;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -121,7 +121,7 @@ public class HtmlReportRenderer {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
-                protected void doExecute(@Nonnull Writer writer) throws Exception {
+                protected void doExecute(@NonNull Writer writer) throws Exception {
                     SimpleHtmlWriter htmlWriter = new SimpleHtmlWriter(writer, "");
                     htmlWriter.startElement("html");
                     renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), htmlWriter));
@@ -135,7 +135,7 @@ public class HtmlReportRenderer {
             File outputFile = new File(outputDirectory, name);
             IoActions.writeTextFile(outputFile, "utf-8", new ErroringAction<Writer>() {
                 @Override
-                protected void doExecute(@Nonnull Writer writer) throws Exception {
+                protected void doExecute(@NonNull Writer writer) throws Exception {
                     renderer.render(model, new DefaultHtmlPageBuilder<>(prefix(name), writer));
                 }
             });

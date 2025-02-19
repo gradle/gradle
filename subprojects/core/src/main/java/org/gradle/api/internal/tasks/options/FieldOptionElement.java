@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.options;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.provider.HasMultipleValues;
@@ -26,6 +25,7 @@ import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.model.internal.type.ModelType;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -165,7 +165,7 @@ public class FieldOptionElement {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class MultipleValuePropertyFieldSetter extends PropertyFieldSetter {
         public MultipleValuePropertyFieldSetter(Method getter, Field field) {
             super(getter, field);
@@ -178,7 +178,7 @@ public class FieldOptionElement {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class FileSystemLocationPropertyFieldSetter extends PropertyFieldSetter {
         public FileSystemLocationPropertyFieldSetter(Method getter, Field field) {
             super(getter, field, FileSystemLocation.class);

@@ -10,6 +10,7 @@ gradlebuildJava.usedInWorkers()
 dependencies {
     api(projects.stdlibJavaExtensions)
 
+    api(libs.jspecify)
     api(libs.jsr305)
 
     implementation(libs.guava)

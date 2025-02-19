@@ -18,8 +18,8 @@ package org.gradle.problems.buildtree;
 
 import com.google.common.base.Supplier;
 import org.gradle.problems.ProblemDiagnostics;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public interface ProblemStream {

@@ -19,8 +19,8 @@ package org.gradle.util;
 import com.google.common.base.Objects;
 import com.google.common.collect.Ordering;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Locale;
 
 /**

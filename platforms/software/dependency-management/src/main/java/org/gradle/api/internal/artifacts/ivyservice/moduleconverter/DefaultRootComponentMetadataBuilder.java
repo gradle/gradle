@@ -37,8 +37,8 @@ import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ModelContainer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.lang.ref.SoftReference;
 

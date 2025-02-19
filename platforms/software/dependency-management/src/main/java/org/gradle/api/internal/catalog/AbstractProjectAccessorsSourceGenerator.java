@@ -49,7 +49,7 @@ public class AbstractProjectAccessorsSourceGenerator extends AbstractSourceGener
     protected void writeHeader(String packageName) throws IOException {
         writeLn("package " + packageName + ";");
         writeLn();
-        addImport("org.gradle.api.NonNullApi");
+        addImport("org.jspecify.annotations.NullMarked");
         addImport("org.gradle.api.artifacts.ProjectDependency");
         addImport("org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal");
         addImport("org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory");

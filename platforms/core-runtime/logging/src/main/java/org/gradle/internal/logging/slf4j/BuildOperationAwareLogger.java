@@ -21,11 +21,10 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Marker;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
-
-import javax.annotation.Nullable;
 
 @SuppressWarnings("OverridingMethodInconsistentArgumentNamesChecker")
 abstract class BuildOperationAwareLogger implements Logger {

@@ -17,8 +17,7 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an optional attribute value, as found in an attribute container. There are 3 possible cases:

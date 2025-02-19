@@ -14,7 +14,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(libs.commonsLang)
     implementation(libs.groovy)

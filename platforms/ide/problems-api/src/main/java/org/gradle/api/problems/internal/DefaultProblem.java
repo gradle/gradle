@@ -17,20 +17,20 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 
 import static com.google.common.base.Objects.equal;
 
-@NonNullApi
+@NullMarked
 public class DefaultProblem implements Serializable, InternalProblem {
     private final ProblemDefinition problemDefinition;
     private final String contextualLabel;

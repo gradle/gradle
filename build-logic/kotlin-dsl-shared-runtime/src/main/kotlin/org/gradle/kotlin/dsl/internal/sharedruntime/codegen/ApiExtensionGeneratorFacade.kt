@@ -275,7 +275,7 @@ fun List<MappedApiFunctionParameter>.groovyNamedArgumentsToVarargs() =
                         "Pair",
                         typeArguments = listOf(
                             ApiTypeUsage("String"),
-                            ApiTypeUsage("Any", isNullable = true)
+                            ApiTypeUsage("Any", isNullable = false)
                         )
                     )
                 )

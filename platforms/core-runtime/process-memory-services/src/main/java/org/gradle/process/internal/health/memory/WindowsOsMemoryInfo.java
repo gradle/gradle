@@ -21,11 +21,11 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.memory.MemoryInfo;
 import net.rubygrapefruit.platform.memory.WindowsMemoryInfo;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class WindowsOsMemoryInfo implements OsMemoryInfo {
 
     @Override

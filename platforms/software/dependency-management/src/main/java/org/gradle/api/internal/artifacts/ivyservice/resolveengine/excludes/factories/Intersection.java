@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an attempt to simplify two exclude specs into a single exclude spec.
@@ -29,7 +28,7 @@ import javax.annotation.Nullable;
  *
  * @implSpec Remember that the order of the exclude specs must not be significant.
  */
-@NonNullApi
+@NullMarked
 public interface Intersection<L extends ExcludeSpec, R extends ExcludeSpec> {
     /**
      * Tests if this intersection applies to 2 given exclude specs (in any order).

@@ -17,8 +17,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.DependencyArtifact;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultDependencyArtifact implements DependencyArtifact {
     private String name;

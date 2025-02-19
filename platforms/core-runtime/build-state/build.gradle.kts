@@ -39,4 +39,5 @@ dependencies {
     implementation(projects.problemsApi)
     implementation(projects.serialization)
 
+    implementation(libs.jspecify)
 }

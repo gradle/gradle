@@ -22,8 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.testing.jacoco.tasks.JacocoReportsContainer;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class AntJacocoReport extends AbstractAntJacocoReport<JacocoReportsContainer> {
 

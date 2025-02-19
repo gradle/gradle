@@ -26,8 +26,8 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.language.BinaryCollection;
 import org.gradle.language.BinaryProvider;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;

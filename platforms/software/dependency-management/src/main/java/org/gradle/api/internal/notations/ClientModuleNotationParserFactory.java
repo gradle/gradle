@@ -21,8 +21,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
 @SuppressWarnings("deprecation")
 public class ClientModuleNotationParserFactory implements Factory<NotationParser<Object, org.gradle.api.artifacts.ClientModule>> {
@@ -35,7 +34,7 @@ public class ClientModuleNotationParserFactory implements Factory<NotationParser
         this.stringInterner = stringInterner;
     }
 
-    @Nonnull
+    @NullMarked
     @Override
     public NotationParser<Object, org.gradle.api.artifacts.ClientModule> create() {
         return NotationParserBuilder.toType(org.gradle.api.artifacts.ClientModule.class)

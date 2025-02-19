@@ -18,7 +18,6 @@ package org.gradle.plugin.devel.plugins;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -65,6 +64,7 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -89,7 +89,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_gradle_plugin.html">Gradle plugin development reference</a>
  */
-@NonNullApi
+@NullMarked
 public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);

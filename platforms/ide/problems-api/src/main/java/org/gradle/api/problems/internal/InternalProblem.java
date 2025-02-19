@@ -22,8 +22,8 @@ import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public interface InternalProblem extends Problem {

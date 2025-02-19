@@ -26,9 +26,9 @@ import org.gradle.operations.problems.ProblemGroup;
 import org.gradle.operations.problems.ProblemLocation;
 import org.gradle.operations.problems.ProblemSeverity;
 import org.gradle.operations.problems.ProblemUsageProgressDetails;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.List;
 
 public class DefaultProblemProgressDetails implements ProblemProgressDetails, ProblemUsageProgressDetails {
@@ -88,7 +88,7 @@ public class DefaultProblemProgressDetails implements ProblemProgressDetails, Pr
         return convertProblemLocations(problem.getContextualLocations());
     }
 
-    @Nonnull
+    @NullMarked
     private ImmutableList<ProblemLocation> convertProblemLocations(List<org.gradle.api.problems.ProblemLocation> locations) {
         ImmutableList.Builder<ProblemLocation> builder = ImmutableList.builder();
         for (org.gradle.api.problems.ProblemLocation location : locations) {

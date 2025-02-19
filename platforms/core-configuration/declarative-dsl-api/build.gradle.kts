@@ -6,5 +6,5 @@ plugins {
 description = "Annotation classes used by the Declarative DSL"
 
 dependencies {
-    implementation(projects.stdlibJavaExtensions)
+    implementation(libs.jspecify)
 }

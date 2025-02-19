@@ -29,8 +29,8 @@ import org.gradle.internal.logging.progress.ResourceOperation;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Optional;
 

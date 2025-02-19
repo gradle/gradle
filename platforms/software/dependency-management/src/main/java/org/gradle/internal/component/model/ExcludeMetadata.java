@@ -16,8 +16,7 @@
 package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents the complete model of an exclude rule supported by Gradle.

@@ -19,14 +19,13 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.SoftwareReportingTasksPlugin;
 import org.gradle.configuration.project.ProjectConfigureAction;
-
-import javax.annotation.Nonnull;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * Applies the {@link SoftwareReportingTasksPlugin} to create reporting tasks that require
  * access to dependency management types.
  */
-@Nonnull
+@NullMarked
 public class SoftwareReportingTasksAutoApplyAction implements ProjectConfigureAction {
     @Override
     public void execute(ProjectInternal project) {

@@ -24,9 +24,9 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
@@ -53,7 +53,7 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
         return doCreate(type, null, parameters);
     }
 
-    @Nonnull
+    @NullMarked
     private <T> T doCreate(Class<? extends T> type, @Nullable Describable displayName, Object[] parameters) {
         try {
             ClassGenerator.GeneratedConstructor<? extends T> constructor = constructorSelector.forParams(type, parameters);

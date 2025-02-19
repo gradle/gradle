@@ -19,7 +19,6 @@ package org.gradle.workers.internal;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -54,6 +53,7 @@ import org.gradle.internal.snapshot.impl.StringValueSnapshot;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ManagedFactory;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.reflect.Array;
 import java.util.Collection;
@@ -612,7 +612,7 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    @NonNullApi
+    @NullMarked
     private static class IsolatedArrayOfPrimitiveSerializer extends IsolatableSerializer<ArrayOfPrimitiveValueSnapshot> {
 
         @Override

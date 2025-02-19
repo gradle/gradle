@@ -17,7 +17,7 @@
 /**
  * Diagnostic tasks which report information about configurations.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.tasks.diagnostics.configurations;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

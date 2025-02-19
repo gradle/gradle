@@ -23,6 +23,8 @@ dependencies {
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
 
+    implementation(libs.jspecify)
+
     testImplementation(testFixtures(projects.kotlinDsl))
     integTestImplementation(testFixtures(projects.toolingApi))
 

@@ -64,4 +64,5 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
+    implementation(libs.jspecify)
 }

@@ -7,7 +7,8 @@ description = "Services and types used to setup a build process from a Gradle di
 dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
-    api(libs.jsr305)
+
+    api(libs.jspecify)
 
     implementation(libs.guava)
 

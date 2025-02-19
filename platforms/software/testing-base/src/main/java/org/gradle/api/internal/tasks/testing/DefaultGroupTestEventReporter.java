@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
 import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.id.IdGenerator;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements GroupTestEventReporter {
     private final IdGenerator<?> idGenerator;
 

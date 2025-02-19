@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.internal.protocol.problem;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface InternalSeverity {
 
     int getSeverity();

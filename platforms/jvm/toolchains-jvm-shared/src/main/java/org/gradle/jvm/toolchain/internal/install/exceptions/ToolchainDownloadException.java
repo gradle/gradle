@@ -20,9 +20,9 @@ import org.gradle.api.GradleException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -49,7 +49,7 @@ public class ToolchainDownloadException extends GradleException implements Resol
         return resolutions;
     }
 
-    @Nonnull
+    @NullMarked
     private static String getMessage(JavaToolchainSpec spec, String url, @Nullable String cause) {
         return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + url + "'" + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
     }

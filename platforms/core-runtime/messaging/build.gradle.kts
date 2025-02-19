@@ -13,13 +13,14 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.slf4jApi)
 
     implementation(projects.io)
     implementation(projects.buildOperations)
 
     implementation(libs.guava)
+    implementation(libs.jsr305)
 
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))

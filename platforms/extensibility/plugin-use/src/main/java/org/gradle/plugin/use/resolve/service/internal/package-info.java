@@ -17,5 +17,5 @@
 /**
  * Packages with injected classpath plugin resolver, used to inject plugins classpath when using TestKit.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.plugin.use.resolve.service.internal;

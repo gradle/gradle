@@ -23,8 +23,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.UnknownModelException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Build.class)
 public interface ToolingModelBuilderLookup {
@@ -45,8 +44,7 @@ public interface ToolingModelBuilderLookup {
     interface Registration {
         ToolingModelBuilder getBuilder();
 
-        @Nullable
-        UserCodeApplicationContext.Application getRegisteredBy();
+        UserCodeApplicationContext.@Nullable Application getRegisteredBy();
     }
 
     interface Builder {

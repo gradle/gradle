@@ -19,9 +19,9 @@ package org.gradle.internal.instrumentation.processor.modelreader.impl;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
+import org.jspecify.annotations.NullMarked;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nonnull;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -102,7 +102,7 @@ public class TypeUtils {
         return getTypeParameter(typeMirror, index).orElseThrow(() -> new IllegalArgumentException(String.format("Missing type parameter with index %s for %s", index, typeMirror)));
     }
 
-    @Nonnull
+    @NullMarked
     public static List<ExecutableElement> getExecutableElementsFromElements(Stream<? extends Element> elements) {
         return elements
             .flatMap(element -> element.getKind() == ElementKind.METHOD ? Stream.of(element) : element.getEnclosedElements().stream())

@@ -17,8 +17,8 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.base.Objects;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 
 import static com.google.common.base.Objects.equal;

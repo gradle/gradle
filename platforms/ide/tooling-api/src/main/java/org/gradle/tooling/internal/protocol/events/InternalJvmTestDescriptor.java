@@ -15,16 +15,15 @@
  */
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.api.NonNullApi;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 2.4
  */
-@NonNullApi
+@NullMarked
 public interface InternalJvmTestDescriptor extends InternalTestDescriptor {
 
     String KIND_SUITE = "SUITE";

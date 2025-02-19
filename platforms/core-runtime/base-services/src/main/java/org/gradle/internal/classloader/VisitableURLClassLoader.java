@@ -21,8 +21,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.TransformedClassPath;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -170,7 +170,7 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
         }
 
         @Override
-        public byte[] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
+        public byte @Nullable [] instrumentClass(@Nullable String className, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
             return replacer.getInstrumentedClass(className, protectionDomain);
         }
 

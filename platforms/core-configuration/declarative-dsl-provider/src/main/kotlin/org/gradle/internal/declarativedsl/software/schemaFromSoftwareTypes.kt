@@ -108,7 +108,7 @@ private
 fun buildSoftwareTypeInfo(
     softwareTypeRegistry: SoftwareTypeRegistry,
     schemaTypeToExtend: KClass<*>
-): List<SoftwareTypeInfo<out Any?>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
+): List<SoftwareTypeInfo<*>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
     SoftwareTypeInfo(it, schemaTypeToExtend, SOFTWARE_TYPE_ACCESSOR_PREFIX)
 }
 
@@ -116,13 +116,13 @@ private
 fun buildSoftwareTypeInfoWithoutResolution(
     softwareTypeRegistry: SoftwareTypeRegistry,
     schemaTypeToExtend: KClass<*>
-): List<SoftwareTypeInfo<out Any?>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
+): List<SoftwareTypeInfo<*>> = softwareTypeRegistry.getSoftwareTypeImplementations().values.map {
     SoftwareTypeInfo(it, schemaTypeToExtend, SOFTWARE_TYPE_ACCESSOR_PREFIX)
 }
 
 
 private
-data class SoftwareTypeInfo<T>(
+data class SoftwareTypeInfo<T : Any>(
     val delegate: SoftwareTypeImplementation<T>,
     val schemaTypeToExtend: KClass<*>,
     val accessorIdPrefix: String,

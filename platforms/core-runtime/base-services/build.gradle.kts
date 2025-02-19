@@ -39,8 +39,9 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.hashing)
     api(projects.buildOperations)
+
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.guava)
 
     implementation(projects.io)
@@ -49,6 +50,7 @@ dependencies {
 
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
+    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     integTestImplementation(projects.logging)

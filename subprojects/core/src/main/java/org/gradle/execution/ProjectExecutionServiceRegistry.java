@@ -25,9 +25,9 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Closeable;
 
 /**
@@ -38,7 +38,7 @@ public class ProjectExecutionServiceRegistry implements AutoCloseable {
     private final LoadingCache<ProjectInternal, NodeExecutionContext> projectRegistries = CacheBuilder.newBuilder()
         .build(new CacheLoader<ProjectInternal, NodeExecutionContext>() {
             @Override
-            public NodeExecutionContext load(@Nonnull ProjectInternal project) {
+            public NodeExecutionContext load(@NonNull ProjectInternal project) {
                 return new DefaultNodeExecutionContext(ProjectExecutionServices.create(project));
             }
         });

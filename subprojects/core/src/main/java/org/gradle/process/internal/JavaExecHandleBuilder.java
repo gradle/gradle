@@ -16,7 +16,6 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -34,9 +33,9 @@ import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.EffectiveJavaForkOptions.ReadOnlyJvmOptions;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,7 +56,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
-@NonNullApi
+@NullMarked
 public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgumentsSpec.HasExecutable {
 
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
@@ -311,7 +310,7 @@ public class JavaExecHandleBuilder implements BaseExecHandleBuilder, ProcessArgu
         return mainClass;
     }
 
-    @Nonnull
+    @NullMarked
     public List<String> getArgs() {
         return execHandleBuilder.getArgs();
     }

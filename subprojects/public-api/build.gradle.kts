@@ -31,6 +31,7 @@ dependencies {
     externalApi(libs.inject)
     // Moslty used for nullability annotations
     externalApi(libs.jsr305)
+    externalApi(libs.jspecify)
     // We use this to annotate type parameters as @Nullable
     externalApi(libs.jetbrainsAnnotations)
     // SLF4J logging is part of our public API

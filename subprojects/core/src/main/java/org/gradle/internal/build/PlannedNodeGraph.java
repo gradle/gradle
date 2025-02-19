@@ -24,8 +24,8 @@ import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.PlannedNode;
 import org.gradle.internal.taskgraph.NodeIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity.NodeType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;

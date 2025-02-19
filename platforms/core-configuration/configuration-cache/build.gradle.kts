@@ -66,6 +66,7 @@ dependencies {
 
     implementation(libs.fastutil)
     implementation(libs.guava)
+    implementation(libs.jspecify)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 

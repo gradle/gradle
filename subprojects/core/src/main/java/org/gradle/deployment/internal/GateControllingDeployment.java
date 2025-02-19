@@ -16,7 +16,7 @@
 
 package org.gradle.deployment.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class GateControllingDeployment implements DeploymentInternal {
     private final ContinuousExecutionGate.GateKeeper gateKeeper;

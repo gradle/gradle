@@ -18,8 +18,7 @@ package org.gradle.internal.work;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class DefaultSynchronizer implements Synchronizer {
     private final WorkerLeaseService workerLeaseService;

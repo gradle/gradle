@@ -26,7 +26,7 @@ dependencies {
     api(projects.modelCore)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.fileOperations)

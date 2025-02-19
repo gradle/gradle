@@ -18,8 +18,8 @@ package org.gradle.internal.build.event.types;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestMetadataEvent;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -43,7 +43,7 @@ public final class DefaultTestMetadataEvent extends AbstractProgressEvent<Intern
         return getDescriptor().getDisplayName() + " containing: " + summarizeKeys();
     }
 
-    @Nonnull
+    @NullMarked
     private String summarizeKeys() {
         return values.keySet().stream().limit(KEYS_TO_SUMMARIZE).collect(Collectors.joining(", "));
     }

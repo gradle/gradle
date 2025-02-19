@@ -48,9 +48,9 @@ import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
@@ -189,7 +189,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     void fireDeferredConfiguration();
 
     @Override
-    @Nonnull
+    @NullMarked
     ProjectIdentity getProjectIdentity();
 
     /**

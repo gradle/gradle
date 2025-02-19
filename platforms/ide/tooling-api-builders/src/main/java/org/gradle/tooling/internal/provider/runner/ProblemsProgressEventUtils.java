@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
@@ -69,8 +68,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalLocation;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +80,7 @@ import java.util.function.Supplier;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toMap;
 
-@NonNullApi
+@NullMarked
 public class ProblemsProgressEventUtils {
 
     private static final InternalSeverity ADVICE = new DefaultSeverity(0);

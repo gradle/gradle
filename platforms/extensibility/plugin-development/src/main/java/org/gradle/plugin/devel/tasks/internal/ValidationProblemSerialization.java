@@ -56,9 +56,9 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
@@ -68,7 +68,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-@Nonnull
+@NullMarked
 public class ValidationProblemSerialization {
     private static final GsonBuilder GSON_BUILDER = createGsonBuilder();
 
@@ -258,7 +258,7 @@ public class ValidationProblemSerialization {
             return fileLocation;
         }
 
-        @Nonnull
+        @NullMarked
         private static FileLocation readObject(JsonReader in) throws IOException {
             String subtype = null;
             String path = null;
@@ -372,7 +372,7 @@ public class ValidationProblemSerialization {
             return buildTreePath;
         }
 
-        @Nonnull
+        @NullMarked
         private static DefaultTaskLocation readObject(JsonReader in) throws IOException {
             String buildTreePath = null;
             while (in.hasNext()) {
@@ -666,7 +666,7 @@ public class ValidationProblemSerialization {
             }
         }
 
-        private static @Nonnull AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
+        private static @NullMarked AdditionalData createAdditionalData(String type, String featureUsage, String pluginId, String propertyName, String methodName, String parentPropertyName, String typeName, Map<String, String> generalData, String propertyTrace) {
             switch (type) {
                 case DEPRECATION_DATA:
                     return new DefaultDeprecationData(DeprecationData.Type.valueOf(featureUsage));

@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 import org.gradle.language.scala.tasks.KeepAliveMode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 

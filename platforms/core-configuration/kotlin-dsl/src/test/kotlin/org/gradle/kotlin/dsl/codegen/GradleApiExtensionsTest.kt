@@ -157,23 +157,23 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`rawMap`(vararg `args`: Pair<String, Any>): Unit =
                     `rawMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringUnknownMap`(vararg `args`: Pair<String, Any>): Unit =
                     `stringUnknownMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`stringObjectMap`(vararg `args`: Pair<String, Any>): Unit =
                     `stringObjectMap`(mapOf(*`args`))
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithOtherParameters`(`foo`: String, `bar`: Int, vararg `args`: Pair<String, Any>): Unit =
                     `mapWithOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """,
                 """
-                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any?>, `bar`: java.util.function.Consumer<String>): Unit =
+                inline fun org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments.`mapWithLastSamAndOtherParameters`(`foo`: String, vararg `args`: Pair<String, Any>, `bar`: java.util.function.Consumer<String>): Unit =
                     `mapWithLastSamAndOtherParameters`(mapOf(*`args`), `foo`, `bar`)
                 """
             )
@@ -211,15 +211,15 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
             assertGeneratedExtensions(
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClass`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any>): Unit =
                     `mapAndClass`(mapOf(*`args`), `type`.java)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any?>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndVarargs`(`type`: kotlin.reflect.KClass<out T>, `options`: kotlin.Array<String>, vararg `args`: Pair<String, Any>): Unit =
                     `mapAndClassAndVarargs`(mapOf(*`args`), `type`.java, *`options`)
                 """,
                 """
-                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any?>, `action`: java.util.function.Consumer<in T>): Unit =
+                inline fun <T : Any> org.gradle.kotlin.dsl.fixtures.codegen.ClassAndGroovyNamedArguments.`mapAndClassAndSAM`(`type`: kotlin.reflect.KClass<out T>, vararg `args`: Pair<String, Any>, `action`: java.util.function.Consumer<in T>): Unit =
                     `mapAndClassAndSAM`(mapOf(*`args`), `type`.java, `action`)
                 """
             )

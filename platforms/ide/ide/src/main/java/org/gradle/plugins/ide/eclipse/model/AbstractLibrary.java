@@ -20,8 +20,8 @@ import com.google.common.base.Objects;
 import groovy.util.Node;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

@@ -20,6 +20,7 @@ dependencies {
     api(projects.modelCore)
 
     api(libs.inject)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.platformJvm)
@@ -27,7 +28,6 @@ dependencies {
     implementation(projects.pluginsJavaLibrary)
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
     implementation(libs.slf4jApi)
 
     compileOnly("antlr:antlr:2.7.7") {

@@ -8,9 +8,10 @@ description = "Build operations are our way to inspect the process of executing 
 gradlebuildJava.usedInWorkers()
 
 dependencies {
-    api(libs.jsr305)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
+
+    api(libs.jspecify)
 
     implementation(libs.slf4jApi)
 

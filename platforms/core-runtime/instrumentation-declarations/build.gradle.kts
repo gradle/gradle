@@ -16,6 +16,8 @@ dependencies {
     compileOnly(libs.groovy)
     compileOnly(projects.codeQuality)
 
+    implementation(libs.jspecify)
+
     // Instrumentation dependencies
     compileOnly(projects.internalInstrumentationApi)
     compileOnly(libs.asm)
@@ -26,6 +28,6 @@ dependencies {
 }
 
 tasks.named<JavaCompile>("compileJava") {
-    // Without this, javac will complain about unclaimed org.gradle.api.NonNullApi annotation
+    // Without this, javac will complain about unclaimed org.jspecify.annotations.NullMarked annotation
     options.compilerArgs.add("-Xlint:-processing")
 }

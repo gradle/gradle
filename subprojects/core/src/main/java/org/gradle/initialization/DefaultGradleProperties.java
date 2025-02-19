@@ -17,8 +17,8 @@
 package org.gradle.initialization;
 
 import org.gradle.initialization.properties.MutableGradleProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;

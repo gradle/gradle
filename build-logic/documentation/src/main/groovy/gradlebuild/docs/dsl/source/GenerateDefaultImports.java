@@ -17,7 +17,6 @@
 package gradlebuild.docs.dsl.source;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -28,13 +27,14 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.annotation.Nonnull;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@NonNullApi
+@Nonnull
 @CacheableTask
 public abstract class GenerateDefaultImports extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)

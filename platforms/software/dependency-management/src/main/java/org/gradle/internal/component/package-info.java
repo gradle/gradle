@@ -20,5 +20,5 @@
  * <p>
  * This file should be deleted when that type is removed.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.component;

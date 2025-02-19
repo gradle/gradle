@@ -18,5 +18,5 @@
  * Internal classes used to load {@link org.gradle.buildinit.specs.BuildInitSpec BuildInitSpec}s contributed
  * by plugins and use them to generate new builds.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.buildinit.specs.internal;

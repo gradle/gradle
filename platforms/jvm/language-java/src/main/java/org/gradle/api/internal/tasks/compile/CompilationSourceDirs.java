@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.internal.RelativePathUtil;
+import org.jspecify.annotations.NullMarked;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ import java.util.Optional;
  * Relativizes paths relative to a set of source directories in order to create a platform-independent mapping
  * from source file to class file.
  */
-@NonNullApi
+@NullMarked
 public class CompilationSourceDirs {
     private static final Logger LOG = LoggerFactory.getLogger(CompilationSourceDirs.class);
     private final List<File> sourceRoots;

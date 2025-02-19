@@ -16,8 +16,8 @@
 package org.gradle.plugins.ide.idea.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;

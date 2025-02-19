@@ -17,7 +17,7 @@
 /**
  * Plugins to work with the JaCoCo code coverage library.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.testing.jacoco.plugins;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

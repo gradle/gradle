@@ -21,8 +21,8 @@ import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Formatter;
 import java.util.List;
 

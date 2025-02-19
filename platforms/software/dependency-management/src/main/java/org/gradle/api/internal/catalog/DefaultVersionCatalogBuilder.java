@@ -51,9 +51,9 @@ import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
@@ -225,7 +225,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         throw throwError(problemsService, "Invalid catalog definition", ImmutableList.of(problem));
     }
 
-    @Nonnull
+    @NullMarked
     private String getProblemInVersionCatalog() {
         return DefaultCatalogProblemBuilder.getProblemInVersionCatalog(name) + ", ";
     }
@@ -408,7 +408,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
     }
 
-    @Nonnull
+    @NullMarked
     private RuntimeException throwAliasCatalogException(String alias, Collection<String> reservedNames) {
         throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
             configureVersionCatalogError(builder, getProblemInVersionCatalog() + "alias '" + alias + "' is not a valid alias.", RESERVED_ALIAS_NAME)
@@ -416,7 +416,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
                 .solution("Use a different alias which doesn't contain " + getExcludedNames(reservedNames) + ".")));
     }
 
-    @Nonnull
+    @NullMarked
     public static String getExcludedNames(Collection<String> reservedNames) {
         String namesOrName = quotedOxfordListOf(reservedNames, "or");
         if (reservedNames.size() == 1) {

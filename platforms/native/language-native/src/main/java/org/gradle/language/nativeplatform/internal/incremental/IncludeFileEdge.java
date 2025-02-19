@@ -18,8 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
 import org.gradle.internal.hash.HashCode;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class IncludeFileEdge {
     private final String includePath;

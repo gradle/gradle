@@ -20,16 +20,16 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.SetMultimap;
 import org.gradle.api.Action;
 import org.gradle.api.BuildCancelledException;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.Pair;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,7 +46,7 @@ import java.util.function.Consumer;
 import static com.google.common.collect.Sets.newIdentityHashSet;
 import static java.lang.String.format;
 
-@NonNullApi
+@NullMarked
 public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, FinalizedExecutionPlan {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFinalizedExecutionPlan.class);
     public static final Comparator<Node> NODE_EXECUTION_ORDER = new Comparator<Node>() {

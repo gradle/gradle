@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.reflect.TypeToken;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
@@ -40,15 +39,16 @@ import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope.Global;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
 /**
  * Class for easy access to property validation from the validator task.
  */
-@NonNullApi
+@NullMarked
 public class PropertyValidationAccess {
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
 

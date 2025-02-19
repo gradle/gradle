@@ -16,9 +16,8 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Tracks the call stacks of instrumented Groovy methods, maintaining a call stack per thread. <p>
@@ -31,7 +30,7 @@ import javax.annotation.Nullable;
  * If it satisfies, then the third party may mark the call as intercepted with {@link InstrumentedGroovyCallsTracker#markCurrentCallAsIntercepted}, so that other
  * parties will not be able to match the call.
  */
-@NonNullApi
+@NullMarked
 public interface InstrumentedGroovyCallsTracker {
     /**
      * Registers the current call in the instrumented calls stack.
@@ -63,11 +62,11 @@ public interface InstrumentedGroovyCallsTracker {
      */
     void markCurrentCallAsIntercepted(String callableName, CallKind kind);
 
-    @NonNullApi
+    @NullMarked
     interface EntryPointCallSite {
     }
 
-    @NonNullApi
+    @NullMarked
     enum CallKind {
         GET_PROPERTY, SET_PROPERTY, INVOKE_METHOD
     }

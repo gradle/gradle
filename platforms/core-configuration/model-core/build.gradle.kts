@@ -23,7 +23,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.snapshots)
     api(libs.asm)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
     api(libs.groovy)
     api(libs.guava)
@@ -35,6 +35,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 
+    implementation(libs.jsr305)
     implementation(libs.kotlinStdlib)
     implementation(libs.slf4jApi)
     implementation(libs.commonsLang)

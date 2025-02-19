@@ -22,8 +22,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ public class SystemPathVersionLocator implements VisualStudioVersionLocator {
         this.versionDeterminer = versionDeterminer;
     }
 
-    @Nonnull
+    @NullMarked
     @Override
     public List<VisualStudioInstallCandidate> getVisualStudioInstalls() {
         List<VisualStudioInstallCandidate> installs = new ArrayList<>();

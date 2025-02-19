@@ -46,8 +46,8 @@ import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
 import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.gradle.platform.base.plugins.ComponentBasePlugin;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 import static java.util.Collections.emptyList;

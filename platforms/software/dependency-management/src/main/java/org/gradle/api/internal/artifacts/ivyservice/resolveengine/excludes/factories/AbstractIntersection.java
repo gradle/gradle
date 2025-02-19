@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.factories;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Base implementation of {@link Intersection} that handles testing and intersecting arguments in either order.
@@ -27,7 +26,7 @@ import javax.annotation.Nullable;
  * @param <L> the type of the first (left) exclude spec
  * @param <R> the type of the second (right) exclude spec
  */
-@NonNullApi
+@NullMarked
 public abstract class AbstractIntersection<L extends ExcludeSpec, R extends ExcludeSpec> implements Intersection<L, R> {
     private final Class<L> leftType;
     private final Class<R> rightType;

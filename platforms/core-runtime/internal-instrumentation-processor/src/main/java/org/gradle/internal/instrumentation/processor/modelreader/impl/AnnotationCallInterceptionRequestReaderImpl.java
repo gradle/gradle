@@ -34,10 +34,10 @@ import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.model.RequestExtra.OriginatingElement;
 import org.gradle.internal.instrumentation.processor.extensibility.AnnotatedMethodReaderExtension;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.Type;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
@@ -97,7 +97,7 @@ public class AnnotationCallInterceptionRequestReaderImpl implements AnnotatedMet
         return new CallableInfoImpl(kindInfo, owner, callableName, returnType, parameterInfos);
     }
 
-    @Nonnull
+    @NullMarked
     private static ImplementationInfoImpl extractImplementationInfo(ExecutableElement input) {
         Type implementationOwner = extractType(input.getEnclosingElement().asType());
         String implementationName = input.getSimpleName().toString();

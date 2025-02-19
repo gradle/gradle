@@ -25,8 +25,7 @@ import org.gradle.internal.enterprise.GradleEnterprisePluginServiceFactory;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.operations.notify.BuildOperationNotificationListenerRegistrar;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Captures the state to recreate the {@link GradleEnterprisePluginService} instance.

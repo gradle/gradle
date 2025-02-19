@@ -18,12 +18,12 @@ package org.gradle.caching.local.internal;
 
 import com.google.common.io.Closer;
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTracker;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.io.IoConsumer;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
 import java.io.File;
@@ -41,7 +41,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 
-@NonNullApi
+@NullMarked
 public class DirectoryBuildCache implements BuildCacheTempFileStore, Closeable, LocalBuildCache {
 
     private final PersistentCache persistentCache;

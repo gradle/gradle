@@ -18,8 +18,7 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.HasInternalProtocol;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a tuple of the component selector of a module and a candidate version

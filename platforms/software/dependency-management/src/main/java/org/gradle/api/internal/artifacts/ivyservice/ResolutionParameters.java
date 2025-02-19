@@ -28,8 +28,8 @@ import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTy
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 

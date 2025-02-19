@@ -13,7 +13,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
 
     api(libs.bouncycastlePgp)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
     api(libs.inject)
 

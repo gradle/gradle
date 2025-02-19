@@ -26,5 +26,5 @@
  * similar to graph selection failures, and the type of failure is more important that the type of
  * resolution being performed in this hierarchy.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.internal.component.resolution.failure.exception;

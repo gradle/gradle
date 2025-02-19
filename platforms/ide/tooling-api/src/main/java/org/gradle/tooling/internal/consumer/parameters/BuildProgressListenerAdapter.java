@@ -242,9 +242,9 @@ import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalDat
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
 import org.gradle.tooling.internal.protocol.problem.InternalSolution;
 import org.gradle.tooling.internal.protocol.problem.InternalTaskPathLocation;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -672,7 +672,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    @Nonnull
+    @NullMarked
     static List<ProblemSummary> toProblemIdSummaries(List<InternalProblemSummary> problemIdCounts) {
         Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = getGroupedMap(problemIdCounts);
 
@@ -683,7 +683,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return problemSummaries;
     }
 
-    @Nonnull
+    @NullMarked
     static Map<ProblemId, List<InternalProblemSummary>> getGroupedMap(List<InternalProblemSummary> problemIdCounts) {
         Map<ProblemId, List<InternalProblemSummary>> groupedSummaries = new HashMap<>();
         for (InternalProblemSummary internalSummary : problemIdCounts) {
@@ -693,7 +693,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return groupedSummaries;
     }
 
-    @Nonnull
+    @NullMarked
     private static List<InternalProblemSummary> getOrDefault(Map<ProblemId, List<InternalProblemSummary>> groupedSummaries, ProblemId problemId) {
         List<InternalProblemSummary> internalProblemSummaries = groupedSummaries.get(problemId);
         if (internalProblemSummaries == null) {
@@ -739,7 +739,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return null;
     }
 
-    @Nonnull
+    @NullMarked
     private static DefaultProblemsOperationContext toSingleProblemContextDetail(InternalProblemContextDetails details) {
         if (details instanceof InternalProblemContextDetailsV2) {
             InternalProblemContextDetailsV2 detailsV2 = (InternalProblemContextDetailsV2) details;

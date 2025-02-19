@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.Streams;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -40,8 +39,9 @@ import org.gradle.plugins.ide.internal.tooling.model.DefaultGradleProject;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 /**
  * Builds the {@link org.gradle.tooling.model.idea.IdeaProject} model in Isolated Projects-compatible way.
  */
-@NonNullApi
+@NullMarked
 public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInternal, ParameterizedToolingModelBuilder<IdeaModelParameter> {
 
     private static final String MODEL_NAME = IdeaProject.class.getName();
@@ -206,7 +206,7 @@ public class IsolatedProjectsSafeIdeaModelBuilder implements IdeaModelBuilderInt
         return () -> offlineDependencyResolution;
     }
 
-    @NonNullApi
+    @NullMarked
     private static class IdeaModuleBuilder {
 
         private final DefaultGradleProject rootGradleProject;

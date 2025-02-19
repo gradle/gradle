@@ -34,8 +34,7 @@ import org.gradle.plugin.software.internal.ModelDefault;
 import org.gradle.plugin.software.internal.ModelDefaultsHandler;
 import org.gradle.plugin.software.internal.SoftwareTypeImplementation;
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 

@@ -84,9 +84,9 @@ import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
@@ -255,7 +255,7 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    @Nonnull
+    @NullMarked
     public ProjectIdentity getProjectIdentity() {
         return delegate.getProjectIdentity();
     }

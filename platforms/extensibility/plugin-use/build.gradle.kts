@@ -17,7 +17,7 @@ dependencies {
     api(projects.problemsApi)
 
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.functional)
 

@@ -45,8 +45,8 @@ import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -213,7 +213,7 @@ public abstract class LocalFileDependencyBackedArtifactSet implements Transforme
         }
 
         @Override
-        @Nonnull
+        @NullMarked
         public ComponentIdentifier getComponentIdentifier() {
             return artifactIdentifier.getComponentIdentifier();
         }

@@ -28,7 +28,7 @@ dependencies {
     api(projects.buildState)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.time)
     implementation(projects.enterpriseLogging)

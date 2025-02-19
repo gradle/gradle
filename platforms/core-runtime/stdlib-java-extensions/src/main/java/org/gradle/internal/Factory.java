@@ -15,7 +15,7 @@
  */
 package org.gradle.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A generic factory which creates instances of type T.

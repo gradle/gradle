@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerific
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifier;
 import org.gradle.internal.xml.SimpleMarkupWriter;
 import org.gradle.internal.xml.SimpleXmlWriter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;

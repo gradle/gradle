@@ -24,9 +24,9 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.TypeConversionException;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -87,7 +87,7 @@ public class UriNotationConverter implements NotationConverter<Object, URI> {
         }
     }
 
-    @Nonnull
+    @NullMarked
     private static InvalidUserDataException invalidUserDataException(Object notation, URISyntaxException e) {
         return new InvalidUserDataException(String.format("Cannot convert '%s' to a URI.", notation), e);
     }

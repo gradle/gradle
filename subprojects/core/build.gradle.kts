@@ -125,6 +125,7 @@ dependencies {
     api(libs.groovy)
     api(libs.guava)
     api(libs.inject)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.nativePlatform)
 

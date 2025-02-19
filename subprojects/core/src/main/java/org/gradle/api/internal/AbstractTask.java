@@ -85,8 +85,8 @@ import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 import org.gradle.util.Path;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.work.DisableCachingByDefault;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -742,10 +742,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static class ClosureTaskAction implements InputChangesAwareTaskAction {
         private final Closure<?> closure;
         private final String actionName;
-        @Nullable
-        private final UserCodeApplicationContext.Application application;
+        private final UserCodeApplicationContext.@Nullable Application application;
 
-        private ClosureTaskAction(Closure<?> closure, String actionName, @Nullable UserCodeApplicationContext.Application application) {
+        private ClosureTaskAction(Closure<?> closure, String actionName, UserCodeApplicationContext.@Nullable Application application) {
             this.closure = closure;
             this.actionName = actionName;
             this.application = application;

@@ -16,11 +16,11 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.function.Supplier;
 
-@NonNullApi
+@NullMarked
 public class PerThreadInstrumentedClosuresTracker implements InstrumentedClosuresTracker {
     private final ThreadLocal<InstrumentedClosuresTracker> perThreadTracker;
 

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
@@ -25,11 +24,12 @@ import org.gradle.tooling.events.problems.Location;
 import org.gradle.tooling.events.problems.ProblemContext;
 import org.gradle.tooling.events.problems.Solution;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DynamicProblemOperationContext extends DefaultOperationDescriptor implements ProblemContext {
 
     public DynamicProblemOperationContext(

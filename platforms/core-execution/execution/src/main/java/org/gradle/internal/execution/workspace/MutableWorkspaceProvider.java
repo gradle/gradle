@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.workspace;
 
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public interface MutableWorkspaceProvider {

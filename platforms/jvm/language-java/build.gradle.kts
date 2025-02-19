@@ -52,7 +52,7 @@ dependencies {
     api(libs.fastutil)
     api(libs.groovy)
     api(libs.guava)
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.concurrent)
