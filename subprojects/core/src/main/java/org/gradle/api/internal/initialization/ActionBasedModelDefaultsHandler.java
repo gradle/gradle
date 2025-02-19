@@ -75,12 +75,16 @@ public class ActionBasedModelDefaultsHandler implements ModelDefaultsHandler {
             new PropertyVisitor() {
                 @Override
                 public void visitSoftwareTypeProperty(String propertyName, PropertyValue value, Class<?> declaredPropertyType, SoftwareType softwareType) {
-                    sharedModelDefaults.setProjectLayout(projectLayout);
-                    softwareTypeImplementation.visitModelDefaults(
-                        Cast.uncheckedCast(ActionBasedDefault.class),
-                        executeActionVisitor(softwareTypeImplementation, value.call())
-                    );
-                    sharedModelDefaults.clearProjectLayout();
+                    try {
+                        sharedModelDefaults.setProjectLayout(projectLayout);
+                        softwareTypeImplementation.visitModelDefaults(
+                            Cast.uncheckedCast(ActionBasedDefault.class),
+                            executeActionVisitor(softwareTypeImplementation, value.call())
+                        );
+                    } finally {
+                        sharedModelDefaults.clearProjectLayout();
+                    }
+
                 }
             }
         );
