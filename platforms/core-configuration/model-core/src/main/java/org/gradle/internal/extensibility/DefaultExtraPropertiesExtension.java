@@ -16,23 +16,32 @@
 
 package org.gradle.internal.extensibility;
 
+import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.ReadOnlyPropertyException;
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtension {
+public class DefaultExtraPropertiesExtension extends GroovyObjectSupport implements ExtraPropertiesExtensionInternal {
 
     private final Map<String, Object> storage = new HashMap<>();
 
+    private ImmutableMap<String, Object> gradleProperties = ImmutableMap.of();
+
     @Override
     public boolean has(String name) {
-        return storage.containsKey(name);
+        if (storage.containsKey(name)) {
+            return true;
+        }
+        // TODO:configuration-cache track Gradle property lookup
+//        onGradlePropertyLookup(name);
+        return gradleProperties.containsKey(name);
     }
 
     @Override
@@ -47,7 +56,12 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Nullable
     public Object find(String name) {
-        return storage.get(name);
+        if (storage.containsKey(name)) {
+            return storage.get(name);
+        }
+        // TODO:configuration-cache track Gradle property lookup
+//        onGradlePropertyLookup(name);
+        return gradleProperties.get(name);
     }
 
     @Override
@@ -64,9 +78,15 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
         if (storage.containsKey(name)) {
             return storage.get(name);
-        } else {
-            throw new MissingPropertyException(UnknownPropertyException.createMessage(name), name, null);
         }
+
+        // TODO:configuration-cache track Gradle property lookup
+//        onGradlePropertyLookup(name);
+        if (gradleProperties.containsKey(name)) {
+            return gradleProperties.get(name);
+        }
+
+        throw new MissingPropertyException(UnknownPropertyException.createMessage(name), name, null);
     }
 
     @Override
@@ -79,7 +99,16 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
 
     @Override
     public Map<String, Object> getProperties() {
-        return new HashMap<>(storage);
+        // TODO:configuration-cache use a tracking map here
+        HashMap<String, Object> properties = new HashMap<>(storage);
+        for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
+            if (!properties.containsKey(entry.getKey())) {
+                // TODO:configuration-cache track Gradle property lookup
+//                onGradlePropertyLookup(entry.getKey());
+                properties.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return properties;
     }
 
     public Object methodMissing(String name, Object args) {
@@ -90,5 +119,10 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         } else {
             throw new groovy.lang.MissingMethodException(name, getClass(), (Object[]) args);
         }
+    }
+
+    @Override
+    public void setGradleProperties(Map<String, Object> properties) {
+        gradleProperties = ImmutableMap.copyOf(properties);
     }
 }
