@@ -139,8 +139,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 @Override
                 public String toString() {
-                    return (getDir().isPresent() ? "dir = " + getDir().getOrNull() + "\\n" : "") +
-                        (getFile().isPresent() ? "file = " + getFile().getOrNull() + "\\n" : "");
+                    return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
                 }
             }
         """
@@ -225,8 +224,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 @Override
                 public String toString() {
-                    return (dir.isPresent() ? "dir = " + dir.getOrNull() + "\\n" : "") +
-                        (file.isPresent() ? "file = " + file.getOrNull() + "\\n" : "");
+                    return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
                 }
             }
         """
@@ -275,7 +273,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
 
                 @Override
                 public String toString() {
-                    return "dir = " + dir + "\\nfile = " + file;
+                    return "dir = " + dir + ", file = " + file;
                 }
             }
         """
@@ -320,6 +318,6 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     private void assertThatDeclaredValuesAreSetProperly(String project, String namePrefix) {
-        outputContains("$project:\ndir = ${testDirectory.file("$project/${namePrefix}Dir").path}\nfile = ${testDirectory.file("${namePrefix}File").path}")
+        outputContains("$project: dir = ${testDirectory.file("$project/${namePrefix}Dir").path}, file = ${testDirectory.file("${namePrefix}File").path}")
     }
 }
