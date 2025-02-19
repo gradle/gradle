@@ -70,7 +70,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -1171,34 +1170,6 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
             throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
         }
         this.forkEvery = forkEvery;
-    }
-
-    /**
-     * Sets the maximum number of test classes to execute in a forked test process.
-     * <p>
-     * By default, Gradle automatically uses a separate JVM when executing tests, so changing this property is usually not necessary.
-     * </p>
-     *
-     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
-     * @deprecated Use {@link #setForkEvery(long)} instead.
-     */
-    @Deprecated
-    public void setForkEvery(@Nullable Long forkEvery) {
-        if (forkEvery == null) {
-            DeprecationLogger.deprecateBehaviour("Setting Test.forkEvery to null.")
-                .withAdvice("Set Test.forkEvery to 0 instead.")
-                .willBecomeAnErrorInGradle9()
-                .withDslReference(Test.class, "forkEvery")
-                .nagUser();
-            setForkEvery(0);
-        } else {
-            DeprecationLogger.deprecateMethod(Test.class, "setForkEvery(Long)")
-                .replaceWith("Test.setForkEvery(long)")
-                .willBeRemovedInGradle9()
-                .withDslReference(Test.class, "forkEvery")
-                .nagUser();
-            setForkEvery(forkEvery.longValue());
-        }
     }
 
     /**
