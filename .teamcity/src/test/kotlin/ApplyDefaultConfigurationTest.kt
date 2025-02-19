@@ -91,12 +91,8 @@ class ApplyDefaultConfigurationTest {
             "''     , false, '--no-daemon'",
         ],
     )
-    fun `can apply defaults to linux test configurations`(
-        extraParameters: String,
-        daemon: Boolean,
-        expectedDaemonParam: String,
-    ) {
-        applyTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters, daemon = daemon)
+    fun `can apply defaults to linux test configurations`(extraParameters: String) {
+        applyTestDefaults(buildModel, buildType, "myTask", extraParameters = extraParameters)
 
         assertEquals(
             listOf(
@@ -106,12 +102,13 @@ class ApplyDefaultConfigurationTest {
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
                 "GRADLE_RETRY_RUNNER",
+                "MARK_BUILD_SUCCESSFUL_ON_RETRY_SUCCESS",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
             ),
             steps.items.map(BuildStep::name),
         )
-        verifyGradleRunnerParams(extraParameters, expectedDaemonParam)
+        verifyGradleRunnerParams(extraParameters)
     }
 
     @ParameterizedTest
@@ -123,18 +120,13 @@ class ApplyDefaultConfigurationTest {
             "''     , false, '--no-daemon'",
         ],
     )
-    fun `can apply defaults to windows test configurations`(
-        extraParameters: String,
-        daemon: Boolean,
-        expectedDaemonParam: String,
-    ) {
+    fun `can apply defaults to windows test configurations`(extraParameters: String) {
         applyTestDefaults(
             buildModel,
             buildType,
             "myTask",
             os = Os.WINDOWS,
             extraParameters = extraParameters,
-            daemon = daemon,
         )
 
         assertEquals(
@@ -144,30 +136,29 @@ class ApplyDefaultConfigurationTest {
                 "KILL_ALL_GRADLE_PROCESSES",
                 "CLEAN_UP_GIT_UNTRACKED_FILES_AND_DIRECTORIES",
                 "GRADLE_RETRY_RUNNER",
+                "MARK_BUILD_SUCCESSFUL_ON_RETRY_SUCCESS",
                 "KILL_PROCESSES_STARTED_BY_GRADLE",
                 "CHECK_CLEAN_M2_ANDROID_USER_HOME",
             ),
             steps.items.map(BuildStep::name),
         )
-        verifyGradleRunnerParams(extraParameters, expectedDaemonParam, Os.WINDOWS)
+        verifyGradleRunnerParams(extraParameters, Os.WINDOWS)
     }
 
     private fun verifyGradleRunnerParams(
         extraParameters: String,
-        expectedDaemonParam: String,
         os: Os = Os.LINUX,
     ) {
         assertEquals(BuildStep.ExecutionMode.DEFAULT, steps.getGradleStep("GRADLE_RUNNER").executionMode)
 
         assertEquals(
-            expectedRunnerParam(expectedDaemonParam, extraParameters, os),
+            expectedRunnerParam(extraParameters, os),
             steps.getGradleStep("GRADLE_RUNNER").gradleParams,
         )
         assertEquals("clean myTask", steps.getGradleStep("GRADLE_RUNNER").tasks)
     }
 
     private fun expectedRunnerParam(
-        daemon: String = "--daemon",
         extraParameters: String = "",
         os: Os = Os.LINUX,
     ): String {
@@ -192,7 +183,7 @@ class ApplyDefaultConfigurationTest {
         return listOf(
             "-Dorg.gradle.workers.max=%maxParallelForks%",
             "-PmaxParallelForks=%maxParallelForks% $PLUGINS_PORTAL_URL_OVERRIDE -s",
-            "--no-configuration-cache %additional.gradle.parameters% $daemon",
+            "%additional.gradle.parameters%",
             "--continue $extraParameters -Dscan.tag.Check",
             "-Dscan.tag.PullRequestFeedback -PteamCityBuildId=%teamcity.build.id%",
             "\"$expectedInstallationPaths\"",
