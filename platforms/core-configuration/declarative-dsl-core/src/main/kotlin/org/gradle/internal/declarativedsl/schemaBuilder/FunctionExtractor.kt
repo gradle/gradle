@@ -185,8 +185,11 @@ class DefaultFunctionExtractor(
             index != fnParams.lastIndex || configureLambdas.getTypeConfiguredByLambda(returnTypeClassifier) == null
         }.map { dataParameter(host, function, it, function.returnType.toKClass(), semanticsFromSignature, preIndex) }
 
+        val javaDeclaringClass = function.javaMethod!!.declaringClass
+
         DefaultDataTopLevelFunction(
-            function.javaMethod!!.declaringClass.`package`.name,
+            javaDeclaringClass.`package`.name,
+            javaDeclaringClass.name,
             function.name,
             params,
             semanticsFromSignature

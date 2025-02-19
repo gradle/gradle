@@ -28,13 +28,13 @@ import kotlin.reflect.full.instanceParameter
 object FunctionBinding {
     fun convertBinding(
         kFunction: KFunction<*>,
-        receiver: Any,
+        receiver: Any?,
         arguments: Map<DataParameter, Any?>,
         hasLambda: Boolean,
         configureLambdaHandler: ConfigureLambdaHandler
     ): Binding? {
         var captor: ConfigureLambdaHandler.ValueCaptor? = null
-        val map = buildMap(arguments.size + 1) {
+        val map = buildMap<KParameter, Any?>(arguments.size + 1) {
             val namedArguments = arguments.mapKeys { (param, _) -> param.name }
             var used = 0
 

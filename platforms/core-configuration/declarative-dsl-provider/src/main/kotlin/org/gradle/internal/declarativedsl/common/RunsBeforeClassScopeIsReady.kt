@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.declarative.dsl.schema
+package org.gradle.internal.declarativedsl.common
 
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 
-interface DataTopLevelFunction : SchemaFunction {
-    val packageName: String
-    val ownerJvmTypeName: String
-    override val simpleName: String
-    override val parameters: List<DataParameter>
-    override val semantics: FunctionSemantics.Pure
-}
+class RunsBeforeClassScopeIsReady : InterpretationStepFeature.RunsBeforeClassScopeIsReady
