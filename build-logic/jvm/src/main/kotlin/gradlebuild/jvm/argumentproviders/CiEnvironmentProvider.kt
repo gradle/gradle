@@ -37,8 +37,6 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
                 getToolchainInstallationPathsProperty() +
                 mapOf(
                     "org.gradle.test.maxParallelForks" to test.maxParallelForks,
-                    "org.gradle.ci.agentCount" to 2,
-                    "org.gradle.ci.agentNum" to BuildEnvironment.agentNum
                 ).map {
                     "-D${it.key}=${it.value}"
                 }

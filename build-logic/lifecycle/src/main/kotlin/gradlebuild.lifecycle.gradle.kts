@@ -27,8 +27,6 @@ val sanityCheck = "sanityCheck"
 
 val quickTest = "quickTest"
 
-val platformTest = "platformTest"
-
 val allVersionsCrossVersionTest = "allVersionsCrossVersionTest"
 
 val allVersionsIntegMultiVersionTest = "allVersionsIntegMultiVersionTest"
@@ -75,7 +73,7 @@ fun setupGlobalState() {
     }
 }
 
-fun needsToUseTestVersionsPartial() = isRequestedTask(platformTest)
+fun needsToUseTestVersionsPartial() = isRequestedTask(quickTest)
 
 fun needsToUseTestVersionsAll() = isRequestedTask(allVersionsCrossVersionTest)
     || isRequestedTask(allVersionsIntegMultiVersionTest)

@@ -391,7 +391,7 @@ val Project.maxTestDistributionPartitionSecond: Long?
 
 
 val Project.maxParallelForks: Int
-    get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse("4").toInt()
+    get() = gradleProperty(MAX_PARALLEL_FORKS).getOrElse(Runtime.getRuntime().availableProcessors().toString()).toInt()
 
 
 val Project.autoDownloadAndroidStudio: Boolean
