@@ -119,7 +119,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.installDist
         task instanceof Sync
-        task.destinationDir == project.file("build/install/test-project")
+        task.destinationDir.get().getAsFile() == project.file("build/install/test-project")
     }
 
     def "adds installDist task for custom distribution"() {
@@ -130,7 +130,7 @@ class DistributionPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.installCustomDist
         task instanceof Sync
-        task.destinationDir == project.file("build/install/test-project-custom")
+        task.destinationDir.get().getAsFile() == project.file("build/install/test-project-custom")
     }
 
     def "adds assembleDist task for main distribution"() {
