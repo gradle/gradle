@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.tasks.TaskContainerInternal
+import org.gradle.api.provider.Property
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.TaskCollection
 import org.gradle.api.tasks.testing.AbstractTestTask
@@ -106,10 +107,12 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
 
     def "sets test filter with information from #requestType"() {
         setup:
+        def failOnNoMatchingTests = Mock(Property)
         _ * buildProjectRegistry.allProjects >> [projectState]
         _ * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         _ * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
         _ * testExecutionRequest.getTaskAndTests() >> tasksAndTests
+        _ * testFilter.getFailOnNoMatchingTests() >> failOnNoMatchingTests
         def executionPlanContents = Mock(QueryableExecutionPlan) {
             getTasks() >> [testTask]
         }
@@ -122,7 +125,7 @@ class TestExecutionBuildTaskSchedulerTest extends Specification {
         then:
         1 * testFilter.includeTest(expectedClassFilter, expectedMethodFilter)
 
-        (1..2) * testFilter.setFailOnNoMatchingTests(false)
+        (1..2) * failOnNoMatchingTests.set(false)
         (1..2) * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
 
         where:

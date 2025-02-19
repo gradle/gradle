@@ -19,34 +19,35 @@
 package org.gradle.api.internal.tasks.testing.filter
 
 import org.gradle.api.InvalidUserDataException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTestFilterTest extends Specification {
 
-    def spec = new DefaultTestFilter()
+    def spec = TestUtil.newInstance(DefaultTestFilter)
 
     def "allows configuring test names"() {
-        expect: spec.includePatterns.isEmpty()
+        expect: spec.includePatterns.get().isEmpty()
 
         when:
         spec.includeTestsMatching("*fooMethod")
         spec.includeTestsMatching("*.FooTest.*")
 
-        then: spec.includePatterns == ["*fooMethod", "*.FooTest.*"] as Set
+        then: spec.includePatterns.get() == ["*fooMethod", "*.FooTest.*"] as Set
 
-        when: spec.setIncludePatterns("x")
+        when: spec.includePatterns = ["x"] as Set
 
-        then: spec.includePatterns == ["x"] as Set
+        then: spec.includePatterns.get() == ["x"] as Set
     }
 
     def "allows configuring by test class and methodname"() {
-        expect: spec.includePatterns.isEmpty()
+        expect: spec.includePatterns.get().isEmpty()
 
         when:
         spec.includeTest("acme.FooTest", "bar")
         spec.includeTest("acme.BarTest", null)
 
-        then: spec.includePatterns == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
+        then: spec.includePatterns.get() == ["acme.FooTest.bar", "acme.BarTest.*"] as Set
     }
 
     def "prevents empty names"() {
@@ -56,7 +57,10 @@ class DefaultTestFilterTest extends Specification {
         when: spec.includeTestsMatching("")
         then: thrown(InvalidUserDataException)
 
-        when: spec.setIncludePatterns("ok", "")
+        when:
+        spec.includePatterns = ["ok", ""] as Set
+        spec.validate()
+
         then: thrown(InvalidUserDataException)
     }
 
