@@ -34,43 +34,48 @@ import java.util.List;
  */
 public class JpmsConfiguration {
 
-    private static final List<String> GROOVY_JPMS_ARGS_9 = Collections.unmodifiableList(Arrays.asList(
-        "--add-opens=java.base/java.lang=ALL-UNNAMED",
-        "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
-        "--add-opens=java.base/java.util=ALL-UNNAMED",
-        "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by PreferenceCleaningGroovySystemLoader
-        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED", // Required by JdkTools and JdkJavaCompiler
-        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and JdkJavaCompiler
-    ));
-
-    public static List<String> getGroovyArgs(int majorVersion) {
-        if (majorVersion < 9) {
-            return Collections.emptyList();
-        }
-        return GROOVY_JPMS_ARGS_9;
-    }
+    /**
+     * Exposes the required packages for Groovy to work on Java 9+.
+     */
+    private static final List<String> GROOVY_JPMS_ARGS_9;
 
     /**
      * These flags are only needed when processes use native services.
      */
-    private static final List<String> GRADLE_SHARED_USING_NATIVE_SERVICES_JPMS_ARGS_24 = Collections.singletonList(
-        "--enable-native-access=ALL-UNNAMED" // required by NativeServices to access native libraries
-    );
+    private static final List<String> GRADLE_SHARED_JPMS_ARGS_24;
 
-    private static final List<String> GRADLE_WORKER_USING_NATIVE_SERVICES_JPMS_ARGS_24 = GRADLE_SHARED_USING_NATIVE_SERVICES_JPMS_ARGS_24;
+    /**
+     * Enables native access for worker processes.
+     */
+    private static final List<String> GRADLE_WORKER_JPMS_ARGS_24;
 
-    public static List<String> getWorkerArgs(int majorVersion, boolean usingNativeServices) {
-        if (majorVersion < 24 || !usingNativeServices) {
-            return Collections.emptyList();
-        }
-        return GRADLE_WORKER_USING_NATIVE_SERVICES_JPMS_ARGS_24;
-    }
-
+    /**
+     * Exposes the required packages for the Gradle daemon to work on Java 9+.
+     */
     private static final List<String> GRADLE_DAEMON_JPMS_ARGS_9;
 
-    private static final List<String> GRADLE_DAEMON_USING_NATIVE_SERVICES_JPMS_ARGS_24;
+    /**
+     * Exposes the required packages for the Gradle daemon to work on Java 9+.
+     * Also enables native access for the daemon process.
+     */
+    private static final List<String> GRADLE_DAEMON_JPMS_ARGS_24;
 
     static {
+        GROOVY_JPMS_ARGS_9 = Collections.unmodifiableList(Arrays.asList(
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED",
+            "--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED", // required by PreferenceCleaningGroovySystemLoader
+            "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED", // Required by JdkTools and JdkJavaCompiler
+            "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED" // Required by JdkTools and JdkJavaCompiler
+        ));
+
+        GRADLE_SHARED_JPMS_ARGS_24 = Collections.singletonList(
+            "--enable-native-access=ALL-UNNAMED" // required by NativeServices to access native libraries
+        );
+
+        GRADLE_WORKER_JPMS_ARGS_24 = GRADLE_SHARED_JPMS_ARGS_24;
+
         List<String> gradleDaemonJvmArgs = new ArrayList<String>(GROOVY_JPMS_ARGS_9);
 
         List<String> configurationCacheJpmsArgs = Collections.unmodifiableList(Arrays.asList(
@@ -86,17 +91,45 @@ public class JpmsConfiguration {
         GRADLE_DAEMON_JPMS_ARGS_9 = Collections.unmodifiableList(gradleDaemonJvmArgs);
 
         List<String> gradleDaemonJvmArgs24 = new ArrayList<String>(GRADLE_DAEMON_JPMS_ARGS_9);
-        gradleDaemonJvmArgs24.addAll(GRADLE_SHARED_USING_NATIVE_SERVICES_JPMS_ARGS_24);
-        GRADLE_DAEMON_USING_NATIVE_SERVICES_JPMS_ARGS_24 = Collections.unmodifiableList(gradleDaemonJvmArgs24);
+        gradleDaemonJvmArgs24.addAll(GRADLE_SHARED_JPMS_ARGS_24);
+        GRADLE_DAEMON_JPMS_ARGS_24 = Collections.unmodifiableList(gradleDaemonJvmArgs24);
     }
 
-    public static List<String> getDaemonArgs(int majorVersion, boolean usingNativeServices) {
+    public static List<String> forGroovyProcesses(int majorVersion) {
+        if (majorVersion < 9) {
+            return Collections.emptyList();
+        }
+        return GROOVY_JPMS_ARGS_9;
+    }
+
+    /**
+     * Returns the JVM arguments that should be passed to a worker process.
+     *
+     * @param majorVersion the major version of the JVM for the worker process
+     * @param usingNativeServices whether the worker process is using native services, {@code true} if it cannot be determined
+     * @return the JVM arguments
+     */
+    public static List<String> forWorkerProcesses(int majorVersion, boolean usingNativeServices) {
+        if (majorVersion < 24 || !usingNativeServices) {
+            return Collections.emptyList();
+        }
+        return GRADLE_WORKER_JPMS_ARGS_24;
+    }
+
+    /**
+     * Returns the JVM arguments that should be passed to a daemon process.
+     *
+     * @param majorVersion the major version of the JVM for the daemon process
+     * @param usingNativeServices whether the daemon process is using native services, {@code true} if it cannot be determined
+     * @return the JVM arguments
+     */
+    public static List<String> forDaemonProcesses(int majorVersion, boolean usingNativeServices) {
         if (majorVersion < 9) {
             return Collections.emptyList();
         }
         if (majorVersion < 24 || !usingNativeServices) {
             return GRADLE_DAEMON_JPMS_ARGS_9;
         }
-        return GRADLE_DAEMON_USING_NATIVE_SERVICES_JPMS_ARGS_24;
+        return GRADLE_DAEMON_JPMS_ARGS_24;
     }
 }

@@ -163,7 +163,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
         List<String> buildJvmOptions = super.getImplicitBuildJvmArgs();
         if (!isUseDaemon() && !isSingleUseDaemonRequested()) {
             JavaVersion version = getJavaVersionFromJavaHome();
-            buildJvmOptions.addAll(JpmsConfiguration.getDaemonArgs(Integer.parseInt(version.getMajorVersion()), true));
+            buildJvmOptions.addAll(JpmsConfiguration.forDaemonProcesses(Integer.parseInt(version.getMajorVersion()), true));
         }
         return buildJvmOptions;
     }

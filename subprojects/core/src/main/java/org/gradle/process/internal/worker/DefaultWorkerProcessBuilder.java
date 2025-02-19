@@ -257,7 +257,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         if (addJpmsCompatibilityFlags) {
-            javaCommand.jvmArgs(JpmsConfiguration.getWorkerArgs(javaVersionMajor, nativeServicesMode.isPotentiallyEnabled()));
+            javaCommand.jvmArgs(JpmsConfiguration.forWorkerProcesses(javaVersionMajor, nativeServicesMode.isPotentiallyEnabled()));
         }
 
         javaCommand.args("'" + displayName + "'");

@@ -39,7 +39,7 @@ class PerformanceTestJvmOptions {
 
     static List<String> normalizeGradleJvmOptions(boolean useDaemon, List<String> originalJvmOptions) {
         if (!useDaemon) {
-            def extraArgs = JpmsConfiguration.getDaemonArgs(Jvm.current().javaVersionMajor, true)
+            def extraArgs = JpmsConfiguration.forDaemonProcesses(Jvm.current().javaVersionMajor, true)
             if (extraArgs.isEmpty()) {
                 return originalJvmOptions
             }
