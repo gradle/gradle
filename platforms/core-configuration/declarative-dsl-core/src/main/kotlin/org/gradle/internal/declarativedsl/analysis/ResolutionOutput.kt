@@ -99,10 +99,7 @@ sealed interface ObjectOrigin {
         val entryName: String
             get() = namedReference.name
 
-        val javaTypeName: String
-            get() = type.javaTypeName
-
-        override fun toString(): String = "(enum $javaTypeName.$entryName)"
+        override fun toString(): String = "(enum ${type.javaTypeName}.$entryName)"
     }
 
     data class NullObjectOrigin(override val originElement: Null) : ObjectOrigin
@@ -243,6 +240,13 @@ sealed interface ObjectOrigin {
         }
     }
 
+    data class GroupedVarargValue(
+        override val originElement: LanguageTreeElement,
+        val elementValues: List<ObjectOrigin>,
+        val elementType: DataType,
+        val varargArrayType: DataType
+    ) : ObjectOrigin
+
     data class External(val key: ExternalObjectProviderKey, override val originElement: NamedReference) : ObjectOrigin {
         override fun toString(): String = "${key.objectType}"
     }
@@ -250,7 +254,7 @@ sealed interface ObjectOrigin {
 
 
 data class ParameterValueBinding(
-    val bindingMap: Map<DataParameter, ObjectOrigin>,
+    val bindingMap: Map<DataParameter, TypedOrigin>,
     val providesConfigureBlock: Boolean
 )
 
@@ -266,7 +270,7 @@ fun functionInvocationString(function: SchemaFunction, receiver: ObjectOrigin?, 
         append("#")
         append(invocationId)
         append("(")
-        append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = $v" })
+        append(parameterBindings.bindingMap.entries.joinToString { (k, v) -> "${k.name} = ${v.objectOrigin}" })
         append(")")
         if (parameterBindings.providesConfigureBlock) {
             append(" { ... }")

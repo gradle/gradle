@@ -180,7 +180,7 @@ class DocumentMemberAndTypeMatcher(
     val typeRefContext = SchemaTypeRefContext(schema)
 
     fun typeIsSubtypeOf(subtype: DataType, supertype: DataType): Boolean =
-        sameType(subtype, supertype) ||
+        SchemaTypeRefContext(schema).sameType(subtype, supertype) ||
             subtype is DataClass && supertype is DataClass && supertype.name in subtype.supertypes
 
     fun <T> ifScopeMatchesType(scope: Scope, typedMember: TypedMember, then: (ElementNode) -> T): T? {
@@ -245,5 +245,5 @@ class DocumentMemberAndTypeMatcher(
 
     private
     fun DataTypeRef.isEquivalentTo(other: DataTypeRef) =
-        sameType(typeRefContext.resolveRef(this), typeRefContext.resolveRef(other))
+        SchemaTypeRefContext(schema).sameType(typeRefContext.resolveRef(this), typeRefContext.resolveRef(other))
 }

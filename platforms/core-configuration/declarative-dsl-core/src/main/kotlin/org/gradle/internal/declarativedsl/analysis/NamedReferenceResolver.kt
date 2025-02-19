@@ -3,9 +3,9 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataProperty
 import org.gradle.declarative.dsl.schema.DataType
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.FqName
+import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.ExpectedByProperty
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
@@ -17,8 +17,8 @@ interface NamedReferenceResolver {
     fun doResolveNamedReferenceToObjectOrigin(
         analysisContext: AnalysisContext,
         namedReference: NamedReference,
-        expectedType: DataTypeRef?
-    ): ObjectOrigin?
+        expectedType: ExpectedTypeData
+    ): TypedOrigin?
 
     fun doResolveNamedReferenceToAssignable(
         analysisContext: AnalysisContext,
@@ -33,8 +33,8 @@ class NamedReferenceResolverImpl(
     override fun doResolveNamedReferenceToObjectOrigin(
         analysisContext: AnalysisContext,
         namedReference: NamedReference,
-        expectedType: DataTypeRef?
-    ): ObjectOrigin? =
+        expectedType: ExpectedTypeData
+    ): TypedOrigin? =
         analysisContext.doResolveNamedReferenceToObject(namedReference, expectedType)
 
     override fun doResolveNamedReferenceToAssignable(
@@ -78,14 +78,15 @@ class NamedReferenceResolverImpl(
     private
     fun AnalysisContext.doResolveNamedReferenceToObject(
         namedReference: NamedReference,
-        expectedType: DataTypeRef?
-    ): ObjectOrigin? {
-        if (namedReference.receiver == null && expectedType != null) {
-            val dataType = resolveRef(expectedType)
+        expectedType: ExpectedTypeData
+    ): TypedOrigin? {
+        if (namedReference.receiver == null && expectedType is ExpectedByProperty) {
+            // A named reference with a type expected by a property assignment might be an enum entry reference.
+            val dataType = resolveRef(expectedType.type)
             if (dataType is EnumClass) {
                 val matchingNamedReference = dataType.entryNames.firstOrNull { it ==  namedReference.name}
                 if (matchingNamedReference != null) {
-                    return ObjectOrigin.EnumConstantOrigin(dataType, namedReference)
+                    return TypedOrigin(ObjectOrigin.EnumConstantOrigin(dataType, namedReference), dataType)
                 }
             }
         }
@@ -109,10 +110,10 @@ class NamedReferenceResolverImpl(
                         errorCollector.collect(ResolutionError(result.originElement, ErrorReason.NonReadableProperty(result.property)))
                         return null
                     } else {
-                        return result
+                        return simplyTyped(result)
                     }
                 } else {
-                    return result
+                    return simplyTyped(result)
                 }
             }
         }
@@ -165,9 +166,9 @@ class NamedReferenceResolverImpl(
 
         val propertyName = namedReference.name
 
-        expressionResolver.doResolveExpression(this, namedReference.receiver, null)?.let { receiverOrigin ->
-            findDataProperty(getDataType(receiverOrigin), propertyName)?.let { property ->
-                onProperty(ObjectOrigin.PropertyReference(receiverOrigin, property, namedReference))
+        expressionResolver.doResolveExpression(this, namedReference.receiver, ExpectedTypeData.NoExpectedType)?.let { receiverOrigin ->
+            findDataProperty(receiverOrigin.inferredType, propertyName)?.let { property ->
+                onProperty(ObjectOrigin.PropertyReference(receiverOrigin.objectOrigin, property, namedReference))
             }
         }
 
