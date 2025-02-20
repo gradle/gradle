@@ -661,11 +661,11 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Hello")
 
         where:
-        location   | method     | args           | expectedDeprecatedMethod        | replacements
-        "build"    | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "build"    | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
-        "settings" | "exec"     | execSpec()     | "Using method exec(Action)"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
-        "settings" | "javaexec" | javaExecSpec() | "Using method javaexec(Action)" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
+        location   | method     | args           | expectedDeprecatedMethod              | replacements
+        "build"    | "exec"     | execSpec()     | "The Project.exec(Action) method"     | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
+        "build"    | "javaexec" | javaExecSpec() | "The Project.javaexec(Action) method" | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
+        "settings" | "exec"     | execSpec()     | "Using method exec(Action)"           | "ExecOperations.exec(Action) or ProviderFactory.exec(Action)"
+        "settings" | "javaexec" | javaExecSpec() | "Using method javaexec(Action)"       | "ExecOperations.javaexec(Action) or ProviderFactory.javaexec(Action)"
     }
 
     @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")

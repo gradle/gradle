@@ -194,7 +194,7 @@ class KotlinDslJvmTargetIntegrationTest : AbstractKotlinIntegrationTest() {
             .withJvm(currentJvm)
             .withArgument("-Porg.gradle.java.installations.paths=$installationPaths")
             .run()
-        assertThat(pluginCompile.output, containsString("w: Inconsistent JVM-target compatibility detected for tasks 'compileJava' (24) and 'compileKotlin' (23)."))
+        assertThat(pluginCompile.output, containsString("Inconsistent JVM-target compatibility detected for tasks 'compileJava' (24) and 'compileKotlin' (23)."))
 
         withSettingsIn("consumer", """
             pluginManagement {
