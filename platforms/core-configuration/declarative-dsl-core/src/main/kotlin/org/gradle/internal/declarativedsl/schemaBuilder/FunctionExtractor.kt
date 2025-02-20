@@ -265,9 +265,11 @@ class DefaultFunctionExtractor(
 
             function.annotations.any { it is Adding } -> {
                 check(inType != null)
-
-                check(function.returnType != typeOf<Unit>() || configureLambdas.getTypeConfiguredByLambda(function.parameters.last().type) == null) {
-                    "an @Adding function with a Unit return type may not accept configuring lambdas"
+                if (!(function.returnType != typeOf<Unit>() || configuredType == null)) {
+                    host.schemaBuildingFailure("The @Adding function can only accept a lambda if it returns the configured object")
+                }
+                if (configuredType != null && !function.returnType.isSubtypeOf(configuredType)) {
+                    host.schemaBuildingFailure("The @Adding function must return a subtype of its configured type '$configuredType'")
                 }
 
                 FunctionSemanticsInternal.DefaultAddAndConfigure(function.returnTypeToRefOrError(host), blockRequirement)
@@ -281,9 +283,12 @@ class DefaultFunctionExtractor(
                 val annotationPropertyName = annotation.propertyName
                 val propertyName = annotationPropertyName.ifEmpty { function.name }
 
-                check(configuredType != null) { "@Configuring function $function must accept a configuring lambda" }
+                if (configuredType == null) {
+                    host.schemaBuildingFailure("The @Configuring function must accept a function object as the last parameter")
+                }
 
                 val propertyType = preIndex.getPropertyType(inType, propertyName)
+                // TODO: drop the support for configuring property objects, use only the lambda accessors
                 check(propertyType == null || propertyType.isSubtypeOf(configuredType)) {
                     "configure lambda type ($configuredType) is inconsistent with property type ($propertyType) in function $function"
                 }
@@ -296,7 +301,7 @@ class DefaultFunctionExtractor(
                 val returnType = when (function.returnType) {
                     typeOf<Unit>() -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultUnit
                     propertyType, configuredType -> FunctionSemanticsInternal.DefaultAccessAndConfigure.DefaultReturnType.DefaultConfiguredObject
-                    else -> error("cannot infer the return type of a configuring function $function; it must be Unit or the configured object type")
+                    else -> host.schemaBuildingFailure("The @Configuring function can only return the configured type '$configuredType' or no object (Unit, void)")
                 }
                 val accessor =
                     if (property != null) ConfigureAccessorInternal.DefaultProperty(property)
