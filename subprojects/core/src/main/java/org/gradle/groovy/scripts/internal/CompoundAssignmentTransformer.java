@@ -162,7 +162,7 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
         }
 
         private static boolean isValidDestination(Expression expr) {
-            return expr instanceof VariableExpression || expr instanceof PropertyExpression;
+            return ((expr instanceof VariableExpression) && !ClassHelper.isPrimitiveType(((VariableExpression) expr).getOriginType())) || expr instanceof PropertyExpression;
         }
 
         private static <T extends Expression> T withSourceLocationOf(Expression original, T transformed) {
