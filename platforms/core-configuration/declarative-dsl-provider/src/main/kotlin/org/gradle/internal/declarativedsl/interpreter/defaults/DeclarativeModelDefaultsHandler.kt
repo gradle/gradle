@@ -24,6 +24,7 @@ import org.gradle.internal.declarativedsl.analysis.ObjectOrigin
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.defaults.softwareTypeRegistryBasedModelDefaultsRepository
+import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.interpreter.DeclarativeDslNotEvaluatedException
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
@@ -35,12 +36,14 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepContext
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.Evaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated
 import org.gradle.internal.declarativedsl.evaluator.runner.ParseAndResolveResult
+import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
+import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Expr
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
-import org.gradle.internal.declarativedsl.project.projectInterpretationSequenceStep
+import org.gradle.internal.declarativedsl.project.PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY
 import org.gradle.plugin.software.internal.ModelDefaultsHandler
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 import javax.inject.Inject
@@ -49,9 +52,16 @@ import javax.inject.Inject
 /**
  * A {@link ConventionHandler} for applying declarative conventions.
  */
-abstract class DeclarativeModelDefaultsHandler @Inject constructor(softwareTypeRegistry: SoftwareTypeRegistry) : ModelDefaultsHandler {
+abstract class DeclarativeModelDefaultsHandler @Inject constructor(
+    softwareTypeRegistry: SoftwareTypeRegistry,
+    interpretationSchemaBuilder: InterpretationSchemaBuilder
+) : ModelDefaultsHandler {
     private
-    val step = projectInterpretationSequenceStep(softwareTypeRegistry)
+    val step by lazy {
+        val schema = interpretationSchemaBuilder.getEvaluationSchemaForScript(DeclarativeScriptContext.ProjectScript)
+        check(schema is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable) { "expected a project schema to be built" }
+        schema.sequence.steps.single { it.stepIdentifier.key == PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY }
+    }
     private
     val modelDefaultsRepository = softwareTypeRegistryBasedModelDefaultsRepository(softwareTypeRegistry)
 
