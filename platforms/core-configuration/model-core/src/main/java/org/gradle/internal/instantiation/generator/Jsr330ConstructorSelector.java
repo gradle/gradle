@@ -16,17 +16,17 @@
 
 package org.gradle.internal.instantiation.generator;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
+import org.gradle.cache.Cache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.lang.reflect.Modifier;
 
 class Jsr330ConstructorSelector implements ConstructorSelector {
-    private final CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache;
+    private final Cache<Class<?>, CachedConstructor> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public Jsr330ConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, CachedConstructor> constructorCache) {
+    public Jsr330ConstructorSelector(ClassGenerator classGenerator, Cache<Class<?>, CachedConstructor> constructorCache) {
         this.constructorCache = constructorCache;
         this.classGenerator = classGenerator;
     }

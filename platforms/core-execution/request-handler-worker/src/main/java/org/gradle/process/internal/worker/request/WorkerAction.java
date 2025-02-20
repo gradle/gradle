@@ -22,8 +22,9 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
+import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -48,18 +49,13 @@ import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 /**
  * Worker-side implementation of {@link RequestProtocol} executing actions.
@@ -108,7 +104,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new BasicCrossBuildInMemoryCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler());
+                instantiatorFactory = new DefaultInstantiatorFactory(new BasicClassCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler());
             }
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
@@ -216,68 +212,20 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     }
 
     /**
-     * A {@link CrossBuildInMemoryCacheFactory} that does not retain values across builds.
-     * <p>
-     * This class does not really satisfy the contract of {@link CrossBuildInMemoryCacheFactory}, as it
-     * does not retain _any_ state between builds, even if the worker lives across builds.
-     * <p>
-     * The default implementation of this interface, which is used in the Gradle daemon, relies on listener
-     * events to know when builds have started and stopped. In the worker daemon, these events are never emitted
-     * in the worker -- effectively making this implementation equivalent to the default implementation in the
-     * worker daemon context.
+     * A {@link ClassCacheFactory} that holds strong references to all keys and values. This simple
+     * implementation differs from that of the Gradle Daemon, as the lifecycle for a worker process
+     * is much simpler than that of the daemon.
      */
-    private static class BasicCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFactory {
+    private static class BasicClassCacheFactory implements ClassCacheFactory {
 
         @Override
-        public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-            throw new UnsupportedOperationException();
+        public <V> Cache<Class<?>, V> newClassCache() {
+            return new MapBackedCache<>(new ConcurrentHashMap<>());
         }
 
         @Override
-        public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-            return new BasicCrossBuildInMemoryCache<>();
-        }
-
-        @Override
-        public <V> CrossBuildInMemoryCache<Class<?>, V> newClassMap() {
-            return new BasicCrossBuildInMemoryCache<>();
-        }
-
-        @Override
-        public <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
-            return new BasicCrossBuildInMemoryCache<>();
-        }
-
-        private static class BasicCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V> {
-
-            private final Map<K, V> state = new ConcurrentHashMap<>();
-
-            @Override
-            public V get(K key, Function<? super K, ? extends V> factory) {
-                return state.computeIfAbsent(key, factory);
-            }
-
-            @Override
-            public void clear() {
-                state.clear();
-            }
-
-            @Nullable
-            @Override
-            public V getIfPresent(K key) {
-                return state.get(key);
-            }
-
-            @Override
-            public void put(K key, V value) {
-                state.put(key, value);
-            }
-
+        public <V> Cache<Class<?>, V> newClassMap() {
+            return new MapBackedCache<>(new ConcurrentHashMap<>());
         }
 
     }

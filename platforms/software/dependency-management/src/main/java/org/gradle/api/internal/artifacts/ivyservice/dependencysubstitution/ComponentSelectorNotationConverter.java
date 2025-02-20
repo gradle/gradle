@@ -25,6 +25,6 @@ import org.gradle.internal.typeconversion.NotationParser;
  * Marker type for a converter that can convert an object to a {@link ComponentSelector}, to allow
  * for easy injection.
  */
-@ServiceScope(Scope.Global.class)
-public interface ModuleSelectorNotationConverter extends NotationParser<Object, ComponentSelector> {
+@ServiceScope(Scope.BuildSession.class)
+public interface ComponentSelectorNotationConverter extends NotationParser<Object, ComponentSelector> {
 }
