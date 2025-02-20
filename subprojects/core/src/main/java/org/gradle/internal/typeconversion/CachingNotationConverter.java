@@ -16,29 +16,31 @@
 
 package org.gradle.internal.typeconversion;
 
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
+import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
 
 /**
- * A {@link NotationConverter} that caches the result of conversion across build invocations.
+ * A {@link NotationConverter} that caches the result of conversion.
  */
-public class CrossBuildCachingNotationConverter<T> implements NotationConverter<Object, T> {
-    private final CrossBuildInMemoryCache<Object, T> cache;
+public class CachingNotationConverter<T> implements NotationConverter<Object, T> {
+
+    private final InMemoryLoadingCache<Object, T> cache;
     private final NotationConverterToNotationParserAdapter<Object, T> delegate;
 
-    public CrossBuildCachingNotationConverter(NotationConverter<Object, T> delegate, CrossBuildInMemoryCache<Object, T> cache) {
-        this.cache = cache;
-        this.delegate = new NotationConverterToNotationParserAdapter<>(delegate);
+    public CachingNotationConverter(NotationConverter<Object, T> notationConverter, InMemoryCacheFactory cacheFactory) {
+        this.delegate = new NotationConverterToNotationParserAdapter<>(notationConverter);
+        this.cache = cacheFactory.create(delegate::parseNotation);
     }
 
     @Override
     public void convert(Object notation, NotationConvertResult<? super T> result) throws TypeConversionException {
-        T value = cache.get(notation, () -> delegate.parseNotation(notation));
-        result.converted(value);
+        result.converted(cache.get(notation));
     }
 
     @Override
     public void describe(DiagnosticsVisitor visitor) {
         delegate.describe(visitor);
     }
+
 }

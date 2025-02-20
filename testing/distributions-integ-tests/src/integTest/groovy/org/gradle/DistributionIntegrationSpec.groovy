@@ -113,6 +113,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "process-memory-services",
         "process-services",
         "report-rendering",
+        "request-handler-worker",
         "resources",
         "resources-http",
         "runtime-api-info",
@@ -148,7 +149,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        77
+        78
     }
 
     /**

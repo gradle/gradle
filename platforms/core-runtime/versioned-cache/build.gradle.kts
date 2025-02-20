@@ -21,7 +21,6 @@ plugins {
 description = "Versioned Gradle caches"
 
 dependencies {
-    api(projects.coreApi)
     api(projects.logging)
     api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)

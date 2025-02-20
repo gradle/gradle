@@ -16,10 +16,12 @@
 
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
 import org.gradle.api.internal.tasks.userinput.UserInputReader;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.daemon.client.serialization.ClasspathInferer;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderFactory;
 import org.gradle.internal.daemon.client.serialization.ClientSidePayloadClassLoaderRegistry;
@@ -78,20 +80,34 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
         NotifyDaemonClientExecuter notifyDaemonClientExecuter
     ) {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+
+        ClassLoader parent = this.getClass().getClassLoader();
+        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        filterSpec.allowPackage("org.gradle.tooling.internal.protocol");
+        filterSpec.allowClass(TaskExecutionRequest.class);
+        FilteringClassLoader modelClassLoader = new FilteringClassLoader(parent, filterSpec);
+
+        PayloadSerializer payloadSerializer = new PayloadSerializer(
+            new WellKnownClassLoaderRegistry(
+                new ClientSidePayloadClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        new ClientSidePayloadClassLoaderFactory(
+                            new ModelClassLoaderFactory(modelClassLoader)
+                        )
+                    ),
+                    new ClasspathInferer(),
+                    classLoaderCache
+                )
+            )
+        );
+
         return new ProviderConnection(
-                serviceRegistry,
-                buildLayoutFactory,
-                daemonClientFactory,
-                buildActionExecuter,
-                new PayloadSerializer(
-                        new WellKnownClassLoaderRegistry(
-                            new ClientSidePayloadClassLoaderRegistry(
-                                new DefaultPayloadClassLoaderRegistry(
-                                    classLoaderCache,
-                                    new ClientSidePayloadClassLoaderFactory(
-                                        new ModelClassLoaderFactory())),
-                                new ClasspathInferer(),
-                                classLoaderCache))),
+            serviceRegistry,
+            buildLayoutFactory,
+            daemonClientFactory,
+            buildActionExecuter,
+            payloadSerializer,
             fileCollectionFactory,
             userInput,
             userInputReader,
