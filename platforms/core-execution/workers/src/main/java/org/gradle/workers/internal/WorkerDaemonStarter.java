@@ -62,9 +62,14 @@ public class WorkerDaemonStarter {
         builder.applicationClasspath(classPathRegistry.getClassPath("DAEMON_SERVER_WORKER").getAsFiles());
 
         // For flat classloaders, we include the work classpath along with the WorkerDaemonServer implementation.
-        // This is simpler to reason about and may have performance advantages. But at the same time, this allows
-        // the work to see the classes of the WorkerDaemonServer at runtime. This is fine for internal work,
-        // but for user-provided work, we serialize the work classpath and load it on the worker side.
+        // As a consequence of a flat classloader, the work is able to see the classes of the WorkerDaemonServer
+        // at runtime.
+        // This is fine for internal work, but for user-provided work, we serialize the work classpath and load
+        // it on the worker side.
+        // We primarily use a flat classloader for Java compilation workers, as using a hierarchical classloader
+        // caused performance regressions. The Java compiler seems to hammer the classloader, and performance
+        // is better with a flat classloader. A hierarchical classloader should be preferred when classloader
+        // performance is not a concern.
         if (forkOptions.getClassLoaderStructure() instanceof FlatClassLoaderStructure) {
             FlatClassLoaderStructure flatClassLoaderStructure = (FlatClassLoaderStructure) forkOptions.getClassLoaderStructure();
             Iterable<File> workClasspath = toFiles(flatClassLoaderStructure.getSpec());
