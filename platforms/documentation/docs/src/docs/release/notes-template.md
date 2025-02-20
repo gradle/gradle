@@ -7,7 +7,7 @@
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="We are excited to announce Gradle @version@".>
+<meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
