@@ -232,8 +232,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private void addExplicitCollector(MapCollector<K, V> collector) {
         assertCanMutate();
-        MapSupplier<K, V> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(collector));
+        setSupplier(withAppendedValue(collector));
+    }
+
+    private MapSupplier<K, V> withAppendedValue(MapCollector<K, V> value) {
+        MapSupplier<K, V> currentValue = getExplicitValue(defaultValue);
+        try {
+            return currentValue.plus(value);
+        } catch (IllegalStateException e) {
+            throw failWithCorruptedStateException(e);
+        }
     }
 
     protected void withActualValue(Runnable action) {
