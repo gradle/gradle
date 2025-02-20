@@ -125,10 +125,11 @@ class DefaultFunctionExtractor(
                 param != function.instanceParameter && run {
                     // is value parameter, not a configuring block:
                     val isNotLastParameter = index != fnParams.lastIndex
-                    val isNotConfigureLambda = configureLambdas.getTypeConfiguredByLambda(param.type)?.let { typeConfiguredByLambda ->
-                        param.parameterTypeToRefOrError(host) { typeConfiguredByLambda } != maybeConfigureTypeRef
-                    } ?: true
-                    isNotLastParameter || isNotConfigureLambda
+                    isNotLastParameter || run isNotAConfigureLambda@{
+                        configureLambdas.getTypeConfiguredByLambda(param.type)?.let { typeConfiguredByLambda ->
+                            param.parameterTypeToRefOrError(host) { typeConfiguredByLambda } != maybeConfigureTypeRef
+                        } ?: true
+                    }
                 }
             }
             .map { fnParam -> dataParameter(host, function, fnParam, returnClassifier, semanticsFromSignature, preIndex) }
