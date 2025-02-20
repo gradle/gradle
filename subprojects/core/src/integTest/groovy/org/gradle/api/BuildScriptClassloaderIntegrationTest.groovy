@@ -17,9 +17,12 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
 class BuildScriptClassloaderIntegrationTest extends AbstractIntegrationSpec{
 
+    @Requires(IntegTestPreconditions.NotConfigCached)
     def 'cannot eagerly access buildscript classloader of the project'() {
         buildFile("a/build.gradle", "")
 
