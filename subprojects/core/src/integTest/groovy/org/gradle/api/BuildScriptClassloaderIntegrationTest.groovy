@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.invocation
+package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class GradleCallbacksIntegrationTest extends AbstractIntegrationSpec {
+class BuildScriptClassloaderIntegrationTest extends AbstractIntegrationSpec{
 
-    def 'plugins cannot be applied from gradle.projectsLoaded'() {
-        file("buildSrc/src/main/groovy/foo.gradle") << """
-            println("Foo applied")
-        """
-        file("buildSrc/build.gradle") << """
-            plugins {
-                id 'groovy-gradle-plugin'
-            }
-            repositories {
-               mavenCentral()
-            }
-        """
+    def 'cannot eagerly access buildscript classloader of the project'() {
+        buildFile("a/build.gradle", "")
 
         settingsFile """
-            gradle.projectsLoaded {
-                plugins.apply("foo")
+            include(":a")
+        """
+
+        buildFile """
+            subprojects {
+                buildscript.classLoader.getResource("foo")
             }
         """
 
@@ -43,6 +37,5 @@ class GradleCallbacksIntegrationTest extends AbstractIntegrationSpec {
         fails "help"
 
         then:
-        failureDescriptionContains("Plugin with id 'foo' not found")
-    }
-}
+        failureCauseContains("Attempt to define scope class loader before scope is locked, scope identifier is ClassLoaderScopeIdentifier{coreAndPlugins:settings[:]:buildSrc[:]:root-project[:]:project-a}")
+    }}
