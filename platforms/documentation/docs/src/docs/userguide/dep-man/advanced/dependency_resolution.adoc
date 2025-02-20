@@ -35,7 +35,7 @@ image::dep-man-adv-1.png[]
 
 During the _graph resolution_ phase, Gradle constructs a *dependency graph*, which models the relationships between different components and their variants.
 
-See <<dependency_graph_resolution.adoc#dependency-graph-resolution,Graph Resolution>> to learn more.
+See <<graph_resolution.adoc#dependency-graph-resolution,Graph Resolution>> to learn more.
 
 [[sec:artifact-resolution]]
 == 2. Artifact Resolution

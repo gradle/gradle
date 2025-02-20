@@ -50,7 +50,7 @@ This section explains how to _properly create cross-project boundaries_ by defin
 [[sec:variant-aware-sharing]]
 == Variant-aware sharing of artifacts
 
-Gradle's <<variant_model.adoc#sec:understanding-variant-selection, variant model>> allows consumers to specify requirements using _attributes_, while producers provide appropriate outgoing variants using attributes as well.
+Gradle's <<variant_aware_resolution.adoc#sec:understanding-variant-selection, variant model>> allows consumers to specify requirements using _attributes_, while producers provide appropriate outgoing variants using attributes as well.
 
 For example, a single dependency declaration like `project(":myLib")` can select either the `arm64` or `i386` version of `myLib`, based on the architecture.
 

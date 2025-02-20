@@ -199,7 +199,7 @@ May be followed by a `because` text.
 | A `ComponentSelection.reject` link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[rejected the given version] of the dependency.
 
 | Rejection: version <version>: <attributes information>
-| The dependency has a dynamic version and some versions did not match the <<variant_model#sec:variant-aware-matching, requested attributes>>.
+| The dependency has a dynamic version and some versions did not match the <<variant_aware_resolution.adoc#sec:variant-aware-matching, requested attributes>>.
 
 | Forced
 | The build enforces the version of the dependency through an enforced platform or resolution strategy.

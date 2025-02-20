@@ -92,7 +92,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-metadat
 == Which parts of metadata can be modified?
 
 The Component Metadata Rules API focuses on the features supported by Gradle Module Metadata and the dependencies API.
-The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_model.adoc#sec:understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
+The key difference between using metadata rules and defining dependencies/artifacts in a build script is that component metadata rules operate directly on <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variants>>, whereas build scripts often affect multiple variants at once (e.g., an `api` dependency is applied to both `api` and `runtime` variants of a Java library).
 
 Variants can be modified through the following methods:
 
@@ -102,7 +102,7 @@ Variants can be modified through the following methods:
 
 The following variant details can be modified:
 
-- **Attributes**: Use the `attributes {}` block to adjust <<variant_model.adoc#sec:abm-configuration-attributes,attributes>> that identify the variant.
+- **Attributes**: Use the `attributes {}` block to adjust <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,attributes>> that identify the variant.
 - **Capabilities**: Use the `withCapabilities {}` block to define the <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>> the variant provides.
 - **Dependencies**: Use the `withDependencies {}` block to manage the variant’s dependencies, including <<dependency_versions.adoc#sec:rich-version-constraints,rich version>> constraints.
 - **Dependency Constraints**: Use the `withDependencyConstraints {}` block to define the variant’s <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>, including rich versions.

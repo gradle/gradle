@@ -502,7 +502,7 @@ Accessing the mutable project instance of other projects should be avoided.
 
 To discover details about all projects that were included in a resolution, inspect the full link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult].
 Project dependencies are exposed in the link:{javadocPath}/org/gradle/api/artifacts/result/DependencyResult.html[DependencyResult].
-See the user guide section on <<dependency_graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
+See the user guide section on <<graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
 This is the only reliable way to find all projects that are used in a resolution.
 Inspecting only the declared `ProjectDependency`s may miss transitive or substituted project dependencies.
 
