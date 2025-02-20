@@ -68,6 +68,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
@@ -399,7 +400,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
                         return new BuildResult(null, result.getException());
                     }
                     if (result.getFailure() != null) {
-                        PayloadSerializer payloadSerializer = new PayloadSerializer(new TestClassLoaderRegistry());
+                        PayloadSerializer payloadSerializer = new DefaultPayloadSerializer(new TestClassLoaderRegistry());
                         return new BuildResult(null, (RuntimeException) payloadSerializer.deserialize(result.getFailure()));
                     }
                     return new BuildResult(null, null);

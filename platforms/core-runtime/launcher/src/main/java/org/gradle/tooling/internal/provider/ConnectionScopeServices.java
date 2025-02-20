@@ -37,7 +37,7 @@ import org.gradle.launcher.exec.BuildExecutor;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
+import org.gradle.tooling.internal.provider.serialization.DefaultPayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
 
 /**
@@ -83,7 +83,7 @@ public class ConnectionScopeServices implements ServiceRegistrationProvider {
                 buildLayoutFactory,
                 daemonClientFactory,
                 buildActionExecuter,
-                new PayloadSerializer(
+                new DefaultPayloadSerializer(
                         new WellKnownClassLoaderRegistry(
                             new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
