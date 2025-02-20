@@ -34,7 +34,6 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ValueState;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
-import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -66,7 +65,7 @@ import java.util.function.Supplier;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport, SupportsCompoundAssignment<DefaultConfigurableFileCollection.CompoundAssignmentStandIn> {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
     private final PathSet filesWrapper;
     private DisplayName displayName;
@@ -205,9 +204,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void setFromAnyValue(@Nullable Object object) {
         Preconditions.checkNotNull(object, "Can't assign null value to %s", getDisplayName());
 
-        if (object instanceof CompoundAssignmentResult && ((CompoundAssignmentResult) object).isOwnedBy(this)) {
-            ((CompoundAssignmentResult) object).assignToOwner();
-            return;
+        if (object instanceof FileCollectionCompoundAssignmentResult) {
+            FileCollectionCompoundAssignmentResult compoundAssignmentResult = (FileCollectionCompoundAssignmentResult) object;
+            if (compoundAssignmentResult.isOwnedBy(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
         }
 
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
@@ -841,20 +843,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
-    @Override
-    public CompoundAssignmentStandIn toCompoundOperand() {
-        return new CompoundAssignmentStandIn();
-    }
-
     /**
-     * This class acts as a replacement to call {@code +} on when evaluating {@code DefaultConfigurableFileCollection += <RHS>} expressions in Groovy code.
+     * Returns a stand-in that defines operations for Groovy's {@code <OP>=} expression.
      *
-     * @see SupportsCompoundAssignment
+     * @return the stand-in to call the operation on
      */
-    public class CompoundAssignmentStandIn {
-        // Called for fileCollection += fileCollection
-        public Object plus(FileCollectionInternal rhs) {
-            return new CompoundAssignmentResult(taskDependencyFactory, DefaultConfigurableFileCollection.this, rhs);
-        }
+    public ConfigurableFileCollectionCompoundAssignmentStandIn forCompoundAssignment() {
+       return new ConfigurableFileCollectionCompoundAssignmentStandIn(this, taskDependencyFactory);
     }
 }

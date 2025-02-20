@@ -613,4 +613,3 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         outputContains(EXPRESSION_PREFIX + value)
     }
 }
-

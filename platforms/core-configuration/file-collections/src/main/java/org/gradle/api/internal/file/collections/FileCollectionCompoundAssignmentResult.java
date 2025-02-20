@@ -18,24 +18,22 @@ package org.gradle.api.internal.file.collections;
 
 import com.google.common.base.Preconditions;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.UnionFileCollection;
-import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
+import org.gradle.api.internal.groovy.support.CompoundAssignmentResult;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A helper class to implement an intermediate result of a compound assignment operation, like "+=".
  * It is then assigned to the left-hand side operand. When the LHS is a ConfigurableFileCollection-typed property of some Gradle-enhanced object, then the assignment action is invoked.
  */
-class CompoundAssignmentResult extends UnionFileCollection implements SupportsCompoundAssignment.Result<FileCollection> {
+final class FileCollectionCompoundAssignmentResult extends UnionFileCollection implements CompoundAssignmentResult {
     @Nullable
     private ConfigurableFileCollection owner;
     private final FileCollectionInternal rhs;
 
-    public CompoundAssignmentResult(TaskDependencyFactory taskDependencyFactory, DefaultConfigurableFileCollection owner, FileCollectionInternal rhs) {
+    public FileCollectionCompoundAssignmentResult(TaskDependencyFactory taskDependencyFactory, DefaultConfigurableFileCollection owner, FileCollectionInternal rhs) {
         super(taskDependencyFactory, owner, rhs);
         this.owner = owner;
         this.rhs = rhs;
@@ -53,11 +51,15 @@ class CompoundAssignmentResult extends UnionFileCollection implements SupportsCo
     }
 
     @Override
-    public FileCollection unwrap() {
+    public void assignmentComplete() {
         // When the expression involves a variable on the left side as opposed to a field, then this collection becomes its value.
         // It must lose all "magical" properties towards its owner, because it may be used to set its value outside the original expression.
         owner = null;
+    }
+
+    @Override
+    public boolean shouldDiscardResult() {
         // Unlike the Property, we cannot discard the += value without losing backward compatibility.
-        return this;
+        return false;
     }
 }

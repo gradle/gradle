@@ -25,7 +25,6 @@ import org.gradle.api.internal.provider.MapCollectors.EntriesFromMap;
 import org.gradle.api.internal.provider.MapCollectors.EntriesFromMapProvider;
 import org.gradle.api.internal.provider.MapCollectors.EntryWithValueFromProvider;
 import org.gradle.api.internal.provider.MapCollectors.SingleEntry;
-import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
@@ -37,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -58,8 +55,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
  * @param <K> the type of entry key
  * @param <V> the type of entry value
  */
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V>,
-    SupportsCompoundAssignment<DefaultMapProperty<K, V>.CompoundAssignmentStandIn> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -150,9 +146,16 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     public void setFromAnyValue(@Nullable Object object) {
         if (object == null || object instanceof Map<?, ?>) {
             set((Map<K, V>) object);
-        } else if (object instanceof CompoundAssignmentResult<?> && ((CompoundAssignmentResult<?>) object).isOwnedBy(this)) {
-            ((CompoundAssignmentResult<?>) object).assignToOwner();
-        } else if (object instanceof Provider<?>) {
+            return;
+        }
+        if (object instanceof CollectionPropertyCompoundAssignmentResult<?>) {
+            CollectionPropertyCompoundAssignmentResult<?> compoundAssignmentResult = (CollectionPropertyCompoundAssignmentResult<?>) object;
+            if (compoundAssignmentResult.isOwnedBy(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
+        }
+        if (object instanceof Provider<?>) {
             set((Provider<Map<K, V>>) object);
         } else {
             throw new IllegalArgumentException(String.format(
@@ -693,37 +696,12 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
     }
 
-    @Override
-    public CompoundAssignmentStandIn toCompoundOperand() {
-        return new CompoundAssignmentStandIn();
-    }
-
     /**
-     * This class acts as a replacement to call {@code +} on when evaluating {@code DefaultMapProperty += <RHS>} expressions in Groovy code.
+     * Returns a stand-in that defines operations for Groovy's {@code <OP>=} expression.
      *
-     * @see SupportsCompoundAssignment
+     * @return the stand-in to call the operation on
      */
-    public class CompoundAssignmentStandIn {
-        // Called for property += Provider<Map<K,V>>
-        public Object plus(Provider<? extends Map<K, V>> provider) {
-            return new CompoundAssignmentResult<>(
-                Providers.internal(zip(provider, bifunction(DefaultMapProperty::concat))),
-                DefaultMapProperty.this,
-                () -> DefaultMapProperty.this.putAll(provider));
-
-        }
-
-        // Called for property += Map<K,V>
-        public Object plus(Map<K, V> map) {
-            return new CompoundAssignmentResult<>(
-                Providers.internal(map(transformer(left -> concat(left, map)))),
-                DefaultMapProperty.this, () -> DefaultMapProperty.this.putAll(map));
-        }
-    }
-
-    private static <K, V> Map<K, V> concat(Map<? extends K, ? extends V> left, Map<? extends K, ? extends V> right) {
-        Map<K, V> result = new LinkedHashMap<>(left);
-        result.putAll(right);
-        return result;
+    public MapPropertyCompoundAssignmentStandIn<K, V> forCompoundAssignment() {
+        return new MapPropertyCompoundAssignmentStandIn<>(this);
     }
 }

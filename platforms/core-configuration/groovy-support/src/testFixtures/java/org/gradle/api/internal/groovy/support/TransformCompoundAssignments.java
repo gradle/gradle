@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.groovy.support;
 
 import org.codehaus.groovy.transform.GroovyASTTransformationClass;
 
@@ -29,5 +29,5 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.SOURCE)
 @Target({ElementType.METHOD, ElementType.TYPE})
-@GroovyASTTransformationClass("org.gradle.api.internal.provider.TestCompoundAssignmentTransform")
+@GroovyASTTransformationClass("org.gradle.api.internal.groovy.support.CompoundAssignmentTransformInTest")
 public @interface TransformCompoundAssignments {}

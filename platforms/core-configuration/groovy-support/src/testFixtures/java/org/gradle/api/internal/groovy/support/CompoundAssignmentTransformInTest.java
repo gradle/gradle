@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.groovy.support;
 
 import org.codehaus.groovy.ast.ASTNode;
 import org.codehaus.groovy.control.CompilePhase;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.transform.ASTTransformation;
 import org.codehaus.groovy.transform.GroovyASTTransformation;
-import org.gradle.groovy.scripts.internal.CompoundAssignmentTransformer;
 
 /**
  * Applies compound operation transformer to a class or a method.
  *
- * @see org.gradle.api.internal.provider.support.SupportsCompoundAssignment
+ * @see TransformCompoundAssignments
+ * @see CompoundAssignmentTransformer
  */
-@SuppressWarnings("unused")  // Applied through
+@SuppressWarnings("unused")  // Applied by TransformCompoundAssignments annotation.
 @GroovyASTTransformation(phase = CompilePhase.CANONICALIZATION)
-public class TestCompoundAssignmentTransform implements ASTTransformation {
+public class CompoundAssignmentTransformInTest implements ASTTransformation {
     @Override
     public void visit(ASTNode[] nodes, SourceUnit source) {
-        new CompoundAssignmentTransformer().call(nodes[1], source);
+        CompoundAssignmentTransformer.call(nodes[1], source);
     }
 }

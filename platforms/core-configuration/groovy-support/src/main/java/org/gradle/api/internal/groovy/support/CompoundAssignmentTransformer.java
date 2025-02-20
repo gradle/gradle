@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.scripts.internal;
+package org.gradle.api.internal.groovy.support;
 
 import com.google.common.collect.ImmutableMap;
 import org.codehaus.groovy.ast.ASTNode;
@@ -22,24 +22,25 @@ import org.codehaus.groovy.ast.ClassCodeExpressionTransformer;
 import org.codehaus.groovy.ast.ClassHelper;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.MethodNode;
-import org.codehaus.groovy.ast.expr.ArgumentListExpression;
 import org.codehaus.groovy.ast.expr.BinaryExpression;
 import org.codehaus.groovy.ast.expr.ClosureExpression;
 import org.codehaus.groovy.ast.expr.Expression;
+import org.codehaus.groovy.ast.expr.MethodCallExpression;
 import org.codehaus.groovy.ast.expr.PropertyExpression;
-import org.codehaus.groovy.ast.expr.StaticMethodCallExpression;
 import org.codehaus.groovy.ast.expr.VariableExpression;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.syntax.Token;
 import org.codehaus.groovy.syntax.Types;
-import org.gradle.api.internal.provider.support.SupportsCompoundAssignment;
+import org.gradle.groovy.scripts.internal.AbstractScriptTransformer;
 
 import java.util.Map;
 
 /**
- * Rewrites some compound assignment expressions, like {@code +=}, in a way they can be intercepted at runtime and a custom behavior applied.
+ * Rewrites some compound assignment expressions, like {@code +=} to help runtime distinguish them from operator calls {@code +}.
+ * <p>
+ * See the package documentation for the complete description.
  */
 public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
     @Override
@@ -62,7 +63,7 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
      * @param source the source unit in which the AST node resides
      * @throws CompilationFailedException if the transformation cannot be applied.
      */
-    public void call(ASTNode node, SourceUnit source) throws CompilationFailedException {
+    public static void call(ASTNode node, SourceUnit source) throws CompilationFailedException {
         CompoundAssignmentExpressionRewriter visitor = new CompoundAssignmentExpressionRewriter(source);
         if (node instanceof ClassNode) {
             visitor.visitClass((ClassNode) node);
@@ -109,7 +110,7 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
         }
 
         /**
-         * Rewrites {@code foo <OP>= bar} into {@code SupportsCompoundAssignment.unwrap(foo = SupportsCompoundAssignment.wrap(foo) <OP> (bar))}.
+         * Rewrites {@code foo <OP>= bar} into {@code (foo = foo.forCompoundAssignment() <OP> (bar)).toAssignmentResult()}.
          *
          * @param original the original compound assignment expression
          * @param compoundOperation the added operation of assignment ({@code OP})
@@ -124,22 +125,23 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
                 return original;
             }
 
-            // Rewriting `foo <OP>= bar` into `foo = SupportsCompoundAssignment.wrap(foo) <OP> (bar)`.
-            BinaryExpression assignment = new BinaryExpression(
+            // Rewriting `foo <OP>= bar` into `foo = foo.forCompoundAssignment() <OP> (bar)`.
+            BinaryExpression assignment = withSourceLocationOf(original, new BinaryExpression(
                 lhs,
                 rewriteToken(original.getOperation(), Types.ASSIGN),
-                new BinaryExpression(
-                    applyWrap(lhs),
+                withSourceLocationOf(original, new BinaryExpression(
+                    applyForCompoundAssignment(lhs),
                     rewriteToken(original.getOperation(), compoundOperation),
                     rhs
-                )
-            );
-            // Final rewrite: decorate result with SupportsCompoundAssignment.unwrap()
-            return withSourceLocationOf(original, applyUnwrap(assignment));
+                ))
+            ));
+            // Final rewrite: unwrap the result
+            return withSourceLocationOf(original, applyToAssignmentResult(assignment));
         }
 
         /**
          * Builds a new token from the original, keeping the source position.
+         *
          * @param originalOperation the original operation token
          * @param newType the new token type
          * @return the new token
@@ -148,21 +150,39 @@ public class CompoundAssignmentTransformer extends AbstractScriptTransformer {
             return Token.newSymbol(newType, originalOperation.getStartLine(), originalOperation.getStartColumn());
         }
 
-        private Expression applyWrap(Expression expr) {
-            return callSupportMethodOn("wrap", expr);
+        /**
+         * @see CompoundAssignmentExtensions#forCompoundAssignment(Object)
+         */
+        private Expression applyForCompoundAssignment(Expression receiver) {
+            return callSupportMethodOn(receiver, "forCompoundAssignment");
         }
 
-        private Expression applyUnwrap(Expression expr) {
-            return callSupportMethodOn("unwrap", expr);
+        /**
+         * @see CompoundAssignmentExtensions#toAssignmentResult(Object)
+         */
+        private Expression applyToAssignmentResult(Expression receiver) {
+            return callSupportMethodOn(receiver, "toAssignmentResult");
         }
 
-        private Expression callSupportMethodOn(String methodName, Expression argument) {
-            return new StaticMethodCallExpression(ClassHelper.make(SupportsCompoundAssignment.class), methodName, new ArgumentListExpression(argument));
-
+        private Expression callSupportMethodOn(Expression receiver, String methodName) {
+            return withSourceLocationOf(receiver, new MethodCallExpression(
+                receiver,
+                methodName,
+                MethodCallExpression.NO_ARGUMENTS)
+            );
         }
 
         private static boolean isValidDestination(Expression expr) {
-            return ((expr instanceof VariableExpression) && !ClassHelper.isPrimitiveType(((VariableExpression) expr).getOriginType())) || expr instanceof PropertyExpression;
+            // We only rewrite compound assignments to non-primitive variables and properties.
+            if (expr instanceof VariableExpression) {
+                return !isPrimitiveVariable((VariableExpression) expr);
+            } else {
+                return expr instanceof PropertyExpression;
+            }
+        }
+
+        private static boolean isPrimitiveVariable(VariableExpression expr) {
+            return ClassHelper.isPrimitiveType(expr.getOriginType());
         }
 
         private static <T extends Expression> T withSourceLocationOf(Expression original, T transformed) {
