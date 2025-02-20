@@ -672,7 +672,7 @@ class TestSuitesKotlinDSLDependenciesIntegrationTest extends AbstractIntegration
 
         expect:
         fails 'help'
-        result.assertHasErrorOutput("None of the following functions can be called with the arguments supplied")
+        result.assertHasErrorOutput("None of the following candidates is applicable:")
 
         where:
         suiteDesc           | suiteName   | suiteDeclaration

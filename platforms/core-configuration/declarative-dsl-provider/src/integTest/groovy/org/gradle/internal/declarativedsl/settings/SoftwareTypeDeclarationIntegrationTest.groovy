@@ -187,7 +187,7 @@ class SoftwareTypeDeclarationIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         if (GradleDsl.KOTLIN == currentDsl()) {
-            failure.assertThatDescription(Matchers.containsString("Unresolved reference: nonPublic"))
+            failure.assertThatDescription(Matchers.containsString("Unresolved reference 'nonPublic'"))
         } else if (GradleDsl.DECLARATIVE == currentDsl()) {
             failure.assertThatCause(Matchers.containsString("Failed to interpret the declarative DSL file"))
             failure.assertThatCause(Matchers.containsString("unresolved reference 'nonPublic'"))

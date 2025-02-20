@@ -474,7 +474,7 @@ class DependencyCollectorKotlinDslIntegrationTest extends DependencyCollectorDsl
         fails("dependencies")
 
         then:
-        result.assertHasErrorOutput("""None of the following functions can be called with the arguments supplied:${' '}
-public operator fun DependencyCollector.invoke""") // Don't care what the other options are, just that it's the right name
+        result.assertHasErrorOutput("""None of the following candidates is applicable:
+fun DependencyCollector.invoke""") // Don't care what the other options are, just that it's the right name
     }
 }

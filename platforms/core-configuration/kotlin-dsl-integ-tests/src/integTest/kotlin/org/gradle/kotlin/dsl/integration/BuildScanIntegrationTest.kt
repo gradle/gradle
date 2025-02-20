@@ -60,7 +60,7 @@ class BuildScanIntegrationTest : AbstractKotlinIntegrationTest() {
         executer.expectDeprecationWarning("""- The deprecated "gradleEnterprise.buildScan.termsOfServiceAgree" API has been replaced by "develocity.buildScan.termsOfUseAgree"""")
         build("--scan", "--build-cache", "-Dscan.dump").apply {
             assertThat(output, containsString("Build scan written to"))
-            assertThat(output, containsString("'`gradle-enterprise`: PluginDependencySpec' is deprecated. Gradle Enterprise has been renamed to Develocity"))
+            assertThat(output, containsString("'val PluginDependenciesSpec.gradle-enterprise: PluginDependencySpec' is deprecated. Gradle Enterprise has been renamed to Develocity"))
         }
     }
 
