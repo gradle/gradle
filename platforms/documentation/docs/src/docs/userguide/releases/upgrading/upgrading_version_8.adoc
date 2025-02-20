@@ -40,6 +40,13 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Changes to JvmTestSuite
+
+The `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
+Test reports and JaCoCo reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
+
+See below for additional details.
+
 ==== Changes to Test Report Aggregation and Jacoco Aggregation
 
 Several changes have been made to the incubating <<test_report_aggregation_plugin#test_report_aggregation_plugin,Test Report Aggregation>> and <<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation>> plugins.
@@ -76,9 +83,6 @@ reporting {
     }
 }
 ----
-
-Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
-Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
 
 ==== Changed behavior when calling `BuildLauncher.addJvmArguments`
 
