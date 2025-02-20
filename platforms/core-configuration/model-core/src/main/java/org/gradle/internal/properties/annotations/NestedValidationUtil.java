@@ -103,13 +103,13 @@ public class NestedValidationUtil {
                     .contextualLabel("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .severity(WARNING)
-                    .details("Key of nested map must be one of the following types or an enum: " + getSupportedKeyTypes())
-                    .solution("Change type of key to one of the following types or an enum: " + getSupportedKeyTypes())
+                    .details("Key of nested map must be an enum or one of the following types: " + getSupportedKeyTypes())
+                    .solution("Change type of key to an enum or one of the following types: " + getSupportedKeyTypes())
             );
         }
     }
 
-    private static final ImmutableSet<Class<?>> SUPPORTED_KEY_TYPES = ImmutableSet.of(Integer.class, String.class);
+    private static final ImmutableSet<Class<?>> SUPPORTED_KEY_TYPES = ImmutableSet.of(String.class, Integer.class);
 
     private static String getSupportedKeyTypes() {
         return SUPPORTED_KEY_TYPES.stream().map(cls -> "'" + cls.getCanonicalName() + "'").collect(Collectors.joining(", "));
