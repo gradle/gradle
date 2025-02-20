@@ -372,12 +372,12 @@ class KotlinDslPluginTest : AbstractKotlinIntegrationTest() {
             fun test() {
 
                 // Implicit SAM conversion in regular source
-                println(createK(String::class) { it.toUpperCase() })
-                println(create("FOO") { it.toLowerCase() })
+                println(createK(String::class) { it.uppercase() })
+                println(create("FOO") { it.lowercase() })
 
                 // Implicit SAM with receiver conversion in regular source
                 applyActionTo("BAR") {
-                    println(toLowerCase())
+                    println(lowercase())
                 }
             }
             """
