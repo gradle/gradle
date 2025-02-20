@@ -27,7 +27,5 @@ object KotlinDslPluginSupport {
             "-Xjspecify-annotations=strict",
             "-Xsam-conversions=class",
             "-Xuse-fir-lt=false",
-            "-XXLanguage:+DisableCompatibilityModeForNewInference",
-            "-XXLanguage:-TypeEnhancementImprovementsInStrictMode",
         )
 }

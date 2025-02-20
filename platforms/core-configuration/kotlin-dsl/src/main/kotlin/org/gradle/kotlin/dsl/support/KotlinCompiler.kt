@@ -61,7 +61,6 @@ import org.jetbrains.kotlin.config.JvmDefaultMode
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.config.JvmTarget.JVM_23
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
@@ -488,10 +487,6 @@ fun gradleKotlinDslLanguageVersionSettingsFor(compilerOptions: KotlinCompilerOpt
             getReportLevelForAnnotation = { fqName -> getDefaultReportLevelForAnnotation(fqName) }
         ),
     ),
-    specificFeatures = mapOf(
-        LanguageFeature.DisableCompatibilityModeForNewInference to LanguageFeature.State.ENABLED,
-        LanguageFeature.TypeEnhancementImprovementsInStrictMode to LanguageFeature.State.DISABLED,
-    )
 )
 
 
