@@ -17,9 +17,11 @@
 package org.gradle.internal.declarativedsl.common
 
 import com.google.common.graph.Traverser
+import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.dsl.Dependencies
 import org.gradle.api.artifacts.dsl.DependencyCollector
+import org.gradle.api.plugins.jvm.PlatformDependencyModifiers
 import org.gradle.declarative.dsl.schema.DataConstructor
 import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
@@ -50,11 +52,12 @@ import kotlin.reflect.typeOf
 internal
 class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     private val gavDependencyParam: (SchemaBuildingHost) -> DataParameter,
-    private val projectDependencyParam: (SchemaBuildingHost) -> DataParameter
+    private val dependencyParam: (SchemaBuildingHost) -> DataParameter,
 ) : FunctionExtractor, RuntimeFunctionResolver {
 
     private
     val collectorDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>> = mutableMapOf()
+    val modifierDeclarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>> = mutableMapOf()
 
     private
     data class DependencyCollectorDeclaration(
@@ -75,38 +78,73 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
 
     private
     fun expandToOverloads(host: SchemaBuildingHost, produceDeclaration: (DataParameter) -> DependencyCollectorDeclaration) =
-        listOf(gavDependencyParam, projectDependencyParam).map {
+        listOf(gavDependencyParam, dependencyParam).map {
             val param = it(host)
             produceDeclaration(param)
         }
 
     override fun memberFunctions(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<SchemaMemberFunction> {
-        val discoveredCollectorDeclarations: List<DependencyCollectorDeclaration> = kClass.memberFunctions
-            .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
-            .flatMap { function ->
-                val name = dependencyCollectorNameFromGetterName(function.name)
-                expandToOverloads(host) { param ->
-                    DependencyCollectorDeclaration(
-                        buildDataMemberFunction(host, kClass, name, param),
-                        buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Getter(function)),
-                    )
-                }
-            }
-            .plus(kClass.memberProperties.filter { isDependencyCollectorProperty(kClass, it) }.flatMap { property ->
-                expandToOverloads(host) { param ->
-                    DependencyCollectorDeclaration(
-                        buildDataMemberFunction(host, kClass, property.name, param),
-                        buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Property(property)),
-                    )
-                }
-            })
+        val result = mutableSetOf<DataMemberFunction>()
 
-        val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associate { it.addingSchemaFunction to it.runtimeFunction }
-        if (!declarationsBySchemaFunctions.isEmpty()) {
-            collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
+        // Early out and skip this logic if the class is not a subclass of Dependencies, as it shouldn't have any dependency collectors
+        if (kClass.isSubclassOf(Dependencies::class)) {
+            val discoveredCollectorDeclarations: List<DependencyCollectorDeclaration> = kClass.memberFunctions
+                .filter { function -> hasDependencyCollectorGetterSignature(kClass, function) }
+                .flatMap { function ->
+                    val name = dependencyCollectorNameFromGetterName(function.name)
+                    expandToOverloads(host) { param ->
+                        DependencyCollectorDeclaration(
+                            buildDataMemberFunction(host, kClass, name, param),
+                            buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Getter(function)),
+                        )
+                    }
+                }
+                .plus(kClass.memberProperties.filter { isDependencyCollectorProperty(kClass, it) }.flatMap { property ->
+                    expandToOverloads(host) { param ->
+                        DependencyCollectorDeclaration(
+                            buildDataMemberFunction(host, kClass, property.name, param),
+                            buildDeclarativeRuntimeFunction(DependencyCollectorAccessor.Property(property)),
+                        )
+                    }
+                })
+
+            val declarationsBySchemaFunctions = discoveredCollectorDeclarations.associate { it.addingSchemaFunction to it.runtimeFunction }
+            if (!declarationsBySchemaFunctions.isEmpty()) {
+                collectorDeclarationsByClass[kClass] = declarationsBySchemaFunctions
+            }
+            result.addAll(declarationsBySchemaFunctions.keys)
+
+            // Only add platform modifiers if this dependencies subtype is also a subtype of PlatformDependencyModifiers, this isn't needed otherwise
+            if (kClass.isSubclassOf(PlatformDependencyModifiers::class)) {
+                val modifiersBySchemaFunction: Map<DataMemberFunction, DeclarativeRuntimeFunction> = mapOf(
+                    buildDataMemberFunction(host, kClass, "platform", gavDependencyParam(host)) to PlatformRuntimeFunction,
+                    buildDataMemberFunction(host, kClass, "platform", dependencyParam(host)) to PlatformRuntimeFunction)
+                modifierDeclarationsByClass[kClass] = modifiersBySchemaFunction
+                result.addAll(modifiersBySchemaFunction.keys)
+            }
         }
 
-        return declarationsBySchemaFunctions.keys
+        return result
+    }
+
+    private
+    object PlatformRuntimeFunction : DeclarativeRuntimeFunction {
+        override fun callBy(
+            receiver: Any?,
+            binding: Map<DataParameter, Any?>,
+            hasLambda: Boolean
+        ): DeclarativeRuntimeFunction.InvocationResult {
+            val platform = (receiver as PlatformDependencyModifiers).platform
+            val modifiedDependency = binding.values.single().let { arg ->
+                when (arg) {
+                    is CharSequence -> platform.modify(arg)
+                    is ModuleDependency -> platform.modify(arg)
+                    else -> error("Unsupported argument type: ${arg!!.javaClass} shouldn't be possible")
+                }
+            }
+            val result = InstanceAndPublicType(modifiedDependency, modifiedDependency.javaClass::class)
+            return DeclarativeRuntimeFunction.InvocationResult(result, result)
+        }
     }
 
     override fun constructors(host: SchemaBuildingHost, kClass: KClass<*>, preIndex: DataSchemaBuilder.PreIndex): Iterable<DataConstructor> = emptyList()
@@ -162,11 +200,12 @@ class DependencyCollectorFunctionExtractorAndRuntimeResolver(
     override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {
         // We can't just use find receiverClass directly as a key because at runtime we get a decorated class with a different type
         // that extends the original class we extracted into the managedFunctions map, so we have to check the superClass
-        return typeHierarchyViaJavaReflection(receiverClass)
-            .firstNotNullOfOrNull(collectorDeclarationsByClass::get)
+        fun searchDeclarationsByClass(declarationsByClass: MutableMap<KClass<*>, Map<DataMemberFunction, DeclarativeRuntimeFunction>>): RuntimeFunctionResolver.Resolution.Resolved? = typeHierarchyViaJavaReflection(receiverClass)
+            .firstNotNullOfOrNull(declarationsByClass::get)
             ?.entries?.find { (fn, _) -> fn == schemaFunction }
             ?.value?.let(RuntimeFunctionResolver.Resolution::Resolved)
-            ?: RuntimeFunctionResolver.Resolution.Unresolved
+
+        return searchDeclarationsByClass(collectorDeclarationsByClass) ?: searchDeclarationsByClass(modifierDeclarationsByClass) ?: RuntimeFunctionResolver.Resolution.Unresolved
     }
 
     /**
