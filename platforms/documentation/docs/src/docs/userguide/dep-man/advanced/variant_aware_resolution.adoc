@@ -15,7 +15,7 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[sec:understanding-variant-selection]]
-= Understanding Variant Selection
+= Variant Selection and Attribute Matching
 
 Gradle's dependency management engine is _variant aware_.
 
@@ -32,14 +32,12 @@ These attributes add context to each variant, describing when they should be use
 
 == Components
 
-A _component_, in most cases, represents a *version* of a *module*.
+A *component*:
 
-A component:
-
-* contains variants
-** which contain one or more artifacts
-** which contain zero or more dependencies
-** which is described by metadata
+* contains *variants*
+** which contain one or more *artifacts*
+** which contain zero or more *dependencies*
+** which is described by *metadata*
 
 image::component-model-gradle.png[]
 
@@ -49,15 +47,15 @@ It has a module `org.jetbrains.kotlinx:kotlinx-serialization-json` and a version
 image::component-model-gradle-example.png[]
 
 [[sec:abm-configuration-attributes]]
-== Variant attributes
+== Variants and Attributes
 
-<<variant_attributes.adoc#variant-attributes,_Variants_>> represent different versions or aspects of a _component_, like `api` vs `implementation` or `jar` vs `classes`.
+<<variant_attributes.adoc#variant-attributes,_Variants_>> represent different versions or aspects of a *component*, like `api` vs `implementation` or `jar` vs `classes`.
 
-In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` has four _variants_: `jvm`, `android`, `js`, and `native`.
+In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` has four *variants*: `jvm`, `android`, `js`, and `native`.
 
-<<variant_attributes.adoc#variant-attributes,_Attributes_>> are type-safe key-value pairs used by both the _consumer_ and the _producer_ during _variant_ selection: `attribute : value`.
+<<variant_attributes.adoc#variant-attributes,*Attributes*>> are type-safe key-value pairs used by both the _consumer_ and the _producer_ during *variant* selection: `attribute : value`.
 
-In the example above, there are two _attributes_ of importance to note for the _variants_ of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`:
+In the example above, there are two *attributes* of importance to note for the *variants* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`:
 
 [cols="1,~,~"]
 |===
@@ -80,7 +78,7 @@ In the example above, there are two _attributes_ of importance to note for the _
 |`org.jetbrains.kotlin.platform.type: native`
 |===
 
-However, it is also the case that in the metadata of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`, there are many more attributes that describe each _variant_ such as `org.gradle.libraryelements: jar` or `org.gradle.category: library`:
+However, it is also the case that in the *metadata* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`, there are many more *attributes* that describe each *variant* such as `org.gradle.libraryelements: jar` or `org.gradle.category: library`:
 
 ```json
 "variants": [
@@ -107,20 +105,19 @@ However, it is also the case that in the metadata of `org.jetbrains.kotlinx:kotl
 ]
 ```
 
-You can learn more about _variants_ and _attributes_ in <<variant_attributes.adoc#variant-attributes,Variants and Attributes>>.
-
-There are two types of _attributes_ Gradle uses to match the available _variants_ to the one required for the build:
+There are two types of *attributes* Gradle uses to match the available *variants* to the one required for the build:
 
 - *Consumer attributes*: Define the desired characteristics of a variant requested by a resolvable configuration.
 - *Producer attributes*: Each variant has a set of attributes that describe its purpose.
 
 [[sec:variant-aware-matching]]
-== Variant attribute matching
+== Variant Attribute Matching
 
-There are no restrictions on how many _variants_ a _component_ can define.
-A typical _component_ will include at least an implementation _variant_ but may also provide additional _variants_, such as test fixtures, documentation, or source code.
-Furthermore, a _component_ can offer _different variants_ for the same usage, depending on the consumer.
-For instance, during compilation, a _component_ may provide different headers for Linux, Windows, and macOS.
+There are no restrictions on how many *variants* a *component* can define.
+
+A typical *component* will include at least an implementation *variant* but may also provide additional *variants*, such as test fixtures, documentation, or source code.
+Furthermore, a *component* can offer different *variants* for the same usage, depending on the consumer.
+For instance, during compilation, a *component* may provide different headers for Linux, Windows, and macOS.
 
 Gradle performs _variant-aware selection_ by *matching the attributes specified by the consumer with those defined by the producer*.
 The details of this process are covered in the section below.
@@ -130,40 +127,40 @@ image::dependency-resolution-variant-selection.png[]
 IMPORTANT: The variant name is primarily used for debugging and error messages. It does not play a role in variant matching; only the variant's attributes are used in the matching process.
 
 [[sec:abm-algorithm]]
-== Variant attribute matching algorithm
+== Attribute Matching Algorithm
 
-Gradle's dependency resolution engine performs the following _variant_ matching algorithm to find the best result (or fail):
+Gradle's dependency resolution engine performs the following *attribute* matching algorithm to find the best result (or fail):
 
-1. Each candidate's attribute value is compared to the consumer's requested attribute value. A candidate is considered compatible if its value matches the consumer's value exactly, passes the attribute's compatibility rule, or is not provided.
+1. Each candidate's *attribute* value is compared to the consumer's requested *attribute* value. A candidate is considered compatible if its value matches the consumer's value exactly, passes the *attribute*'s compatibility rule, or is not provided.
 2. If only one candidate is considered compatible, that candidate wins.
 3. If several candidates are compatible, but one of the candidates matches all of the same attributes as the other candidates, Gradle chooses that candidate. This is the candidate with the "longest" match.
-4. If several candidates are compatible and are compatible with an equal number of attributes, Gradle needs to disambiguate the candidates.
+4. If several candidates are compatible and are compatible with an equal number of *attributes*, Gradle needs to disambiguate the candidates.
 a. For each requested attribute, if a candidate does not have a value matching the disambiguation rule, it's eliminated from consideration.
 b. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
 c. If the attribute does not have a known precedence, Gradle must consider all attributes.
-5. If several candidates still remain, Gradle will start to consider "extra" attributes to disambiguate between multiple candidates. Extra attributes are attributes that were not requested by the consumer but are present on at least one candidate. These extra attributes are considered in precedence order.
-a. If the attribute has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
-b. After all extra attributes with precedence are considered, the remaining candidates can be chosen if they are compatible with all of the non-ordered disambiguation rules.
-6. If several candidates still remain, Gradle will consider extra attributes again. A candidate can be chosen if it has the fewest number of extra attributes.
+5. If several candidates still remain, Gradle will start to consider "extra" attributes to disambiguate between multiple candidates. Extra *attributes* are *attributes* that were not requested by the consumer but are present on at least one candidate. These extra *attributes* are considered in precedence order.
+a. If the *attribute* has a known precedence, Gradle will stop as soon as there is a single candidate remaining.
+b. After all extra *attributes* with precedence are considered, the remaining candidates can be chosen if they are compatible with all of the non-ordered disambiguation rules.
+6. If several candidates still remain, Gradle will consider extra *attributes* again. A candidate can be chosen if it has the fewest number of extra *attributes*.
 
 If at any step no compatible candidates remain, resolution fails.
-Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging variant matching failures.
+Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging *attribute* matching failures.
 
-Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules, and defining the precedence of attributes.
-Attributes with a higher precedence are used to eliminate candidates in order.
+Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules, and defining the precedence of *attributes*.
+*Attributes* with a higher precedence are used to eliminate candidates in order.
 
-For example, in the Java ecosystem, the `org.gradle.usage` attribute has a higher precedence than `org.gradle.libraryelements`.
+For example, in the Java ecosystem, the `org.gradle.usage` *attribute* has a higher precedence than `org.gradle.libraryelements`.
 This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`.
 
 [NOTE]
 ====
 There are two exceptions to the variant-aware resolution process:
 
-- When a producer has no variants, a default artifact is selected.
-- When a consumer _explicitly selects a configuration by name_, the artifacts associated with that configuration are used.
+- When a producer has no *variants*, a default *artifact* is selected.
+- When a consumer _explicitly selects a configuration by name_, the *artifacts* associated with that configuration are used.
 ====
 
-=== A simple example
+=== A Simple Example
 
 Let’s walk through an example where a consumer is trying to use a library for compilation.
 
@@ -185,7 +182,7 @@ Finally, Gradle evaluates the variants and selects the correct one:
 
 As a result, Gradle selects the `apiElements` variant and provides its artifacts and dependencies to the consumer.
 
-=== A complicated example
+=== A Complicated Example
 
 In real-world scenarios, both consumers and producers often work with multiple attributes.
 
@@ -237,7 +234,7 @@ If the consumer requested `org.gradle.jvm.version=15`, Gradle could choose eithe
 --
 
 [[sec:variant-select-errors]]
-== Variant selection errors
+== Variant Selection Errors
 
 When Gradle attempts to select the most compatible variant of a _component_, resolution may fail due to:
 
@@ -352,7 +349,7 @@ An incompatible variant error looks like the following example, where a consumer
 
 It occurs when Gradle cannot select a single variant of a dependency because an explicitly requested attribute value does not match (and is not compatible with) the value of that attribute on any of the variants of the dependency.
 
-A sub-type of this failure occurs when Gradle *successfully* selects multiple variants of the same component, but the selected variants are incompatible with *each other*.
+A subtype of this failure occurs when Gradle *successfully* selects multiple variants of the same component, but the selected variants are incompatible with *each other*.
 
 This looks like the following, where a consumer wants to select two different variants of a component, each supplying different capabilities, which is acceptable.
 Unfortunately one variant has `color=blue` and the other has `color=green`:
@@ -378,7 +375,7 @@ Unfortunately one variant has `color=blue` and the other has `color=green`:
 [[sec:transform-ambiguity]]
 === Dealing with ambiguous transformation errors
 
-ArtifactTransforms can be used to transform artifacts from one type to another, changing their attributes.
+Artifact Transforms can be used to transform artifacts from one type to another, changing their attributes.
 Variant selection can use the attributes available as the result of an artifact transform as a candidate variant.
 
 If a project registers multiple artifact transforms, needs to use an artifact transform to produce a matching variant for a consumer's request, and multiple artifact transforms could each be used to accomplish this, then Gradle will fail with an ambiguous transformation error like the following:
@@ -407,7 +404,7 @@ If a project registers multiple artifact transforms, needs to use an artifact tr
 ----
 
 [[sec:variant-visual]]
-== Visualizing variant information
+== Visualizing Variant Information
 
 Gradle offers built-in tasks to visualize the variant selection process and display the producer and consumer attributes involved.
 
@@ -688,3 +685,5 @@ Description = The following Attributes have disambiguation rules defined.
 
 From this you can see the two main configurations used to resolve dependencies, `compileClasspath` and `runtimeClasspath`, as well as their corresponding test configurations.
 
+[.text-right]
+**Next Step:** <<artifact_resolution.adoc#artifact-resolution,Learn about Artifact Resolution>> >>
