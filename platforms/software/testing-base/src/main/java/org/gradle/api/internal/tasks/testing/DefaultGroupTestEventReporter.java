@@ -39,7 +39,7 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
     @Override
     public TestEventReporter reportTest(String name, String displayName) {
         return new DefaultTestEventReporter(listener,
-            new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), name, name, null, displayName), testDescriptor),
+            new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName), testDescriptor),
             new TestResultState(testResultState)
         );
     }
@@ -49,7 +49,7 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
         return new DefaultGroupTestEventReporter(
             listener,
             idGenerator,
-            new DecoratingTestDescriptor(new DefaultTestSuiteDescriptor(idGenerator.generateId(), name), testDescriptor),
+            new DecoratingTestDescriptor(new DefaultTestClassDescriptor(idGenerator.generateId(), name), testDescriptor),
             new TestResultState(testResultState)
         );
     }
