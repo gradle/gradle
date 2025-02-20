@@ -454,9 +454,10 @@ trait SoftwareTypeFixture {
                     ${extensionRegistration}
 
                     ${conventions == null ? "" : conventions}
+                    String projectName = target.getName();
                     target.getTasks().register("print${implementationTypeClassName}Configuration", DefaultTask.class, task -> {
                         task.doLast("print restricted extension content", t -> {
-                            System.out.println(target.getName() + ": " + extension);
+                            System.out.println(projectName + ": " + extension);
                         });
                     });
                 }
