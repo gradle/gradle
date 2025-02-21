@@ -238,7 +238,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 implementation project(":processor")
             }
             compileJava {
-                options.compilerArgs << "-proc:none"
+                options.compilerArgs.add("-proc:none")
             }
         """
         removeUseOfGeneratedClass()
@@ -256,7 +256,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 annotationProcessor project(":processor")
             }
             compileJava {
-                options.compilerArgs << "-proc:none"
+                options.compilerArgs.add("-proc:none")
             }
         """
         removeUseOfGeneratedClass()
@@ -277,7 +277,7 @@ class JavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
             }
-            compileJava.options.compilerArgs << "-processor" << "unknown.Processor"
+            compileJava.options.compilerArgs.addAll(["-processor", "unknown.Processor"])
         """
 
         expect:

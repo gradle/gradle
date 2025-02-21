@@ -84,7 +84,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "removes -source and -target option if --release is present"() {
         when:
-        spec.compileOptions.compilerArgs += ['--release', '7']
+        spec.compileOptions.compilerArgs.addAll(['--release', '7'])
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
@@ -94,7 +94,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
 
     def "can use a GString for the value of the release flag"() {
         when:
-        spec.compileOptions.compilerArgs += ['--release', "${ -> 7}"]
+        spec.compileOptions.compilerArgs.addAll(['--release', "${ -> 7}"])
         spec.sourceCompatibility = '1.7'
         spec.targetCompatibility = '1.7'
 
