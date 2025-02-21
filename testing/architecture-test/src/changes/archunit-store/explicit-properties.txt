@@ -84,14 +84,11 @@ Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsPreserveFileTimes
 Method <org.gradle.api.tasks.bundling.AbstractArchiveTask.getIsReproducibleFileOrder()> is not abstract
 Method <org.gradle.api.tasks.bundling.War.getWebAppDirectory()> is not abstract
 Method <org.gradle.api.tasks.bundling.Zip.getIsZip64()> is not abstract
-Method <org.gradle.api.tasks.compile.AbstractCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.AbstractCompile.getDestinationDirectory()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getAstTransformationClasspath()> is not abstract
-Method <org.gradle.api.tasks.compile.GroovyCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getJavaLauncher()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getSource()> is not abstract
 Method <org.gradle.api.tasks.compile.GroovyCompile.getStableSources()> is not abstract
-Method <org.gradle.api.tasks.compile.JavaCompile.getClasspath()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getJavaCompiler()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getSource()> is not abstract
 Method <org.gradle.api.tasks.compile.JavaCompile.getStableSources()> is not abstract
