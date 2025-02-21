@@ -85,7 +85,7 @@ public class DefaultMavenAttributesFactory implements MavenAttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
+    public ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes) {
         return delegate.fromMap(attributes);
     }
 
