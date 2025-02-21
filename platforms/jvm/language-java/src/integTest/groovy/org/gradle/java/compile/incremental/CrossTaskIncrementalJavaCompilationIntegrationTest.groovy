@@ -60,6 +60,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 classpath = layout.files()
             }
         """
+        expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
         succeeds "impl:${language.compileTaskName}"
 
         when:
@@ -69,6 +70,7 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         """
 
         then:
+        expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
         fails "impl:${language.compileTaskName}"
         result.hasErrorOutput("package a is not visible")
     }
@@ -105,19 +107,25 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 exports c.d;
             }
         """
+        if (showDeprecation) {
+            expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
+        }
         succeeds "impl:${language.compileTaskName}"
 
         when:
         impl.snapshot { source api: "package a; public class A { void m1() {} }" }
 
         then:
+        if (showDeprecation) {
+            expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
+        }
         succeeds "impl:${language.compileTaskName}", "--info"
         impl.recompiledClasses("B", "module-info")
 
         where:
-        description                 | inferModulePath | compileArgs                                                  | doFirst
-        "with inferred module-path" | "true"          | "[]"                                                         | ""
-        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
+        description                 | inferModulePath | compileArgs                                                  | doFirst                      | showDeprecation
+        "with inferred module-path" | "true"          | "[]"                                                         | ""                           | false
+        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()" | true
     }
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -139,20 +147,26 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 exports b;
             }
         """
+        if (showDeprecation) {
+            expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
+        }
         succeeds "impl:${language.compileTaskName}"
 
         when:
         impl.snapshot { file("impl/src/main/$languageName/b/B.$languageName").delete() }
 
         then:
+        if (showDeprecation) {
+            expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
+        }
         runAndFail "impl:${language.compileTaskName}", "--info"
         impl.noneRecompiled()
         result.hasErrorOutput("module-info.java:4: error: package is empty or does not exist: b")
 
         where:
-        description                 | inferModulePath | compileArgs                                                  | doFirst
-        "with inferred module-path" | "true"          | "[]"                                                         | ""
-        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()"
+        description                 | inferModulePath | compileArgs                                                  | doFirst                      | showDeprecation
+        "with inferred module-path" | "true"          | "[]"                                                         | ""                           | false
+        "with manual module-path"   | "false"         | "[\"--module-path=\${classpath.join(File.pathSeparator)}\"]" | "classpath = layout.files()" | true
     }
 
     @Requires(UnitTestPreconditions.Jdk9OrLater)
@@ -194,12 +208,14 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
                 exports unrelated;
             }
         """
+        expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
         succeeds "impl:${language.compileTaskName}"
 
         when:
         impl.snapshot { source api: "package a; public class A { public void m1() {} }" }
 
         then:
+        expectDeprecationWarningForChangingPropertyValueAtExecutionTime()
         succeeds "impl:${language.compileTaskName}"
         // We recompile all module-info.java also for unrelated modules, but we don't recompile unrelated classes
         impl.recompiledFqn("my.module.first.b.B", "my.module.second.c.C", "my.module.first.module-info", "my.module.second.module-info", "my.module.unrelated.module-info")
@@ -248,6 +264,14 @@ abstract class CrossTaskIncrementalJavaCompilationIntegrationTest extends Abstra
         module | pkg
         "api"  | "a"
         "otherApi" | "a2"
+    }
+
+    protected void expectDeprecationWarningForChangingPropertyValueAtExecutionTime() {
+        executer.expectDeprecationWarning(
+            "Changing property value of task ':impl:${language.compileTaskName}' property 'classpath' at execution time. " +
+                "This behavior has been deprecated. Starting with Gradle 9.0, " +
+                "changing property value of task ':impl:${language.compileTaskName}' property 'classpath' at execution time is deprecated and will fail in Gradle 10."
+        )
     }
 }
 
