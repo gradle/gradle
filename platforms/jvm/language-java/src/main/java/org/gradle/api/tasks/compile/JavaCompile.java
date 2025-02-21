@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -348,10 +349,7 @@ public abstract class JavaCompile extends AbstractCompile implements HasCompileO
     @Override
     @CompileClasspath
     @Incremental
-    @ToBeReplacedByLazyProperty
-    public FileCollection getClasspath() {
-        return super.getClasspath();
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * The sources for incremental change detection.

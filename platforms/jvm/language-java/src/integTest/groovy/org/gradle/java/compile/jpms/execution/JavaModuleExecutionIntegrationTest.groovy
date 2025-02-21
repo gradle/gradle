@@ -98,7 +98,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             def patchArgs = ['--patch-module', "consumer=\${compileGroovy.destinationDirectory.getAsFile().get().path}"]
             compileJava {
                 options.compilerArgs = patchArgs
-                classpath += files(sourceSets.main.groovy.classesDirectory)
+                classpath.from(files(sourceSets.main.groovy.classesDirectory))
             }
         """
         publishJavaModule('moda')
