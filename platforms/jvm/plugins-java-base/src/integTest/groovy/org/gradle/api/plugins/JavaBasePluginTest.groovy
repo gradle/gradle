@@ -139,7 +139,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compileJava.description == "Compiles custom Java source."
         compileJava instanceof JavaCompile
         TaskDependencyMatchers.dependsOn().matches(compileJava)
-        compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
+        compileJava.classpath.files == project.sourceSets.custom.compileClasspath.files
         compileJava.destinationDirectory.asFile.get() == new File(project.buildDir, 'classes/java/custom')
 
         def sources = compileJava.source
@@ -282,14 +282,14 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         compile.sourceCompatibility == project.java.sourceCompatibility.toString()
 
         def test = project.task('customTest', type: Test.class)
-        test.workingDir.asFile.get() == project.projectDir
+        test.workingDir == project.projectDir
         test.reports.junitXml.outputLocation.get().asFile == new File(project.java.testResultsDir.getAsFile().get(), 'customTest')
         test.reports.html.outputLocation.get().asFile == new File(project.java.testReportDir.getAsFile().get(), 'customTest')
         test.reports.junitXml.required.get()
         test.reports.html.required.get()
 
         def javadoc = project.task('customJavadoc', type: Javadoc)
-        javadoc.destinationDir.get().asFile == project.java.docsDir.file("javadoc").get().asFile
+        javadoc.destinationDir == project.java.docsDir.file("javadoc").get().asFile
         javadoc.title.get() == "test-project 1.0 API"
     }
 
