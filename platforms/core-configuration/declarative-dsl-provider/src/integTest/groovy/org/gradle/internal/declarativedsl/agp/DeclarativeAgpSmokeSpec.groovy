@@ -17,20 +17,19 @@
 package org.gradle.internal.declarativedsl.agp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Assume
 
 class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
 
-    /**
-     * TODO: no Android version published to the google() repo has the `com.android.ecosystem` plugin yet.
-     *   Once there is an AGP version with DCL support published there, remove the hardcoded Maven repo URLs and use {@link org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions}.
-     */
-    private static final ANDROIDX_DEV_BUILD = "13094289"
+    private final AndroidGradlePluginVersions agpVersions = new AndroidGradlePluginVersions()
 
     def 'a declarative project configures successfully with AGP'() {
         Assume.assumeTrue("Java version >= 11 required by AGP dependencies", Jvm.current().javaVersionMajor >= 11)
+
+        executer.usingInitScript(agpVersions.createAgpNightlyRepositoryInitScript())
 
         given:
         file("gradle.properties") << "android.experimental.declarative=true"
@@ -39,29 +38,22 @@ class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
             pluginManagement {
                 repositories {
                     google()
-                    maven {
-                        url = uri("https://androidx.dev/studio/builds/$ANDROIDX_DEV_BUILD/artifacts/artifacts/repository")
-                    }
                     mavenCentral()
                 }
             }
 
             plugins {
-                id("com.android.ecosystem").version("8.10.0-dev")
+                id("com.android.ecosystem").version("${agpVersions.nightlies.last()}")
             }
 
             dependencyResolutionManagement {
                 repositories {
                     google()
-                    maven {
-                        url = uri("https://androidx.dev/studio/builds/$ANDROIDX_DEV_BUILD/artifacts/artifacts/repository")
-                    }
                     mavenCentral()
                 }
             }
 
             include(":lib")
-
 
             defaults {
                 androidApp {
