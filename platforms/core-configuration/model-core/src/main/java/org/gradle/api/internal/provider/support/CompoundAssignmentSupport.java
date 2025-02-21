@@ -45,7 +45,13 @@ import javax.annotation.Nullable;
  */
 @SuppressWarnings("unused") // references are produced by the AST transform
 public final class CompoundAssignmentSupport {
+    public static final String FEATURE_FLAG_NAME = "org.gradle.internal.groovy-compound-assignment-enabled";
+
     private CompoundAssignmentSupport() {}
+
+    public static boolean isEnabled() {
+        return Boolean.getBoolean(FEATURE_FLAG_NAME);
+    }
 
     /**
      * Adjusts the result of the compound operation before assigning it to LHS by calling {@link CompoundAssignmentValue#prepareForAssignment()}.
@@ -61,7 +67,7 @@ public final class CompoundAssignmentSupport {
      */
     @Nullable
     public static <T> T forCompoundAssignment(@Nullable T compoundValue) {
-        if (compoundValue instanceof CompoundAssignmentValue) {
+        if (isEnabled() && compoundValue instanceof CompoundAssignmentValue) {
             ((CompoundAssignmentValue) compoundValue).prepareForAssignment();
         }
         return compoundValue;
@@ -83,7 +89,7 @@ public final class CompoundAssignmentSupport {
      */
     @Nullable
     public static <T> T finishCompoundAssignment(@Nullable T compoundValue) {
-        if (compoundValue instanceof CompoundAssignmentValue) {
+        if (isEnabled() && compoundValue instanceof CompoundAssignmentValue) {
             CompoundAssignmentValue value = (CompoundAssignmentValue) compoundValue;
             value.assignmentCompleted();
             return value.shouldReplaceResultWithNull() ? null : compoundValue;

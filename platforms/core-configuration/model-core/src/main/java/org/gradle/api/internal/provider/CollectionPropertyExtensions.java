@@ -18,8 +18,11 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import org.gradle.api.internal.provider.support.CompoundAssignmentSupport;
 import org.gradle.api.provider.HasMultipleValues;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
 
 import java.util.Arrays;
@@ -33,6 +36,10 @@ public final class CollectionPropertyExtensions {
     private CollectionPropertyExtensions() {}
 
     public static <T> Provider<Iterable<T>> plus(HasMultipleValues<T> lhs, Iterable<T> rhs) {
+        if (!CompoundAssignmentSupport.isEnabled()) {
+            throw new UnsupportedOperationException("Cannot call plus() on " + typeName(lhs));
+        }
+
         return plusImpl(Cast.uncheckedCast(lhs), rhs);
     }
 
@@ -49,12 +56,20 @@ public final class CollectionPropertyExtensions {
     // property += Provider<Iterable<T>>
     // property += Provider<T>
     public static <T> Provider<Iterable<T>> plus(HasMultipleValues<T> lhs, Provider<?> rhs) {
+        if (!CompoundAssignmentSupport.isEnabled()) {
+            throw new UnsupportedOperationException("Cannot call plus() on " + typeName(lhs));
+        }
+
         // Because of type erasure, we cannot have two overloads of this method for Provider<T> and Provider<Iterable<T>>.
         return plusImpl(Cast.uncheckedCast(lhs), Providers.internal(rhs));
     }
 
     // Called for property += T[]
     public static <T> Provider<Iterable<T>> plus(HasMultipleValues<T> lhs, T[] items) {
+        if (!CompoundAssignmentSupport.isEnabled()) {
+            throw new UnsupportedOperationException("Cannot call plus() on " + typeName(lhs));
+        }
+
         return plusImpl(Cast.uncheckedCast(lhs), Arrays.asList(items));
     }
 
@@ -69,6 +84,10 @@ public final class CollectionPropertyExtensions {
 
     // Called for property += T
     public static <T> Provider<Iterable<T>> plus(HasMultipleValues<T> lhs, T item) {
+        if (!CompoundAssignmentSupport.isEnabled()) {
+            throw new UnsupportedOperationException("Cannot call plus() on " + typeName(lhs));
+        }
+
         return plusImpl(Cast.uncheckedCast(lhs), item);
     }
 
@@ -107,5 +126,14 @@ public final class CollectionPropertyExtensions {
     private static boolean isProviderOfIterable(ProviderInternal<?> internal) {
         Class<?> type = internal.getType();
         return type != null && Iterable.class.isAssignableFrom(type);
+    }
+
+    private static String typeName(HasMultipleValues<?> value) {
+        if (value instanceof ListProperty) {
+            return "ListProperty";
+        } else if (value instanceof SetProperty) {
+            return "SetProperty";
+        }
+        return value.getClass().getSimpleName();
     }
 }

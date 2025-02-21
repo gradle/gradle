@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.internal.provider.support.CompoundAssignmentSupport;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
@@ -88,6 +89,10 @@ public class MapPropertyExtensions {
     }
 
     public static <K, V> Provider<Map<K, V>> plus(MapProperty<K, V> lhs, Map<K, V> rhs) {
+        if (!CompoundAssignmentSupport.isEnabled()) {
+            throw new UnsupportedOperationException("Cannot call plus() on MapProperty");
+        }
+
         return new CompoundAssignmentResultProvider<>(
             Providers.internal(lhs.map(transformer(left -> concat(left, rhs)))),
             lhs,
@@ -96,6 +101,10 @@ public class MapPropertyExtensions {
     }
 
     public static <K, V> Provider<Map<K, V>> plus(MapProperty<K, V> lhs, Provider<? extends Map<K, V>> rhs) {
+        if (!CompoundAssignmentSupport.isEnabled()) {
+            throw new UnsupportedOperationException("Cannot call plus() on MapProperty");
+        }
+
         return new CompoundAssignmentResultProvider<>(
             Providers.internal(lhs.zip(rhs, bifunction(MapPropertyExtensions::concat))),
             lhs,

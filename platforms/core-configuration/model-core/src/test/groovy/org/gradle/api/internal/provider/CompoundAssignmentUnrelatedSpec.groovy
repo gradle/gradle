@@ -17,6 +17,9 @@
 package org.gradle.api.internal.provider
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.provider.support.CompoundAssignmentSupport
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 
 /**
@@ -28,6 +31,9 @@ class CompoundAssignmentUnrelatedSpec extends Specification {
         int intVal = 1
         List<String> listVal = []
     }
+
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties((CompoundAssignmentSupport.FEATURE_FLAG_NAME): "true")
 
     def "compound assignment works for integer variables"() {
         given:

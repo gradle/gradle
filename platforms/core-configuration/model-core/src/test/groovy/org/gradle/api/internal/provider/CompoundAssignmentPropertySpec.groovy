@@ -17,12 +17,15 @@
 package org.gradle.api.internal.provider
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.provider.support.CompoundAssignmentSupport
 import org.gradle.api.internal.provider.support.LazyGroovySupport
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.internal.evaluation.CircularEvaluationException
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 
 @TransformCompoundAssignments
@@ -38,6 +41,9 @@ abstract class CompoundAssignmentPropertySpec<P extends Provider<?>, T extends L
     abstract def asValue(def v)
 
     abstract def addValue(P property, String v)
+
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties((CompoundAssignmentSupport.FEATURE_FLAG_NAME): "true")
 
     class Origin {
         protected T value = propertyImpl()

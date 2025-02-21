@@ -28,10 +28,12 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ValueState;
 import org.gradle.api.internal.provider.ValueSupplier;
+import org.gradle.api.internal.provider.support.CompoundAssignmentSupport;
 import org.gradle.api.internal.provider.support.LazyGroovySupport;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -249,7 +251,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new CompoundAssignmentResultFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
+        if (CompoundAssignmentSupport.isEnabled()) {
+            return new CompoundAssignmentResultFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
+        }
+        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
     }
 
     @Override
