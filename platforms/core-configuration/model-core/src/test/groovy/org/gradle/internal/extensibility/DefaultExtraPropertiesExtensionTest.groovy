@@ -16,7 +16,7 @@
 
 package org.gradle.internal.extensibility
 
-public class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
+class DefaultExtraPropertiesExtensionTest extends ExtraPropertiesExtensionTest<DefaultExtraPropertiesExtension> {
 
     DefaultExtraPropertiesExtension createExtension() {
         new DefaultExtraPropertiesExtension()
