@@ -62,6 +62,13 @@ This behavior is only applicable to plugins written in Groovy and the Groovy DSL
 
 This was an internal API that was inadvertently exposed. This will be removed in Gradle 9.0.
 
+[[deprecated_plugin_development_methods]]
+==== `GradlePluginDevelopmentExtension` constructor and `pluginSourceSet` method have been deprecated
+
+The extension should only be created by the Gradle Plugin Development plugin. The main source set is the only supported source set for plugin development.
+
+These methods will be removed in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
