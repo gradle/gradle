@@ -104,6 +104,7 @@ object SchemaBuildingTags {
     fun namedDomainObjectContainer(name: String) = TagContextElement("nested named domain object container '$name'")
     fun elementTypeOfContainerSubtype(kClass: KClass<*>) = TagContextElement("element type of named domain object container subtype '$kClass'")
     fun typeArgument(argument: KTypeProjection) = TagContextElement("type argument '$argument'")
+    fun configuredType(kType: KType) = TagContextElement("configured type '$kType'")
 
     fun schemaClass(dataType: DataType.ClassDataType) = TagContextElement("schema type '${dataType.name}'")
     fun schemaFunction(function: SchemaFunction) = with(function) { TagContextElement("schema function '${simpleName}(${parameters.joinToString { "${it.name}: ${it.type}" }}): ${returnValueType}'") }
@@ -271,7 +272,7 @@ class DataSchemaBuilder(
         val host = Host()
         val preIndex = createPreIndex(host, types)
 
-        val dataTypes = preIndex.types.map { createDataType(host, it, preIndex) }
+        val dataTypes = preIndex.types.filter { it.typeParameters.none() }.map { createDataType(host, it, preIndex) }
 
         val extFunctions = externalFunctions.mapNotNull { functionExtractor.topLevelFunction(host, it, preIndex) }.associateBy { it.fqName }
         val extObjects = externalObjects.map { (key, value) ->
