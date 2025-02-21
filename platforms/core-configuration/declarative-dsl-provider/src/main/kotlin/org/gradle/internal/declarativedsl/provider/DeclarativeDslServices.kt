@@ -73,9 +73,10 @@ object BuildServices : ServiceRegistrationProvider {
     @Provides
     fun createDeclarativeModelDefaultsHandler(
         softwareTypeRegistry: SoftwareTypeRegistry,
+        interpretationSchemaBuilder: InterpretationSchemaBuilder,
         objectFactory: ObjectFactory
     ): ModelDefaultsHandler {
-        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry)
+        return objectFactory.newInstance(DeclarativeModelDefaultsHandler::class.java, softwareTypeRegistry, interpretationSchemaBuilder)
     }
 
     private

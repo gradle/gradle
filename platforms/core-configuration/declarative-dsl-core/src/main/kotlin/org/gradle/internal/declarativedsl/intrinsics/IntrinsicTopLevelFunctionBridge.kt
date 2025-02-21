@@ -21,7 +21,6 @@ import org.gradle.internal.declarativedsl.mappingToJvm.RuntimeFunctionCandidates
 import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.jvm.kotlinFunction
 
 /**
@@ -41,12 +40,10 @@ annotation class IntrinsicTopLevelFunctionBridge(val topLevelFunctionFqn: String
 class IntrinsicRuntimeFunctionCandidatesProvider(intrinsicImplementationClasses: List<KClass<*>>) : RuntimeFunctionCandidatesProvider {
     private val intrinsicsByFqn = intrinsicImplementationClasses.flatMap { clazz ->
         clazz.java.methods.mapNotNull { javaMethod ->
-            javaMethod.takeIf { Modifier.isStatic(javaMethod.modifiers) }?.kotlinFunction?.let { kFunction ->
-                kFunction.findAnnotation<IntrinsicTopLevelFunctionBridge>()?.let { implAnnotation ->
-                    val fqn = implAnnotation.topLevelFunctionFqn
-                    fqn to kFunction
-                }
-            }
+            var bridgeAnnotation = javaMethod.getAnnotation(IntrinsicTopLevelFunctionBridge::class.java)
+            if (bridgeAnnotation == null || !Modifier.isStatic(javaMethod.modifiers))
+                 null
+            else bridgeAnnotation.topLevelFunctionFqn to checkNotNull(javaMethod.kotlinFunction) { "expected kotlinFunction to be present for Java method $javaMethod" }
         }
     }.groupBy({ (fqn, _) -> fqn }, valueTransform = { (_, kFunction) -> kFunction })
 

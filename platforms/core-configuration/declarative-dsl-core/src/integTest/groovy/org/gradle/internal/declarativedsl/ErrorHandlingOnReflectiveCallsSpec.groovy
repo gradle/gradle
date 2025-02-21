@@ -206,7 +206,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractIntegrationSpec {
 
 
         then:
-        failureCauseContains("Failed disambiguating between following functions (matches 0):")
+        failureCauseContains("Failed disambiguating between following functions (matches 2):")
         failureCauseContains("fun com.example.restricted.Extension.access(org.gradle.api.Action<com.example.restricted.Extension.Access>): kotlin.Unit")
         failureCauseContains("fun com.example.restricted.Extension.access((com.example.restricted.Extension.Access) -> kotlin.Unit): kotlin.Unit")
     }
