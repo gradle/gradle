@@ -19,6 +19,13 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
+@SuppressWarnings("unused") // Groovy extension methods for MapProperty
 public class MapPropertyExtensions {
 
     /**
@@ -78,5 +85,27 @@ public class MapPropertyExtensions {
      */
     public static <V> void propertyMissing(MapProperty<String, V> self, String key, Object value) {
         putAt(self, key, value);
+    }
+
+    public static <K, V> Provider<Map<K, V>> plus(MapProperty<K, V> lhs, Map<K, V> rhs) {
+        return new CompoundAssignmentResultProvider<>(
+            Providers.internal(lhs.map(transformer(left -> concat(left, rhs)))),
+            lhs,
+            () -> lhs.putAll(rhs)
+        );
+    }
+
+    public static <K, V> Provider<Map<K, V>> plus(MapProperty<K, V> lhs, Provider<? extends Map<K, V>> rhs) {
+        return new CompoundAssignmentResultProvider<>(
+            Providers.internal(lhs.zip(rhs, bifunction(MapPropertyExtensions::concat))),
+            lhs,
+            () -> lhs.putAll(rhs)
+        );
+    }
+
+    private static <K, V> Map<K, V> concat(Map<? extends K, ? extends V> left, Map<? extends K, ? extends V> right) {
+        Map<K, V> result = new LinkedHashMap<>(left);
+        result.putAll(right);
+        return result;
     }
 }

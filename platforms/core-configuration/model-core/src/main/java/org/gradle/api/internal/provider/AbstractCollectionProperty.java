@@ -243,7 +243,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void setFromAnyValue(Object object) {
+    public void setFromAnyValue(@Nullable Object object) {
+        if (object instanceof CompoundAssignmentResultProvider<?>) {
+            CompoundAssignmentResultProvider<?> compoundAssignmentResult = (CompoundAssignmentResultProvider<?>) object;
+            if (compoundAssignmentResult.canBeAssignedBackTo(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
+        }
+
         if (object instanceof Provider) {
             set(Cast.<Provider<C>>uncheckedCast(object));
         } else {

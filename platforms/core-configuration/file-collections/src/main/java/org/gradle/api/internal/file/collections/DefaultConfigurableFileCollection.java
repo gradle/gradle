@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
@@ -27,7 +28,6 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ValueState;
@@ -200,11 +200,21 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public void setFromAnyValue(Object object) {
+    public void setFromAnyValue(@Nullable Object object) {
+        Preconditions.checkNotNull(object, "Can't assign null value to %s", getDisplayName());
+
+        if (object instanceof CompoundAssignmentResultFileCollection) {
+            CompoundAssignmentResultFileCollection compoundAssignmentResult = (CompoundAssignmentResultFileCollection) object;
+            if (compoundAssignmentResult.canBeAssignedBackTo(this)) {
+                compoundAssignmentResult.assignToOwner();
+                return;
+            }
+        }
+
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
-        // Don't allow a += b or a = (a + b), this is not support
+        // Don't allow a = (a + b), this is not supported yet
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
             public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
@@ -239,7 +249,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public FileCollection plus(FileCollection collection) {
-        return new UnionFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
+        return new CompoundAssignmentResultFileCollection(taskDependencyFactory, this, (FileCollectionInternal) collection);
     }
 
     @Override
