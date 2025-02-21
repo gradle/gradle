@@ -15,7 +15,6 @@
  */
 
 import common.VersionedSettingsBranch
-import common.pluginPortalUrlOverride
 import common.toCapitalized
 import jetbrains.buildServer.configs.kotlin.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.BuildStep
@@ -27,6 +26,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import promotion.PromotionProject
+import common.PLUGINS_PORTAL_URL_OVERRIDE as pluginPortalUrlOverride
 
 class PromotionProjectTests {
     init {
@@ -40,8 +40,19 @@ class PromotionProjectTests {
         assertEquals("Promotion", model.name)
         assertEquals(10, model.buildTypes.size)
         assertEquals(
-            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Check Ready", "Nightly Snapshot (from QuickFeedback) - Upload", "Nightly Snapshot (from QuickFeedback) - Promote", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Start Release Cycle", "Start Release Cycle Test"),
-            model.buildTypes.map { it.name }
+            listOf(
+                "SanityCheck",
+                "Nightly Snapshot",
+                "Nightly Snapshot (from QuickFeedback)",
+                "Nightly Snapshot (from QuickFeedback) - Check Ready",
+                "Nightly Snapshot (from QuickFeedback) - Upload",
+                "Nightly Snapshot (from QuickFeedback) - Promote",
+                "Publish Branch Snapshot (from Quick Feedback)",
+                "Release - Milestone",
+                "Start Release Cycle",
+                "Start Release Cycle Test",
+            ),
+            model.buildTypes.map { it.name },
         )
     }
 
@@ -52,8 +63,20 @@ class PromotionProjectTests {
         assertEquals("Promotion", model.name)
         assertEquals(11, model.buildTypes.size)
         assertEquals(
-            listOf("SanityCheck", "Nightly Snapshot", "Nightly Snapshot (from QuickFeedback)", "Nightly Snapshot (from QuickFeedback) - Check Ready", "Nightly Snapshot (from QuickFeedback) - Upload", "Nightly Snapshot (from QuickFeedback) - Promote", "Publish Branch Snapshot (from Quick Feedback)", "Release - Milestone", "Release - Release Candidate", "Release - Final", "Nightly Documentation"),
-            model.buildTypes.map { it.name }
+            listOf(
+                "SanityCheck",
+                "Nightly Snapshot",
+                "Nightly Snapshot (from QuickFeedback)",
+                "Nightly Snapshot (from QuickFeedback) - Check Ready",
+                "Nightly Snapshot (from QuickFeedback) - Upload",
+                "Nightly Snapshot (from QuickFeedback) - Promote",
+                "Publish Branch Snapshot (from Quick Feedback)",
+                "Release - Milestone",
+                "Release - Release Candidate",
+                "Release - Final",
+                "Nightly Documentation",
+            ),
+            model.buildTypes.map { it.name },
         )
     }
 
@@ -75,7 +98,15 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% 
+            "-PgitUserName=bot-teamcity"
+            "-PgitUserEmail=bot-teamcity@gradle.com"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
@@ -100,7 +131,10 @@ class PromotionProjectTests {
 
         val step = gradleStep(steps, 0)
         step.assertTasks("clean promoteStartReleaseCycle")
-        assertEquals("""-PcommitId=%dep.Gradle_Master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%""", step.gradleParams)
+        assertEquals(
+            """-PcommitId=%dep.Gradle_Master_Check_Stage_ReadyforNightly_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%""",
+            step.gradleParams,
+        )
     }
 
     @Test
@@ -124,7 +158,15 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number% 
+            "-PgitUserName=bot-teamcity"
+            "-PgitUserEmail=bot-teamcity@gradle.com"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
@@ -147,7 +189,16 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number% -PpromotedBranch=%branch.qualifier% "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_Master_Check_Stage_QuickFeedback_Trigger.build.vcs.number%
+            -PpromotedBranch=%branch.qualifier%
+            "-PgitUserName=bot-teamcity"
+            "-PgitUserEmail=bot-teamcity@gradle.com"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepSnapshot checkNeedToPromote")
@@ -170,7 +221,15 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(2, steps.size)
 
-        val expectedParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedParams =
+            """
+            -PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number% 
+            "-PgitUserName=bot-teamcity"
+            "-PgitUserEmail=bot-teamcity@gradle.com"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
@@ -189,7 +248,15 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(2, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number%  "-PgitUserName=bot-teamcity" "-PgitUserEmail=bot-teamcity@gradle.com" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_Release_Check_Stage_QuickFeedback_Trigger.build.vcs.number% 
+            "-PgitUserName=bot-teamcity"
+            "-PgitUserEmail=bot-teamcity@gradle.com"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepReleaseNightly checkNeedToPromote")
@@ -208,7 +275,16 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number%
+            -PconfirmationCode=%confirmationCode%
+            "-PgitUserName=%gitUserName%"
+            "-PgitUserEmail=%gitUserEmail%"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepFinalRelease checkNeedToPromote")
@@ -231,7 +307,16 @@ class PromotionProjectTests {
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_Release_Check_Stage_ReadyforRelease_Trigger.build.vcs.number%
+            -PconfirmationCode=%confirmationCode%
+            "-PgitUserName=%gitUserName%"
+            "-PgitUserEmail=%gitUserEmail%"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepRc checkNeedToPromote")
@@ -250,17 +335,29 @@ class PromotionProjectTests {
     @CsvSource(
         value = [
             "master,  promoteMilestone",
-            "release, promoteReleaseMilestone"
-        ]
+            "release, promoteReleaseMilestone",
+        ],
     )
-    fun `publish milestone build type runs three gradle invocations`(branch: String, promoteTaskName: String) {
+    fun `publish milestone build type runs three gradle invocations`(
+        branch: String,
+        promoteTaskName: String,
+    ) {
         val model = setupModelFor(branch)
         val nightlySnapshot = model.findBuildTypeByName("Release - Milestone")
 
         val steps = nightlySnapshot.steps.items
         assertEquals(3, steps.size)
 
-        val expectedGradleParams = """-PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number% -PconfirmationCode=%confirmationCode% "-PgitUserName=%gitUserName%" "-PgitUserEmail=%gitUserEmail%" $pluginPortalUrlOverride -DenablePredictiveTestSelection=false %additional.gradle.parameters%"""
+        val expectedGradleParams =
+            """
+            -PcommitId=%dep.Gradle_${branch.toCapitalized()}_Check_Stage_ReadyforRelease_Trigger.build.vcs.number%
+            -PconfirmationCode=%confirmationCode%
+            "-PgitUserName=%gitUserName%"
+            "-PgitUserEmail=%gitUserEmail%"
+            $pluginPortalUrlOverride
+            -DenablePredictiveTestSelection=false
+            %additional.gradle.parameters%
+            """.trimIndent().replace("\n", " ")
 
         val checkReady = gradleStep(steps, 0)
         checkReady.assertTasks("prepMilestone checkNeedToPromote")
@@ -282,11 +379,15 @@ class PromotionProjectTests {
         return PromotionProject(VersionedSettingsBranch(branchName))
     }
 
-    private fun gradleStep(steps: List<BuildStep>, index: Int): GradleBuildStep {
+    private fun gradleStep(
+        steps: List<BuildStep>,
+        index: Int,
+    ): GradleBuildStep {
         assertTrue(steps.size > index)
         return steps[index] as GradleBuildStep
     }
 
     private fun GradleBuildStep.assertTasks(expectedTasks: String) = assertEquals(expectedTasks, this.tasks)
+
     private fun PromotionProject.findBuildTypeByName(name: String) = this.buildTypes.find { it.name == name }!!
 }

@@ -55,7 +55,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
-    private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with -D" + ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME + "=true to print the full stack trace for this deprecation warning.)";
+    private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
     private static boolean traceLoggingEnabled;
 
     private final Set<String> loggedMessages = new CopyOnWriteArraySet<String>();
@@ -138,7 +138,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (location == null) {
             return;
         }
-        deprecationProblemBuilder.lineInFileLocation(location.getSourceLongDisplayName().getDisplayName(), location.getLineNumber());
+        deprecationProblemBuilder.lineInFileLocation(location.getFilePath(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

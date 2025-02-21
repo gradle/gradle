@@ -188,17 +188,24 @@ public class DefaultAttributesFactory implements AttributesFactory {
     }
 
     @Override
-    public ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes) {
+    public ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes) {
         ImmutableAttributes result = ImmutableAttributes.EMPTY;
-        for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
-            /*
-                The order of the concatenation arguments here is important, as we have tests like
-                ConfigurationCacheDependencyResolutionIntegrationTest and ConfigurationCacheDependencyResolutionIntegrationTest
-                that rely on a particular order of failures when there are multiple invalid attribute type
-                conversions.  So even if it looks unnatural to list result second, this should remain.
-             */
-            result = concat(of(entry.getKey(), Cast.uncheckedNonnullCast(entry.getValue())), result);
+        for (Map.Entry<Attribute<?>, Isolatable<?>> entry : attributes.entrySet()) {
+            result = uncheckedConcat(result, entry.getKey(), entry.getValue());
         }
         return result;
     }
+
+    /**
+     * Concatenates a key/value pair to an immutable attributes instance, assuming the key and value are the same type.
+     * <p>
+     * We know these are the same type when they are added to the mutable attribute container, but lose the type
+     * safety when adding the key and value to the attributes map. We should instead create some kind of {@code AttributePair}
+     * type that allows us to maintain type safety here.
+     */
+    private <T> ImmutableAttributes uncheckedConcat(ImmutableAttributes attributes, Attribute<T> key, Isolatable<?> value) {
+        Isolatable<T> castValue = Cast.uncheckedCast(value);
+        return concat(attributes, key, castValue);
+    }
+
 }

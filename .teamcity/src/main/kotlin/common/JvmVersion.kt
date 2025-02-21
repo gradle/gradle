@@ -16,11 +16,17 @@
 
 package common
 
-enum class JvmVersion(val major: Int) {
-    java7(7),
-    java8(8),
-    java11(11),
-    java17(17),
-    java21(21),
-    java23(23),
+enum class JvmVersion(
+    val major: Int,
+) {
+    JAVA_7(7),
+    JAVA_8(8),
+    JAVA_11(11),
+    JAVA_17(17),
+    JAVA_21(21),
+    JAVA_23(23),
+    JAVA_24(24),
+    ;
+
+    fun toCapitalized(): String = name.replace("_", "").lowercase().toCapitalized()
 }

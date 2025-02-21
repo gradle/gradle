@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * <p>
  * For example, in the domain of Java compilation problems, an unused variable warning could be described as such:
  * <ul>
- *     <li>category: compilation:java</li>
+ *     <li>group: compilation:java</li>
  *     <li>unused variable</li>
  *     <li>severity: WARNING</li>
  *     <li>...</li>

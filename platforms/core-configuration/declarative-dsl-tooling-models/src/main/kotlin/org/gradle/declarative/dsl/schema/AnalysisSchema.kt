@@ -17,12 +17,32 @@
 package org.gradle.declarative.dsl.schema
 
 import org.gradle.declarative.dsl.schema.DataType.ClassDataType
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument
 import java.io.Serializable
 
 
 interface AnalysisSchema : Serializable {
     val topLevelReceiverType: DataClass
     val dataClassTypesByFqName: Map<FqName, ClassDataType>
+
+    /**
+     * The signatures for generic types, which are families of types that may have different type arguments.
+     * Note: type signatures are not types themselves.
+     */
+    val genericSignaturesByFqName: Map<FqName, DataType.ParameterizedTypeSignature>
+
+    /**
+     * Instantiations of the generic types that are used in the schema.
+     * The key matches that of [genericSignaturesByFqName].
+     * The inner map's key is the full type arguments list for the instantiation.
+     *
+     * The type references in the inner map's [TypeArgument] keys are represented by the [DataTypeRef.Name] or [DataTypeRef.NameWithArgs] whenever possible instead
+     * of direct [DataTypeRef.Type] references.
+     *
+     * An instantiation is a type that may be referenced elsewhere in the schema.
+     */
+    val genericInstantiationsByFqName: Map<FqName, Map<List<TypeArgument>, ClassDataType>>
+
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>
     val defaultImports: Set<FqName>

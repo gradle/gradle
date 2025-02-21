@@ -230,6 +230,8 @@ include::sample[dir="snippets/java/toolchain-foojay/kotlin/",files="settings.gra
 include::sample[dir="snippets/java/toolchain-foojay/groovy/",files="settings.gradle[tags=plugin-application]"]
 ====
 
+For advanced or highly specific configurations, a custom toolchain resolver plugin should be used.
+
 In general, when applying toolchain resolver plugins, the toolchain download resolvers provided by them also need to be configured.
 Let's illustrate with an example.
 Consider two toolchain resolver plugins applied by the build:

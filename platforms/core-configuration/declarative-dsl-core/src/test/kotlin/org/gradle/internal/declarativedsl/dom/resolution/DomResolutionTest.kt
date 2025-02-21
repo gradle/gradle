@@ -127,7 +127,7 @@ class DomResolutionTest {
             PropertyNotAssigned(ValueTypeMismatch)
             LiteralValueResolved -> type mismatch
             ElementNotResolved(UnresolvedSignature)
-            ValueFactoryResolved -> two(String): ComplexValueTwo
+            ValueFactoryNotResolved(UnresolvedBase)
             LiteralValueResolved -> three
             ConfiguringElementResolved -> configure NestedReceiver
             ElementNotResolved(CrossScopeAccess)

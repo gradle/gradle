@@ -170,6 +170,7 @@ class AssignmentResolver {
             is ObjectOrigin.EnumConstantOrigin,
             is ObjectOrigin.External,
             is ObjectOrigin.NullObjectOrigin,
+            is ObjectOrigin.GroupedVarargValue,
             is ObjectOrigin.PropertyDefaultValue, // TODO: is it so?
             is ObjectOrigin.TopLevelReceiver -> Ok(objectOrigin)
         }

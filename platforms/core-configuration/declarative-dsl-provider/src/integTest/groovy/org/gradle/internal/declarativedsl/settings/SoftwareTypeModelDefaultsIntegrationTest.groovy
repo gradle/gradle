@@ -19,8 +19,14 @@ package org.gradle.internal.declarativedsl.settings
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.polyglot.PolyglotDslTest
+import org.gradle.integtests.fixtures.polyglot.SkipDsl
+import org.gradle.integtests.fixtures.polyglot.PolyglotTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 
-class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture {
+@PolyglotDslTest
+class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec implements SoftwareTypeFixture, PolyglotTestFixture {
+
     def setup() {
         file("gradle.properties") << """
             org.gradle.kotlin.dsl.dcl=true
@@ -31,9 +37,9 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration)
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(buildConfiguration)
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -52,13 +58,15 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "everything has default and is set"                | setAll("default", "default") | setAll("test", "baz") | """id = test\nbar = baz"""
     }
 
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Kotlin DSL does accept re-assigning values")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy DSL does accept re-assigning values")
     def "sensible error when defaults are set more than once (#testCase)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("")
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("")
 
         when:
         fails(":printTestSoftwareTypeExtensionConfiguration")
@@ -78,9 +86,9 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         given:
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(modelDefault)
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
             ${dependencies(buildConfiguration)}
         """)
@@ -107,11 +115,11 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
         file("foo").createDir()
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults(dependencies(modelDefault)) + """
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults(dependencies(modelDefault)) + """
             include("foo")
         """
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setId("foo")}
             ${dependencies(buildConfiguration)}
         """)
@@ -213,22 +221,22 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
 
         file("foo").createDir()
         file("bar").createDir()
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults("""
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults("""
             ${setId("default")}
             ${setFooBar("default")}
             ${addToBaz("default")}
             ${dependencies(implementation("foo:bar:1.0"))}
         """)
-        file("settings.gradle.dcl") << """
+        settingsFile() << """
             include("foo")
             include("bar")
         """
 
-        file("foo/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+        buildFileForProject("foo") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setAll("foo", "fooBar")}
             ${addToBaz("foo")}
         """)
-        file("bar/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
+        buildFileForProject("bar") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType("""
             ${setAll("bar", "barBar")}
             ${dependencies(implementation("bar:foo:2.0"))}
         """)
@@ -255,15 +263,15 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         withSoftwareTypePluginThatExposesExtensionWithDependencies().prepareToExecute()
 
         and: 'a default that only accesses a nested object but does not apply any configuration to it'
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults("""
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults("""
             ${setFoo("")}
         """)
-        file("settings.gradle.dcl") << """
+        settingsFile() << """
             include("foo")
         """
 
         and: 'a build file that only specifies the software type'
-        file("foo/build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType()
+        buildFileForProject("foo") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType()
 
         when:
         run(":foo:printTestSoftwareTypeExtensionWithDependenciesConfiguration")
@@ -272,6 +280,8 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         outputContains("(foo is configured)")
     }
 
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
     def "can configure build-level defaults in a non-declarative settings file and apply in a declarative project file (#type settings script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -303,6 +313,8 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "kotlin" | ".kts"
     }
 
+    @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is written with build files for specific DSLs in mind")
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Test is written with build files for specific DSLs in mind")
     def "can configure build-level defaults in a declarative settings file and apply in a non-declarative project file (#type build script)"() {
         given:
         withSoftwareTypePlugins().prepareToExecute()
@@ -333,13 +345,14 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         "kotlin" | ".kts"
     }
 
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Neither the foo() method is available in Groovy, nor can the x or y values remain undefined")
     def "can configure defaults for named domain object container elements"() {
         given:
         withSoftwareTypePluginWithNdoc().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaultsForNdoc()
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(fooNdocYValues())
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(fooNdocYValues())
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")
@@ -354,9 +367,9 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         given:
         withSettingsPluginThatConfiguresModelDefaults().prepareToExecute()
 
-        file("settings.gradle.dcl") << getDeclarativeSettingsScriptThatSetsDefaults()
+        settingsFile() << getDeclarativeSettingsScriptThatSetsDefaults()
 
-        file("build.gradle.dcl") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
+        buildFile() << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setId("test"))
 
         when:
         run(":printTestSoftwareTypeExtensionConfiguration")

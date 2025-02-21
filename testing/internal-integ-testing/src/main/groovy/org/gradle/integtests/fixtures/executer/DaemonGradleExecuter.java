@@ -79,7 +79,7 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
         return this;
     }
 
-    static boolean isDebuggerAttached() {
+    protected boolean isDebuggerAttached() {
         return ManagementFactory.getRuntimeMXBean().getInputArguments().toString().indexOf("-agentlib:jdwp") > 0;
     }
 }

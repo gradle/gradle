@@ -190,16 +190,23 @@ suspend fun <T : MutableCollection<Any?>> ReadContext.readCollectionInto(factory
 
 
 suspend fun WriteContext.writeMap(value: Map<*, *>) {
-    writeSmallInt(value.size)
-    writeMapEntries(value)
+    val size = value.size
+    writeSmallInt(size)
+    val totalWritten = writeMapEntries(value)
+    if (size != totalWritten) {
+        reportCollectionWriteFailure("map", size, totalWritten, value.size)
+    }
 }
 
 
-suspend fun WriteContext.writeMapEntries(value: Map<*, *>) {
+suspend fun WriteContext.writeMapEntries(value: Map<*, *>): Int {
+    var totalWritten = 0
     for (entry in value.entries) {
         write(entry.key)
         write(entry.value)
+        ++totalWritten
     }
+    return totalWritten
 }
 
 
@@ -230,7 +237,7 @@ fun Decoder.readFile(): File =
     BaseSerializerFactory.FILE_SERIALIZER.read(this)
 
 
-fun Encoder.writeStrings(strings: Collection<String>) {
+fun WriteContext.writeStrings(strings: Collection<String>) {
     writeCollection(strings) {
         writeString(it)
     }
@@ -249,10 +256,16 @@ fun Decoder.readStringsSet(): Set<String> =
     }
 
 
-inline fun <T> Encoder.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
-    writeSmallInt(collection.size)
+inline fun <T> WriteContext.writeCollection(collection: Collection<T>, writeElement: (T) -> Unit) {
+    val size = collection.size
+    writeSmallInt(size)
+    var totalWritten = 0
     for (element in collection) {
         writeElement(element)
+        ++totalWritten
+    }
+    if (size != totalWritten) {
+        reportCollectionWriteFailure("collection", size, totalWritten, collection.size)
     }
 }
 
@@ -335,3 +348,15 @@ fun WriteContext.encodeUsingJavaSerialization(value: Any) {
 
 fun ReadContext.decodeUsingJavaSerialization(): Any? =
     ObjectInputStream(inputStream).readObject()
+
+
+fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int, totalWritten: Int, sizeAfterIteration: Int) {
+    onError(ConcurrentModificationException("Collection corrupted or changed while iterating")) {
+        text("The $collectionKind size() is $size, but $totalWritten entries were available when iterating over it. ")
+        if (sizeAfterIteration != size) {
+            text("The size changed to ${sizeAfterIteration} after iterating.")
+        } else {
+            text("The $collectionKind is likely broken or corrupted because of a data race.")
+        }
+    }
+}

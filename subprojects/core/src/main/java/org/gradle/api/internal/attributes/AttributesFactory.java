@@ -61,7 +61,7 @@ public interface AttributesFactory {
      * @param attributes the attribute values the result should contain
      * @return immutable instance containing only the specified attributes
      */
-    ImmutableAttributes fromMap(Map<Attribute<?>, ?> attributes);
+    ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes);
 
     /**
      * Adds the given attribute to the given container. Note: the container _should not_ contain the given attribute.

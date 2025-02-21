@@ -92,6 +92,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
                             System.out.println("id = " + getRestricted().getId().get());
                             Extension.Point point = referencePoint.getOrElse(getRestricted().point(-1, -1));
                             System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
+                            System.out.println("arguments = " + getRestricted().getArguments().get());
                             System.out.println("primaryAccess = { " +
                                     acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
                             );
@@ -121,6 +122,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
                 id = "test"
 
                 referencePoint = point(1, 2)
+                arguments = listOf("one", "two")
 
                 primaryAccess {
                     read = false
@@ -147,6 +149,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         then:
         outputContains("""id = test
 referencePoint = (1, 2)
+arguments = [one, two]
 primaryAccess = { primary, false, false}
 secondaryAccess { two, true, false}
 secondaryAccess { three, true, true}"""
@@ -200,6 +203,9 @@ secondaryAccess { three, true, true}"""
 
             @Restricted
             public abstract Property<Point> getReferencePoint();
+
+            @Restricted
+            public abstract ListProperty<String> getArguments();
 
             @Configuring
             public void primaryAccess(Action<? super Access> configure) {
@@ -287,6 +293,9 @@ secondaryAccess { three, true, true}"""
 
             @get:Restricted
             abstract val referencePoint: Property<Point?>
+
+            @get:Restricted
+            abstract val arguments: ListProperty<String>
 
             @Configuring
             fun primaryAccess(configure: Access.() -> Unit) {

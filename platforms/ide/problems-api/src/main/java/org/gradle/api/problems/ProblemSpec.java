@@ -98,7 +98,7 @@ public interface ProblemSpec {
     ProblemSpec offsetInFileLocation(String path, int offset, int length);
 
     /**
-     * Declares that this problem should automatically collect the location information based on the current stack trace.
+     * Declares that this problem is at the same place where it's reported. The stack trace will be used to determine the location.
      *
      * @return this
      * @since 8.6
@@ -106,7 +106,10 @@ public interface ProblemSpec {
     ProblemSpec stackLocation();
 
     /**
-     * The long description of this problem.
+      Declares a long description detailing the problem.
+     * <p>
+     * Details can elaborate on the problem, and provide more information about the problem.
+     * They can be multiple lines long, but should not detail solutions; for that, use {@link #solution(String)}.
      *
      * @param details the details
      * @return this
@@ -115,7 +118,7 @@ public interface ProblemSpec {
     ProblemSpec details(String details);
 
     /**
-     * A description of how to solve this problem.
+     * Declares solutions and advice that contain context-sensitive data, e.g. the message contains references to variables, locations, etc.
      *
      * @param solution the solution.
      * @return this
@@ -160,7 +163,7 @@ public interface ProblemSpec {
     <T extends AdditionalData> ProblemSpec additionalData(Class<T> type, Action<? super T> config);
 
     /**
-     * The exception causing this problem.
+     * Declares the exception causing this problem.
      *
      * @param t the exception.
      * @return this

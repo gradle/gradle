@@ -23,6 +23,7 @@ dependencies {
     api(projects.functional)
     api(projects.hashing)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.snapshots)
@@ -49,7 +50,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.snapshots))
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.modelCore))
+    testImplementation(testFixtures(projects.modelReflect))
 
     testFixturesImplementation(libs.guava)
     testFixturesImplementation(projects.baseServices)

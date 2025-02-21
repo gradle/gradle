@@ -22,8 +22,8 @@ import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
@@ -56,7 +56,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
     private final ImmutableMap<Class<? extends Annotation>, ? extends FunctionAnnotationHandler> functionAnnotationHandlers;
     private final ImmutableSet<Class<? extends Annotation>> allowedPropertyModifiers;
     private final ImmutableSet<Class<? extends Annotation>> allowedFunctionModifiers;
-    private final CrossBuildInMemoryCache<Class<?>, TypeMetadata> cache;
+    private final Cache<Class<?>, TypeMetadata> cache;
     private final TypeAnnotationMetadataStore typeAnnotationMetadataStore;
     private final PropertyTypeResolver propertyTypeResolver;
     private final String displayName;
@@ -70,7 +70,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         Collection<Class<? extends Annotation>> allowedFunctionModifiers,
         TypeAnnotationMetadataStore typeAnnotationMetadataStore,
         PropertyTypeResolver propertyTypeResolver,
-        CrossBuildInMemoryCacheFactory cacheFactory,
+        ClassCacheFactory cacheFactory,
         MissingPropertyAnnotationHandler missingPropertyAnnotationHandler
     ) {
         this.typeAnnotationHandlers = ImmutableSet.copyOf(typeAnnotationHandlers);

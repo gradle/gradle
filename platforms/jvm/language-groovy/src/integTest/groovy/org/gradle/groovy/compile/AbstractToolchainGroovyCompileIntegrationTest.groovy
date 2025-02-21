@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.testing.fixture.GroovyCoverage
+import org.junit.Assert
 import org.junit.Assume
 
 
@@ -30,7 +31,7 @@ abstract class AbstractToolchainGroovyCompileIntegrationTest extends AbstractApi
     def setup() {
         jdk = computeJdkForTest()
         Assume.assumeNotNull(jdk)
-        Assume.assumeTrue(GroovyCoverage.supportsJavaVersion(MultiVersionIntegrationSpec.version, jdk.javaVersion))
+        Assert.assertTrue(GroovyCoverage.supportsJavaVersion(MultiVersionIntegrationSpec.version, jdk.javaVersion))
 
         executer.beforeExecute {
             withInstallations(jdk)

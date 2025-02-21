@@ -205,8 +205,16 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
      */
     private void addExplicitCollector(Collector<T> collector) {
         assertCanMutate();
-        CollectionSupplier<T, C> explicitValue = getExplicitValue(defaultValue);
-        setSupplier(explicitValue.plus(collector));
+        setSupplier(withAppendedValue(collector));
+    }
+
+    private CollectionSupplier<T, C> withAppendedValue(Collector<T> value) {
+        CollectionSupplier<T, C> currentValue = getExplicitValue(defaultValue);
+        try {
+            return currentValue.plus(value);
+        } catch (IllegalStateException e) {
+            throw failWithCorruptedStateException(e);
+        }
     }
 
     @Override
@@ -530,7 +538,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         ) {
             ImmutableCollection.Builder<T> entries = collectionFactory.get();
             for (ExecutionTimeValue<? extends C> value : executionTimeValues) {
-                entries.addAll(value.getFixedValue());
+                valueCollector.addAll(value.getFixedValue(), entries);
                 sideEffectBuilder.add(SideEffect.fixedFrom(value));
             }
             return ExecutionTimeValue.fixedValue(Cast.uncheckedNonnullCast(entries.build()));

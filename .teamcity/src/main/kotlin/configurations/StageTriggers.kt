@@ -19,13 +19,19 @@ import model.StageName
 import model.Trigger
 import projects.StageProject
 
-val stageWithOsTriggers: Map<StageName, List<Os>> = mapOf(
-    StageName.PULL_REQUEST_FEEDBACK to listOf(Os.LINUX, Os.WINDOWS),
-    StageName.READY_FOR_NIGHTLY to listOf(Os.LINUX, Os.WINDOWS, Os.MACOS),
-    StageName.READY_FOR_RELEASE to listOf(Os.LINUX, Os.WINDOWS, Os.MACOS),
-)
+val stageWithOsTriggers: Map<StageName, List<Os>> =
+    mapOf(
+        StageName.PULL_REQUEST_FEEDBACK to listOf(Os.LINUX, Os.WINDOWS),
+        StageName.READY_FOR_NIGHTLY to listOf(Os.LINUX, Os.WINDOWS, Os.MACOS),
+        StageName.READY_FOR_RELEASE to listOf(Os.LINUX, Os.WINDOWS, Os.MACOS),
+    )
 
-class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) {
+class StageTriggers(
+    model: CIBuildModel,
+    stage: Stage,
+    prevStage: Stage?,
+    stageProject: StageProject,
+) {
     val triggers: List<BaseGradleBuildType>
 
     init {
@@ -48,9 +54,7 @@ class StageTriggers(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageP
 const val PROVIDER_API_MIGRATION_BRANCH = "provider-api-migration/public-api-changes"
 const val BOT_DAILY_UPGRADLE_WRAPPER_BRANCH = "bot/upgradle-to-latest-wrapper"
 
-fun determineBranchFilter(vararg branches: String): String {
-    return branches.map { "+:$it" }.joinToString("\n")
-}
+fun determineBranchFilter(branches: List<String>): String = branches.map { "+:$it" }.joinToString("\n")
 
 class StageTrigger(
     model: CIBuildModel,
@@ -60,66 +64,78 @@ class StageTrigger(
     dependencies: List<BaseGradleBuildType>,
     generateTriggers: Boolean = true,
 ) : BaseGradleBuildType(init = {
-    id(stageTriggerId(model, stage, os))
-    uuid = stageTriggerUuid(model, stage, os)
-    name = stage.stageName.stageName + " (Trigger)" + (os?.asName()?.toCapitalized()?.let { "($it)" } ?: "")
-    type = Type.COMPOSITE
+        id(stageTriggerId(model, stage, os))
+        uuid = stageTriggerUuid(model, stage, os)
+        name = stage.stageName.stageName + " (Trigger)" + (os?.asName()?.toCapitalized()?.let { "($it)" } ?: "")
+        type = Type.COMPOSITE
 
-    applyDefaultSettings()
+        applyDefaultSettings()
 
-    features {
-        publishBuildStatusToGithub(model)
-    }
+        features {
+            publishBuildStatusToGithub(model)
+        }
 
-    if (generateTriggers) {
-        val enableTriggers = model.branch.enableVcsTriggers
-        if (stage.trigger == Trigger.eachCommit) {
-            triggers.vcs {
-                quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
-                quietPeriod = 90
-                triggerRules = triggerExcludes
-                branchFilter = determineBranchFilter(
-                    model.branch.branchName,
-                    PROVIDER_API_MIGRATION_BRANCH,
-                    BOT_DAILY_UPGRADLE_WRAPPER_BRANCH
-                )
-                enabled = enableTriggers
-            }
-        } else if (stage.trigger != Trigger.never) {
-            triggers.schedule {
-                if (stage.trigger == Trigger.weekly) {
-                    schedulingPolicy = weekly {
-                        dayOfWeek = ScheduleTrigger.DAY.Saturday
-                        hour = 1
-                    }
-                } else {
-                    schedulingPolicy = daily {
-                        hour = 0
-                        minute = 30
-                    }
+        if (generateTriggers) {
+            val enableTriggers = model.branch.enableVcsTriggers
+            if (stage.trigger == Trigger.EACH_COMMIT) {
+                val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
+
+                if (model.branch.isMaster) {
+                    effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
+                    effectiveTriggerBranches.add(BOT_DAILY_UPGRADLE_WRAPPER_BRANCH)
                 }
-                triggerBuild = always()
-                withPendingChangesOnly = true
-                param("revisionRule", "lastFinished")
-                branchFilter = determineBranchFilter(
-                    model.branch.branchName,
-                    PROVIDER_API_MIGRATION_BRANCH
-                )
-                enabled = enableTriggers
+
+                triggers.vcs {
+                    quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
+                    quietPeriod = 90
+                    triggerRules = triggerExcludes
+                    branchFilter = determineBranchFilter(effectiveTriggerBranches)
+                    enabled = enableTriggers
+                }
+            } else if (stage.trigger != Trigger.NEVER) {
+                val effectiveTriggerBranches = mutableListOf(model.branch.branchName)
+
+                if (model.branch.isMaster) {
+                    effectiveTriggerBranches.add(PROVIDER_API_MIGRATION_BRANCH)
+                }
+
+                triggers.schedule {
+                    if (stage.trigger == Trigger.WEEKLY) {
+                        schedulingPolicy =
+                            weekly {
+                                dayOfWeek = ScheduleTrigger.DAY.Saturday
+                                hour = 1
+                            }
+                    } else {
+                        schedulingPolicy =
+                            daily {
+                                hour = 0
+                                minute = 30
+                            }
+                    }
+                    triggerBuild = always()
+                    withPendingChangesOnly = true
+                    param("revisionRule", "lastFinished")
+                    branchFilter = determineBranchFilter(effectiveTriggerBranches)
+                    enabled = enableTriggers
+                }
             }
         }
-    }
 
-    dependencies {
-        if (!stage.runsIndependent && prevStage != null) {
-            dependOnPreviousStageTrigger(model, prevStage, os)
+        dependencies {
+            if (!stage.runsIndependent && prevStage != null) {
+                dependOnPreviousStageTrigger(model, prevStage, os)
+            }
+
+            snapshotDependencies(dependencies)
         }
+    })
 
-        snapshotDependencies(dependencies)
-    }
-})
-
-fun Dependencies.dependOnPreviousStageTrigger(model: CIBuildModel, prevStage: Stage, os: Os? = null) {
+fun Dependencies.dependOnPreviousStageTrigger(
+    model: CIBuildModel,
+    prevStage: Stage,
+    os: Os? = null,
+) {
     if (os == null || stageWithOsTriggers.getOrDefault(prevStage.stageName, emptyList()).contains(os)) {
         dependency(RelativeId(stageTriggerId(model, prevStage, os))) {
             snapshot {
@@ -130,21 +146,35 @@ fun Dependencies.dependOnPreviousStageTrigger(model: CIBuildModel, prevStage: St
     }
 }
 
-fun stageTriggerId(model: CIBuildModel, stage: Stage, os: Os? = null) = stageTriggerId(model, stage.stageName, os)
+fun stageTriggerId(
+    model: CIBuildModel,
+    stage: Stage,
+    os: Os? = null,
+) = stageTriggerId(model, stage.stageName, os)
 
-fun stageTriggerUuid(model: CIBuildModel, stage: Stage, os: Os? = null) = stageTriggerUuid(model, stage.stageName, os)
+fun stageTriggerUuid(
+    model: CIBuildModel,
+    stage: Stage,
+    os: Os? = null,
+) = stageTriggerUuid(model, stage.stageName, os)
 
-fun stageTriggerId(model: CIBuildModel, stageName: StageName, os: Os? = null) =
-    "${model.projectId}_Stage_${stageName.id}_${osSuffix(os)}Trigger"
+fun stageTriggerId(
+    model: CIBuildModel,
+    stageName: StageName,
+    os: Os? = null,
+) = "${model.projectId}_Stage_${stageName.id}_${osSuffix(os)}Trigger"
 
-fun stageTriggerUuid(model: CIBuildModel, stageName: StageName, os: Os? = null) =
-    "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stageName.uuid}_${osSuffix(os)}Trigger"
+fun stageTriggerUuid(
+    model: CIBuildModel,
+    stageName: StageName,
+    os: Os? = null,
+) = "${DslContext.uuidPrefix}_${model.projectId}_Stage_${stageName.uuid}_${osSuffix(os)}Trigger"
 
 fun osSuffix(os: Os?) = os?.asName()?.plus("_") ?: ""
 
 fun <T : BaseGradleBuildType> Dependencies.snapshotDependencies(
     buildTypes: Iterable<T>,
-    snapshotConfig: SnapshotDependency.(T) -> Unit = {}
+    snapshotConfig: SnapshotDependency.(T) -> Unit = {},
 ) {
     buildTypes.forEach { buildType ->
         dependency(buildType.id!!) {

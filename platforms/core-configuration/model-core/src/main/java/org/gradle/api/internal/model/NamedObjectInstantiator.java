@@ -25,8 +25,8 @@ import groovy.lang.GroovyObject;
 import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -73,12 +73,12 @@ public class NamedObjectInstantiator implements ManagedFactory {
     private static final String NAME_FIELD = "_gr_name_";
     private static final String CONSTRUCTOR_NAME = "<init>";
 
-    private final CrossBuildInMemoryCache<Class<?>, LoadingCache<String, Object>> generatedTypes;
+    private final Cache<Class<?>, LoadingCache<String, Object>> generatedTypes;
     private final String implSuffix;
     private final String factorySuffix;
     private final Function<Class<?>, LoadingCache<String, Object>> cacheFactoryFunction = this::cacheFactory;
 
-    public NamedObjectInstantiator(CrossBuildInMemoryCacheFactory cacheFactory) {
+    public NamedObjectInstantiator(ClassCacheFactory cacheFactory) {
         implSuffix = ClassGeneratorSuffixRegistry.assign("$Impl");
         factorySuffix = ClassGeneratorSuffixRegistry.assign(implSuffix + "Factory");
         generatedTypes = cacheFactory.newClassMap();

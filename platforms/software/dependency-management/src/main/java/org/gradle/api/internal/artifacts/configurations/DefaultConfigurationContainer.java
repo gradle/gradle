@@ -29,6 +29,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.artifacts.UnknownConfigurationException;
+import org.gradle.api.artifacts.LegacyConfiguration;
+import org.gradle.api.internal.AbstractNamedDomainObjectContainer;
 import org.gradle.api.internal.AbstractValidatingNamedDomainObjectContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DomainObjectContext;
@@ -99,7 +101,22 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     protected Configuration doCreate(String name) {
         // TODO: Deprecate legacy configurations for consumption
         validateNameIsAllowed(name);
-        return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.LEGACY);
+        return defaultConfigurationFactory.create(name, this, resolutionStrategyFactory, rootComponentMetadataBuilder, ConfigurationRoles.ALL);
+    }
+
+    @Override
+    protected NamedDomainObjectProvider<Configuration> createDomainObjectProvider(String name, @Nullable Action<? super Configuration> configurationAction) {
+        // Called by `register` for registering legacy configurations.
+        // We override to set the public type to `LegacyConfiguration`,
+        // allowing us to filter for unlocked configurations using `withType`
+
+        assertElementNotPresent(name);
+        NamedDomainObjectProvider<Configuration> provider = Cast.uncheckedCast(
+            getInstantiator().newInstance(AbstractNamedDomainObjectContainer.NamedDomainObjectCreatingProvider.class, DefaultConfigurationContainer.this, name, LegacyConfiguration.class, configurationAction)
+        );
+        doAddLater(provider);
+
+        return provider;
     }
 
     @Override
@@ -114,10 +131,20 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @Override
-    public void visitAll(Consumer<ConfigurationInternal> visitor) {
-        for (Configuration configuration : this) {
-            visitor.accept((ConfigurationInternal) configuration);
-        }
+    public void visitConsumable(Consumer<ConfigurationInternal> visitor) {
+
+        // Visit all configurations which are known to be consumable
+        withType(ConsumableConfiguration.class).forEach(configuration ->
+            visitor.accept((ConfigurationInternal) configuration)
+        );
+
+        // Then, visit any configuration with unknown role, checking if it is consumable
+        withType(LegacyConfiguration.class).forEach(configuration -> {
+            if (configuration.isCanBeConsumed()) {
+                visitor.accept((ConfigurationInternal) configuration);
+            }
+        });
+
     }
 
     @Override
@@ -189,7 +216,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         RootComponentMetadataBuilder componentMetadataBuilder = rootComponentMetadataBuilder.newBuilder(componentIdentity, detachedConfigurationsProvider);
 
         @SuppressWarnings("deprecation")
-        DefaultUnlockedConfiguration detachedConfiguration = defaultConfigurationFactory.create(
+        DefaultLegacyConfiguration detachedConfiguration = defaultConfigurationFactory.create(
             name,
             detachedConfigurationsProvider,
             resolutionStrategyFactory,
@@ -228,13 +255,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration resolvableUnlocked(String name) {
         assertCanMutate("resolvableUnlocked(String)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
+        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, Actions.doNothing());
     }
 
     @Override
     public Configuration resolvableUnlocked(String name, Action<? super Configuration> action) {
         assertCanMutate("resolvableUnlocked(String, Action)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
+        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE, action);
     }
 
     @Override
@@ -252,13 +279,13 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration consumableUnlocked(String name) {
         assertCanMutate("consumableUnlocked(String)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
+        return createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, Actions.doNothing());
     }
 
     @Override
     public Configuration consumableUnlocked(String name, Action<? super Configuration> action) {
         assertCanMutate("consumableUnlocked(String, Action)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
+        return createLegacyConfiguration(name, ConfigurationRoles.CONSUMABLE, action);
     }
 
     @Override
@@ -276,27 +303,27 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     @Override
     public Configuration dependencyScopeUnlocked(String name) {
         assertCanMutate("dependencyScopeUnlocked(String)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
+        return createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     public Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         assertCanMutate("dependencyScopeUnlocked(String, Action)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
+        return createLegacyConfiguration(name, ConfigurationRoles.DEPENDENCY_SCOPE, action);
     }
 
     @Override
     @Deprecated
     public Configuration resolvableDependencyScopeUnlocked(String name) {
         assertCanMutate("resolvableDependencyScopeUnlocked(String)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
+        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, Actions.doNothing());
     }
 
     @Override
     @Deprecated
     public Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action) {
         assertCanMutate("resolvableDependencyScopeUnlocked(String, Action)");
-        return createUnlockedConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
+        return createLegacyConfiguration(name, ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, action);
     }
 
     @Override
@@ -310,7 +337,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         assertCanMutate("migratingUnlocked(String, ConfigurationRole, Action)");
 
         if (ConfigurationRolesForMigration.ALL.contains(role)) {
-            return createUnlockedConfiguration(name, role, action);
+            return createLegacyConfiguration(name, role, action);
         } else {
             throw new InvalidUserDataException("Unknown migration role: " + role);
         }
@@ -369,7 +396,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
             }
         } else {
             if (VALID_MAYBE_CREATE_ROLES.contains(request.getRole())) {
-                return createUnlockedConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
+                return createLegacyConfiguration(request.getConfigurationName(), request.getRole(), Actions.doNothing());
             } else {
                 throw new GradleException("Cannot maybe create invalid role: " + request.getRole());
             }
@@ -395,12 +422,10 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     }
 
     @SuppressWarnings("deprecation")
-    private Configuration createUnlockedConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
+    private Configuration createLegacyConfiguration(String name, ConfigurationRole role, Action<? super Configuration> configureAction) {
         // Sanity check to make sure we are locking all non-legacy configurations by 9.0
-        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.LEGACY
+        assert GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version("9.0")) < 0 || role == ConfigurationRoles.ALL
             : "Sanity check: All non-legacy configurations must be locked by 9.0";
-
-        // TODO: Deprecate changing roles of unlocked non-legacy configurations.
 
         assertElementNotPresent(name);
         validateNameIsAllowed(name);

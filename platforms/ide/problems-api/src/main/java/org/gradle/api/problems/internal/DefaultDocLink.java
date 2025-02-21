@@ -50,4 +50,11 @@ public class DefaultDocLink implements InternalDocLink {
     public int hashCode() {
         return Objects.hashCode(url);
     }
+
+    @Override
+    public String toString() {
+        return "DefaultDocLink{" +
+            "url='" + url + '\'' +
+            '}';
+    }
 }

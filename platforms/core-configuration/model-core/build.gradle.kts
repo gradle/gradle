@@ -14,16 +14,14 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
     api(projects.coreApi)
-    api(projects.problemsApi)
     api(projects.hashing)
     api(projects.baseServices)
     api(projects.files)
     api(projects.functional)
-    api(projects.logging)
     api(projects.messaging)
+    api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.snapshots)
-
     api(libs.asm)
     api(libs.jsr305)
     api(libs.inject)
@@ -32,6 +30,9 @@ dependencies {
 
     implementation(projects.baseServicesGroovy)
     implementation(projects.baseAsm)
+    implementation(projects.classloaders)
+    implementation(projects.logging)
+    implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 
@@ -56,6 +57,7 @@ dependencies {
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.languageGroovy))
+    testImplementation(testFixtures(projects.modelReflect))
 
     integTestImplementation(projects.platformBase)
 

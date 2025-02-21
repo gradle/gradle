@@ -17,17 +17,18 @@
 package org.gradle.testing.jacoco.tasks;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.jacoco.AntJacocoCheck;
-import org.gradle.internal.jacoco.JacocoCheckResult;
+import org.gradle.internal.jacoco.JacocoCoverageAction;
 import org.gradle.internal.jacoco.rules.JacocoViolationRulesContainerImpl;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRulesContainer;
+import org.gradle.workers.WorkQueue;
+import org.gradle.workers.WorkerExecutor;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
@@ -77,22 +78,24 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
         return violationRules;
     }
 
+    @Inject
+    protected abstract WorkerExecutor getWorkerExecutor();
+
     @TaskAction
     public void check() throws IOException {
-        JacocoCheckResult checkResult = new AntJacocoCheck(getAntBuilder()).execute(
-            getJacocoClasspath(),
-            projectName,
-            getAllClassDirs().filter(File::exists),
-            getAllSourceDirs().filter(File::exists),
-            getSourceEncoding().getOrNull(),
-            getExecutionData().filter(File::exists),
-            getViolationRules()
-        );
+        WorkQueue queue = getWorkerExecutor().classLoaderIsolation();
+        queue.submit(JacocoCoverageAction.class, parameters -> {
+            parameters.getAntLibraryClasspath().convention(getJacocoClasspath());
+            parameters.getProjectName().convention(projectName);
+            parameters.getEncoding().convention(getSourceEncoding());
+            parameters.getAllSourcesDirs().convention(getAllSourceDirs());
+            parameters.getAllClassesDirs().convention(getAllClassDirs());
+            parameters.getExecutionData().convention(getExecutionData());
 
-        if (!checkResult.isSuccess()) {
-            throw new GradleException(checkResult.getFailureMessage());
-        } else {
-            getDummyOutputFile().createNewFile();
-        }
+            parameters.getFailOnViolation().convention(getViolationRules().isFailOnViolation());
+            parameters.getRules().convention(getViolationRules().getRules());
+
+            parameters.getDummyOutputFile().fileValue(getDummyOutputFile());
+        });
     }
 }

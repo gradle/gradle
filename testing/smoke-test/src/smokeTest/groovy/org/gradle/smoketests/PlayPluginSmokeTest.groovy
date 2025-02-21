@@ -67,9 +67,9 @@ class PlayPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     }
 
     private String orgGradleUtilTypeDeprecation(String type, int major) {
-        return "The org.gradle.util.$type type has been deprecated. " +
+        "The org.gradle.util.$type type has been deprecated. " +
             "This is scheduled to be removed in Gradle 9.0. " +
-            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}","org_gradle_util_reports_deprecations")}"
+            "Consult the upgrading guide for further information: ${new DocumentationRegistry().getDocumentationFor("upgrading_version_${major}", "org_gradle_util_reports_deprecations${major >= 8 ? '_8' : ''}")}"
     }
 
     public static final String COPY_PROCESSING_SPEC_SET_FILE_MODE_DEPRECATION = "The CopyProcessingSpec.setFileMode(Integer) method has been deprecated. " +

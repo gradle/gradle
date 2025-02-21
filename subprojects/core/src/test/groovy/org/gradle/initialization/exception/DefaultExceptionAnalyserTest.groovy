@@ -91,7 +91,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", "<path to source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -112,8 +112,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * diagnosticsFactory.forException(failure) >> location("<source>", 12)
-        _ * diagnosticsFactory.forException(cause) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", "<path to source>", 12)
+        _ * diagnosticsFactory.forException(cause) >> location("<source>", "<path to source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -244,7 +244,7 @@ class DefaultExceptionAnalyserTest extends Specification {
         def result = []
 
         given:
-        _ * diagnosticsFactory.forException(failure) >> location("<source>", 7)
+        _ * diagnosticsFactory.forException(failure) >> location("<source>", "<path to source>", 7)
 
         when:
         analyser.collectFailures(failure, result)
@@ -324,8 +324,8 @@ class DefaultExceptionAnalyserTest extends Specification {
         return failure
     }
 
-    private ProblemDiagnostics location(String longDisplayName, int line) {
-        def location = new Location(Describables.of(longDisplayName), Describables.of("short"), line)
+    private ProblemDiagnostics location(String longDisplayName, String fileName, int line) {
+        def location = new Location(Describables.of(longDisplayName), Describables.of("short"), fileName, line)
         return Stub(ProblemDiagnostics) {
             getLocation() >> location
         }

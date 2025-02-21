@@ -24,6 +24,7 @@ import org.gradle.internal.jvm.inspection.ProbedSystemProperty
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmImplementation
 import org.gradle.jvm.toolchain.JvmVendorSpec
+import org.gradle.jvm.toolchain.internal.install.JvmInstallationMetadataMatcher
 import org.gradle.process.ExecResult
 import org.gradle.process.internal.ClientExecHandleBuilder
 import org.gradle.process.internal.ClientExecHandleBuilderFactory

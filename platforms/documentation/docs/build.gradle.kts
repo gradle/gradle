@@ -77,6 +77,12 @@ dependencies {
     integTestDistributionRuntimeOnly(project(":distributions-full"))
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 asciidoctorj {
     setVersion("2.5.13")
     modules.pdf.setVersion("2.3.10")

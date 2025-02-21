@@ -16,9 +16,11 @@
 
 package org.gradle.initialization;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
@@ -34,7 +36,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static java.util.Collections.emptyMap;
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.internal.Cast.uncheckedCast;
 
@@ -66,6 +67,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     }
 
     private void addPropertiesToProject(Project project, CachingPropertyApplicator applicator) {
+        applicator.beginProjectProperties();
         File projectPropertiesFile = new File(project.getProjectDir(), Project.GRADLE_PROPERTIES);
         LOGGER.debug("Looking for project properties from: {}", projectPropertiesFile);
         fileResourceListener.fileObserved(projectPropertiesFile);
@@ -76,8 +78,10 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
             configurePropertiesOf(project, applicator, uncheckedCast(projectProperties));
         } else {
             LOGGER.debug("project property file does not exists. We continue!");
-            configurePropertiesOf(project, applicator, emptyMap());
+            configurePropertiesOf(project, applicator, ImmutableMap.of());
         }
+        ((ExtraPropertiesExtensionInternal) project.getExtensions().getExtraProperties())
+            .setGradleProperties(applicator.endProjectProperties());
     }
 
     // {@code mergedProperties} should really be <String, Object>, however properties loader signature expects a <String, String>
@@ -96,29 +100,26 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static class CachingPropertyApplicator {
         private final Class<? extends Project> projectClass;
         private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = new HashMap<>();
+        private ImmutableMap.Builder<String, Object> extraProjectProperties;
 
         CachingPropertyApplicator(Class<? extends Project> projectClass) {
             this.projectClass = projectClass;
         }
 
-        void configureProperty(Project project, String name, @Nullable Object value) {
+        void configureProperty(Project project, String name, Object value) {
             if (isPossibleProperty(name)) {
                 assert project.getClass() == projectClass;
                 PropertyMutator propertyMutator = propertyMutatorFor(name, typeOf(value));
                 if (propertyMutator != null) {
                     propertyMutator.setValue(project, value);
                 } else {
-                    setExtraPropertyOf(project, name, value);
+                    extraProjectProperties.put(name, value);
                 }
             }
         }
 
-        private void setExtraPropertyOf(Project project, String name, @Nullable Object value) {
-            project.getExtensions().getExtraProperties().set(name, value);
-        }
-
         @Nullable
-        private Class<?> typeOf(@Nullable Object value) {
+        private static Class<?> typeOf(@Nullable Object value) {
             return value == null ? null : value.getClass();
         }
 
@@ -143,8 +144,20 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
          *
          * @see java.util.Properties#load(java.io.Reader)
          */
-        private boolean isPossibleProperty(String name) {
+        private static boolean isPossibleProperty(String name) {
             return !name.isEmpty();
+        }
+
+        public void beginProjectProperties() {
+            extraProjectProperties = ImmutableMap.builder();
+        }
+
+        public Map<String, Object> endProjectProperties() {
+            try {
+                return extraProjectProperties.build();
+            } finally {
+                extraProjectProperties = null;
+            }
         }
     }
 }

@@ -32,7 +32,6 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
-    def execHandleFactory = TestFiles.execHandleFactory(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory()
     def factory = DefaultExecActionFactory.of(
@@ -42,8 +41,7 @@ class DefaultExecActionFactoryTest extends ConcurrentSpec {
         executorFactory,
         TestFiles.tmpDirTemporaryFileProvider(tmpDir.createDir("tmp")),
         new DefaultBuildCancellationToken(),
-        TestUtil.objectFactory(),
-        execHandleFactory
+        TestUtil.objectFactory()
     )
 
     def javaexec() {

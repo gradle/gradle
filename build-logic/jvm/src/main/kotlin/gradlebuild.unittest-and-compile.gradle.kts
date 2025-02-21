@@ -84,10 +84,6 @@ val gradlebuildJava = extensions.create<UnitTestAndCompileExtension>("gradlebuil
     usesJdkInternals.convention(false)
 }
 
-// Use the Java 17 compiler, when possible, to perform compilation.
-// This does not mean we target Java 17 bytecode. The target bytecode
-// is controlled by the `gradlebuildJava.targetVersion` property.
-configureDefaultToolchain(17)
 enforceCompatibility(gradlebuildJava)
 
 removeTeamcityTempProperty()
@@ -107,22 +103,6 @@ fun configureCompileDefaults() {
     tasks.withType<GroovyCompile>().configureEach {
         groovyOptions.encoding = "utf-8"
         configureCompileTask(options)
-    }
-}
-
-/**
- * When possible, use a Java compiler with the given version when
- * performing compilation. This does not necessarily mean we are
- * emitting bytecode for the given version.
- * <p>
- * In some cases, the toolchain used here may be overridden, for
- * example when compiling Groovy code, as it does not support
- * the --release flag, or when targeting much older bytecode versions.
- */
-fun configureDefaultToolchain(toolchainVersion: Int) {
-    java.toolchain {
-        languageVersion = JavaLanguageVersion.of(toolchainVersion)
-        vendor = JvmVendorSpec.ADOPTIUM
     }
 }
 
@@ -186,7 +166,6 @@ fun enforceJavaCompatibility(targetVersion: Provider<Int>, useRelease: Provider<
                     provider { JavaLanguageVersion.of(11) }
                 }
             }
-            vendor = JvmVendorSpec.ADOPTIUM
         }
     }
 
@@ -369,12 +348,21 @@ fun Test.configureJvmForTest() {
     jvmArgumentProviders.add(CiEnvironmentProvider(this))
     val launcher = project.javaToolchains.launcherFor {
         languageVersion = jvmVersionForTest()
-        vendor = project.testJavaVendor.orElse(JvmVendorSpec.ADOPTIUM)
+        if (project.testJavaVendor.isPresent) {
+            vendor = project.testJavaVendor
+        }
     }
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
         if (isUnitTest() || usesEmbeddedExecuter()) {
-            jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
+            // Temporary workaround for smoke tests until we have the new API (`forDaemonProcesses`) available normally.
+            val clazz = org.gradle.internal.jvm.JpmsConfiguration::class.java
+            val jpmsArgs = try {
+                clazz.getDeclaredField("GRADLE_DAEMON_JPMS_ARGS").get(null)
+            } catch (ignored: NoSuchFieldException) {
+                clazz.getMethod("forDaemonProcesses", Int::class.java, Boolean::class.java).invoke(null, jvmVersionForTest().asInt(), true)
+            }
+            jvmArgs(jpmsArgs as List<*>)
         } else {
             jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
             jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils

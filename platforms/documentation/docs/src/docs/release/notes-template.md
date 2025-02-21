@@ -1,14 +1,14 @@
-<meta property="og:image" content="https://gradle.org/images/releases/gradle-@version@.png" />
+<meta property="og:image" content="https://gradle.org/images/releases/gradle-default.png" />
 <meta property="og:type"  content="article" />
 <meta property="og:title" content="Gradle @version@ Release Notes" />
 <meta property="og:site_name" content="Gradle Release Notes">
-<meta property="og:description" content="TO DO">
+<meta property="og:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@gradle">
 <meta name="twitter:creator" content="@gradle">
 <meta name="twitter:title" content="Gradle @version@ Release Notes">
-<meta name="twitter:description" content="TO DO">
-<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-@version@.png">
+<meta name="twitter:description" content="We are excited to announce Gradle @version@.">
+<meta name="twitter:image" content="https://gradle.org/images/releases/gradle-default.png">
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
@@ -27,7 +27,7 @@ Be sure to check out the [public roadmap](https://blog.gradle.org/roadmap-announ
 
 ## Upgrade instructions
 
-Switch your build to use Gradle @version@ by updating the [Wrapper](userguide/gradle_wrapper.html) in your project:
+Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gradle_wrapper.html) in your project:
 
 ```
 ./gradlew wrapper --gradle-version=@version@ && ./gradlew wrapper

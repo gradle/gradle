@@ -16,6 +16,8 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.StarProjection
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
@@ -35,12 +37,24 @@ import java.io.Serializable
 sealed interface DataType : Serializable {
 
     @ToolingModelContract(subTypes = [
+        ConstantType::class,
+        IntDataType::class,
+        LongDataType::class,
+        StringDataType::class,
+        BooleanDataType::class,
+        TypeVariableUsage::class,
+        UnitType::class,
+        NullType::class
+    ])
+    sealed interface PrimitiveType : DataType
+
+    @ToolingModelContract(subTypes = [
         IntDataType::class,
         LongDataType::class,
         StringDataType::class,
         BooleanDataType::class,
     ])
-    sealed interface ConstantType<JvmType> : DataType {
+    sealed interface ConstantType<JvmType> : PrimitiveType {
         val constantType: Class<*>
     }
 
@@ -50,17 +64,82 @@ sealed interface DataType : Serializable {
     interface BooleanDataType : ConstantType<Boolean>
 
     // TODO: implement nulls?
-    interface NullType : DataType
+    interface NullType : PrimitiveType
 
-    interface UnitType : DataType
+    interface UnitType : PrimitiveType
+
+    /**
+     * Appears in a type position in generic signatures.
+     * Two type variable usages with the same [id] are considered usages of the same type variable.
+     */
+    interface TypeVariableUsage : PrimitiveType {
+        val variableId: Long
+    }
+
+    @ToolingModelContract(subTypes = [
+        DataClass::class,
+        EnumClass::class,
+        ParameterizedTypeSignature::class
+    ])
+    sealed interface HasTypeName {
+        val name: FqName
+        val javaTypeName: String
+    }
 
     @ToolingModelContract(subTypes = [
         DataClass::class,
         EnumClass::class
     ])
-    sealed interface ClassDataType : DataType {
-        val name: FqName
-        val javaTypeName: String
+    sealed interface ClassDataType : DataType, HasTypeName
+
+    /**
+     * A template for a parameterized type.
+     * With the current limitations, these types are opaque, meaning that they may not have any members, and DCL cannot reason about the content of this type.
+     *
+     * [typeParameters] can be substituted by any other [DataTypeRef]s at the use sites, see [ParameterizedTypeInstance].
+     *
+     * This is not a type that can be used in the schema.
+     * Declarations in the schema may use [ParameterizedTypeInstance] referencing the [ParameterizedTypeSignature] instead.
+     */
+    // In the future, a type signature may become resolvable to a generic DataClass, but for now, it should not be associated with any DataClass, even if
+    // a data class with the same name appears in the schema.
+    @ToolingModelContract(subTypes = [VarargSignature::class])
+    interface ParameterizedTypeSignature : HasTypeName, Serializable {
+        interface TypeParameter : Serializable {
+            val name: String
+            val isOutVariant: Boolean
+        }
+
+        val typeParameters: List<TypeParameter>
+    }
+
+    /**
+     * Represents the single existing parameterized type signature that corresponds to the type of vararg parameters like `vararg ints: Int` or `vararg strings: String`.
+     *
+     * A schema should not have more than one instance of [VarargSignature], and all vararg types in function parameters should be represented by [ParameterizedTypeInstance] referencing
+     * the [VarargSignature] as [ParameterizedTypeInstance.typeSignature].
+     * These types may be handled specially by the processing stages to follow the vararg representations expected by the runtime.
+     */
+    interface VarargSignature : ParameterizedTypeSignature
+
+    interface ParameterizedTypeInstance : ClassDataType {
+        val typeSignature: ParameterizedTypeSignature
+        val typeArguments: List<TypeArgument>
+
+        override val name: FqName get() = typeSignature.name
+        override val javaTypeName: String get() = typeSignature.javaTypeName
+
+        @ToolingModelContract(subTypes = [
+            ConcreteTypeArgument::class,
+            StarProjection::class
+        ])
+        sealed interface TypeArgument : Serializable {
+            interface ConcreteTypeArgument : TypeArgument {
+                val type: DataTypeRef
+            }
+
+            interface StarProjection : TypeArgument
+        }
     }
 
     // TODO: `Any` type?

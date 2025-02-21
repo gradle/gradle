@@ -82,4 +82,12 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
         return Objects.hashCode(id, severity, documentationLink);
     }
 
+    @Override
+    public String toString() {
+        return "DefaultProblemDefinition{" +
+            "id=" + id +
+            ", severity=" + severity +
+            ", documentationLink=" + documentationLink +
+            '}';
+    }
 }

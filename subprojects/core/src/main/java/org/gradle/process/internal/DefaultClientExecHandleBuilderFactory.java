@@ -33,7 +33,7 @@ import java.util.concurrent.Executor;
 import static java.util.Objects.requireNonNull;
 
 @NonNullApi
-public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory, Stoppable {
+public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory {
 
     private final PathToFileResolver fileResolver;
     private final Executor executor;
@@ -54,16 +54,6 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         return new DefaultClientExecHandleBuilder(fileResolver, executor, buildCancellationToken);
     }
 
-    @Override
-    public ClientExecHandleBuilderFactory withFileResolver(PathToFileResolver fileResolver) {
-        return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
-    }
-
-    public static DefaultClientExecHandleBuilderFactory root(File gradleUserHome) {
-        requireNonNull(gradleUserHome, "gradleUserHome");
-        return of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
-    }
-
     public static DefaultClientExecHandleBuilderFactory of(
         PathToFileResolver fileResolver,
         ExecutorFactory executorFactory,
@@ -73,8 +63,46 @@ public class DefaultClientExecHandleBuilderFactory implements ClientExecHandleBu
         return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
     }
 
-    @Override
-    public void stop() {
-        CompositeStoppable.stoppable(executor).stop();
+    public static DefaultClientExecHandleBuilderFactory of(
+        PathToFileResolver fileResolver,
+        Executor executor,
+        BuildCancellationToken buildCancellationToken
+    ) {
+        return new DefaultClientExecHandleBuilderFactory(fileResolver, executor, buildCancellationToken);
+    }
+
+    /**
+     * An instance of {@link ClientExecHandleBuilderFactory} that delegates to DefaultClientExecHandleBuilderFactory, but is also Stoppable.
+     *
+     * This is only used in DefaultDaemonStarter, and it should also stay this way. Ideally we would even remove it at one point.
+     */
+    @NonNullApi
+    public static class RootClientExecHandleBuilderFactory implements ClientExecHandleBuilderFactory, Stoppable {
+        private final DefaultClientExecHandleBuilderFactory delegate;
+
+        private RootClientExecHandleBuilderFactory(DefaultClientExecHandleBuilderFactory delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public ClientExecHandleBuilder newExecHandleBuilder() {
+            return delegate.newExecHandleBuilder();
+        }
+
+        @Override
+        public void stop() {
+            CompositeStoppable.stoppable(delegate.executor).stop();
+        }
+
+        /**
+         * Creates a new {@link RootClientExecHandleBuilderFactory} for Daemon starter.
+         *
+         * This instance has unmanaged executor so the caller has to call {@link #stop()} to stop when instance is not needed anymore.
+         */
+        public static RootClientExecHandleBuilderFactory of(File gradleUserHome) {
+            requireNonNull(gradleUserHome, "gradleUserHome");
+            DefaultClientExecHandleBuilderFactory clientExecHandleBuilderFactory = DefaultClientExecHandleBuilderFactory.of(new DefaultFileLookup().getFileResolver(), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+            return new RootClientExecHandleBuilderFactory(clientExecHandleBuilderFactory);
+        }
     }
 }

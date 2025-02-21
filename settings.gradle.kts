@@ -29,7 +29,7 @@ pluginManagement {
 plugins {
     id("gradlebuild.build-environment")
     id("gradlebuild.configuration-cache-compatibility")
-    id("com.gradle.develocity").version("3.19.1") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
+    id("com.gradle.develocity").version("3.19.2") // Run `java build-logic-settings/UpdateDevelocityPluginVersion.java <new-version>` to update
     id("io.github.gradle.gradle-enterprise-conventions-plugin").version("0.10.2")
     id("org.gradle.toolchains.foojay-resolver-convention").version("0.9.0")
 }
@@ -80,6 +80,7 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classloaders")
         subproject("cli")
         subproject("client-services")
         subproject("concurrent")
@@ -158,6 +159,7 @@ val core = platform("core") {
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
+        subproject("model-reflect")
         subproject("model-groovy")
     }
 
@@ -166,15 +168,17 @@ val core = platform("core") {
         subproject("build-cache")
         subproject("build-cache-base")
         subproject("build-cache-example-client")
-        subproject("build-cache-local")
         subproject("build-cache-http")
+        subproject("build-cache-local")
         subproject("build-cache-packaging")
         subproject("build-cache-spi")
+        subproject("daemon-server-worker")
+        subproject("execution")
         subproject("execution-e2e-tests")
         subproject("file-watching")
-        subproject("execution")
         subproject("hashing")
         subproject("persistent-cache")
+        subproject("request-handler-worker")
         subproject("snapshots")
         subproject("worker-main")
         subproject("workers")

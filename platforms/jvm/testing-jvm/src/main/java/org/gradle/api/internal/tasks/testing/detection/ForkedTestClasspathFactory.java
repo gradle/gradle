@@ -162,6 +162,7 @@ public class ForkedTestClasspathFactory {
      */
     private ImmutableList<URL> withImplementation(List<URL> additionalImplementationClasspath) {
         return ImmutableList.copyOf(CollectionUtils.flattenCollections(URL.class,
+            moduleRegistry.getModule("gradle-classloaders").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-worker-main").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-logging").getImplementationClasspath().getAsURLs(),
             moduleRegistry.getModule("gradle-logging-api").getImplementationClasspath().getAsURLs(),

@@ -64,6 +64,7 @@ val task = tasks.register<Jar>("jarGradleApi") {
     }) {
         // TODO Use better filtering
         include("**/*.class")
+        include("META-INF/*.kotlin_module")
     }
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
     // This is needed because of the duplicate package-info.class files

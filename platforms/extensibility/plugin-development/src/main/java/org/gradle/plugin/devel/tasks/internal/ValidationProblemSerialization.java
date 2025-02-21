@@ -47,7 +47,7 @@ import org.gradle.api.problems.internal.DefaultOffsetInFileLocation;
 import org.gradle.api.problems.internal.DefaultPluginIdLocation;
 import org.gradle.api.problems.internal.DefaultProblem;
 import org.gradle.api.problems.internal.DefaultPropertyTraceData;
-import org.gradle.api.problems.internal.DefaultTaskPathLocation;
+import org.gradle.api.problems.internal.DefaultTaskLocation;
 import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.GeneralData;
@@ -347,10 +347,10 @@ public class ValidationProblemSerialization {
         }
     }
 
-    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskPathLocation> {
+    public static class TaskLocationAdapter extends TypeAdapter<DefaultTaskLocation> {
 
         @Override
-        public void write(JsonWriter out, @Nullable DefaultTaskPathLocation value) throws IOException {
+        public void write(JsonWriter out, @Nullable DefaultTaskLocation value) throws IOException {
             if (value == null) {
                 out.nullValue();
                 return;
@@ -363,9 +363,9 @@ public class ValidationProblemSerialization {
         }
 
         @Override
-        public DefaultTaskPathLocation read(JsonReader in) throws IOException {
+        public DefaultTaskLocation read(JsonReader in) throws IOException {
             in.beginObject();
-            DefaultTaskPathLocation buildTreePath = readObject(in);
+            DefaultTaskLocation buildTreePath = readObject(in);
             in.endObject();
 
             Objects.requireNonNull(buildTreePath, "buildTreePath must not be null");
@@ -373,7 +373,7 @@ public class ValidationProblemSerialization {
         }
 
         @Nonnull
-        private static DefaultTaskPathLocation readObject(JsonReader in) throws IOException {
+        private static DefaultTaskLocation readObject(JsonReader in) throws IOException {
             String buildTreePath = null;
             while (in.hasNext()) {
                 String name = in.nextName();
@@ -383,7 +383,7 @@ public class ValidationProblemSerialization {
                     in.skipValue();
                 }
             }
-            return new DefaultTaskPathLocation(buildTreePath);
+            return new DefaultTaskLocation(buildTreePath);
         }
     }
 
@@ -456,8 +456,8 @@ public class ValidationProblemSerialization {
                 new PluginIdLocationAdapter().write(out, (DefaultPluginIdLocation) value);
                 return;
             }
-            if (value instanceof DefaultTaskPathLocation) {
-                new TaskLocationAdapter().write(out, (DefaultTaskPathLocation) value);
+            if (value instanceof DefaultTaskLocation) {
+                new TaskLocationAdapter().write(out, (DefaultTaskLocation) value);
             }
         }
 

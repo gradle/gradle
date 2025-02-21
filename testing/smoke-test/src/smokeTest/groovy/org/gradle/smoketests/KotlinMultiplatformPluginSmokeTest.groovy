@@ -131,6 +131,8 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     @Issue("https://github.com/gradle/gradle/issues/22952")
     def "kotlin project can consume kotlin multiplatform java project"() {
         given:
+        def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
+
         buildFile << """
             plugins {
                 id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
@@ -160,13 +162,13 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
             kotlin {
                 jvm {
-                    withJava()
+                    // Kotlin 2.1.20: Kotlin multiplatform plugin always configures Java sources compilation and 'withJava()' configuration is deprecated.
+                    ${if (kotlinVersionNumber.baseVersion < VersionNumber.parse("2.1.20")) { "withJava()" } else { "" }}
                 }
             }
         """
 
         when:
-        def kotlinVersionNumber = VersionNumber.parse(kotlinVersion)
         def testRunner = kgpRunner(false, kotlinVersionNumber, ':resolve', '--stacktrace')
         def result = testRunner.build()
 
@@ -181,7 +183,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-                'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin
+            'org.jetbrains.kotlin.multiplatform': TestedVersions.kotlin
         ]
     }
 

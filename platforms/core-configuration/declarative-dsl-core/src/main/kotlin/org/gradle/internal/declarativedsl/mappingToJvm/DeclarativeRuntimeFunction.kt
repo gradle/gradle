@@ -25,9 +25,9 @@ import kotlin.reflect.jvm.jvmErasure
 
 
 interface DeclarativeRuntimeFunction {
-    fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult
+    fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult
 
-    fun callByWithErrorHandling(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult {
+    fun callByWithErrorHandling(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): InvocationResult {
         try {
             return callBy(receiver, binding, hasLambda)
         } catch (ite: InvocationTargetException) {
@@ -41,7 +41,7 @@ interface DeclarativeRuntimeFunction {
 
 internal
 class ReflectionFunction(private val kFunction: KFunction<*>, private val configureLambdaHandler: ConfigureLambdaHandler) : DeclarativeRuntimeFunction {
-    override fun callBy(receiver: Any, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
+    override fun callBy(receiver: Any?, binding: Map<DataParameter, Any?>, hasLambda: Boolean): DeclarativeRuntimeFunction.InvocationResult {
         val params = FunctionBinding.convertBinding(kFunction, receiver, binding, hasLambda, configureLambdaHandler)
             ?: error("signature of $kFunction does not match the arguments: $binding")
         val captor = params.valueCaptor
