@@ -63,9 +63,112 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `assign operator compiles with all possible Property types`() {
+    fun `can use assignment for properties in precompiled scripts`() {
         // Given
-        withBuildScript("""
+        val outputFile = withPrecompiledScriptWithAssignment()
+
+        // When
+        build("myTask")
+
+        // Then
+        assertEquals(
+            "File 'build/myTask/hello-world.txt' content",
+            "Hello world",
+            outputFile.readText()
+        )
+    }
+
+    @Test
+    fun `assign operator compiles with all possible Property types in build scripts`() {
+        // Given
+        withBuildScript(projectScriptContentForAllPossiblePropertyTypes)
+
+        // When, Then
+        build("myTask")
+    }
+
+    @Test
+    fun `assign operator compiles with all possible Property types in precompiled scripts`() {
+        // Given
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", projectScriptContentForAllPossiblePropertyTypes)
+        withBuildScript("""plugins { id("my-plugin") }""")
+
+        // When, Then
+        build("myTask")
+    }
+
+    private
+    fun withBuildScriptWithAssignment(): File {
+        val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"
+        withBuildScript(projectScriptContentFor(outputFilePath))
+        return File(outputFilePath)
+    }
+
+    private
+    fun withPrecompiledScriptWithAssignment(): File {
+        val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"
+        withKotlinBuildSrc()
+        withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", projectScriptContentFor(outputFilePath))
+        withBuildScript("""plugins { id("my-plugin") }""")
+        return File(outputFilePath)
+    }
+
+    private
+    fun projectScriptContentFor(outputFilePath: String): String =
+        """
+        abstract class MyTask : DefaultTask() {
+            @get:Input
+            abstract val input: Property<String>
+            @get:OutputFile
+            abstract val output: RegularFileProperty
+
+            @TaskAction
+            fun taskAction() {
+                output.asFile.get().writeText(input.get())
+            }
+        }
+
+        tasks.register<MyTask>("myTask") {
+            input = "Hello world"
+            output = File("$outputFilePath")
+        }
+        """.trimIndent()
+
+    private
+    fun withSettingsWithAssignment() {
+        withSettings(
+            """
+            import org.gradle.kotlin.dsl.support.serviceOf
+            data class Container(val property: Property<String>)
+            fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
+            val container = Container(newStringProperty()).apply {
+                property = "Hello world"
+            }
+            println("Settings property value: " + container.property.get())
+            """.trimIndent()
+        )
+    }
+
+    private
+    fun withInitScriptWithAssignment(): File {
+        return withFile(
+            "init.gradle.kts",
+            """
+                import org.gradle.kotlin.dsl.support.serviceOf
+                data class Container(val property: Property<String>)
+                fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
+                val container = Container(newStringProperty()).apply {
+                    property = "Hello world"
+                }
+                println("Init property value: " + container.property.get())
+            """.trimIndent()
+        )
+    }
+
+    private
+    val projectScriptContentForAllPossiblePropertyTypes =
+        """
             abstract class MyTask : DefaultTask() {
                 @get:Input
                 abstract val input: Property<String>
@@ -126,64 +229,4 @@ class KotlinDslAssignmentIntegrationTest : AbstractKotlinIntegrationTest() {
                 fileOutput = provider { file("build/myTask/hello.txt") }
             }
             """.trimIndent()
-        )
-
-        // When, Then
-        build("myTask")
-    }
-
-    private
-    fun withBuildScriptWithAssignment(): File {
-        val outputFilePath = "${projectRoot.absolutePath.replace("\\", "/")}/build/myTask/hello-world.txt"
-        withBuildScript("""
-            abstract class MyTask : DefaultTask() {
-                @get:Input
-                abstract val input: Property<String>
-                @get:OutputFile
-                abstract val output: RegularFileProperty
-
-                @TaskAction
-                fun taskAction() {
-                    output.asFile.get().writeText(input.get())
-                }
-            }
-
-            tasks.register<MyTask>("myTask") {
-                input = "Hello world"
-                output = File("$outputFilePath")
-            }
-            """.trimIndent()
-        )
-        return File(outputFilePath)
-    }
-
-    private
-    fun withSettingsWithAssignment() {
-        withSettings("""
-            import org.gradle.kotlin.dsl.support.serviceOf
-            data class Container(val property: Property<String>)
-            fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
-            val container = Container(newStringProperty()).apply {
-                property = "Hello world"
-            }
-            println("Settings property value: " + container.property.get())
-            """.trimIndent()
-        )
-    }
-
-    private
-    fun withInitScriptWithAssignment(): File {
-        return withFile(
-            "init.gradle.kts",
-            """
-                import org.gradle.kotlin.dsl.support.serviceOf
-                data class Container(val property: Property<String>)
-                fun newStringProperty(): Property<String> = gradle.serviceOf<ObjectFactory>().property(String::class.java)
-                val container = Container(newStringProperty()).apply {
-                    property = "Hello world"
-                }
-                println("Init property value: " + container.property.get())
-            """.trimIndent()
-        )
-    }
 }
