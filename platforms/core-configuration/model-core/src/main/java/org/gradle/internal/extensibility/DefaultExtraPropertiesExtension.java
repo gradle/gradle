@@ -113,7 +113,7 @@ public class DefaultExtraPropertiesExtension extends GroovyObjectSupport impleme
         if (storage == null) {
             return gradleProperties;
         }
-        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builderWithExpectedSize(storage.size());
+        ImmutableMap.Builder<String, Object> builder = ImmutableMap.builderWithExpectedSize(storage.size() + gradleProperties.size());
         builder.putAll(storage);
         for (Map.Entry<String, Object> entry : gradleProperties.entrySet()) {
             if (!storage.containsKey(entry.getKey())) {
