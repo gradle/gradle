@@ -28,6 +28,7 @@ public class JUnitPlatformSpec implements Serializable {
     private final Set<String> excludeEngines;
     private final Set<String> includeTags;
     private final Set<String> excludeTags;
+    private final Set<String> selectorPatterns;
     private final boolean isDryRun;
 
     public JUnitPlatformSpec(
@@ -36,6 +37,7 @@ public class JUnitPlatformSpec implements Serializable {
         Set<String> excludeEngines,
         Set<String> includeTags,
         Set<String> excludeTags,
+        Set<String> selectorPatterns,
         boolean isDryRun
     ) {
         this.filter = filter;
@@ -43,6 +45,7 @@ public class JUnitPlatformSpec implements Serializable {
         this.excludeEngines = excludeEngines;
         this.includeTags = includeTags;
         this.excludeTags = excludeTags;
+        this.selectorPatterns = selectorPatterns;
         this.isDryRun = isDryRun;
     }
 
@@ -64,6 +67,10 @@ public class JUnitPlatformSpec implements Serializable {
 
     public List<String> getExcludeTags() {
         return new ArrayList<String>(excludeTags);
+    }
+
+    public List<String> getSelectorPatterns() {
+        return new ArrayList<String>(selectorPatterns);
     }
 
     public boolean isDryRun() {
