@@ -96,7 +96,6 @@ public class BaseForkOptions extends AbstractOptions {
     public void setJvmArgs(@Nullable List<String> jvmArgs) {
         this.jvmArgs = jvmArgs == null ? null : jvmArgs.stream()
             .filter(Objects::nonNull)
-            .map(String::trim)
             .filter(string -> !string.isEmpty())
             .collect(Collectors.toList());
     }
