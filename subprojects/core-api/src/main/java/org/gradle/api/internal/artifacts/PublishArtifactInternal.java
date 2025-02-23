@@ -16,8 +16,19 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.provider.Provider;
 
 public interface PublishArtifactInternal extends PublishArtifact {
+
+    /**
+     * Returns the same value as {@link #getFile()}, but also carries
+     * dependencies from {@link #getBuildDependencies()}.
+     *
+     * TODO: Eventually, the public API should expose a file provider/property.
+     */
+    Provider<? extends FileSystemLocation> getFileProvider();
+
     boolean shouldBePublished();
 
     static boolean shouldBePublished(PublishArtifact artifact) {

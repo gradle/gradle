@@ -16,26 +16,22 @@
 
 package org.gradle.api.publish.maven.internal.artifact;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-
-import java.io.File;
 
 public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     private final AbstractArchiveTask archiveTask;
-    private final TaskDependencyInternal buildDependencies;
 
     public ArchiveTaskBasedMavenArtifact(AbstractArchiveTask archiveTask, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+        super(taskDependencyFactory, archiveTask);
         this.archiveTask = archiveTask;
-        this.buildDependencies = taskDependencyFactory.configurableDependency(ImmutableSet.of(archiveTask));
     }
 
     @Override
-    public File getFile() {
-        return archiveTask.getArchiveFile().get().getAsFile();
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return archiveTask.getArchiveFile();
     }
 
     @Override
@@ -46,11 +42,6 @@ public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     @Override
     protected String getDefaultClassifier() {
         return archiveTask.getArchiveClassifier().getOrNull();
-    }
-
-    @Override
-    protected TaskDependencyInternal getDefaultBuildDependencies() {
-        return buildDependencies;
     }
 
     @Override
