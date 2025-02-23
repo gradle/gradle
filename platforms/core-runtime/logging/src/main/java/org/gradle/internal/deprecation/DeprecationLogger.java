@@ -135,7 +135,7 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
-                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT, problemIdDisplayName, problemId);
+                return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT, problemIdDisplayName, problemId, null);
             }
         }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here
     }

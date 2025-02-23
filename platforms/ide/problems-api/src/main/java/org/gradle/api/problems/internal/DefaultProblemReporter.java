@@ -70,7 +70,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
     }
 
     @Nonnull
-    private DefaultProblemBuilder createProblemBuilder() {
+    public DefaultProblemBuilder createProblemBuilder() {
         return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer);
     }
 

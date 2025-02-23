@@ -31,7 +31,7 @@ trait LanguageSpecificTestFileFixture {
     /**
      * <b>Appends</b> provided code to the {@link #getBuildFile() default build file}.
      */
-    TestFile buildFile(@GroovyBuildScriptLanguage String append) {
+    TestFile buildFile(String append) {
         buildFile << append
     }
 
@@ -52,7 +52,7 @@ trait LanguageSpecificTestFileFixture {
     /**
      * <b>Appends</b> provided code to the {@link #getSettingsFile() default settings file}.
      */
-    TestFile settingsFile(@GroovySettingsScriptLanguage String append) {
+    TestFile settingsFile(String append) {
         settingsFile << append
     }
 

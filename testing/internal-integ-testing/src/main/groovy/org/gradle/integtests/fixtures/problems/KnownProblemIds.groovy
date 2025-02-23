@@ -58,6 +58,9 @@ class KnownProblemIds {
         'validation:property-validation' : 'Property validation problems',
         'validation:type-validation' : 'Gradle type validation',
         'validation:configuration-cache' : 'Configuration cache',
+        'deprecation:plugin' : 'Plugin',
+        'deprecation:gradle' : 'Gradle',
+        'deprecation:gradle:method' : 'Method',
 
         // dependency resolution failures
         'dependency-variant-resolution' : 'Dependency variant resolution',
@@ -98,7 +101,7 @@ class KnownProblemIds {
         'deprecation:included-build-script' : 'Included build script has been deprecated.',
         'deprecation:included-build-task' : 'Included build task has been deprecated.',
         'deprecation:init-script' : 'Init script has been deprecated.',
-        'deprecation:plugin' : 'Plugin has been deprecated.',
+        'deprecation:plugin' : 'Plugin has been deprecated',
         'deprecation:plugin-script' : 'Plugin script has been deprecated.',
         'deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption' : 'The detachedConfiguration1 configuration has been deprecated for consumption.',
         'deprecation:configurations-acting-as-both-root-and-variant' : 'Configurations should not act as both a resolution root and a variant simultaneously.',
@@ -164,6 +167,9 @@ class KnownProblemIds {
         'deprecation:some-invocation-feature' : 'Some invocation feature has been deprecated.',
         'deprecation:thing' : 'Thing has been deprecated.',
         'deprecation:typed-task' : 'Typed task has been deprecated.',
+        'deprecation:plugin:com.example.my-plugin' : 'com.example.my-plugin',
+        'deprecation:gradle:method:GradleInternal.testDeprecation\\(\\)' : 'GradleInternal.testDeprecation()',
+
         'generic:deprecation:plugin' : 'DisplayName',
         'generic:type' : 'label',
         'generic:type0': 'This is the heading problem text0',

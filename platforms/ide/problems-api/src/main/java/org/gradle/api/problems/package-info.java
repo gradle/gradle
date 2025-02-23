@@ -15,7 +15,7 @@
  */
 
 /**
- * new Problems API
+ * The Problems API.
  */
 
 @NonNullApi
