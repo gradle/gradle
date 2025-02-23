@@ -49,17 +49,19 @@ public class DefaultVariant implements ConfigurationVariantInternal {
     private Factory<List<PublishArtifact>> lazyArtifacts;
     @Nullable private String description;
 
-    public DefaultVariant(Describable parentDisplayName,
-                          String name,
-                          AttributeContainerInternal parentAttributes,
-                          NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
-                          FileCollectionFactory fileCollectionFactory,
-                          AttributesFactory cache,
-                          DomainObjectCollectionFactory domainObjectCollectionFactory,
-                          TaskDependencyFactory taskDependencyFactory) {
+    public DefaultVariant(
+        Describable parentDisplayName,
+        String name,
+        AttributeContainerInternal parentAttributes,
+        NotationParser<Object, ConfigurablePublishArtifact> artifactNotationParser,
+        FileCollectionFactory fileCollectionFactory,
+        AttributesFactory cache,
+        DomainObjectCollectionFactory domainObjectCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory
+    ) {
         this.parentDisplayName = parentDisplayName;
         this.name = name;
-        this.attributes = new FreezableAttributeContainer(cache.mutable(parentAttributes), parentDisplayName);
+        this.attributes = new FreezableAttributeContainer(cache.mutable(parentAttributes), getDisplayName());
         this.artifactNotationParser = artifactNotationParser;
         artifacts = new DefaultPublishArtifactSet(getDisplayName(), domainObjectCollectionFactory.newDomainObjectSet(PublishArtifact.class), fileCollectionFactory, taskDependencyFactory);
     }
