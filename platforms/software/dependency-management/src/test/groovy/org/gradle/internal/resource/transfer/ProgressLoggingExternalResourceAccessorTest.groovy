@@ -220,8 +220,8 @@ class ProgressLoggingExternalResourceAccessorTest extends Specification {
     def expectReadBuildOperation(long bytesRead, missing = false) {
         1 * buildOperationRunner.call(_) >> { CallableBuildOperation action ->
             def descriptor = action.description().build()
-            assert descriptor.name == "Download https://location/thing.jar"
-            assert descriptor.displayName == "Download https://location/thing.jar"
+            assert descriptor.name == "Downloading https://location/thing.jar"
+            assert descriptor.displayName == "Downloading https://location/thing.jar"
             assert descriptor.progressDisplayName == "thing.jar"
 
             assert descriptor.details instanceof ExternalResourceReadBuildOperationType.Details
