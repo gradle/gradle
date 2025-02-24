@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static java.lang.System.arraycopy;
 
@@ -147,7 +148,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     public ModelPath child(String child) {
         if (this.components.length == 0) {
-            return path(child, new String[] {child});
+            return path(child, new String[]{child});
         }
         String[] childComponents = new String[components.length + 1];
         arraycopy(components, 0, childComponents, 0, components.length);
@@ -324,30 +325,59 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     private static class Cache {
-        private final WeakHashMap<String, ModelPath> cache = new WeakHashMap<String, ModelPath>();
+        private final WeakHashMap<String, ModelPath> cache = new WeakHashMap<>();
+        private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
         public Cache(ModelPath root) {
             cache.put(root.path, root);
         }
 
-        public synchronized ModelPath get(String path) {
-            ModelPath result = cache.get(path);
-            if (result != null) {
-                return result;
+        public ModelPath get(String path) {
+            ModelPath cached = read(path);
+            if (cached != null) {
+                return cached;
             }
-            result = new ModelPath(path);
-            cache.put(path, result);
-            return result;
+            lock.writeLock().lock();
+            try {
+                ModelPath result = cache.get(path);
+                if (result != null) {
+                    return result;
+                }
+                result = new ModelPath(path);
+                cache.put(path, result);
+                return result;
+            } finally {
+                lock.writeLock().unlock();
+            }
         }
 
-        public synchronized ModelPath get(String path, String[] names) {
-            ModelPath result = cache.get(path);
-            if (result != null) {
-                return result;
+        public ModelPath get(String path, String[] names) {
+            ModelPath cached = read(path);
+            if (cached != null) {
+                return cached;
             }
-            result = new ModelPath(path, names);
-            cache.put(path, result);
-            return result;
+            lock.writeLock().lock();
+            try {
+                ModelPath result = cache.get(path);
+                if (result != null) {
+                    return result;
+                }
+                result = new ModelPath(path, names);
+                cache.put(path, result);
+                return result;
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
+
+        @Nullable
+        private ModelPath read(String path) {
+            lock.readLock().lock();
+            try {
+                return cache.get(path);
+            } finally {
+                lock.readLock().unlock();
+            }
         }
     }
 }
