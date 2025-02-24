@@ -110,7 +110,7 @@ The Test Report Aggregation plugin adds the following dependency configurations:
 | `testReportAggregation`
 | The configuration used to declare all project dependencies having test result data to be aggregated.
 | `aggregateTestReportResults`
-| Consumes the project dependencies from the `testReportAggregation` configuration using <<variant_model#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
+| Consumes the project dependencies from the `testReportAggregation` configuration using <<variant_aware_resolution.adoc#sec:variant-aware-matching,variant-aware matching>> to find the appropriate test suite type.
 |===
 
 It is not necessary to explicitly add dependencies to the `testReportAggregation` configuration if the project also applies the `jvm-test-suite` plugin.

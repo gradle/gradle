@@ -354,7 +354,7 @@ It may also fail if the variant selection result is ambiguous, meaning that Grad
 In that case, more information can be provided through <<#sub:terminology_attribute, variant attributes>>.
 Examples of variants each Java components typically offers are _api_ and _runtime_ variants.
 Other examples are JDK8 and JDK11 variants.
-For more information, see the section on <<variant_model.adoc#sec:understanding-variant-selection, variant selection>>.
+For more information, see the section on <<variant_aware_resolution.adoc#sec:understanding-variant-selection, variant selection>>.
 
 [[sub:terminology_attribute]]
 Variant Attribute::
@@ -363,7 +363,7 @@ A variant has one or more attributes defined, for example `org.gradle.usage=java
 When dependencies are resolved, a set of attributes are requested and Gradle finds the best fitting variant(s) for each component in the dependency graph.
 Compatibility and disambiguation rules can be implemented for an attribute to express compatibility between values (e.g., Java 8 is compatible with Java 11, but Java 11 should be preferred if the requested version is 11 or higher).
 Such rules are typically provided by plugins.
-For more information, see the sections on <<variant_model.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
+For more information, see the sections on <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant selection>> and <<variant_attributes.adoc#variant-attributes,declaring attributes>>.
 
 == W
 

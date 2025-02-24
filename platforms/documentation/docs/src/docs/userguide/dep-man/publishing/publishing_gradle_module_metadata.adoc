@@ -28,7 +28,7 @@ In particular, Gradle Module Metadata supports:
 - <<dependency_versions.adoc#sec:rich-version-constraints,rich version constraints>>
 - <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
 - <<component_capabilities.adoc#sec:declaring-component-capabilities,component capabilities>>
-- <<variant_model.adoc#sec:understanding-variant-selection,variant-aware resolution>>
+- <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant-aware resolution>>
 
 Publication of Gradle Module Metadata will enable better dependency management for your consumers:
 
@@ -128,7 +128,7 @@ The following rules are enforced:
 
 * Variant names must be unique,
 * Each variant must have at least <<variant_attributes.adoc#variant-attributes,one attribute>>,
-* Two variants cannot have the <<variant_model.adoc#sec:understanding-variant-selection,exact same attributes and capabilities>>,
+* Two variants cannot have the <<variant_aware_resolution.adoc#sec:understanding-variant-selection,exact same attributes and capabilities>>,
 * If there are dependencies, at least one, across all variants, must carry <<dependency_versions.adoc#sec:rich-version-constraints,version information>>.
 
 These rules ensure the quality of the metadata produced, and help confirm that consumption will not be problematic.

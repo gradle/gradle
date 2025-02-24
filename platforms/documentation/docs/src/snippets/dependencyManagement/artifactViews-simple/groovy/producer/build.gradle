@@ -1,3 +1,4 @@
+// tag::artifact-views-lib[]
 plugins {
     id 'java-library'
 }
@@ -7,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    // Define your dependencies here
+    // Define some dependencies here
 }
 
 // Define a task that produces a custom artifact
@@ -29,6 +30,7 @@ configurations {
         }
     }
 }
+// end::artifact-views-lib[]
 
 tasks.register('checkProducerVariants') {
     def producerProject = project(':producer')

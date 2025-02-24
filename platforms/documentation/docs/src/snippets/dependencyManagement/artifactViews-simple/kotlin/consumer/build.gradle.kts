@@ -1,84 +1,59 @@
+// tag::artifact-views-lib[]
 plugins {
-    id("application")
+    id 'java-library'
 }
 
 repositories {
     mavenCentral()
 }
 
-// Declare the dependency on the producer project
 dependencies {
-    implementation(project(":producer"))
+    // Define some dependencies here
 }
 
-tasks.register("checkResolvedVariant") {
-    println("RuntimeClasspath Configuration:")
-    val resolvedComponents = configurations.runtimeClasspath.get().incoming.resolutionResult.allComponents
-    resolvedComponents.forEach { component ->
-        if (component.id.displayName == "project :producer") {
-            println("- Component: ${component.id}")
-            component.variants.forEach {
-                println("    - Variant: ${it}")
-                it.attributes.keySet().forEach { key ->
-                    println("       - ${key.name} -> ${it.attributes.getAttribute(key)}")
-                }
-            }
-        }
-    }
-    val resolvedArtifacts = configurations.runtimeClasspath.get().incoming.artifacts.resolvedArtifacts
-    resolvedArtifacts.get().forEach { artifact ->
-        println("- Artifact: ${artifact.file}")
-    }
-
+// Define a task that produces a custom artifact
+tasks.register('createProductionArtifact', Jar) {
+    archiveBaseName.set('production')
+    from(sourceSets.main.output)
+    destinationDirectory.set(file('build/libs'))
 }
 
-tasks.register("artifactWithAttributeAndView") {
-    val configuration = configurations.runtimeClasspath.get()
-    println("Attributes used to resolve '${configuration.name}':")
-    configuration.attributes.keySet().forEach { attribute ->
-        val value = configuration.attributes.getAttribute(attribute)
-        println("  - ${attribute.name} = $value")
-    }
-
-    println("\nAttributes in ArtifactView for 'LibraryElements = classes:'")
-    val artifactView = configuration.incoming.artifactView {
+configurations {
+    // Define a custom configuration and extend from runtimeClasspath
+    apiProductionElements {
+        extendsFrom(configurations.apiElements)
         attributes {
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("classes"))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'production'))
+        }
+        artifacts {
+            add('apiProductionElements', tasks.named('createProductionArtifact'))
         }
     }
+}
+// end::artifact-views-lib[]
 
-    artifactView.artifacts.artifactFiles.files.forEach {
-        println("- Artifact: ${it.name}")
-    }
+tasks.register('checkProducerVariants') {
+    def producerProject = project(':producer')
 
-    artifactView.attributes.keySet().forEach { attribute ->
-        val value = artifactView.attributes.getAttribute(attribute)
-        println("  - ${attribute.name} = $value")
+    // Check the outgoing variants for the producer
+    producerProject.configurations.each { config ->
+        println "Configuration: ${config.name}"
+        config.outgoing.artifacts.each {
+            println "  - Artifact: ${it.file}"
+        }
     }
 }
 
-tasks.register("artifactWithAttributeAndVariantReselectionView") {
-    val configuration = configurations.runtimeClasspath.get()
-    println("Attributes used to resolve '${configuration.name}':")
-    configuration.attributes.keySet().forEach { attribute ->
-        val value = configuration.attributes.getAttribute(attribute)
-        println("  - ${attribute.name} = $value")
-    }
-
-    println("\nAttributes in ArtifactView for 'Category = production:'")
-    val artifactView = configuration.incoming.artifactView {
-        withVariantReselection()
-        attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named("production"))
+tasks.register('checkProducerAttributes') {
+    configurations.each { config ->
+        println "\nConfiguration: ${config.name}"
+        println 'Attributes:'
+        config.attributes.keySet().each { key ->
+            println "  - ${key.name} -> ${config.attributes.getAttribute(key)}"
         }
-    }
-
-    artifactView.artifacts.artifactFiles.files.forEach {
-        println("- Artifact: ${it.name}")
-    }
-
-    artifactView.attributes.keySet().forEach { attribute ->
-        val value = artifactView.attributes.getAttribute(attribute)
-        println("  - ${attribute.name} = $value")
+        println 'Artifacts:'
+        config.artifacts.each {
+            println "${it.file}"
+        }
     }
 }

@@ -707,7 +707,7 @@ Attempting to consume them will result in an error.
 If a project has multiple consumable configurations that share the same attributes and capabilities declaration, the build will fail when publishing or resolving as a dependency that project.
 This was <<#unique_attribute_sets,previously deprecated>>.
 
-The <<variant_model.adoc#outgoing_variants_report,`outgoingVariants` report>> will warn about this for impacted configurations.
+The <<variant_aware_resolution.adoc#outgoing_variants_report,`outgoingVariants` report>> will warn about this for impacted configurations.
 
 ==== Toolchain-based tasks for JVM projects
 
