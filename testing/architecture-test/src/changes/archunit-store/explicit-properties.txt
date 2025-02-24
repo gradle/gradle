@@ -1,4 +1,7 @@
-Method <org.gradle.api.plugins.antlr.AntlrTask.getAntlrClasspath()> is not abstract
+Method <org.gradle.api.plugins.antlr.AntlrTask.getIsTrace()> is not abstract
+Method <org.gradle.api.plugins.antlr.AntlrTask.getIsTraceLexer()> is not abstract
+Method <org.gradle.api.plugins.antlr.AntlrTask.getIsTraceParser()> is not abstract
+Method <org.gradle.api.plugins.antlr.AntlrTask.getIsTraceTreeWalker()> is not abstract
 Method <org.gradle.api.plugins.antlr.AntlrTask.getSource()> is not abstract
 Method <org.gradle.api.plugins.antlr.AntlrTask.getStableSources()> is not abstract
 Method <org.gradle.api.plugins.quality.Checkstyle.getCheckstyleClasspath()> is not abstract
