@@ -35,6 +35,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretation
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -51,14 +52,17 @@ fun settingsInterpretationSequence(
                 "settingsPluginManagement",
                 features = setOf(
                     SettingsBlocksCheck.feature,
-                    UnsupportedSyntaxFeatureCheck.feature,
+                    AccessOnCurrentReceiverCheck.feature,
                     RunsBeforeClassScopeIsReady()
                 )
             ) { pluginManagementEvaluationSchema() },
 
             settingsPluginsInterpretationSequenceStep("settingsPlugins"),
             defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry),
-            SimpleInterpretationSequenceStepWithConversion("settings", features = setOf(UnsupportedSyntaxFeatureCheck.feature)) { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStepWithConversion(
+                "settings",
+                features = setOf(UnsupportedSyntaxFeatureCheck.feature, AccessOnCurrentReceiverCheck.feature)
+            ) { settingsEvaluationSchema(settings) }
         )
     )
 

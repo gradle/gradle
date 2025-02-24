@@ -2,7 +2,6 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.schema.DataBuilderFunction
 import org.gradle.declarative.dsl.schema.DataClass
-import org.gradle.declarative.dsl.schema.DataMemberFunction
 import org.gradle.declarative.dsl.schema.DataParameter
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument
@@ -111,13 +110,7 @@ class FunctionCallResolverImpl(
 
         val overloads: List<FunctionResolutionAndBinding> = lookupFunctions(lazyReceiverResolution, functionCall, ArgumentData.BoundArguments(lazyArgResolutions), typeSubstitution)
 
-        val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, lazyArgResolutions, typeSubstitution)?.also {
-            val function = it.function
-            val receiver = it.receiver
-            if (function is DataMemberFunction && function.isDirectAccessOnly && receiver != null) {
-                checkAccessOnCurrentReceiver(receiver, functionCall)
-            }
-        }
+        val resultOriginOrNull = invokeIfSingleOverload(overloads, functionCall, lazyArgResolutions, typeSubstitution)
 
         resultOriginOrNull?.let {
             TypedOrigin(it, applyTypeSubstitution(resolveRef(resultOriginOrNull.function.returnValueType), typeSubstitution))

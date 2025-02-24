@@ -28,7 +28,7 @@ import org.gradle.internal.declarativedsl.dom.SyntaxError
 import org.gradle.internal.declarativedsl.dom.UnsupportedKotlinFeature
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntax
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
-import org.gradle.internal.declarativedsl.dom.data.NodeData
+import org.gradle.internal.declarativedsl.dom.data.NodeDataContainer
 import org.gradle.internal.declarativedsl.dom.data.ValueData
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
@@ -42,9 +42,9 @@ import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 import org.gradle.internal.declarativedsl.language.Literal
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
+import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.Null
 import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.SourceData
 import org.gradle.internal.declarativedsl.language.This
 import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
@@ -60,7 +60,7 @@ fun convertBlockToDocument(block: Block): LanguageTreeBackedDocument {
 }
 
 
-interface LanguageTreeMappingContainer : NodeData<BlockElement>, ValueData<Expr>
+interface LanguageTreeMappingContainer : NodeDataContainer<BlockElement, FunctionCall, Assignment, BlockElement>, ValueData<Expr>
 
 
 private
@@ -72,8 +72,8 @@ class LanguageTreeToDomContext {
     val valueMapping: MutableMap<DeclarativeDocument.ValueNode, Expr> = mutableMapOf()
 
     val languageTreeMappingContainer = object : LanguageTreeMappingContainer {
-        override fun data(node: DeclarativeDocument.DocumentNode.ElementNode): BlockElement = nodeMapping.getValue(node)
-        override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): BlockElement = nodeMapping.getValue(node)
+        override fun data(node: DeclarativeDocument.DocumentNode.ElementNode): FunctionCall = nodeMapping.getValue(node) as FunctionCall
+        override fun data(node: DeclarativeDocument.DocumentNode.PropertyNode): Assignment = nodeMapping.getValue(node) as Assignment
         override fun data(node: DeclarativeDocument.DocumentNode.ErrorNode): BlockElement = nodeMapping.getValue(node)
         override fun data(node: DeclarativeDocument.ValueNode.ValueFactoryNode): Expr = valueMapping.getValue(node)
         override fun data(node: DeclarativeDocument.ValueNode.LiteralValueNode): Expr = valueMapping.getValue(node)

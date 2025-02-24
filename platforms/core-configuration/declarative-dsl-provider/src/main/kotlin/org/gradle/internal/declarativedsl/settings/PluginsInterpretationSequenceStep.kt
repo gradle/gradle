@@ -35,6 +35,7 @@ import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.evaluationSchema.DefaultStepIdentifier
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.evaluator.conversion.InterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.plugins.PluginsTopLevelReceiver
@@ -85,6 +86,7 @@ class PluginsInterpretationSequenceStep(
         get() = setOf(
             SettingsBlocksCheck.feature,
             UnsupportedSyntaxFeatureCheck.feature,
+            AccessOnCurrentReceiverCheck.feature,
             RunsBeforeClassScopeIsReady()
         )
 

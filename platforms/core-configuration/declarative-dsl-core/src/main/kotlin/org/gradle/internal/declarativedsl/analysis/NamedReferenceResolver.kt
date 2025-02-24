@@ -7,7 +7,6 @@ import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.analysis.ExpectedTypeData.ExpectedByProperty
 import org.gradle.internal.declarativedsl.language.AccessChain
-import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.LocalValue
 import org.gradle.internal.declarativedsl.language.NamedReference
 import org.gradle.internal.declarativedsl.language.asChainOrNull
@@ -69,8 +68,6 @@ class NamedReferenceResolverImpl(
             }
 
             is AssignmentResolution.AssignProperty -> firstMatch.propertyReference
-        }?.also {
-            checkPropertyAccessOnCurrentReceiver(it.property, it.receiverObject, namedReference)
         }
     }
 
@@ -105,7 +102,6 @@ class NamedReferenceResolverImpl(
                 return null
             } else {
                 if (result is ObjectOrigin.PropertyReference) {
-                    checkAccessOnCurrentReceiver(result)
                     if (result.property.isWriteOnly) {
                         errorCollector.collect(ResolutionError(result.originElement, ErrorReason.NonReadableProperty(result.property)))
                         return null
@@ -116,20 +112,6 @@ class NamedReferenceResolverImpl(
                     return simplyTyped(result)
                 }
             }
-        }
-    }
-
-    private
-    fun AnalysisContext.checkAccessOnCurrentReceiver(
-        reference: ObjectOrigin.PropertyReference
-    ) {
-        checkPropertyAccessOnCurrentReceiver(reference.property, reference.receiver, reference.originElement)
-    }
-
-    private
-    fun AnalysisContext.checkPropertyAccessOnCurrentReceiver(property: DataProperty, receiver: ObjectOrigin, access: LanguageTreeElement) {
-        if (property.isDirectAccessOnly) {
-            checkAccessOnCurrentReceiver(receiver, access)
         }
     }
 

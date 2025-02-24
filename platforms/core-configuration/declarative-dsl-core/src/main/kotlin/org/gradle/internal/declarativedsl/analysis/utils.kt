@@ -11,7 +11,6 @@ import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.EnumClass
 import org.gradle.declarative.dsl.schema.SchemaFunction
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -176,17 +175,6 @@ fun TypeRefContext.getDataType(objectOrigin: ObjectOrigin): DataType = when (obj
     is ObjectOrigin.CustomConfigureAccessor -> resolveRef(objectOrigin.accessedType)
     is ObjectOrigin.ConfiguringLambdaReceiver -> resolveRef(objectOrigin.lambdaReceiverType)
     is ObjectOrigin.GroupedVarargValue -> objectOrigin.elementType
-}
-
-
-internal
-fun AnalysisContext.checkAccessOnCurrentReceiver(
-    receiver: ObjectOrigin,
-    access: LanguageTreeElement
-) {
-    if (receiver !is ObjectOrigin.ImplicitThisReceiver || !receiver.isCurrentScopeReceiver) {
-        errorCollector.collect(ResolutionError(access, ErrorReason.AccessOnCurrentReceiverOnlyViolation))
-    }
 }
 
 

@@ -19,6 +19,7 @@ package org.gradle.internal.declarativedsl.project
 import org.gradle.internal.declarativedsl.common.RunsBeforeClassScopeIsReady
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaults
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
 
@@ -35,6 +36,7 @@ fun projectInterpretationSequenceStep(
     features = setOf(
         ApplyModelDefaults(),
         UnsupportedSyntaxFeatureCheck.feature,
+        AccessOnCurrentReceiverCheck.feature,
         RunsBeforeClassScopeIsReady()
     ),
 ) {
