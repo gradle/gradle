@@ -146,7 +146,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (fileLocation != null) {
             locations.remove(fileLocation);
         }
-        locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack()));
+        if (collectStackLocation || fileLocation != null) {
+            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack()));
+        }
 
         PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(diagnostics);
         if (pluginIdLocation != null) {
