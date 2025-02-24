@@ -28,18 +28,18 @@ import java.util.Set;
 public class AntlrSpecFactory {
 
     public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, FileCollection sourceSetDirectories) {
-        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments());
+        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments().get());
 
-        if (antlrTask.isTrace() && !arguments.contains("-trace")) {
+        if (antlrTask.getTrace().get() && !arguments.contains("-trace")) {
             arguments.add("-trace");
         }
-        if (antlrTask.isTraceLexer() && !arguments.contains("-traceLexer")) {
+        if (antlrTask.getTraceLexer().get() && !arguments.contains("-traceLexer")) {
             arguments.add("-traceLexer");
         }
-        if (antlrTask.isTraceParser() && !arguments.contains("-traceParser")) {
+        if (antlrTask.getTraceParser().get() && !arguments.contains("-traceParser")) {
             arguments.add("-traceParser");
         }
-        if (antlrTask.isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
+        if (antlrTask.getTraceTreeWalker().get() && !arguments.contains("-traceTreeWalker")) {
             arguments.add("-traceTreeWalker");
         }
         Set<File> sourceSetDirectoriesFiles;
@@ -49,6 +49,6 @@ public class AntlrSpecFactory {
             sourceSetDirectoriesFiles = sourceSetDirectories.getFiles();
         }
 
-        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, antlrTask.getOutputDirectory(), antlrTask.getMaxHeapSize());
+        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, antlrTask.getOutputDirectory().getAsFile().get(), antlrTask.getMaxHeapSize().getOrNull());
     }
 }
