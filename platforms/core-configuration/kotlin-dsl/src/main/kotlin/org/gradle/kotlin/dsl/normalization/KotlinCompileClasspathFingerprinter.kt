@@ -25,7 +25,6 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService
 import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher
 import org.gradle.api.internal.changedetection.state.ZipHasher
-import org.gradle.internal.execution.FileCollectionSnapshotter
 import org.gradle.internal.execution.model.InputNormalizer
 import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
@@ -41,7 +40,6 @@ import org.gradle.kotlin.dsl.support.loggerFor
 internal
 class KotlinCompileClasspathFingerprinter(
     cacheService: ResourceSnapshotterCacheService,
-    fileCollectionSnapshotter: FileCollectionSnapshotter,
     stringInterner: StringInterner
 ) : AbstractFileCollectionFingerprinter(
     ClasspathFingerprintingStrategy.compileClasspathFallbackToRuntimeClasspath(
@@ -62,8 +60,7 @@ class KotlinCompileClasspathFingerprinter(
         cacheService,
         stringInterner,
         CompileAvoidanceExceptionReporter()
-    ),
-    fileCollectionSnapshotter
+    )
 ),
     CompileClasspathFingerprinter {
 
