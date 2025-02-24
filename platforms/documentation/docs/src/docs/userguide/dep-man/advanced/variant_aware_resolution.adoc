@@ -19,7 +19,7 @@
 
 Gradle's dependency management engine is _variant aware_.
 
-In the <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,previous section>>, Gradle built a graph of resolved dependencies.
+In the <<dependency_resolution.adoc#dependency-resolution-basics,previous section>>, Gradle built a graph of resolved dependencies.
 During graph resolution, Gradle selected the proper *variants* of each dependency based on the requirements of the build.
 
 image::dependency-resolution-variant-selection-model.png[]

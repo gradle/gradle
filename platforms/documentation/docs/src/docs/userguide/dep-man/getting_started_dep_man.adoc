@@ -59,19 +59,25 @@ You can add external libraries to your Java project, such as `Guava`.
 These libraries are <<declaring_dependencies_basics.adoc#declaring-dependencies-basics,_dependencies_>> of your project.
 They are added using the `dependencies{}` block in your build file.
 
-=== 2. Declaring Repositories
+=== 2. Dependency Configurations
+
+Every dependency declared for a Gradle project applies to a specific scope, known as a <<dependency_configurations.adoc#two-dependency-configurations,_configurations_>>.
+These _configurations_ are typically available by applying plugins or can be created using APIs.
+
+=== 3. Declaring Repositories
 
 You can <<declaring_repositories_basics.adoc#declaring-repositories-basics,declare _repositories_>> to tell Gradle where to fetch external _dependencies_.
 During a build, Gradle locates and downloads the dependencies, a process called _dependency resolution_.
 
-=== 3. Centralizing Dependencies
+=== 4. Centralizing Dependencies
 
 To keep dependencies and their versions declared in a <<platforms.adoc#platforms,single, manageable location>> (i.e., centralized), you can use _platforms_ and _version catalogs_.
 
 A _platform_ is a set of modules intended to be used together.
 A _version catalog_ is a centralized list of dependency coordinates that can be referenced in multiple projects.
 
-=== 4. Managing Dependencies
+=== 5. Managing Constraints and Conflicts
+
 Conflicts can arise when the same library is declared multiple times or when different libraries provide the same functionality.
 This usually leads to failing builds.
 
@@ -79,6 +85,21 @@ You can manage conflicts using <<resolution_rules.adoc#using-resolution-rules,re
 
 == Advanced Concepts
 
-=== 1. Understanding Dependency Resolution
-
 In order to influence how Gradle resolves dependencies, it's important to understand <<dependency_resolution.adoc#dependency-resolution-basics,how it works>>.
+
+=== 1. Dependency Resolution
+
+Gradle's <<dependency_resolution.adoc#dependency-resolution-basics,dependency resolution process>> determines which modules and versions are required to fulfill a build's declared dependencies.
+It is done in two steps, _graph resolution_ and _artifact resolution_.
+
+=== 2. Graph Resolution
+
+During <<graph_resolution.adoc#dependency-graph-resolution,graph resolution>>, Gradle constructs a _dependency graph_, resolving version conflicts and ensuring a consistent set of dependencies.
+
+=== 3. Variant Selection
+
+<<variant_aware_resolution.adoc#sec:understanding-variant-selection,Variant selection>> refines the resolved dependency graph by choosing the most compatible _variant_ of each module based on _attributes_ and _capabilities_.
+
+=== 4. Artifact Resolution
+
+<<artifact_resolution.adoc#artifact-resolution,Artifact resolution>> maps the selected dependency _variants_ to their corresponding files, determining which _artifacts_ Gradle will download and use during the build.
