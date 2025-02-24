@@ -17,6 +17,7 @@
 package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
+import org.gradle.api.internal.initialization.DefaultClassLoaderScope
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
@@ -118,8 +119,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         List<String> allArgs = arguments as List
         if (closeServices) {
             // Do not keep user home dir services open when running embedded or when using a custom user home dir
-            allArgs.add(("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false") as String)
+            allArgs.add("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false")
         }
+        allArgs.add("-D" + DefaultClassLoaderScope.STRICT_MODE_PROPERTY + "=true")
         def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)
             .withProjectDir(testDirectory)
@@ -187,7 +189,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     static {
         def releasedGradleVersions = new ReleasedVersionDistributions()
         def probeVersions = ["4.10.3", "5.6.4", "6.9.4", "7.6.4", "8.8"]
-        String compatibleVersion = probeVersions.find {version ->
+        String compatibleVersion = probeVersions.find { version ->
             releasedGradleVersions.getDistribution(version)?.worksWith(Jvm.current())
         }
         LOWEST_MAJOR_GRADLE_VERSION = compatibleVersion
