@@ -538,13 +538,14 @@ Check the method documentation for more details.
 
 [[config_cache:integrity_check]]
 === Using integrity checks to debug store and load issues
-By default, the configuration cache doesn't perform many integrity checks when reading the entry.
-This improves performance and reduces entry size.
-However, it makes it harder to pinpoint some store and load issues.
-For example, the incorrectly stored object may be discovered later, when reading data of some unrelated task.
-It may cause a type mismatch when restoring a value of the property or break some other invariant, resulting in a potentially misleading exception.
 
-In order to make debugging easier, it is possible to enable stricter checks that may help to discover discrepancies earlier.
+In order to improve performance and reduce entry size, the configuration cache performs a minimal amount of integrity checks as it writes or reads the data.
+However, it makes it harder to troubleshoot issues caused by concurrency problems or misbehaving serialization logic.
+The incorrectly stored object may not be discovered immediately, but it can affect reading data of some other, unrelated task.
+For example, reading a value of the property may end up with a type mismatch or break some other invariant, resulting in a potentially misleading or misattributed error message.
+
+In order to make debugging easier, it is possible to enable stricter checks that may help to discover discrepancies earlier,
+at a cost of slowing down cache operations and significantly increasing the size of the entry.
 To do that, add the following line to your `gradle.properties`:
 [source,properties]
 .gradle.properties
@@ -558,9 +559,9 @@ For example, let's look at a type that implements a custom serialization protoco
 include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/User.java[tags=broken-type]
 ----
 <1> `writeObject` serializes both fields.
-<2> `readObject` reads only the first field, leaving the lingering data.
+<2> `readObject` reads only the first field, leaving the remaining data in the stream.
 
-Such a type will cause problems when used as part of a task state.
+Such a type will cause problems when used as part of a task state, because the configuration cache will try to interpret the remaining unread part of the object as some new value.
 [source,java]
 ----
 include::{snippetsPath}/configurationCache/integrityChecks/common/buildSrc/src/main/java/GreetTask.java[tags=task-with-broken-type]
@@ -574,7 +575,7 @@ When running without the integrity check, you may get a cryptic failure message,
 Index 4 out of bounds for length 3
 ----
 
-It might be really hard to connect the invalid index to a serialization issue. Enabling the integrity check gives a much more precise diagnostics:
+It might be really hard to connect the invalid index to a serialization issue. Rerunning the build with the integrity check enabled gives a much more precise diagnostic:
 ----
 ❯ gradle --configuration-cache -Dorg.gradle.configuration-cache.integrity-check=true greet
 ...
@@ -583,7 +584,12 @@ include::{snippetsPath}/configurationCache/integrityChecks/tests/fail.out[]
 You can immediately see the name of the offending task and even the field that contains the broken data.
 Keep in mind that this attribution is best-effort: it should be accurate in most cases, but rarely can be confused by some byte patterns.
 
-Note, however, that the current set of integrity checks primarily aims at detecting issues with serialization protocols more than data corruption.
+[WARNING]
+====
+The integrity check relies on extra data stored in the cache, and thus cannot be used to debug an existing corrupted entry written without the check enabled.
+====
+
+Note, that the current set of integrity checks primarily aims at detecting issues with serialization protocols more than data corruption.
 It may not be as effective against issues caused by hardware failures like bit rotting or bad sectors.
 Because of that and of the extra costs the integrity check brings, we don't recommend to have it always enabled, but consider it a troubleshooting tool.
 
