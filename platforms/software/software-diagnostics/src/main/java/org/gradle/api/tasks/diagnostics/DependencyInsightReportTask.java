@@ -41,8 +41,8 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -126,7 +126,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     private Spec<DependencyResult> configuredDependencySpec;
 
     // fields below are used by CC to have serializable results
-    private Provider<List<? extends Throwable>> resolutionFailures;
     private final Transient<Property<Configuration>> configurationProp = Transient.of(getObjectFactory().property(Configuration.class));
     private final Provider<SerializableConfigurationData> configurationDetails = getConfiguration().map(SerializableConfigurationData::new);
 
