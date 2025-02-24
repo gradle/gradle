@@ -38,6 +38,14 @@ When Gradle publishes to a Maven repository, it publishes both a Gradle Module M
 This metadata plays a crucial role in dependency resolution, by allowing the dependencies of binary artifacts to be tracked alongside the artifact itself.
 By reading dependency metadata, Gradle is able to determine which versions of other artifacts a given dependency requires.
 
+== Searching for metadata
+
+If you declare a module dependency, Gradle looks for a module metadata file (`.module`, `.pom`, or `ivy.xml`) in the repositories.
+
+If such a module metadata file exists, it is parsed, and the artifacts of this module (e.g., `hibernate-3.0.5.jar`) as well as its dependencies (e.g., `cglib`) are downloaded.
+
+If no such module metadata file exists, as of Gradle 6.0, you need to configure <<sec:supported-metadata-sources,metadata sources definitions>> to look for an artifact file called `hibernate-3.0.5.jar` directly.
+
 [[sec:supported-metadata-formats]]
 == Supported metadata formats
 
@@ -172,3 +180,8 @@ To disable this behavior, use the `ignoreGradleMetadataRedirection()` option:
 include::sample[dir="snippets/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
 include::sample[dir="snippets/artifacts/defineRepository/groovy",files="build.gradle[tags=maven-repo-with-ignore-gradle-metadata-redirection]"]
 ====
+
+== Ivy vs Pom vs Gradle metadata
+
+In Maven, a module can have **one and only one artifact**.
+In Gradle and Ivy, a module can have **multiple artifacts**.
