@@ -18,6 +18,9 @@ package org.gradle.tooling.internal.protocol.problem;
 
 import org.gradle.api.NonNullApi;
 
+/**
+ * <p>DO NOT CHANGE THIS INTERFACE - it is part of the cross-version protocol. </p>
+ */
 @NonNullApi
 public interface InternalSeverity {
 
