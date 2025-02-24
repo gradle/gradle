@@ -104,6 +104,7 @@ class ArchUnitFreezeConfiguration(
  */
 abstract class ReorderArchUnitRulesTask : DefaultTask() {
     @get:OutputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract var ruleFile: File
 
     @TaskAction
