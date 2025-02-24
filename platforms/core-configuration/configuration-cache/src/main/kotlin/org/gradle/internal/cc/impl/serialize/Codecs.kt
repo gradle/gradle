@@ -184,6 +184,10 @@ class Codecs(
     private
     val fingerprintUserTypesBindings: Bindings
 
+    // Does not have base directory, expecting all files to be resolved to avoid misplaced re-resolves at decode-time
+    private
+    val absoluteFileCollectionFactory = fileCollectionFactory.withResolver(fileLookup.fileResolver)
+
     init {
         fun makeUserTypeBindings(providersBlock: BindingsBuilder.() -> Unit) = Bindings.of {
             unsupportedTypes()
@@ -199,7 +203,7 @@ class Codecs(
             bind(DefaultContextAwareTaskLoggerCodec)
             bind(LoggerCodec)
 
-            fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup)
+            fileCollectionTypes(directoryFileTreeFactory, absoluteFileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup)
 
             bind(org.gradle.internal.serialize.codecs.core.ApiTextResourceAdapterCodec)
 
@@ -306,7 +310,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(valueSourceProviderFactory, buildStateRegistry, flowProviders))
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup)
+        fileCollectionTypes(directoryFileTreeFactory, absoluteFileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup)
 
         bind(TaskInAnotherBuildCodec(includedTaskGraph))
 
