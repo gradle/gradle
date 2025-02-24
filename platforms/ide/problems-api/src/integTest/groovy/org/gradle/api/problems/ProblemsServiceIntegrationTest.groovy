@@ -91,14 +91,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             originLocations.size() == 1
             //guarantee no duplicate locations
             originLocations.size() == 1
-            with(originLocations[0] as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 10
-                path == buildFile.absolutePath
-            }
-            contextualLocations.size() == 1
-            with(contextualLocations[0] as StackTraceLocation) {
+            with(originLocations[0] as StackTraceLocation) {
                 with(fileLocation as LineInFileLocation) {
                     length == -1
                     column == -1
@@ -106,6 +99,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                     path == buildFile.absolutePath
                 }
             }
+            contextualLocations.empty
         }
     }
 

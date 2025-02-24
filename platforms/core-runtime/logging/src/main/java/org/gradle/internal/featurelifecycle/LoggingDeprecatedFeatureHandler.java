@@ -104,6 +104,7 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
+                    .diagnostics(diagnostics)
                     .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
                         @Override
                         public void execute(DeprecationDataSpec data) {
@@ -112,7 +113,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     })
                     .severity(WARNING);
 
-                addPossibleLocation(diagnostics, problemSpec);
+                if (usage.getType() == DeprecatedFeatureUsage.Type.USER_CODE_DIRECT) {
+                    builder.stackLocation();
+                }
                 addSolution(usage.getAdvice(), problemSpec);
                 addSolution(usage.getContextualAdvice(), problemSpec);
             }
@@ -131,14 +134,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         if (advice != null) {
             problemSpec.solution(advice);
         }
-    }
-
-    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec deprecationProblemBuilder) {
-        Location location = diagnostics.getLocation();
-        if (location == null) {
-            return;
-        }
-        deprecationProblemBuilder.lineInFileLocation(location.getFilePath(), location.getLineNumber());
     }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {

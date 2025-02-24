@@ -27,7 +27,9 @@ import org.gradle.api.problems.internal.AdditionalDataBuilderFactory;
 import org.gradle.api.problems.internal.AdditionalDataSpec;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
+import org.gradle.api.problems.internal.InternalProblemSpec;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.problems.ProblemDiagnostics;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nullable;
@@ -139,6 +141,11 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder severity(Severity severity) {
         return validateDelegate(delegate.severity(severity));
+    }
+
+    @Override
+    public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
+        return delegate.diagnostics(diagnostics);
     }
 
     @Override
