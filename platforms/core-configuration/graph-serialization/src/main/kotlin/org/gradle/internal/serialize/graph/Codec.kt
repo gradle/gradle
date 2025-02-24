@@ -40,6 +40,9 @@ interface EncodingProvider<T> {
 
 interface DecodingProvider<T> {
     suspend fun ReadContext.decode(): T?
+
+    val displayName: String
+        get() = this::class.simpleName ?: "Unknown"
 }
 
 

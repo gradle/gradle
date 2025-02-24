@@ -46,6 +46,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     companion object {
         private
         const val NULL_VALUE: Int = -1
+
+        private
+        const val SENTINEL_VALUE: Byte = 0
     }
 
     private
@@ -64,6 +67,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
             }
             if (isIntegrityCheckEnabled) {
                 writeSmallInt(tag)
+                writeByte(SENTINEL_VALUE)
             }
         }
     }
@@ -84,12 +88,19 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
                     return null
                 }
 
-                val result = binding.decoding.run { decode() }
+                val decoding = binding.decoding
+                val result = decoding.run { decode() }
                 if (isIntegrityCheckEnabled) {
                     val tagGuard = readSmallInt()
-                    if (tag != tagGuard) {
-                        onError(IllegalArgumentException("Tag guard mismatch: $tag != $tagGuard.")) {
-                            text("The value cannot be decoded properly. It may have been written incorrectly or its data is corrupted.")
+                    val sentinel = readByte()
+
+                    if (tag != tagGuard || sentinel != SENTINEL_VALUE) {
+                        onError(IllegalArgumentException(
+                            "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>")
+                        ) {
+                            text("The value cannot be decoded properly with ")
+                            reference(decoding.displayName)
+                            text(". It may have been written incorrectly or its data is corrupted.")
                         }
                     }
                 }

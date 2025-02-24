@@ -45,7 +45,7 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
 
         then:
         configurationCache.assertStateStored()
-     }
+    }
 
     def "integrity checks detect invalid serialization protocol implementation"() {
         buildFile """
@@ -67,8 +67,11 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
         configurationCacheFails("showUser", "-D${INTEGRITY_CHECKS}=true")
 
         then:
-        failureDescriptionStartsWith("Configuration cache state could not be cached: field `user` of task `:showUser` of type `MyTask`: The value cannot be decoded properly.")
-        failureCauseContains("Tag guard mismatch:")
+        failureDescriptionStartsWith("Configuration cache state could not be cached: " +
+            "field `user` of task `:showUser` of type `MyTask`: " +
+            "The value cannot be decoded properly with 'JavaObjectSerializationCodec'."
+        )
+        failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
     }
 
     def "integrity checks detect invalid serialization protocol implementation in fingerprint"() {
@@ -111,8 +114,9 @@ class ConfigurationCacheIntegrityCheckIntegrationTest extends AbstractConfigurat
             'field `value` of `org.gradle.internal.Try$Success` bean found in ' +
             'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` bean found in ' +
             'field `obtainedValue` of `org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprint$ValueSource` bean found in ' +
-            'Gradle runtime: The value cannot be decoded properly. It may have been written incorrectly or its data is corrupted.')
-        failureCauseContains("Tag guard mismatch:")
+            "Gradle runtime: The value cannot be decoded properly with 'JavaObjectSerializationCodec'. " +
+            "It may have been written incorrectly or its data is corrupted.")
+        failureCauseContains("Tag guard mismatch for JavaObjectSerializationCodec:")
     }
 
     def brokenSerializable() {
