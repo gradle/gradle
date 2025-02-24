@@ -16,7 +16,11 @@
 
 package org.gradle.internal.cc.impl.serialization.codecs
 
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.cc.base.serialize.IsolateOwners
 import org.gradle.internal.cc.impl.problems.AbstractProblemsListener
@@ -159,9 +163,13 @@ abstract class AbstractUserTypeCodecTest {
     internal
     fun codecs() = Codecs(
         directoryFileTreeFactory = mock(),
-        fileCollectionFactory = mock(),
+        fileCollectionFactory = mock<FileCollectionFactory> {
+            on { withResolver(any()) } doReturn mock()
+        },
         artifactSetConverter = mock(),
-        fileLookup = mock(),
+        fileLookup = mock<FileLookup> {
+            on { fileResolver } doReturn mock()
+        },
         propertyFactory = mock(),
         filePropertyFactory = mock(),
         fileResolver = mock(),
