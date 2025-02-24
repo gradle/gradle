@@ -158,6 +158,9 @@ class ConfigurationCacheStartParameter internal constructor(
     val recreateCache: Boolean
         get() = startParameter.isConfigurationCacheRecreateCache
 
+    val isIntegrityCheckEnabled: Boolean
+        get() = startParameter.isConfigurationCacheIntegrityCheckEnabled
+
     /**
      * See [StartParameter.getProjectDir].
      */
