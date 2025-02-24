@@ -16,7 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.problems.LineInFileLocation
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.StackTraceLocation
 
 class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCacheIntegrationTest {
 
@@ -56,8 +58,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             originLocations[0].path == "build file 'build.gradle'"
             originLocations[0].line == 2
             contextualLocations.size() == 1
-            contextualLocations[0].path == buildFile.absolutePath
-            contextualLocations[0].line == 2
+            with((contextualLocations[0] as StackTraceLocation).fileLocation as LineInFileLocation) {
+                path == buildFile.absolutePath
+                line == 2
+            }
             additionalData.asMap.trace == "build file 'build.gradle': line 2"
         }
 
@@ -73,8 +77,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
             originLocations[0].path == "build file 'build.gradle'"
             originLocations[0].line == 2
             contextualLocations.size() == 1
-            contextualLocations[0].path == buildFile.absolutePath
-            contextualLocations[0].line == 2
+            with((contextualLocations[0] as StackTraceLocation).fileLocation as LineInFileLocation) {
+                path == buildFile.absolutePath
+                line == 2
+            }
             additionalData.asMap.trace == "build file 'build.gradle': line 2"
 
         }
