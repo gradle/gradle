@@ -20,11 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.jvm.ModularitySpec;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.process.BaseExecSpec;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
@@ -33,6 +33,7 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,17 +48,35 @@ import java.util.Map;
 public class DefaultJavaExecAction implements JavaExecAction {
 
     private final JavaExecHandleBuilder javaExecHandleBuilder;
-    private boolean ignoreExitValue;
+    private final Property<Boolean> ignoreExitValue;
+    private final Property<InputStream> standardInput;
+    private final Property<OutputStream> standardOutput;
+    private final Property<OutputStream> errorOutput;
 
-    public DefaultJavaExecAction(JavaExecHandleBuilder javaExecHandleBuilder) {
+    @Inject
+    public DefaultJavaExecAction(ObjectFactory objectFactory, JavaExecHandleBuilder javaExecHandleBuilder) {
         this.javaExecHandleBuilder = javaExecHandleBuilder;
+        this.ignoreExitValue = objectFactory.property(Boolean.class).convention(false);
+        this.standardInput = objectFactory.property(InputStream.class);
+        this.standardOutput = objectFactory.property(OutputStream.class);
+        this.errorOutput = objectFactory.property(OutputStream.class);
     }
 
     @Override
     public ExecResult execute() {
+        if (getStandardInput().isPresent()) {
+            javaExecHandleBuilder.setStandardInput(getStandardInput().get());
+        }
+        if (getStandardOutput().isPresent()) {
+            javaExecHandleBuilder.setStandardOutput(getStandardOutput().get());
+        }
+        if (getErrorOutput().isPresent()) {
+            javaExecHandleBuilder.setErrorOutput(getErrorOutput().get());
+        }
+
         ExecHandle execHandle = javaExecHandleBuilder.build();
         ExecResult execResult = execHandle.start().waitForFinish();
-        if (!ignoreExitValue) {
+        if (!getIgnoreExitValue().get()) {
             execResult.assertNormalExitValue();
         }
         return execResult;
@@ -140,47 +159,23 @@ public class DefaultJavaExecAction implements JavaExecAction {
     }
 
     @Override
-    public BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
-        this.ignoreExitValue = ignoreExitValue;
-        return this;
-    }
-
-    @Override
-    public boolean isIgnoreExitValue() {
+    public Property<Boolean> getIgnoreExitValue() {
         return ignoreExitValue;
     }
 
     @Override
-    public BaseExecSpec setStandardInput(InputStream inputStream) {
-        javaExecHandleBuilder.setStandardInput(inputStream);
-        return this;
+    public Property<InputStream> getStandardInput() {
+        return standardInput;
     }
 
     @Override
-    public InputStream getStandardInput() {
-        return javaExecHandleBuilder.getStandardInput();
+    public Property<OutputStream> getStandardOutput() {
+        return standardOutput;
     }
 
     @Override
-    public BaseExecSpec setStandardOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setStandardOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getStandardOutput() {
-        return javaExecHandleBuilder.getStandardOutput();
-    }
-
-    @Override
-    public BaseExecSpec setErrorOutput(OutputStream outputStream) {
-        javaExecHandleBuilder.setErrorOutput(outputStream);
-        return this;
-    }
-
-    @Override
-    public OutputStream getErrorOutput() {
-        return javaExecHandleBuilder.getErrorOutput();
+    public Property<OutputStream> getErrorOutput() {
+        return errorOutput;
     }
 
     @Override

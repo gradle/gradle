@@ -229,7 +229,7 @@ class ConfigurationCacheStandardStreamsIntegrationTest extends AbstractConfigura
         if (streamValue && !streamValue.startsWith("System.")) {
             result += """
                 doLast {
-                    ${streamName}.close()
+                    ${streamName}.get().close()
                 }
             """
         }
