@@ -33,6 +33,7 @@ In the <<declaring_dependencies.adoc#one-declaring-dependencies,Learning the Bas
 
 In the example above, the *module* is link:https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind[`com.fasterxml.jackson.core:jackson-databind`].
 
+[[sec:components]]
 == Components
 
 Each version of a *module* is referred to as a *component*.
@@ -46,6 +47,7 @@ A *component* is detailed by *metadata*, which is available in the repository wh
 Here’s a condensed sample of the *metadata* for link:https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-databind/2.17.2/jackson-databind-2.17.2.module[`com.fasterxml.jackson.core:jackson-databind:2.17.2`]:
 
 [source,json]
+.jackson-databind-2.17.2.module
 ----
 {
   "formatVersion": "1.1",
@@ -86,9 +88,13 @@ Here’s a condensed sample of the *metadata* for link:https://repo1.maven.org/m
 }
 ----
 
+Some items in the file should be familiar to you such as "files", "dependencies", "components", "modulee" and "version".
+Let's focus on the *variants* provided in the *metadata*.
+
 == Variants
 
 A *variant* is a specific variation of a *component* tailored for a particular use case or environment.
+
 *Variants* allow you to provide different definitions of your *component* depending on the context in which it’s used.
 
 As detailed above, the *metadata* of the `com.fasterxml.jackson.core:jackson-databind:2.17.2` *component* offers two *variants*:
@@ -96,20 +102,37 @@ As detailed above, the *metadata* of the `com.fasterxml.jackson.core:jackson-dat
 - The `apiElements` *variant* includes dependencies required for compiling projects against Jackson Databind.
 - The `runtimeElements` *variant* includes dependencies required for executing Jackson Databind during runtime.
 
+|===
+| Variant | Dependencies | Artifacts
+
+| `apiElements`
+| `com.fasterxml.jackson.core`, `com.fasterxml.jackson.bom`
+| `jackson-databind-2.17.2.jar`
+
+| `runtimeElements`
+| `com.fasterxml.jackson.core`
+| `jackson-databind-2.17.2.jar`
+
+| ... other variant ...
+| ... some dependencies ...
+| ... some artifacts ...
+|===
+
 Each *variant* consists of a set of *artifacts* and defines a set of *dependencies* (i.e. seen as transitive dependencies of the build):
 
-- The `runtimeElements` *variant* of `com.fasterxml.jackson.core:jackson-databind:2.17.2` depends on `com.fasterxml.jackson.core`.
-- The `runtimeElements` *variant* of `com.fasterxml.jackson.core:jackson-databind:2.17.2` is provided as a jar file called `jackson-databind-2.17.2.jar`.
+* The `runtimeElements` *variant* of `com.fasterxml.jackson.core:jackson-databind:2.17.2`:
+** Depends on `com.fasterxml.jackson.core`.
+** Provides an artifact called `jackson-databind-2.17.2.jar`.
 
-Each *variant* is described by *attributes*.
+To differentiate between the `apiElements` and `runtimeElements` variants, Gradle uses *attributes*.
 
 == Attributes
 
-To describe and differentiate between *variants*, Gradle uses *attributes*.
+To differentiate between *variants*, Gradle uses *attributes*.
 
 *Attributes* are used to define specific characteristics or properties of *variants* and the context in which those *variants* should be used.
 
-In the metadata for Jackson Databind, we see that the `runtimeElements` variant is described by the `org.gradle.category`, `org.gradle.dependency.bundling`, `org.gradle.libraryelement`, and `org.gradle.usage` attributes:
+In the *metadata* for Jackson Databind, we see that the `runtimeElements` *variant* is described by the `org.gradle.category`, `org.gradle.dependency.bundling`, `org.gradle.libraryelement`, and `org.gradle.usage` *attributes*:
 
 [source,json]
 ----
@@ -128,9 +151,11 @@ In the metadata for Jackson Databind, we see that the `runtimeElements` variant 
 }
 ----
 
-*Attributes* are defined as `key:value` pairs, where the key represents the *attribute*.
+*Attributes* are defined as `key:value` pairs, such as `org.gradle.category": "library"`.
 
-== The Dependency Graph
+Now that we understand the building blocks for dependency management, let's look into graph resolution.
+
+== Dependency Graph
 
 Gradle builds a dependency graph that represents a configuration's *dependencies* and their relationships.
 This graph includes both direct and transitive *dependencies*.
@@ -161,43 +186,46 @@ runtimeClasspath - Runtime classpath of source set 'main'.
 
 In this truncated output, `runtimeClasspath` represents the specific resolvable configurations in the project.
 
-NOTE: Each resolvable configuration calculates a separate dependency graph.
+*Each resolvable configuration calculates a separate dependency graph.*
 That's because different configurations can resolve to a different set of transitive dependencies for the same set of declared dependencies.
+
+In the example above, the resolvable configuration, `compileClasspath` could resolve a different set of dependencies and produce a very different graph than `runtimeClasspath`.
+
+So how does Gradle build the dependency graph?
 
 == Graph Resolution Flow
 
-Graph resolution operates on a node-by-node (i.e., *variant*-by-*variant*) basis.
+Graph resolution operates on a _node-by-node_ (i.e., *variant*-by-*variant*) basis.
+
+Each iteration of the loop processes one _node_ at a time, starting by de-queuing a _node_.
+
+In the beginning, the queue is empty.
+When the process starts, a _root node_ added to the queue.
+The _root node_ is effectively the resolvable configuration:
 
 image::dep-man-adv-2.png[]
 
-Each iteration of the loop processes one node at a time, starting by de-queuing a node.
+Gradle starts the loop by pulling the _root node_ from the queue.
+Gradle examines the *dependencies* of the _root node_, resolves their conflicts, and downloads their *metadata*.
+Based on their *metadata*, Gradle selects *variants* of those dependencies and adds them back to the queue.
 
-When the process starts, a root node added to the queue.
-Otherwise, the queue is empty.
+[[note]]
+NOTE: The _root_ *variant's* dependencies correspond to the declared *dependencies* of the resolvable configuration.
 
-Gradle starts the loop by pulling the root node from the queue.
-Gradle examines the *dependencies* of the root node, resolves their conflicts, and downloads their *metadata*.
-Based on this metadata, Gradle selects *variants* of those dependencies and adds them to the queue.
-
-At this point, the queue contains all selected *variants* for the root node's *dependencies*, which are then processed one by one.
-
-Note that the root *variant*'s dependencies correspond to the declared *dependencies* of the resolvable configuration.
-Essentially, the resolvable configuration becomes the root node of the graph.
+At this point, the queue contains all selected *variants* for the _root node's_ *dependencies*, which will now be processed one by one.
 
 For each node in the loop Gradle:
 
 1. Evaluates its *dependencies*.
 2. Determines their targeted versions using <<sec:conflict-resolution,conflict resolution>>.
 3. <<sec:how-gradle-downloads-deps,Downloads the *metadata*>> for all *components* at once.
-4. <<sec:variant-selection,Select variants>> for each of those *components*.
+4. <<sec:variant-selection,Select *variants*>> for each of those *components*.
 5. Adds the *variants* to the top-level queue.
 
 The loop is repeated until the node queue is empty.
-
 Once the process is complete, the <<sec:resolved-dep-graph,dependency graph is resolved>>.
 
-Graph resolution is single-threaded.
-The process alternates between parallel downloads and single-threaded logic, repeating this pattern for the entire graph.
+TIP: Graph resolution alternates between parallel metadata downloads and single-threaded logic, repeating this pattern over and over again for a single graph.
 
 [[sec:conflict-resolution]]
 == Conflict Resolution
@@ -335,12 +363,12 @@ A repository is marked as unavailable when it cannot be reached, either due to a
 
 Based on the requirements of the build, Gradle selects one of the *variants* of the module present in the *metadata*.
 
-Specifically, Gradle attempts to match the *attributes* from the resolved configuration to those in the module *metadata*.
+Specifically, Gradle attempts to match the *attributes* from the resolved configuration to those in the *module* *metadata*.
 
-Variant selection is fully described in the <<variant_aware_resolution.adoc#sec:understanding-variant-selection,next section>>.
+Variant selection and attribute matching is fully described in the <<variant_aware_resolution.adoc#sec:understanding-variant-selection,next section>>.
 
 [[sec:resolved-dep-graph]]
-== `ResolutionResult` API
+== Available APIs
 
 The link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`] API provides access to the resolved dependency graph without triggering *artifact* downloads.
 
@@ -400,7 +428,7 @@ Compare this to the output of the `dependencies` task:
 include::{snippetsPath}/dependencyManagement/performingResolution-resolutionResult/tests/dependencies.out[]
 ----
 
-Notice how the graph is the same for both representations.
+Notice how the graph is the same for both representations, the only difference it the chosen *variant* information available in the dot graph.
 
 [.text-right]
-**Next Step:** <<variant_aware_resolution.adoc#sec:understanding-variant-selection,Learn about Variant Selection>> >>
+**Next Step:** <<variant_aware_resolution.adoc#sec:understanding-variant-selection,Learn about Variant Selection and Attribute Matching>> >>

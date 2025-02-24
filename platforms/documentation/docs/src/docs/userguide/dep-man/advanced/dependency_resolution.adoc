@@ -40,7 +40,7 @@ See <<graph_resolution.adoc#dependency-graph-resolution,Graph Resolution>> to le
 [[sec:artifact-resolution]]
 == 2. Artifact Resolution
 
-Once the *dependency graph* is resolved, the _artifact resolution_ phase determines which *artifacts* (i.e. files) need to be downloaded or retrieved.
+Once the dependency graph is resolved, the _artifact resolution_ phase determines which *artifacts* (i.e. files) need to be downloaded or retrieved for each variant.
 
 See <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
 
