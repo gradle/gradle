@@ -133,7 +133,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
         Location loc = problemDiagnostics.getLocation();
         if (loc != null) {
-            addFileLocationTo(locations, getFileLocation(loc));
+            FileLocation fileLocation = getFileLocation(loc);
+            locations.remove(fileLocation);
+            locations.add(new DefaultStackTraceLocation(fileLocation, problemDiagnostics.getStack()));
         }
         PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(problemDiagnostics);
         if (pluginIdLocation != null) {
@@ -141,6 +143,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         }
     }
 
+    @Nullable
     private static PluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
         UserCodeSource source = problemDiagnostics.getSource();
         if (source == null) {
