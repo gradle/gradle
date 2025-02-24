@@ -103,7 +103,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
         buildFile "grammar-builder/build.gradle", """
             generateGrammarSource {
-                arguments << '-dfa'
+                arguments.add('-dfa')
             }
         """
 
