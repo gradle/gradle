@@ -130,49 +130,57 @@ IMPORTANT: The *variant* name is primarily used for debugging and error messages
 [[sec:abm-algorithm]]
 == Attribute Matching Algorithm
 
-Gradle's dependency resolution engine performs the following *attribute* matching algorithm to find the best result (or fail):
+Gradle's dependency resolution engine follows this *attribute matching* algorithm to determine the best candidate (or fail if no match is found):
 
-* For each candidate,
-** For each candidate *attribute*,
-*** If the *attribute* value matches the consumers *requested attribute* value exactly,
-*** Or if the *attribute* value passes the compatibility test, the candidate is compatible.
-*** Else, the candidate is eliminated.
+=== Step 1: Initial Attribute Matching
 
-Once the loops completes:
+The *requested attributes* and matched against the *candidate attribute*:
 
-* If only one candidate is compatible, that candidate wins.
-* If several candidates are compatible, the candidate with the _most matching_ *attributes* win.
-* If several candidates are compatible, and are compatible with an _equal number_ of *attributes*, Gradle needs to _disambiguate_ the candidates.
+* FOR each *candidate*:
+** FOR each *candidate attribute*:
+*** IF the *attribute* value *exactly matches* the consumer's *requested attribute* value, the candidate is compatible.
+*** OR if the *attribute* value *passes the compatibility test*, the candidate is compatible.
+*** ELSE, the candidate is eliminated.
 
-The *requested attributes* are now prioritized based on _disambiguation precedence_.
-If no precedence exists, the *requested attribute* is excluded from the next loop:
+=== Step 2: Selecting the Best Match
 
-* For each candidate,
-** For each *requested attribute* (in _disambiguation preference_ order),
-*** If a matching candidate *attribute* exists,
-**** If the *attribute* has a value matching the _disambiguation rule_, the candidate is compatible.
-***** _The loop is broken as soon as a match is found._
-** If a candidate has _no matching_ *attributes*, the candidate is eliminated.
+Once the loop completes:
 
-Once the loops completes:
+* IF **only one candidate** is compatible, that candidate wins.
+* IF **multiple candidates** are compatible, the one with the **most matching attributes** wins.
+* IF **multiple candidates have the same number of matching attributes**, Gradle proceeds to **disambiguation**.
 
-* If only one candidate remains, that candidate wins.
-* If several candidates still remain, Gradle repeats the process with *extra attributes*.
+=== Step 3: Disambiguation Using Requested Attributes
 
-*Extra attributes* are *attributes* that were not requested by the consumer but are present on at least one candidate.
-These extra *attributes* are considered in precedence order:
+The *requested attributes* are prioritized based on **disambiguation precedence**.
+IF a requested attribute **has no precedence**, it is excluded from the next iteration:
 
-* For each candidate,
-** For each *extra attribute* (in _preference order_),
-*** If the *attribute* has a known precedence, the candidate is compatible.
-**** _The loop is broken as soon as a match is found._
-** After all extra *attributes* with _precedence_ are considered, the remaining candidates can be chosen if they are compatible with all the _non-ordered disambiguation rules_.
+* FOR each *candidate*:
+** FOR each *requested attribute* (in precedence order):
+*** IF a matching candidate *attribute* exists:
+**** IF the *attribute* value **matches the disambiguation rule**, the candidate is compatible.
+**** *The loop stops as soon as a match is found.*
+** IF a candidate **has no matching attributes**, the candidate is eliminated.
 
-Once the loops completes:
+=== Step 4: Extra Attributes Consideration
 
-* If several candidates still remain, Gradle will consider extra *attributes* again. A candidate can be chosen if it has the fewest number of *extra attributes*.
+If multiple candidates still remain, Gradle considers *extra attributes*—these are *attributes* that were **not requested by the consumer** but are present on at least one candidate.
 
-If at any step no compatible candidates remain, resolution fails.
+* FOR each *candidate*:
+** FOR each *extra attribute* (in precedence order):
+*** IF the *attribute* has a **known precedence**, the candidate is compatible.
+*** **The loop stops as soon as a match is found.**
+** After considering all extra attributes with **precedence**, the remaining candidates can be chosen if they are compatible with all **non-ordered disambiguation rules**.
+
+=== Step 5: Final Selection
+
+Once the loop completes:
+
+* IF **multiple candidates still remain**, Gradle evaluates extra *attributes* again and **selects the candidate with the fewest extra attributes**.
+
+=== Step 6: Failure Condition
+
+If at any point **no candidates remain**, **resolution fails**.
 
 Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging *attribute* matching failures.
 
