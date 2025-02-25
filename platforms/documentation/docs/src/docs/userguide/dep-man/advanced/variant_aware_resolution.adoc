@@ -134,9 +134,9 @@ Gradle's dependency resolution engine follows this *attribute matching* algorith
 
 image::dep-man-adv-5.png[]
 
-=== Step 1: Single Exact Matching
+=== Step 1: Single Exact Match
 
-The *requested attributes* and matched against the *candidate attribute*:
+The *requested attributes* are matched against the *candidate attributes*.
 
 * FOR each *candidate*:
 ** FOR each *candidate attribute*:
@@ -154,15 +154,23 @@ Once the loop completes:
 
 === Step 3: Disambiguation Using Requested Attributes
 
-The *requested attributes* are prioritized based on **disambiguation precedence**.
-IF a requested attribute **has no precedence**, it is excluded from the next iteration:
+The *requested attributes* are prioritized based on link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(java.util.List)[**disambiguation precedence**]:
+
+* IF a requested attribute **has no precedence** (i.e., not included in the precedence list), it is excluded from the next iteration.
+* IF a requested attribute *has the same value across all remaining candidates*, it is excluded from the next iteration.
+
+Once precedence order is achieved:
 
 * FOR each *candidate*:
 ** FOR each *requested attribute* (in precedence order):
-*** IF a matching candidate *attribute* exists:
-**** IF the *attribute* value **matches the disambiguation rule**, the candidate is compatible.
-**** *The loop stops as soon as a match is found.*
-** IF a candidate **has no matching attributes**, the candidate is eliminated.
+*** IF a link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[**disambiguation rule**] exists, run it.
+**** IF the rule passes, the candidate is compatible. **THE INNER LOOP BREAKS**.
+*** ELSE if no rule exists, Gradle continues to the next **requested attribute**.
+
+Once the loop completes:
+
+* IF **only one candidate** is compatible, that candidate wins.
+* IF **multiple candidates** are compatible, Gradle proceeds with disambiguation using extra attributes.
 
 === Step 4: Extra Attributes Consideration
 
@@ -170,15 +178,20 @@ If multiple candidates still remain, Gradle considers *extra attributes*—these
 
 * FOR each *candidate*:
 ** FOR each *extra attribute* (in precedence order):
-*** IF the *attribute* has a **known precedence*-4*, the candidate is compatible.
-*** **The loop stops as soon as a match is found.**
-** After considering all extra attributes with **precedence**, the remaining candidates can be chosen if they are compatible with all **non-ordered disambiguation rules**.
-
-=== Step 5: Final Selection
+*** IF a link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[**disambiguation rule**] exists, run it.
+**** IF the rule passes, the candidate is compatible. **THE INNER LOOP BREAKS**.
+*** ELSE if no rule exists, Gradle continues to the next **extra attribute**.
 
 Once the loop completes:
 
-* IF **multiple candidates still remain**, Gradle evaluates extra *attributes* again and **selects the candidate with the fewest extra attributes**.
+* IF **only one candidate** is compatible, that candidate wins.
+* IF **multiple candidates** are compatible, Gradle proceeds with the final selection.
+
+=== Step 5: Final Selection
+
+After considering all *extra attributes* with **precedence**, the remaining candidates can be chosen if they are compatible with all **non-ordered disambiguation rules**.
+
+Gradle evaluates extra *attributes* again and **selects the candidate with the fewest extra attributes**.
 
 === Step 6: Failure Condition
 
