@@ -132,7 +132,9 @@ IMPORTANT: The *variant* name is primarily used for debugging and error messages
 
 Gradle's dependency resolution engine follows this *attribute matching* algorithm to determine the best candidate (or fail if no match is found):
 
-=== Step 1: Initial Attribute Matching
+image::dep-man-adv-5.png[]
+
+=== Step 1: Single Exact Matching
 
 The *requested attributes* and matched against the *candidate attribute*:
 
@@ -142,7 +144,7 @@ The *requested attributes* and matched against the *candidate attribute*:
 *** OR if the *attribute* value *passes the compatibility test*, the candidate is compatible.
 *** ELSE, the candidate is eliminated.
 
-=== Step 2: Selecting the Best Match
+=== Step 2: Most Matching Attributes
 
 Once the loop completes:
 
@@ -168,7 +170,7 @@ If multiple candidates still remain, Gradle considers *extra attributes*—these
 
 * FOR each *candidate*:
 ** FOR each *extra attribute* (in precedence order):
-*** IF the *attribute* has a **known precedence**, the candidate is compatible.
+*** IF the *attribute* has a **known precedence*-4*, the candidate is compatible.
 *** **The loop stops as soon as a match is found.**
 ** After considering all extra attributes with **precedence**, the remaining candidates can be chosen if they are compatible with all **non-ordered disambiguation rules**.
 

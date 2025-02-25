@@ -20,7 +20,7 @@ After constructing a dependency graph, Gradle performs *artifact resolution*, ma
 == Artifacts
 
 An *artifact* is a file that is produced or consumed during the build process.
-*Artifacts* typically include compiled libraries, JAR files, AAR files, DLLs, or ZIPs.
+*Artifacts* are typically files such as compiled libraries, JAR files, AAR files, DLLs, or ZIPs.
 
 Let's look at the *metadata* for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` which showcases several *variants* and *artifacts*:
 
@@ -40,7 +40,10 @@ Let's look at the *metadata* for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` whi
       },
       "files": [
         {
-          "name": "kotlin-stdlib-1.8.10.jar"
+          "name": "kotlin-stdlib-1.8.10-public.jar"
+        },
+        {
+          "name": "kotlin-stdlib-1.8.10-private.jar"
         }
       ]
     },
@@ -94,7 +97,7 @@ As we can see there are a number of *artifacts* available in the *metadata*:
 | Variant | Artifact(s) | Purpose
 
 | `apiElements`
-| `kotlin-stdlib-1.8.10.jar`
+| `kotlin-stdlib-1.8.10-public.jar`, `kotlin-stdlib-1.8.10-private.jar`
 | Standard Kotlin runtime (default).
 
 | `runtimeElements`
@@ -110,8 +113,9 @@ As we can see there are a number of *artifacts* available in the *metadata*:
 | Shared standard library for Kotlin Multiplatform.
 |===
 
-In an ideal case, once a *variant* is selected, the *artifact* should be automatically resolved.
+Typically, once a *variant* is selected, its associated *artifacts* can be automatically resolved.
 However, there are specific reasons why *artifact* selection still happens _after_ *variant* selection.
+
 For example, what if the metadata for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10` looked like this:
 
 [source,json]
@@ -120,20 +124,47 @@ For example, what if the metadata for `org.jetbrains.kotlin:kotlin-stdlib:1.8.10
 {
   "variants": [
     {
-      "name": "apiElements",
+      "name": "runtimeElements",
       "attributes": {
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.jvm.version": "8",
         "org.gradle.libraryelements": "jar",
-        "org.gradle.usage": "java-api"
+        "org.gradle.usage": "java-runtime"
       },
       "files": [
         {
           "name": "kotlin-stdlib-1.8.10.jar"
-        },
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "classes",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
         {
-          "name": "kotlin-stdlib-1.8.10.tar"
+          "name": "build/classes/java/main/"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.version": "8",
+        "org.gradle.libraryelements": "resources",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "build/resources/main/"
         }
       ]
     }
@@ -234,15 +265,14 @@ include::sample[dir="snippets/dependencyManagement/performingResolution-artifact
 ====
 
 Then, we can wire up a resolvable configuration's files to the task's input.
-The `Configuration` directly implements `FileCollection` and can be wired directly.
-Alternatively, wiring through `Configuration.getIncoming()` is a more explicit approach:
+The `Configuration` directly implements `FileCollection` and can be wired directly:
 
 ====
 include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/kotlin",files="build.gradle.kts[tags=implicit-file-resolution]"]
 include::sample[dir="snippets/dependencyManagement/performingResolution-artifactResolution/groovy",files="build.gradle[tags=implicit-file-resolution]"]
 ====
 
-Running both of these tasks, we can see the output is identical:
+Running the `resolveConfiguration` task produces:
 
 ----
 include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolution/tests/resolve-files.out[]
@@ -275,7 +305,7 @@ include::{snippetsPath}/dependencyManagement/performingResolution-artifactResolu
 [[sec:customizing-artifact-selection]]
 === Custom Artifact Selection
 
-An link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] API operates on top of the resolved graph, defined by the link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`].
+The link:{javadocPath}/org/gradle/api/artifacts/ArtifactView.html[`ArtifactView`] API operates on top of the resolved graph, defined by a {javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[`ResolutionResult`].
 
 The API provides flexible ways to access the resolved artifacts:
 

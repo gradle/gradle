@@ -1,59 +1,81 @@
-// tag::artifact-views-lib[]
+// tag::artifact-views-app[]
 plugins {
-    id 'java-library'
+    application
 }
 
 repositories {
     mavenCentral()
 }
 
+// Declare the dependency on the producer project
 dependencies {
-    // Define some dependencies here
+    implementation(project(":producer")) // This references another subproject in the same build
 }
+// end::artifact-views-app[]
 
-// Define a task that produces a custom artifact
-tasks.register('createProductionArtifact', Jar) {
-    archiveBaseName.set('production')
-    from(sourceSets.main.output)
-    destinationDirectory.set(file('build/libs'))
-}
-
-configurations {
-    // Define a custom configuration and extend from runtimeClasspath
-    apiProductionElements {
-        extendsFrom(configurations.apiElements)
-        attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, 'production'))
+tasks.register("checkResolvedVariant") {
+    doLast {
+        println("RuntimeClasspath Configuration:")
+        val resolvedArtifacts = configurations.runtimeClasspath.incoming.artifacts.resolvedArtifacts.get()
+        resolvedArtifacts.forEach { artifact ->
+            println("- Artifact: ${artifact.file}") // Print each resolved artifact file
         }
-        artifacts {
-            add('apiProductionElements', tasks.named('createProductionArtifact'))
-        }
-    }
-}
-// end::artifact-views-lib[]
-
-tasks.register('checkProducerVariants') {
-    def producerProject = project(':producer')
-
-    // Check the outgoing variants for the producer
-    producerProject.configurations.each { config ->
-        println "Configuration: ${config.name}"
-        config.outgoing.artifacts.each {
-            println "  - Artifact: ${it.file}"
+        val resolvedComponents = configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+        resolvedComponents.forEach { component ->
+            if (component.id.displayName == "project :producer") {
+                println("- Component: ${component.id}")
+                component.variants.forEach { variant ->
+                    println("    - Variant: ${variant.name}")
+                    variant.attributes.keySet().forEach { key ->
+                        println("       - ${key.name} -> ${variant.attributes.getAttribute(key)}")
+                    }
+                }
+            }
         }
     }
 }
 
-tasks.register('checkProducerAttributes') {
-    configurations.each { config ->
-        println "\nConfiguration: ${config.name}"
-        println 'Attributes:'
-        config.attributes.keySet().each { key ->
-            println "  - ${key.name} -> ${config.attributes.getAttribute(key)}"
+// tag::artifact-views-sel[]
+tasks.register("artifactWithAttributeAndView") {
+    doLast {
+        val configuration = configurations.runtimeClasspath
+        println("ArtifactView with attribute 'libraryelements = classes' for ${configuration.name}:")
+        val artifactView = configuration.incoming.artifactView {
+            attributes {
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements::class, "classes"))
+            }
         }
-        println 'Artifacts:'
-        config.artifacts.each {
-            println "${it.file}"
+        println("- Attributes:")
+        artifactView.attributes.keySet().forEach { attribute ->
+            val value = artifactView.attributes.getAttribute(attribute)
+            println("  - ${attribute.name} = ${value}")
+        }
+        artifactView.artifacts.artifactFiles.files.forEach { file ->
+            println("- Artifact: ${file.name}")
         }
     }
 }
+// tag::artifact-views-sel[]
+
+// tag::artifact-views-resel[]
+tasks.register("artifactWithAttributeAndVariantReselectionView") {
+    doLast {
+        val configuration = configurations.runtimeClasspath
+        println("ArtifactView with attribute 'category = production' for ${configuration.name}:")
+        val artifactView = configuration.incoming.artifactView {
+            withVariantReselection()
+            attributes {
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category::class, "production"))
+            }
+        }
+        println("- Attributes:")
+        artifactView.attributes.keySet().forEach { attribute ->
+            val value = artifactView.attributes.getAttribute(attribute)
+            println("  - ${attribute.name} = ${value}")
+        }
+        artifactView.artifacts.artifactFiles.files.forEach { file ->
+            println("- Artifact: ${file.name}")
+        }
+    }
+}
+// end::artifact-views-resel[]

@@ -19,7 +19,7 @@ tasks.register('createProductionArtifact', Jar) {
 }
 
 configurations {
-    // Define a custom configuration and extend from runtimeClasspath
+    // Define a custom configuration and extend from apiElements
     apiProductionElements {
         extendsFrom(configurations.apiElements)
         attributes {

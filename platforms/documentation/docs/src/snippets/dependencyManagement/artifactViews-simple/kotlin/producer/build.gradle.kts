@@ -12,14 +12,14 @@ dependencies {
 }
 
 // Define a task that produces a custom artifact
-tasks.register("createProductionArtifact", Jar::class) {
+tasks.register("createProductionArtifact", Jar) {
     archiveBaseName.set("production")
     from(sourceSets["main"].output)
     destinationDirectory.set(file("build/libs"))
 }
 
 configurations {
-    // Define a custom configuration and extend from runtimeClasspath
+    // Define a custom configuration and extend from apiElements
     create("apiProductionElements") {
         extendsFrom(configurations.apiElements.get())
         outgoing.artifacts.clear()

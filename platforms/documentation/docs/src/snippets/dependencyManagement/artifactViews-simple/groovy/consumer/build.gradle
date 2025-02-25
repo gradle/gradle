@@ -42,7 +42,7 @@ tasks.register('artifactWithAttributeAndView') {
             attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'classes'))
         }
     }
-
+    println "- Attributes:"
     artifactView.attributes.keySet().each { attribute ->
         def value = artifactView.attributes.getAttribute(attribute)
         println "  - ${attribute.name} = ${value}"
