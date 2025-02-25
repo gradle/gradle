@@ -95,12 +95,12 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "plugin reports another downstream dependency plugin deprecated"() {
-
-
-        // how can plugins detect plugin dependencies?
-        // maybe this is very similar to deprecating binary dependencies in a plugin. Like this using an old version of lib X will be an error in the next major release of this plugin
-    }
+//    def "plugin reports another downstream dependency plugin deprecated"() {
+//
+//
+//        // how can plugins detect plugin dependencies?
+//        // maybe this is very similar to deprecating binary dependencies in a plugin. Like this using an old version of lib X will be an error in the next major release of this plugin
+//    }
 
     def "build script uses deprecated plugin API"() {
 

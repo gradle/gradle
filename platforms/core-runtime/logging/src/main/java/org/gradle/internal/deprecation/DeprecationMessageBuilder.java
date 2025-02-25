@@ -67,25 +67,25 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
     @SuppressWarnings("unchecked")
     public T withContext(String context) {
-        this.context = context;
+        this.context = context; // problem.details
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
     public T withAdvice(String advice) {
-        this.advice = advice;
+        this.advice = advice; // problem.solutions
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
     public T withProblemIdDisplayName(String problemIdDisplayName) {
-        this.problemIdDisplayName = problemIdDisplayName;
+        this.problemIdDisplayName = problemIdDisplayName; // problem.definition.id.displayName
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
     public T withProblemId(String problemId) {
-        this.problemId = problemId;
+        this.problemId = problemId; // problem.definition.id.name
         return (T) this;
     }
 
@@ -94,7 +94,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      */
     public WithDeprecationTimeline willBeRemovedInGradle9() {
         this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE9);
-        deprecationInfo.removedInVersion("9.0");
+        deprecationInfo.removedInVersion("9.0"); // problem.additionalData.removedIn
         return new WithDeprecationTimeline(this);
     }
 
@@ -102,7 +102,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This is scheduled to be removed in Gradle 10.0.
      */
     public WithDeprecationTimeline willBeRemovedInGradle10() {
-        deprecationInfo.removedInVersion("10.0");
+        deprecationInfo.removedInVersion("10.0"); // problem.additionalData.removedIn
         this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE10);
         return new WithDeprecationTimeline(this);
     }
@@ -111,7 +111,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This will fail with an error in Gradle 9.0.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle9() {
-        deprecationInfo.removedInVersion("9.0");
+        deprecationInfo.removedInVersion("9.0"); // problem.additionalData.removedIn
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE9);
         return new WithDeprecationTimeline(this);
     }
@@ -120,7 +120,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: This will fail with an error in Gradle 10.0.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle10() {
-        deprecationInfo.removedInVersion("10.0");
+        deprecationInfo.removedInVersion("10.0"); // problem.additionalData.removedIn
         this.deprecationTimeline = DeprecationTimeline.willBecomeAnErrorInVersion(GRADLE10);
         return new WithDeprecationTimeline(this);
     }
@@ -129,34 +129,34 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * Output: Starting with Gradle 9.0, ${message}.
      */
     public WithDeprecationTimeline startingWithGradle9(String message) {
-        this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE9, message);
+        this.deprecationTimeline = DeprecationTimeline.startingWithVersion(GRADLE9, message);  // problem.details+=
         return new WithDeprecationTimeline(this);
     }
 
     void setIndirectUsage() {
-        this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT;
+        this.usageType = DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT; // no stacklocation, stacklocation if invoked
     }
 
     void setBuildInvocationUsage() {
-        this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION;
+        this.usageType = DeprecatedFeatureUsage.Type.BUILD_INVOCATION; // no stackLocation
     }
 
     void setSummary(String summary) {
-        this.summary = summary;
+        this.summary = summary; // problem.contextualMessage
         deprecationInfo.summary(summary);
     }
 
     void setAdvice(String advice) {
-        this.advice = advice;
+        this.advice = advice; // problem.solution
         deprecationInfo.advice(advice);
     }
 
     void setDeprecationTimeline(DeprecationTimeline deprecationTimeline) {
-        this.deprecationTimeline = deprecationTimeline;
+        this.deprecationTimeline = deprecationTimeline; // removedIn should be read from deprecationTimeline
     }
 
     void setDocumentation(DocLink documentation) {
-        this.documentation = documentation;
+        this.documentation = documentation; // doc.url
     }
 
     void setProblemIdDisplayName(String problemIdDisplayName) {
