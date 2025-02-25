@@ -402,4 +402,8 @@ public class Jvm implements JavaInfo {
         }
         return null;
     }
+
+    public String getImplementationJavaVersion() {
+        return implementationJavaVersion;
+    }
 }
