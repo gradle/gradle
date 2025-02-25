@@ -34,7 +34,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  *
  * This is intended to be used with objects that have been decorated by the class generator.
  * <p>
- * Accessing each “aspect” of a DSL object may fail (with an {@link IllegalStateException}) if the DSL
+ * Accessing each "aspect" of a DSL object may fail (with an {@link IllegalStateException}) if the DSL
  * object does not have that functionality. For example, calling {@link #getConventionMapping()} will fail
  * if the backing object does not implement {@link IConventionAware}.
  */

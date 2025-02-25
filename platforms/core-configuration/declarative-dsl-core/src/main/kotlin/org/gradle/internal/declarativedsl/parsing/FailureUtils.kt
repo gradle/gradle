@@ -61,12 +61,14 @@ fun collectFailures(results: Iterable<ElementResult<*>>): List<SingleFailureResu
             is NamedReference -> current.receiver?.let(::collectFrom)
             is LocalValue -> collectFrom(current.rhs)
             is FunctionArgument.Lambda -> collectFrom(current.block)
-            is FunctionArgument.ValueArgument -> collectFrom(current.expr)
+            is FunctionArgument.SingleValueArgument -> collectFrom(current.expr)
+            is FunctionArgument.GroupedVarargs -> current.elementArgs.forEach(::collectFrom)
 
             is Import,
             is Literal<*>,
             is Null,
             is This -> Unit
+
         }
     }
 

@@ -35,14 +35,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             def buildType = Attribute.of(BuildType)
             def extra = Attribute.of('extra', String)
 
-            allprojects {
-               dependencies {
-                   attributesSchema {
-                      attribute(flavor)
-                      attribute(buildType)
-                      attribute(extra)
-                   }
-               }
+            dependencies {
+                attributesSchema {
+                   attribute(flavor)
+                   attribute(buildType)
+                   attribute(extra)
+                }
             }
         '''
     }
@@ -69,66 +67,66 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "resolution fails when two configurations use the same attribute name with different types"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+
+        file("a/build.gradle") << """
             $typeDefs
 
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
-                }
-                dependencies.attributesSchema {
-                    attribute(buildType)
-                    attribute(flavor)
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == ['b-default.jar']
-                    }
-                }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) {
-                    doLast {
-                       assert configurations._compileFreeRelease.collect { it.name } == ['b-default.jar']
-                    }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+            }
+            dependencies.attributesSchema {
+                attribute(buildType)
+                attribute(flavor)
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                doLast {
+                   assert configurations._compileFreeDebug.collect { it.name } == ['b-default.jar']
                 }
             }
-            project(':b') {
-                def flavorInteger = Attribute.of('flavor', Integer)
-                def buildTypeInteger = Attribute.of('buildType', Integer)
-                dependencies {
-                    attributesSchema {
-                        attribute(flavorInteger)
-                        attribute(buildTypeInteger)
-                    }
-                }
-                configurations {
-                    create('default')
-                    foo {
-                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 1) }
-                    }
-                    bar {
-                        attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 2) }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                artifacts {
-                    'default' file('b-default.jar')
-                    foo fooJar
-                    bar barJar
+            task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                doLast {
+                   assert configurations._compileFreeRelease.collect { it.name } == ['b-default.jar']
                 }
             }
+        """
 
+        file("b/build.gradle") << """
+            $typeDefs
+
+            def flavorInteger = Attribute.of('flavor', Integer)
+            def buildTypeInteger = Attribute.of('buildType', Integer)
+            dependencies {
+                attributesSchema {
+                    attribute(flavorInteger)
+                    attribute(buildTypeInteger)
+                }
+            }
+            configurations {
+                create('default')
+                foo {
+                    attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 1) }
+                }
+                bar {
+                    attributes { attribute(flavorInteger, 1); attribute(buildTypeInteger, 2) }
+                }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            artifacts {
+                'default' file('b-default.jar')
+                foo fooJar
+                bar barJar
+            }
         """
 
         when:
@@ -148,9 +146,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "selects best compatible match using consumers disambiguation rules when multiple are compatible"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+
+        file("a/build.gradle") << """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -169,62 +167,59 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
 
-            project(':a') {
-               dependencies {
-                   attributesSchema {
-                      attribute(flavor) {
-                          compatibilityRules.add(FlavorCompatibilityRule)
-                          disambiguationRules.add(FlavorSelectionRule)
-                      }
-                   }
-               }
+            dependencies {
+                attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                        disambiguationRules.add(FlavorSelectionRule)
+                    }
+                }
             }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                def files = configurations._compileFreeDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-foo2.jar']
+                }
+            }
+        """
 
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    def files = configurations._compileFreeDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-foo2.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                    foo2 {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "TWO")) }
-                    }
-                    bar {
-                        attributes { $freeRelease }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task foo2Jar(type: Jar) {
-                   archiveBaseName = 'b-foo2'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    foo2 foo2Jar
-                    bar barJar
-                }
-            }
+        file("b/build.gradle") << """
+            $typeDefs
 
+            configurations {
+                foo {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+                foo2 {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "TWO")) }
+                }
+                bar {
+                    attributes { $freeRelease }
+                }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task foo2Jar(type: Jar) {
+               archiveBaseName = 'b-foo2'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                foo2 foo2Jar
+                bar barJar
+            }
         """
 
         when:
@@ -236,9 +231,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "selects configuration with requested value when multiple are compatible"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+
+        file("a/build.gradle") << """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -247,61 +242,58 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
 
-            project(':a') {
-               dependencies {
-                   attributesSchema {
-                      attribute(flavor) {
-                          compatibilityRules.add(FlavorCompatibilityRule)
-                      }
-                   }
-               }
+            dependencies {
+                attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule)
+                    }
+                }
             }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                def files = configurations._compileFreeDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-foo2.jar']
+                }
+            }
+        """
 
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    def files = configurations._compileFreeDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-foo2.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "FREE")) }
-                    }
-                    foo2 {
-                        attributes { $freeDebug }
-                    }
-                    bar {
-                        attributes { $freeRelease }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task foo2Jar(type: Jar) {
-                   archiveBaseName = 'b-foo2'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    foo2 foo2Jar
-                    bar barJar
-                }
-            }
+        file("b/build.gradle") << """
+            $typeDefs
 
+            configurations {
+                foo {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "FREE")) }
+                }
+                foo2 {
+                    attributes { $freeDebug }
+                }
+                bar {
+                    attributes { $freeRelease }
+                }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task foo2Jar(type: Jar) {
+               archiveBaseName = 'b-foo2'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                foo2 foo2Jar
+                bar barJar
+            }
         """
 
         when:
@@ -313,9 +305,9 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
 
     def "fails when multiple candidates are still available after disambiguation rules have been applied"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+
+        file("a/build.gradle") << """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -333,64 +325,61 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
                 }
             }
 
-            project(':a') {
-               dependencies.attributesSchema {
-                  attribute(flavor) {
-                      compatibilityRules.add(FlavorCompatibilityRule)
-                      disambiguationRules.add(FlavorSelectionRule)
-                  }
-               }
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
+                    disambiguationRules.add(FlavorSelectionRule)
+                }
             }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                doLast {
+                   assert configurations._compileFreeDebug.collect { it.name } == []
+                }
+            }
+        """
 
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                       assert configurations._compileFreeDebug.collect { it.name } == []
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "TWO")) }
-                    }
-                    foo2 {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                    foo3 {
-                        attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                    bar {
-                        attributes { $release; attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task foo2Jar(type: Jar) {
-                   archiveBaseName = 'b-foo2'
-                }
-                task foo3Jar(type: Jar) {
-                   archiveBaseName = 'b-foo3'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    foo2 foo2Jar
-                    bar barJar
-                }
-            }
+        file("b/build.gradle") << """
+            $typeDefs
 
+            configurations {
+                foo {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "TWO")) }
+                }
+                foo2 {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+                foo3 {
+                    attributes { $debug; attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+                bar {
+                    attributes { $release; attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task foo2Jar(type: Jar) {
+               archiveBaseName = 'b-foo2'
+            }
+            task foo3Jar(type: Jar) {
+               archiveBaseName = 'b-foo3'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            artifacts {
+                foo fooJar
+                foo2 foo2Jar
+                bar barJar
+            }
         """
 
         when:
@@ -407,9 +396,9 @@ All of them match the consumer attributes:
 
     def "can select best compatible match when single best matches are found on individual attributes"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+
+        file("a/build.gradle") << """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -437,73 +426,70 @@ All of them match the consumer attributes:
                 }
             }
 
-            project(':a') {
-               dependencies.attributesSchema {
-                  attribute(flavor) {
-                      compatibilityRules.add(FlavorCompatibilityRule)
-                      disambiguationRules.add(FlavorSelectionRule)
-                  }
-
-                  // for testing purposes, this strategy says that all build types are compatible, but returns the debug value as best
-                  attribute(buildType) {
-                     compatibilityRules.add(BuildTypeCompatibilityRule)
-                     disambiguationRules.add(SelectDebugRule)
-                  }
-               }
-            }
-
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileFreeRelease.attributes { $freeRelease }
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
+                    disambiguationRules.add(FlavorSelectionRule)
                 }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileFreeRelease project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    def files = configurations._compileFreeDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-foo2.jar']
-                    }
+
+                // for testing purposes, this strategy says that all build types are compatible, but returns the debug value as best
+                attribute(buildType) {
+                   compatibilityRules.add(BuildTypeCompatibilityRule)
+                   disambiguationRules.add(SelectDebugRule)
                 }
             }
-            project(':b') {
-                configurations {
-                    foo {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                    foo2 {
-                        attributes { attribute(buildType, BuildType.debug); attribute(flavor, objects.named(Flavor, "TWO")) }
-                    }
-                    bar {
-                        attributes { attribute(buildType, BuildType.release); attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                    bar2 {
-                        attributes { attribute(buildType, BuildType.release); attribute(flavor, objects.named(Flavor, "TWO")) }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task foo2Jar(type: Jar) {
-                   archiveBaseName = 'b-foo2'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                task bar2Jar(type: Jar) {
-                   archiveBaseName = 'b-bar2'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    foo2 foo2Jar
-                    bar barJar
-                    bar2 bar2Jar
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileFreeRelease.attributes { $freeRelease }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileFreeRelease project(':b')
+            }
+            task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                def files = configurations._compileFreeDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-foo2.jar']
                 }
             }
+        """
 
+        file("b/build.gradle") << """
+            $typeDefs
+
+            configurations {
+                foo {
+                    attributes { attribute(buildType, BuildType.debug); attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+                foo2 {
+                    attributes { attribute(buildType, BuildType.debug); attribute(flavor, objects.named(Flavor, "TWO")) }
+                }
+                bar {
+                    attributes { attribute(buildType, BuildType.release); attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+                bar2 {
+                    attributes { attribute(buildType, BuildType.release); attribute(flavor, objects.named(Flavor, "TWO")) }
+                }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task foo2Jar(type: Jar) {
+               archiveBaseName = 'b-foo2'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            task bar2Jar(type: Jar) {
+               archiveBaseName = 'b-bar2'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                foo2 foo2Jar
+                bar barJar
+                bar2 bar2Jar
+            }
         """
 
         when:
@@ -515,9 +501,9 @@ All of them match the consumer attributes:
 
     def "can select best compatible match based on requested value"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+
+        file("a/build.gradle") << """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -535,59 +521,56 @@ All of them match the consumer attributes:
                 }
             }
 
-            project(':a') {
-               dependencies.attributesSchema {
-                  attribute(flavor) {
-                      compatibilityRules.add(FlavorCompatibilityRule)
-                      disambiguationRules.add(FlavorSelectionRule)
-                  }
-               }
+            dependencies.attributesSchema {
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
+                    disambiguationRules.add(FlavorSelectionRule)
+                }
             }
+            configurations {
+                _compileFreeDebug.attributes { $freeDebug }
+                _compileDebug.attributes { $debug }
+            }
+            dependencies {
+                _compileFreeDebug project(':b')
+                _compileDebug project(':b')
+            }
+            task checkFreeDebug(dependsOn: configurations._compileFreeDebug) {
+                def files = configurations._compileFreeDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-foo2.jar']
+                }
+            }
+            task checkDebug(dependsOn: configurations._compileDebug) {
+                def files = configurations._compileDebug
+                doLast {
+                   assert files.collect { it.name } == ['b-foo.jar']
+                }
+            }
+        """
 
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes { $freeDebug }
-                    _compileDebug.attributes { $debug }
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                    _compileDebug project(':b')
-                }
-                task checkFreeDebug(dependsOn: configurations._compileFreeDebug) {
-                    def files = configurations._compileFreeDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-foo2.jar']
-                    }
-                }
-                task checkDebug(dependsOn: configurations._compileDebug) {
-                    def files = configurations._compileDebug
-                    doLast {
-                       assert files.collect { it.name } == ['b-foo.jar']
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo {
-                        attributes { attribute(flavor, objects.named(Flavor, "ONE")) }
-                    }
-                    foo2 {
-                        attributes { attribute(flavor, objects.named(Flavor, "TWO")) }
-                    }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task foo2Jar(type: Jar) {
-                   archiveBaseName = 'b-foo2'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    foo2 foo2Jar
-                }
-            }
+        file("b/build.gradle") << """
+            $typeDefs
 
+            configurations {
+                foo {
+                    attributes { attribute(flavor, objects.named(Flavor, "ONE")) }
+                }
+                foo2 {
+                    attributes { attribute(flavor, objects.named(Flavor, "TWO")) }
+                }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task foo2Jar(type: Jar) {
+               archiveBaseName = 'b-foo2'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                foo2 foo2Jar
+            }
         """
 
         when:
@@ -874,54 +857,54 @@ All of them match the consumer attributes:
 
     def "producer can apply disambiguation when consumer does not define any attributes"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+        file("a/build.gradle") << """
             $typeDefs
+
+            def platform = Attribute.of('platform', String)
+
+            configurations {
+                compile
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                def files = configurations.compile
+                doLast {
+                   assert files.collect { it.name } == ['b-bar.jar']
+                }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $typeDefs
+
+            def platform = Attribute.of('platform', String)
 
             class SelectionRule implements AttributeDisambiguationRule<String> {
                 void execute(MultipleCandidatesDetails<String> details) {
                     details.closestMatch(details.candidateValues.sort { it }.first())
                 }
             }
-
-            def platform = Attribute.of('platform', String)
-
-            project(':a') {
-                configurations {
-                    compile
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    def files = configurations.compile
-                    doLast {
-                       assert files.collect { it.name } == ['b-bar.jar']
-                    }
-                }
+            dependencies.attributesSchema.attribute(platform) {
+                disambiguationRules.add(SelectionRule)
             }
-            project(':b') {
-                dependencies.attributesSchema.attribute(platform) {
-                    disambiguationRules.add(SelectionRule)
-                }
-                configurations {
-                    foo.attributes { attribute(platform, 'b'); $debug }
-                    bar.attributes { attribute(platform, 'a'); $debug }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+            configurations {
+                foo.attributes { attribute(platform, 'b'); $debug }
+                bar.attributes { attribute(platform, 'a'); $debug }
             }
-
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
         """
 
         when:
@@ -933,89 +916,89 @@ All of them match the consumer attributes:
 
     def "both dependencies will choose the same default value"() {
         given:
-        createDirs("a", "b", "c")
-        file('settings.gradle') << "include 'a', 'b', 'c'"
-        buildFile << """
+        settingsFile << "include 'a', 'b', 'c'"
+
+        def common = """
             enum Arch {
                x86,
                arm64
             }
             def arch = Attribute.of(Arch)
             def dummy = Attribute.of('dummy', String)
+        """
 
-            allprojects {
-               dependencies {
-                   attributesSchema {
-                      attribute(dummy)
-                   }
-               }
+        file("a/build.gradle") << """
+            $common
+            dependencies {
+                attributesSchema {
+                   attribute(dummy)
+                }
             }
+            configurations {
+                compile.attributes { attribute(dummy, 'dummy') }
+            }
+            dependencies {
+                compile project(':b')
+                compile project(':c')
+            }
+            task check(dependsOn: configurations.compile) {
+                def files = configurations.compile
+                doLast {
+                   assert files.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
+                }
+            }
+        """
 
-            project(':b') {
-               dependencies.attributesSchema {
-                    attribute(arch) {
-                       disambiguationRules.pickLast { a,b -> a<=>b }
-                  }
-               }
-            }
-            project(':c') {
-                dependencies.attributesSchema {
-                    attribute(arch) {
-                       disambiguationRules.pickLast { a,b -> a<=>b }
-                    }
-                }
-            }
+        file("b/build.gradle") << """
+            $common
 
-            project(':a') {
-                configurations {
-                    compile.attributes { attribute(dummy, 'dummy') }
-                }
-                dependencies {
-                    compile project(':b')
-                    compile project(':c')
-                }
-                task check(dependsOn: configurations.compile) {
-                    def files = configurations.compile
-                    doLast {
-                       assert files.collect { it.name } == ['b-bar.jar', 'c-bar.jar']
-                    }
+            dependencies.attributesSchema {
+               attribute(dummy)
+                attribute(arch) {
+                    disambiguationRules.pickLast { a,b -> a<=>b }
                 }
             }
-            project(':b') {
-                configurations {
-                    foo.attributes { attribute(arch, Arch.x86); attribute(dummy, 'dummy') }
-                    bar.attributes { attribute(arch, Arch.arm64); attribute(dummy, 'dummy') }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+            configurations {
+                foo.attributes { attribute(arch, Arch.x86); attribute(dummy, 'dummy') }
+                bar.attributes { attribute(arch, Arch.arm64); attribute(dummy, 'dummy') }
             }
-            project(':c') {
-                configurations {
-                    foo.attributes { attribute(arch, Arch.x86); attribute(dummy, 'dummy') }
-                    bar.attributes { attribute(arch, Arch.arm64); attribute(dummy, 'dummy') }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'c-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'c-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
             }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
+        """
 
+        file("c/build.gradle") << """
+            $common
+
+            dependencies.attributesSchema {
+               attribute(dummy)
+                attribute(arch) {
+                   disambiguationRules.pickLast { a,b -> a<=>b }
+                }
+            }
+            configurations {
+                foo.attributes { attribute(arch, Arch.x86); attribute(dummy, 'dummy') }
+                bar.attributes { attribute(arch, Arch.arm64); attribute(dummy, 'dummy') }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'c-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'c-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
         """
 
         when:
@@ -1027,9 +1010,8 @@ All of them match the consumer attributes:
 
     def "can inject configuration into compatibility and disambiguation rules"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+        def common = """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -1056,60 +1038,61 @@ All of them match the consumer attributes:
                     }
                 }
             }
-
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(flavor) {
-                            compatibilityRules.add(FlavorCompatibilityRule) { params("full") }
-                        }
-                        attribute(buildType) {
-                            disambiguationRules.add(BuildTypeSelectionRule) { params(BuildType.debug) }
-                        }
+            dependencies {
+                attributesSchema {
+                    attribute(flavor) {
+                        compatibilityRules.add(FlavorCompatibilityRule) { params("full") }
+                    }
+                    attribute(buildType) {
+                        disambiguationRules.add(BuildTypeSelectionRule) { params(BuildType.debug) }
                     }
                 }
             }
+        """
 
-            project(':a') {
-                configurations {
-                    compile { attributes { $free } }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task checkDebug(dependsOn: configurations.compile) {
-                    def files = configurations.compile
-                    doLast {
-                        // Compatibility rules select paid flavors, disambiguation rules select debug
-                        assert files.collect { it.name } == ['b-foo2.jar']
-                    }
+        file("a/build.gradle") << """
+            $common
+
+            configurations {
+                compile { attributes { $free } }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task checkDebug(dependsOn: configurations.compile) {
+                def files = configurations.compile
+                doLast {
+                    // Compatibility rules select paid flavors, disambiguation rules select debug
+                    assert files.collect { it.name } == ['b-foo2.jar']
                 }
             }
-            project(':b') {
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task foo2Jar(type: Jar) {
-                   archiveBaseName = 'b-foo2'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                tasks.withType(Jar) { destinationDirectory = buildDir }
-                configurations {
-                    c1 { attributes { attribute(flavor, objects.named(Flavor, 'preview')); $debug } }
-                    c2 { attributes { attribute(flavor, objects.named(Flavor, 'preview')); $release } }
-                    c3 { attributes { attribute(flavor, objects.named(Flavor, 'full')); $debug } }
-                    c4 { attributes { attribute(flavor, objects.named(Flavor, 'full')); $release } }
-                }
-                artifacts {
-                    c1 fooJar
-                    c2 fooJar
-                    c3 foo2Jar
-                    c4 barJar
-                }
-            }
+        """
 
+        file("b/build.gradle") << """
+            $common
+
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task foo2Jar(type: Jar) {
+               archiveBaseName = 'b-foo2'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
+            configurations {
+                c1 { attributes { attribute(flavor, objects.named(Flavor, 'preview')); $debug } }
+                c2 { attributes { attribute(flavor, objects.named(Flavor, 'preview')); $release } }
+                c3 { attributes { attribute(flavor, objects.named(Flavor, 'full')); $debug } }
+                c4 { attributes { attribute(flavor, objects.named(Flavor, 'full')); $release } }
+            }
+            artifacts {
+                c1 fooJar
+                c2 fooJar
+                c3 foo2Jar
+                c4 barJar
+            }
         """
 
         when:
@@ -1121,9 +1104,8 @@ All of them match the consumer attributes:
 
     def "user receives reasonable error message when compatibility rule cannot be created"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+        def common = """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -1132,40 +1114,42 @@ All of them match the consumer attributes:
                 }
             }
 
-            allprojects {
-                dependencies.attributesSchema {
-                    attribute(buildType)
-                    attribute(flavor) {
-                        compatibilityRules.add(FlavorCompatibilityRule)
-                    }
+            dependencies.attributesSchema {
+                attribute(buildType)
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
                 }
             }
+        """
 
-            project(':a') {
-                configurations {
-                    compile.attributes { $free; $debug }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                       configurations.compile.files
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    bar.attributes { $paid; $debug }
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                artifacts {
-                    bar barJar
-                }
-            }
+        file("a/build.gradle") << """
+            $common
 
+            configurations {
+                compile.attributes { $free; $debug }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                doLast {
+                   configurations.compile.files
+                }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $common
+
+            configurations {
+                bar.attributes { $paid; $debug }
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            artifacts {
+                bar barJar
+            }
         """
 
         when:
@@ -1182,9 +1166,8 @@ All of them match the consumer attributes:
 
     def "user receives reasonable error message when compatibility rule fails"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+        def common = """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -1193,40 +1176,42 @@ All of them match the consumer attributes:
                 }
             }
 
-            allprojects {
-                dependencies.attributesSchema {
-                    attribute(buildType)
-                    attribute(flavor) {
-                        compatibilityRules.add(FlavorCompatibilityRule)
-                    }
+            dependencies.attributesSchema {
+                attribute(buildType)
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
                 }
             }
+        """
 
-            project(':a') {
-                configurations {
-                    compile.attributes { $free; $debug }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                       configurations.compile.files
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    bar.attributes { $paid; $debug }
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                artifacts {
-                    bar barJar
-                }
-            }
+        file("a/build.gradle") << """
+            $common
 
+            configurations {
+                compile.attributes { $free; $debug }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                doLast {
+                   configurations.compile.files
+                }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $common
+
+            configurations {
+                bar.attributes { $paid; $debug }
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            artifacts {
+                bar barJar
+            }
         """
 
         when:
@@ -1242,9 +1227,8 @@ All of them match the consumer attributes:
 
     def "user receives reasonable error message when disambiguation rule cannot be created"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+        def common = """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -1260,46 +1244,48 @@ All of them match the consumer attributes:
                 }
             }
 
-            allprojects {
-                dependencies.attributesSchema {
-                    attribute(buildType)
-                    attribute(flavor) {
-                        compatibilityRules.add(FlavorCompatibilityRule)
-                        disambiguationRules.add(FlavorSelectionRule)
-                    }
+            dependencies.attributesSchema {
+                attribute(buildType)
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
+                    disambiguationRules.add(FlavorSelectionRule)
                 }
             }
+        """
 
-            project(':a') {
-                configurations {
-                    compile.attributes { $debug }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                       configurations.compile.files
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo.attributes { $free; $debug }
-                    bar.attributes { $paid; $debug }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
+        file("a/build.gradle") << """
+            $common
 
+            configurations {
+                compile.attributes { $debug }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                doLast {
+                   configurations.compile.files
+                }
+            }
+        """
+
+        file("b/build.gradle") << """
+            $common
+
+            configurations {
+                foo.attributes { $free; $debug }
+                bar.attributes { $paid; $debug }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
         """
 
         when:
@@ -1316,9 +1302,8 @@ All of them match the consumer attributes:
 
     def "user receives reasonable error message when disambiguation rule fails"() {
         given:
-        createDirs("a", "b")
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << """
+        settingsFile << "include 'a', 'b'"
+        def common = """
             $typeDefs
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
@@ -1333,46 +1318,47 @@ All of them match the consumer attributes:
                 }
             }
 
-            allprojects {
-                dependencies.attributesSchema {
-                    attribute(buildType)
-                    attribute(flavor) {
-                        compatibilityRules.add(FlavorCompatibilityRule)
-                        disambiguationRules.add(FlavorSelectionRule)
-                    }
+            dependencies.attributesSchema {
+                attribute(buildType)
+                attribute(flavor) {
+                    compatibilityRules.add(FlavorCompatibilityRule)
+                    disambiguationRules.add(FlavorSelectionRule)
                 }
             }
+        """
 
-            project(':a') {
-                configurations {
-                    compile.attributes { $debug }
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                       configurations.compile.files
-                    }
+        file("a/build.gradle") << """
+            $common
+            configurations {
+                compile.attributes { $debug }
+            }
+            dependencies {
+                compile project(':b')
+            }
+            task check(dependsOn: configurations.compile) {
+                doLast {
+                   configurations.compile.files
                 }
             }
-            project(':b') {
-                configurations {
-                    foo.attributes { $free; $debug }
-                    bar.attributes { $paid; $debug }
-                }
-                task fooJar(type: Jar) {
-                   archiveBaseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   archiveBaseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
+        """
 
+        file("b/build.gradle") << """
+            $common
+
+            configurations {
+                foo.attributes { $free; $debug }
+                bar.attributes { $paid; $debug }
+            }
+            task fooJar(type: Jar) {
+               archiveBaseName = 'b-foo'
+            }
+            task barJar(type: Jar) {
+               archiveBaseName = 'b-bar'
+            }
+            artifacts {
+                foo fooJar
+                bar barJar
+            }
         """
 
         when:

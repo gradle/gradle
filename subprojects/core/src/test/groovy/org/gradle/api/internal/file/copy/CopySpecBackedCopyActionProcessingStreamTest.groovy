@@ -16,7 +16,7 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.internal.file.CopyActionProcessingStreamAction
-import org.gradle.api.model.ObjectFactory
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.reflect.Instantiator
 import spock.lang.Specification
@@ -24,13 +24,13 @@ import spock.lang.Specification
 class CopySpecBackedCopyActionProcessingStreamTest extends Specification {
     CopySpecInternal copySpecInternal = Mock()
     Instantiator instantiator = Mock()
-    ObjectFactory objectFactory = Mock()
+    PropertyFactory propertyFactory = Mock()
     FileSystem fileSystem = Mock()
     CopyActionProcessingStreamAction action = Mock()
     CopyActionProcessingStream copyActionProcessingStream
 
     def setup() {
-        copyActionProcessingStream = new CopySpecBackedCopyActionProcessingStream(copySpecInternal, instantiator, objectFactory, fileSystem, false)
+        copyActionProcessingStream = new CopySpecBackedCopyActionProcessingStream(copySpecInternal, instantiator, propertyFactory, fileSystem, false)
     }
 
     def "walks spec"() {

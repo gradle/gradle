@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
@@ -205,7 +205,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         }
 
         @Override
-        public List<String> forVersionConflict(Set<Conflict> conflicts) {
+        public List<String> forVersionConflict(Conflict conflict) {
             if (owningProject == null) {
                 // owningProject is null for settings execution
                 return Collections.emptyList();
@@ -213,8 +213,8 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
             String taskPath = owningProject.getBuildTreePath().append(Path.path("dependencyInsight")).getPath();
 
-            ModuleVersionIdentifier identifier = conflicts.iterator().next().getVersions().get(0);
-            String dependencyNotation = identifier.getGroup() + ":" + identifier.getName();
+            ModuleIdentifier moduleId = conflict.getModuleId();
+            String dependencyNotation = moduleId.getGroup() + ":" + moduleId.getName();
 
             return Collections.singletonList(String.format(
                 "Run with %s --configuration %s --dependency %s to get more insight on how to solve the conflict.",
@@ -309,7 +309,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
                     attributeDesugaring
                 );
 
-                return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet(), null);
+                return new DefaultVisitedGraphResults(emptyResult, Collections.emptySet());
             }
         }
 

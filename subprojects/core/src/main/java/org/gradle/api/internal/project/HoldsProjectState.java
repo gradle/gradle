@@ -23,7 +23,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * A service can implement this interface to indicate that it holds mutable project scoped state that should be discarded when
  * projects are discarded.
  */
-@ServiceScope({Scope.BuildTree.class, Scope.Build.class})
+@ServiceScope(Scope.Build.class)
 public interface HoldsProjectState {
     /**
      * Discards any project state.

@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Plugin and integration with JaCoCo code coverage"
@@ -20,11 +19,13 @@ dependencies {
     api(projects.fileOperations)
     api(projects.platformJvm)
     api(projects.reporting)
+    api(projects.workers)
 
     api(libs.groovy)
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.daemonServerWorker)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
     implementation(projects.platformBase)

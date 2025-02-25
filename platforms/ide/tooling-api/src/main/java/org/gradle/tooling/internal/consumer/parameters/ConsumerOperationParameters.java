@@ -25,6 +25,7 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
+import org.gradle.tooling.internal.consumer.ConnectionConfigurationUtil;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.BuildParameters;
@@ -447,19 +448,29 @@ public class ConsumerOperationParameters implements BuildParameters {
 
     @Nullable
     public List<String> getJvmArguments() {
-        // Combined list of JVM arguments
-        List<String> arguments = new ArrayList<>();
-        if (baseJvmArguments != null) {
-            arguments.addAll(baseJvmArguments);
-        }
-        if (additionalJvmArguments != null) {
-            arguments.addAll(additionalJvmArguments);
-        }
+        // Backport fix for https://github.com/gradle/gradle/issues/31462
+        // Cross-version scenarios
+        // - Old TAPI (8.12 and before) invokes new Gradle (8.13 and after):
+        //     ProviderConnection will catch UnsupportedMethodException when calling getBaseJvmArgs() and will fall back to this method, but with the previous behavior (ie `return jvmArguments`)
+        //     see https://github.com/gradle/gradle/blob/v8.12.0/platforms/ide/tooling-api/src/main/java/org/gradle/tooling/internal/consumer/parameters/ConsumerOperationParameters.java#L406
+        // - New TAPI (8.13 and after) invokes old Gradle (8.12 and before):
+        //     We try to approximate the behavior of the new Gradle by returning the combined list of JVM arguments defined in gradle.properties and in the TAPI client config; see the method body below.
+        //     see https://github.com/gradle/gradle/blob/v8.12.0/platforms/core-runtime/launcher/src/main/java/org/gradle/tooling/internal/provider/ProviderConnection.java#L350
 
-        // To keep the old behavior, when no JVM arguments are set, return null
-        if (arguments.isEmpty()) {
+        if (baseJvmArguments == null && additionalJvmArguments == null) {
+            // To keep the old behavior, when no JVM arguments are set, return null.
             return null;
         } else {
+            // Otherwise, return the combined list of JVM arguments defined in the gradle.properties file and in the TAPI client config.
+            List<String> arguments = new ArrayList<>();
+            if (baseJvmArguments != null) {
+                arguments.addAll(baseJvmArguments);
+            } else {
+                arguments.addAll(ConnectionConfigurationUtil.determineJvmArguments(parameters));
+            }
+            if (additionalJvmArguments != null) {
+                arguments.addAll(additionalJvmArguments);
+            }
             return arguments;
         }
     }

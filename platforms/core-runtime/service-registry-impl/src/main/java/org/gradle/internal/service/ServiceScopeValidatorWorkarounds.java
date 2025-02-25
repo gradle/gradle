@@ -31,10 +31,6 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
-        // Avoid annotating services published as public libraries
-        // build-cache-base:
-        "org.gradle.caching.internal.origin.OriginMetadataFactory",
-
         // It's supposed to be only in the Settings scope
         // However, ProjectBuilderImpl does not instantiate that scope at all, while still requiring the service
         // Because of this, it artificially puts it into the Build-scope to make it available

@@ -33,10 +33,12 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.enterpriseOperations)
 
     api(libs.guava)
     api(libs.inject)
     api(libs.jsr305)
+    api(projects.serialization)
 
     testImplementation(projects.logging)
     integTestImplementation(projects.internalTesting)

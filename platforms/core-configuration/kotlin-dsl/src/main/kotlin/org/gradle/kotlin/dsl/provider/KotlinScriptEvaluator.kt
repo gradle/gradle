@@ -161,7 +161,7 @@ class StandardKotlinScriptEvaluator(
 
     private
     val interpreter by lazy {
-        when(propertyUpgradeReportConfig.isEnabled) {
+        when (propertyUpgradeReportConfig.isEnabled) {
             true -> Interpreter(InterpreterHostWithoutInMemoryCache(gradlePropertiesController))
             false -> Interpreter(InterpreterHost(gradlePropertiesController))
         }

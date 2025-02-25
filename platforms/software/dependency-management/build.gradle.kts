@@ -15,14 +15,12 @@ errorprone {
         "ClassCanBeStatic",
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
-        "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 2 occurrences
         "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
         "InlineMeSuggester", // 2 occurrences
         "InvalidParam", // 1 occurrences
-        "LoopOverCharArray", // 1 occurrences
         "MathAbsoluteNegative",
         "MissingCasesInEnumSwitch", // 7 occurrences
         "MixedMutabilityReturnType", // 5 occurrences
@@ -30,7 +28,6 @@ errorprone {
         "MutablePublicArray", // 1 occurrences
         "NonApiType", // 3 occurrences
         "NonCanonicalType", // 3 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
         "ReferenceEquality", // 10 occurrences
         "SameNameButDifferent", // 4 occurrences
         "StringCharset", // 1 occurrences
@@ -47,6 +44,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -61,6 +59,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.resources)
@@ -100,12 +99,14 @@ dependencies {
     implementation(libs.httpcore)
 
     testImplementation(projects.buildCachePackaging)
-    testImplementation(projects.diagnostics)
+    testImplementation(projects.softwareDiagnostics)
+
     testImplementation(projects.processServices)
     testImplementation(libs.asmUtil)
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.groovyXml)
     testImplementation(libs.jsoup)
+
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
@@ -126,7 +127,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.signing))
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
 
     testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")

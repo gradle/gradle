@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.groovy)
     implementation(projects.buildOption)
     implementation(projects.buildState)
+    implementation(projects.classloaders)
     implementation(projects.coreApi)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
@@ -58,7 +59,4 @@ dependencies {
     testRuntimeOnly(projects.distributionsCore) {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

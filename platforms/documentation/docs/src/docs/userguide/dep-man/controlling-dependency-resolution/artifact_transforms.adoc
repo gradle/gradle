@@ -15,7 +15,7 @@
 [[artifact-transforms]]
 = Artifact Transforms
 
-What if you want to makes changes to the files contained in one of your dependencies before you use it?
+What if you want to make changes to the files contained in one of your dependencies before you use it?
 
 For example, you might want to unzip a compressed file, adjust the contents of a JAR, or delete unnecessary files from a dependency that contains multiple files prior to using the result in a task.
 
@@ -110,7 +110,7 @@ include::sample[dir="snippets/dependencyManagement/artifactTransforms-simple/gro
 
 During a build, Gradle *automatically* runs registered transforms to satisfy a resolution request if a match is not directly available.
 
-Since no variants exist supplying artifacts of requested format (as none contain the `artifactType` attribute with a value of `"transformed-jar"`), Gradle attempts to construct a chain of transformations that will supply it.
+Since no variants exist supplying artifacts of requested format (as none contain the `artifactType` attribute with a value of `"transformed-jar"`), Gradle attempts to construct a chain of transformations that will supply an artifact matching the requested attributes.
 
 Gradle's search finds `MyTransform`, which is registered as producing the requested format, so it will automatically be run.
 Running this transform action modifies the artifacts of an existing source variant to produce new artifacts that are delivered to the consumer, in the requested format.
@@ -177,10 +177,31 @@ IMPORTANT: Gradle will not attempt to select or run Artifact Transforms when a v
 
 For example, if the requested variant is `java-api,classes`, but the dependency only has `java-api,jar`, Gradle can potentially transform the `JAR` file into a `classes` directory by unzipping it using an Artifact Transform that is registered with these attributes.
 
+TIP: Gradle applies transformations to artifacts, not variants.
+
+== Executing Artifact Transforms
+
+Gradle automatically selects Artifact Transforms as needed to satisfy resolution requests.
+
+To run an Artifact Transform, you can configure a custom <<artifact_views.adoc#artifact-views,Artifact View>> to request an artifact set that is not exposed by any variant of the target component.
+
+When resolving the `ArtifactView` Gradle will search for appropriate Artifact Transforms based on the requested attributes in the view.
+Gradle will run these transformations on the original artifacts found in a variant of the target component to produce a result compatible with the attributes in the view.
+
+In the example below, the `TestTransform` class defines a transformation that is registered to process artifacts of type "jar" into artifacts of type "stub":
+
+====
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/kotlin",files="build.gradle.kts[tags=artifact-views-with-custom-attribute]"]
+include::sample[dir="snippets/dependencyManagement/artifactTransforms-view/groovy",files="build.gradle[tags=artifact-views-with-custom-attribute]"]
+====
+
+The `testArtifact` task resolves artifacts of type "stub" using the `runtimeClasspath` configuration.
+This is achieved by creating an `ArtifactView` that filters for artifacts with `ARTIFACT_TYPE_ATTRIBUTE = "stub"`.
+
 [[sec:artifact-transform-chains]]
 == Understanding Artifact Transforms Chains
 
-When Gradle resolves a configuration and a dependency does not have a variant with the requested attributes, it attempts to find a chain of one or more Artifact Transforms that can be run sequentially to create the desired variant.
+When Gradle resolves a configuration and a variant in the graph does not have an artifact set with the requested attributes, it attempts to find a chain of one or more Artifact Transforms that can be run sequentially to create the desired artifact set.
 This process is called **Artifact Transform selection**:
 
 image::artifact-transform-5.png[]
@@ -340,6 +361,7 @@ When your transform runs, Gradle will inject the transitive dependencies into th
 
 Note that using input artifact dependencies in a transform has performance implications; only inject them when needed.
 
+[[sec:caching-transforms]]
 === Artifact Transforms with Caching
 
 Artifact Transforms can make use of the <<build_cache.adoc#build_cache,build cache>> to store their outputs and avoid rerunning their transform actions when the result is known.

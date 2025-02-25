@@ -1,3 +1,5 @@
+import org.gradle.api.attributes.AttributeCompatibilityRule
+import org.gradle.api.attributes.CompatibilityCheckDetails
 import org.gradle.api.attributes.java.TargetJvmVersion
 
 // tag::attributes[]
@@ -43,3 +45,28 @@ dependencies {
     }
 }
 // end::custom-attributes[]
+
+// tag::attribute-compatibility[]
+// Define the compatibility rule class
+class TargetJvmVersionCompatibilityRule : AttributeCompatibilityRule<Int> {
+    // Implement the execute method which will check compatibility
+    override fun execute(details: CompatibilityCheckDetails<Int>) {
+        // Switch case to check the consumer value for supported Java versions
+        when (details.consumerValue) {
+            8, 11 -> details.compatible()  // Compatible with Java 8 and 11
+            else -> details.incompatible()
+        }
+    }
+}
+
+// Register the compatibility rule within the dependencies block
+dependencies {
+    attributesSchema {
+        // Add the compatibility rule for the TargetJvmVersion attribute
+        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE) {
+            // Add the defined compatibility rule to this attribute
+            compatibilityRules.add(TargetJvmVersionCompatibilityRule::class.java)
+        }
+    }
+}
+// end::attribute-compatibility[]

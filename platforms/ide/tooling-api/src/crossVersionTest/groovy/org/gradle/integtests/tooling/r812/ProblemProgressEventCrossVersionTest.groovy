@@ -16,13 +16,17 @@
 
 package org.gradle.integtests.tooling.r812
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
@@ -31,7 +35,6 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -39,8 +42,9 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
+import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.buildFileLocation
 
-@ToolingApiVersion(">=8.12 <8.13")
+@ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
@@ -89,12 +93,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(listener.problems[0]) {
             definition.id.displayName.contains("The RepositoryHandler.jcenter() method has been deprecated.")
             definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
-            definition.id.group.name in ["deprecation", "repository-jcenter"]
+            definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
             definition.severity == Severity.WARNING
-            locations.find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
+            locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
         }
     }
 
+    @TargetGradleVersion(">=8.9 <8.13")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -117,9 +122,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         verifyAll(problems[0]) {
             details?.details == expectedDetails
             definition.documentationLink?.url == expectedDocumentation
-            locations.size() >= 2
-            (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            locations(it).size() >= 2
+            (locations(it)[0] as LineInFileLocation).path == '/tmp/foo'
+            (locations(it)[1] as LineInFileLocation).path == "build file '$buildFile.path'"
             definition.severity == Severity.WARNING
             solutions.size() == 1
             solutions[0].solution == 'try this instead'
@@ -131,6 +136,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @TargetGradleVersion(">=8.9 <8.13")
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         withReportProblemTask """
@@ -168,6 +174,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4609")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
@@ -255,14 +262,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")
@@ -288,6 +294,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems[0].failure == null
     }
 
+    @Requires(IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable)
     @TargetGradleVersion("=8.5")
     def "No problem for exceptions in 8.5"() {
         // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
@@ -302,7 +309,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         withConnection {
             it.newBuild()
                 .forTasks(":reportProblem")
-                .setJavaHome(jdk17.javaHome)
+                .setJavaHome(AvailableJavaHomes.differentJdk.javaHome)
                 .addProgressListener(listener)
                 .run()
         }
@@ -334,5 +341,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     def failureMessage(failure) {
         failure instanceof Failure ? failure.message : failure.failure.message
+    }
+
+    def locations(problem) {
+        problem.metaClass.respondsTo(problem, "getOriginLocations") ? problem.originLocations + problem.contextualLocations : problem.getLocations()
     }
 }

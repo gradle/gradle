@@ -15,7 +15,7 @@
 [[variant-attributes]]
 = Variants and Attributes
 
-**Variants** represent different versions or aspects of a component, like `api` vs `implementation` or `debug` vs `release`.
+**Variants** represent different versions or aspects of a component, like `api` vs `implementation`.
 **Attributes** define which variant is selected based on the consumer's requirements.
 
 For example, a library may have an `api` and an `implementation` variant.
@@ -54,8 +54,6 @@ attribute(TargetConfiguration.TARGET_ATTRIBUTE, objects.named("debug"))
 ----
 
 This sets the `TargetConfiguration.TARGET_ATTRIBUTE` to `"debug"`, meaning Gradle will attempt to resolve dependencies that have a "debug" variant, instead of other available variants (like "release").
-
-To understand how Gradle's dependency management engine works to select the best matching variant, see our <<variant_model.adoc#sec:variant-aware-matching,Understanding Variant Selection>> chapter.
 
 [[sec:standard-attributes]]
 == Standard attributes defined by Gradle
@@ -320,18 +318,17 @@ In Gradle, **attribute matching** and **attribute disambiguation** are key mecha
 Attributes let the engine select _compatible variants_.
 There are cases where a producer may not have _exactly_ what the consumer requests but has a variant that can be used.
 
+This example defines and registers a custom compatibility rule to ensure that dependencies are selected based on their compatibility with specific Java versions:
+
 ====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-strategy]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-strategy]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/kotlin",files="lib/build.gradle.kts[tags=attribute-compatibility]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-attributeSimple/groovy",files="lib/build.gradle[tags=attribute-compatibility]"]
 ====
-1. **Attribute Definition**: Define the attribute you want to apply compatibility rules to. In this case, `JavaLanguageVersion`.
-2. **Register Compatibility Rule**: Use the `attributeMatchingStrategy` to specify how to handle compatibility for the defined attribute. For instance, you can define which versions of the attribute are compatible.
-3. **Compatibility Logic**: Specify the compatibility logic inside the rule. You can define specific versions or attributes that are considered compatible or incompatible.
 
 Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules] that can be defined for each attribute.
 The role of a compatibility rule is to explain which attribute values are _compatible_ based on what the consumer asked for.
 
-Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
+Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
 
 [[sec:abm-disambiguation-rules]]
 === Attribute disambiguation rules
@@ -373,3 +370,73 @@ configurations.all {
 3. **Disambiguation Logic**: The `preferNewer()` method is a placeholder for your custom logic. You can implement more complex rules based on your requirements.
 
 Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema], which is a member of link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[DependencyHandler].
+
+[[sec:mapping-maven-ivy-to-variants]]
+== Mapping from Maven/Ivy to Gradle variants
+
+Neither Maven nor Ivy have the concept of _variants_, which are only natively supported by Gradle Module Metadata.
+Gradle can still work with Maven and Ivy by using different variant derivation strategies.
+
+.Relationship with Gradle Module Metadata
+--
+Gradle Module Metadata is a metadata format for modules published on Maven, Ivy and other kinds of repositories.
+It is similar to the `pom.xml` or `ivy.xml` metadata file, but this format contains details about variants.
+
+See the {metadata-file-spec}[Gradle Module Metadata specification] for more information.
+--
+
+[[sec:maven-mapping-to-variants]]
+=== Mapping of Maven POM metadata to variants
+
+Modules published to a Maven repository are automatically converted into variant-aware modules when resolved by Gradle.
+
+There is no way for Gradle to know which kind of _component_ was published:
+
+- a BOM that represents a Gradle platform
+- a BOM used as a super-POM
+- a POM that is both a platform _and_ a library
+
+The default strategy used by Java projects in Gradle is to derive 8 different variants:
+
+* two "library" variants (attribute `org.gradle.category` = `library`)
+** the `compile` variant maps the `<scope>compile</scope>` dependencies.
+This variant is equivalent to the `apiElements` variant of the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
+All dependencies of this scope are considered _API dependencies_.
+** the `runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependencies.
+This variant is equivalent to the `runtimeElements` variant of the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>>.
+All dependencies of those scopes are considered _runtime dependencies_.
+- in both cases, the `<dependencyManagement>` dependencies are _not converted to constraints_
+* a "sources" variant that represents the sources jar for the component
+* a "javadoc" variant that represents the javadoc jar for the component
+* four "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):
+** the `platform-compile` variant maps the  `<scope>compile</scope>` dependency management dependencies as _dependency constraints_.
+** the `platform-runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependency management dependencies as _dependency constraints_.
+** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
+** the `enforced-platform-runtime` is similar to `platform-runtime` but all the constraints are _forced_
+
+You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sec:bom-import, importing BOMs>> section of the manual.
+By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
+However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
+
+[[sec:ivy-mapping-to-variants]]
+== Mapping of Ivy files to variants
+
+Gradle has no built-in derivation strategy implemented for Ivy files.
+Ivy is a flexible format that allows you to publish arbitrary files and can be heavily customized.
+
+If you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#component-metadata-rules,_component_ metadata rule>>.
+The _component_ metadata rules API allows you to <<component_metadata_rules.adoc#sec:component-metadata-rules-details,access Ivy configurations>> and create variants based on them.
+If you know that all the Ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
+
+.Deriving compile and runtime variants for Ivy metadata
+====
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/dependencyManagement/customizingResolution-ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+====
+
+The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.
+For each variant, it sets the corresponding <<variant_model.adoc#sec:variant-aware-matching,Java ecosystem attributes>>.
+Dependencies and artifacts of the variants are taken from the underlying configurations.
+If not all consumed Ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
+
+For all Ivy modules without variants, Gradle has a fallback selection method. Gradle does _not_ perform variant aware resolution and instead selects either the `default` configuration or an explicitly named configuration.

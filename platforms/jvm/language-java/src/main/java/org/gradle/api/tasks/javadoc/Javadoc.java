@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -125,13 +126,14 @@ public abstract class Javadoc extends SourceTask {
 
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
+        PropertyFactory propertyFactory = getPropertyFactory();
         this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
         JavaToolchainService javaToolchainService = getJavaToolchainService();
         Provider<JavadocTool> javadocToolConvention = getProviderFactory()
-            .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, objectFactory))
+            .provider(() -> JavadocExecutableUtils.getExecutableOverrideToolchainSpec(this, propertyFactory))
             .flatMap(javaToolchainService::javadocToolFor)
             .orElse(javaToolchainService.javadocToolFor(it -> {}));
-        this.javadocTool = objectFactory.property(JavadocTool.class).convention(javadocToolConvention);
+        this.javadocTool = propertyFactory.property(JavadocTool.class).convention(javadocToolConvention);
         this.javadocTool.finalizeValueOnRead();
     }
 
@@ -456,6 +458,11 @@ public abstract class Javadoc extends SourceTask {
 
     @Inject
     protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected PropertyFactory getPropertyFactory() {
         throw new UnsupportedOperationException();
     }
 

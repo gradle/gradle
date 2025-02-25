@@ -15,6 +15,3 @@ dependencies {
 
     implementation(projects.baseServices)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

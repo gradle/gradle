@@ -29,7 +29,6 @@ import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepRunner
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
-import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
 import java.io.File
 
@@ -40,11 +39,17 @@ class AnalysisSequenceResult(
 
 
 class SimpleAnalysisEvaluator(
-    val schemaBuilder: InterpretationSchemaBuilder
+    val schemaBuilder: (DeclarativeScriptContext) -> InterpretationSchemaBuildingResult
 ) {
     companion object {
         fun withSchema(settings: InterpretationSequence, project: InterpretationSequence): SimpleAnalysisEvaluator =
-            SimpleAnalysisEvaluator(PrebuiltInterpretationSchemaBuilder(settings, project))
+            SimpleAnalysisEvaluator {
+                when (it) {
+                    DeclarativeScriptContext.ProjectScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(project)
+                    DeclarativeScriptContext.SettingsScript -> InterpretationSchemaBuildingResult.InterpretationSequenceAvailable(settings)
+                    DeclarativeScriptContext.UnknownScript -> InterpretationSchemaBuildingResult.SchemaNotBuilt
+                }
+            }
     }
 
     private
@@ -70,7 +75,7 @@ class SimpleAnalysisEvaluator(
         scriptSource: String
     ): AnalysisSequenceResult {
         val scriptContext = scriptContextFromFileName(scriptFileName)
-        return when (val built = schemaBuilder.getEvaluationSchemaForScript(scriptContext)) {
+        return when (val built = schemaBuilder(scriptContext)) {
             InterpretationSchemaBuildingResult.SchemaNotBuilt -> AnalysisSequenceResult(emptyMap())
             is InterpretationSchemaBuildingResult.InterpretationSequenceAvailable -> AnalysisSequenceResult(
                 built.sequence.steps.associateWith {

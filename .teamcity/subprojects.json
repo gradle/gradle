@@ -28,6 +28,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "base-diagnostics",
+    "path": "platforms/core-configuration/base-diagnostics",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "base-ide-plugins",
     "path": "platforms/ide/base-ide-plugins",
     "unitTests": true,
@@ -182,6 +189,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "classloaders",
+    "path": "platforms/core-runtime/classloaders",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "cli",
     "path": "platforms/core-runtime/cli",
     "unitTests": true,
@@ -233,7 +247,7 @@
   {
     "name": "configuration-problems-base",
     "path": "platforms/core-configuration/configuration-problems-base",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
@@ -291,6 +305,13 @@
     "path": "platforms/core-runtime/daemon-server",
     "unitTests": false,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "daemon-server-worker",
+    "path": "platforms/core-execution/daemon-server-worker",
+    "unitTests": true,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -361,13 +382,6 @@
     "path": "platforms/core-configuration/dependency-management-serialization-codecs",
     "unitTests": false,
     "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "diagnostics",
-    "path": "subprojects/diagnostics",
-    "unitTests": true,
-    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -875,6 +889,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "model-reflect",
+    "path": "platforms/core-configuration/model-reflect",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "native",
     "path": "platforms/core-runtime/native",
     "unitTests": true,
@@ -1085,6 +1106,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "request-handler-worker",
+    "path": "platforms/core-execution/request-handler-worker",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "resources",
     "path": "platforms/software/resources",
     "unitTests": true,
@@ -1207,6 +1235,13 @@
     "name": "soak",
     "path": "testing/soak",
     "unitTests": false,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "software-diagnostics",
+    "path": "platforms/software/software-diagnostics",
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },

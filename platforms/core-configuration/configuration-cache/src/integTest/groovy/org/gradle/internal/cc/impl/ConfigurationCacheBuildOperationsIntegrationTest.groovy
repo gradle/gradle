@@ -71,6 +71,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
             status == "NOT_FOUND"
             buildInvalidationReasons == []
             projectInvalidationReasons == []
+            originBuildInvocationId == null
         }
         with(storeOp.result) {
             cacheEntrySize > 0
@@ -89,6 +90,7 @@ class ConfigurationCacheBuildOperationsIntegrationTest extends AbstractConfigura
             status == "VALID"
             buildInvalidationReasons == []
             projectInvalidationReasons == []
+            originBuildInvocationId == buildInvocationId
         }
 
         def loadOpInCcHitBuild = operations.only(ConfigurationCacheLoadBuildOperationType)

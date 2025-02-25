@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import org.gradle.api.problems.FileLocation;
 
 import java.io.Serializable;
@@ -34,5 +35,19 @@ public class DefaultFileLocation implements FileLocation, Serializable {
 
     public static FileLocation from(String path) {
         return new DefaultFileLocation(path);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultFileLocation)) {
+            return false;
+        }
+        DefaultFileLocation that = (DefaultFileLocation) o;
+        return Objects.equal(path, that.path);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(path);
     }
 }

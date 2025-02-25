@@ -136,9 +136,9 @@ Sections of existing IDEA files that are also the target of generated content wi
 [[sec:complete_overwrite_of_idea_files]]
 ==== Disabling merging with a complete overwrite
 
-To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task, like “`gradle cleanIdea idea`” (in that order). If you want to make this the default behavior, add “`tasks.idea.dependsOn(cleanIdea)`” to your build script. This makes it unnecessary to execute the clean task explicitly.
+To completely rewrite existing IDEA files, execute a clean task together with its corresponding generation task, like "`gradle cleanIdea idea`" (in that order). If you want to make this the default behavior, add "`tasks.idea.dependsOn(cleanIdea)`" to your build script. This makes it unnecessary to execute the clean task explicitly.
 
-This strategy can also be used for individual files that the plugin would generate. For instance, this can be done for the “`.iml`” file with “`gradle cleanIdeaModule ideaModule`”.
+This strategy can also be used for individual files that the plugin would generate. For instance, this can be done for the "`.iml`" file with "`gradle cleanIdeaModule ideaModule`".
 
 [[sec:hooking_into_the_idea_generation_lifecycle]]
 === Hooking into the generation lifecycle
@@ -229,4 +229,4 @@ NOTE: When working with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Te
 [[sec:further_things_to_consider]]
 == Further things to consider
 
-The paths of dependencies in the generated IDEA files are absolute. If you manually define a path variable pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with this path variable. you can configure this path variable via the “`idea.pathVariables`” property, so that it can do a proper merge without creating duplicates.
+The paths of dependencies in the generated IDEA files are absolute. If you manually define a path variable pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with this path variable. you can configure this path variable via the "`idea.pathVariables`" property, so that it can do a proper merge without creating duplicates.

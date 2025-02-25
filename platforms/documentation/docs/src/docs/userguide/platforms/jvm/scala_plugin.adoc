@@ -115,25 +115,51 @@ include::sample[dir="snippets/scala/customizedLayout/kotlin",files="build.gradle
 include::sample[dir="snippets/scala/customizedLayout/groovy",files="build.gradle[tags=custom-source-locations]"]
 ====
 
-[[sec:scala_dependency_management]]
-== Dependency management
+[[sec:scala_version]]
+== Scala version
 
-Scala projects need to declare a `scala-library` dependency. This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Scala compiler and Scaladoc tool, respectively.footnote:[See <<#sec:configure_scala_classpath,Automatic configuration of Scala classpath>>.]
+The Scala version can be declared directly on the `scala` extension.
+Dependencies are automatically added to the `scalaToolchain` configuration based on the declared Scala version.
+The `scalaToolchainRuntimeClasspath` configuration resolves the dependencies declared on the `scalaToolchain` configuration and contains files required to run the Scala compiler.
 
-If Scala is used for production code, the `scala-library` dependency should be added to the `implementation` configuration:
+NOTE: Direct dependencies on the Scala SDK do not need to be declared when the `scalaVersion` property is set.
+
+.Declaring a Scala 2 version
+====
+include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-version]"]
+include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=scala-version]"]
+====
+
+Configuring Gradle to use Scala 3 is no different from Scala 2.
+
+.Declaring a Scala 3 version
+====
+include::sample[dir="snippets/scala/scala3/kotlin",files="build.gradle.kts[tags=scala-version]"]
+include::sample[dir="snippets/scala/scala3/groovy",files="build.gradle[tags=scala-version]"]
+====
+
+NOTE: The `scalaVersion` property is incubating.
+
+=== Declaring Scala dependencies
+
+When not using the `scalaVersion` property, the Scala SDK dependency must be declared manually on the `implementation` configuration.
+This pattern is not preferred, as it relies on <<#sec:configure_scala_classpath,inferring the Scala classpath>> from the production runtime classpath.
+Omitting the Scala version from the `scala` extension will be deprecated in a future Gradle version.
+
+Scala 2 projects need to declare a `scala-library` dependency.
 
 .Declaring a Scala dependency for production code
 ====
-include::sample[dir="snippets/scala/quickstart/kotlin",files="build.gradle.kts[tags=scala-dependency]"]
-include::sample[dir="snippets/scala/quickstart/groovy",files="build.gradle[tags=scala-dependency]"]
+include::sample[dir="snippets/scala/quickstart/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/scala/quickstart/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
 ====
 
-If you want to use Scala 3 instead of the `scala-library` dependency you should add the `scala3-library_3` dependency:
+Scala 3 projects need to declare a `scala3-library_3` dependency instead:
 
 .Declaring a Scala 3 dependency for production code
 ====
-include::sample[dir="snippets/scala/scala3/kotlin",files="build.gradle.kts"]
-include::sample[dir="snippets/scala/scala3/groovy",files="build.gradle"]
+include::sample[dir="snippets/scala/scala3/kotlin/inferred-version",files="build.gradle.kts[tags=scala-dependency]"]
+include::sample[dir="snippets/scala/scala3/groovy/inferred-version",files="build.gradle[tags=scala-dependency]"]
 ====
 
 If Scala is only used for test code, the `scala-library` dependency should be added to the `testImplementation` configuration:
@@ -147,9 +173,11 @@ include::sample[dir="snippets/scala/scalaDependency/groovy",files="build.gradle[
 [[sec:configure_scala_classpath]]
 == Automatic configuration of scalaClasspath
 
-The `ScalaCompile` and `ScalaDoc` tasks consume Scala code in two ways: on their `classpath`, and on their `scalaClasspath`. The former is used to locate classes referenced by the source code, and will typically contain `scala-library` along with other libraries. The latter is used to load and execute the Scala compiler and Scaladoc tool, respectively, and should only contain the `scala-compiler` library and its dependencies.
+The `ScalaCompile` and `ScalaDoc` tasks consume Scala code in two ways: on their `classpath`, and on their `scalaClasspath`.
+The former is used to locate classes referenced by the source code, and will typically contain `scala-library` along with other libraries.
+The latter is used to load and execute the Scala compiler and Scaladoc tool, respectively, and should only contain the `scala-compiler` library and its dependencies.
 
-Unless a task's `scalaClasspath` is configured explicitly, the Scala (base) plugin will try to infer it from the task's `classpath`. This is done as follows:
+If the `scala` extension's `scalaVersion` property is not set and the task's `scalaClasspath` is not configured explicitly, the Scala (base) plugin will try to infer the classpath from the task's `classpath`. This is done as follows:
 
 * If a `scala-library` jar is found on `classpath`, and the project has at least one repository declared, a corresponding `scala-compiler` repository dependency will be added to `scalaClasspath`.
 * Otherwise, execution of the task will fail with a message saying that `scalaClasspath` could not be inferred.

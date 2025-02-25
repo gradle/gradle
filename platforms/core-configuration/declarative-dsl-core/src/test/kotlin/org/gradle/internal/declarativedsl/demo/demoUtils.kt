@@ -168,6 +168,11 @@ fun prettyStringFromReflection(objectReflection: ObjectReflection): String {
             is ObjectReflection.DefaultValue -> append("(default value)")
             is ObjectReflection.AddedByUnitInvocation -> append("invoked: ${objectReflection.objectOrigin}")
             is ObjectReflection.Null -> append("null")
+            is ObjectReflection.GroupedVarargReflection -> {
+                append("[")
+                current.elementsReflection.forEach { recurse(it, depth) }
+                append("]")
+            }
         }
     }
 

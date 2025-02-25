@@ -23,14 +23,11 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
-import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.DefaultProjectStateRegistry;
-import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.taskfactory.TaskIdentityFactory;
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -45,7 +42,6 @@ import org.gradle.execution.ProjectConfigurer;
 import org.gradle.execution.TaskNameResolver;
 import org.gradle.execution.TaskPathProjectEvaluator;
 import org.gradle.execution.TaskSelector;
-import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.selection.DefaultBuildTaskSelector;
 import org.gradle.initialization.BuildOptionBuildOperationProgressEventsEmitter;
 import org.gradle.initialization.exception.DefaultExceptionAnalyser;
@@ -53,12 +49,10 @@ import org.gradle.initialization.exception.ExceptionCollector;
 import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyser;
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.internal.Factory;
-import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultBuildLifecycleControllerFactory;
 import org.gradle.internal.buildoption.DefaultFeatureFlags;
 import org.gradle.internal.buildoption.DefaultInternalOptions;
-import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ListenerManager;
@@ -72,7 +66,6 @@ import org.gradle.internal.instrumentation.reporting.MethodInterceptionReportCol
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.model.BuildTreeObjectFactory;
 import org.gradle.internal.problems.DefaultProblemDiagnosticsFactory;
-import org.gradle.internal.problems.DefaultProblemLocationAnalyzer;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.PrivateService;
 import org.gradle.internal.service.Provides;
@@ -80,8 +73,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.GradleModuleServices;
 import org.gradle.internal.service.scopes.Scope;
-import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
-import org.gradle.problems.buildtree.ProblemReporter;
 
 import java.util.List;
 
@@ -106,20 +97,19 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(BuildInvocationScopeId.class, buildInvocationScopeId);
         registration.add(BuildTreeState.class, buildTree);
         registration.add(GradleEnterprisePluginManager.class);
-        registration.add(BuildLifecycleControllerFactory.class, DefaultBuildLifecycleControllerFactory.class);
+        registration.add(DefaultBuildLifecycleControllerFactory.class);
         registration.add(BuildOptionBuildOperationProgressEventsEmitter.class);
         registration.add(BuildInclusionCoordinator.class);
-        registration.add(ProjectStateRegistry.class, DefaultProjectStateRegistry.class);
-        registration.add(ConfigurationTimeBarrier.class, DefaultConfigurationTimeBarrier.class);
-        registration.add(ProblemReporter.class, DeprecationsReporter.class);
-        registration.add(ProjectConfigurer.class, TaskPathProjectEvaluator.class);
-        registration.add(FeatureFlags.class, DefaultFeatureFlags.class);
-        registration.add(DefaultProblemLocationAnalyzer.class);
-        registration.add(ProblemDiagnosticsFactory.class, DefaultProblemDiagnosticsFactory.class);
-        registration.add(ExceptionCollector.class, DefaultExceptionAnalyser.class);
+        registration.add(DefaultProjectStateRegistry.class);
+        registration.add(DefaultConfigurationTimeBarrier.class);
+        registration.add(DeprecationsReporter.class);
+        registration.add(TaskPathProjectEvaluator.class);
+        registration.add(DefaultFeatureFlags.class);
+        registration.add(DefaultProblemDiagnosticsFactory.class);
+        registration.add(DefaultExceptionAnalyser.class);
         registration.add(ConfigurationCacheableIdFactory.class);
         registration.add(TaskIdentityFactory.class);
-        registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
+        registration.add(DefaultBuildLogicBuildQueue.class);
         modelServices.applyServicesTo(registration);
     }
 
@@ -154,7 +144,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
+    protected DefaultBuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, InternalProblems problemsService) {
         return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
     }
 

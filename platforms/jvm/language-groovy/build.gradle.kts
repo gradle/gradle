@@ -1,40 +1,34 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Adds support for building Groovy projects"
 
-errorprone {
-    disabledChecks.addAll(
-        "ModifyCollectionInEnhancedForLoop", // 1 occurrences
-        "UnusedMethod", // 4 occurrences
-    )
-}
-
 dependencies {
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildOption)
-    api(projects.coreApi)
+    api(projects.buildProcessServices)
     api(projects.core)
-    api(projects.files)
+    api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.fileOperations)
     api(projects.fileTemp)
+    api(projects.files)
     api(projects.jvmServices)
     api(projects.languageJava)
     api(projects.languageJvm)
-    api(projects.problemsApi)
     api(projects.platformBase)
+    api(projects.problemsApi)
+    api(projects.serviceProvider)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
-    api(projects.workers)
     api(projects.workerMain)
-    api(projects.buildProcessServices)
+    api(projects.workers)
 
     api(libs.inject)
     api(libs.jsr305)
 
+    implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.serviceLookup)
     implementation(projects.stdlibJavaExtensions)
@@ -55,10 +49,10 @@ dependencies {
     testFixturesImplementation(projects.core)
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalIntegTesting)
-    testFixturesImplementation(testFixtures(projects.modelCore))
+    testFixturesImplementation(testFixtures(projects.modelReflect))
     testFixturesImplementation(libs.guava)
 
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.javaParser) {
         because("The Groovy docs inspects the dependencies at compile time")

@@ -18,6 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.SharedModelDefaults;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ExternalProcessStartedListener;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -379,8 +381,14 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(SoftwareTypeRegistry softwareTypeRegistry, PluginScheme pluginScheme, InternalProblems problems) {
-        return new ActionBasedModelDefaultsHandler(softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
+    protected ModelDefaultsHandler createActionBasedModelDefaultsHandler(
+        SharedModelDefaults sharedModelDefaults,
+        ProjectLayout projectLayout,
+        SoftwareTypeRegistry softwareTypeRegistry,
+        PluginScheme pluginScheme,
+        InternalProblems problems
+    ) {
+        return new ActionBasedModelDefaultsHandler(sharedModelDefaults, projectLayout, softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
     }
 
     @Provides

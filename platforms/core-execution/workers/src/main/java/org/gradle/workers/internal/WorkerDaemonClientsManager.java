@@ -117,7 +117,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         }
     }
 
-    public WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
+    WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
         //allow the daemon to be started concurrently
         WorkerDaemonClient client = workerDaemonStarter.startDaemon(forkOptions);
         synchronized (lock) {
@@ -126,7 +126,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         return client;
     }
 
-    public void release(WorkerDaemonClient client) {
+    void release(WorkerDaemonClient client) {
         synchronized (lock) {
             if (!client.isFailed()) {
                 idleClients.add(client);

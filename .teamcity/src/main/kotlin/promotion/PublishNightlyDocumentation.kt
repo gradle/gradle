@@ -21,23 +21,27 @@ import jetbrains.buildServer.configs.kotlin.triggers.schedule
 import model.StageName
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlyDocumentation(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
-    promotedBranch = branch.branchName,
-    promoteTask = "publishBranchDocs",
-    triggerName = StageName.PULL_REQUEST_FEEDBACK.uuid,
-    vcsRootId = gradlePromotionBranches
-) {
+class PublishNightlyDocumentation(
+    branch: VersionedSettingsBranch,
+) : PublishGradleDistributionFullBuild(
+        promotedBranch = branch.branchName,
+        promoteTask = "publishBranchDocs",
+        triggerName = StageName.PULL_REQUEST_FEEDBACK.uuid,
+        vcsRootId = gradlePromotionBranches,
+    ) {
     init {
         id("Promotion_NightlyDocumentation")
         name = "Nightly Documentation"
-        description = "Promotes the latest successful documentation changes on '${branch.branchName}' from Ready for Nightly as a new nightly documentation snapshot"
+        description =
+            "Promotes the latest successful documentation changes on '${branch.branchName}' from Ready for Nightly as a new nightly documentation snapshot"
 
         triggers {
             branch.nightlyPromotionTriggerHour?.let { triggerHour ->
                 schedule {
-                    schedulingPolicy = daily {
-                        this.hour = triggerHour
-                    }
+                    schedulingPolicy =
+                        daily {
+                            this.hour = triggerHour
+                        }
                     triggerBuild = always()
                     withPendingChangesOnly = true
                     enabled = branch.enableVcsTriggers

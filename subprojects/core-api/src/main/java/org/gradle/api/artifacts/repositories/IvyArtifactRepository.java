@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.repositories;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.net.URI;
 
@@ -50,6 +52,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * @return The URL.
      */
     @Override
+    @ToBeReplacedByLazyProperty
     URI getUrl();
 
     /**
@@ -162,6 +165,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @return The meta-data provider for this repository.
      */
+    @NotToBeReplacedByLazyProperty(because = "Not settable property")
     IvyArtifactRepositoryMetaDataProvider getResolve();
 
     /**
@@ -202,6 +206,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @since 6.4
      */
+    @NotToBeReplacedByLazyProperty(because = "Not settable property")
     MetadataSources getMetadataSources();
 
     /**

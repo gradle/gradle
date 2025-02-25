@@ -4,13 +4,6 @@ plugins {
 
 description = "Plugins and model builders for integration with Eclipse and IntelliJ IDEs"
 
-errorprone {
-    disabledChecks.addAll(
-        "LoopOverCharArray", // 1 occurrences
-        "ObjectEqualsForPrimitives", // 3 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.core)
@@ -18,6 +11,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
+    api(projects.jvmServices)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)
@@ -42,7 +36,7 @@ dependencies {
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
     implementation(libs.commonsIo)
-
+    implementation(libs.commonsLang3)
 
     runtimeOnly(projects.languageJvm)
     runtimeOnly(projects.testingBase)

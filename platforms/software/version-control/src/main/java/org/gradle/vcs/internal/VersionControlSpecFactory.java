@@ -16,13 +16,10 @@
 
 package org.gradle.vcs.internal;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.vcs.VersionControlSpec;
 
 import java.net.URI;
 
-@ServiceScope(Scope.BuildTree.class)
 public interface VersionControlSpecFactory {
     <T extends VersionControlSpec> T create(Class<T> specType);
 

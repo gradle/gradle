@@ -406,6 +406,43 @@ assert custom.prop.get() == "value 4"
         succeeds()
     }
 
+    def "can set Enum property value using an string"() {
+        given:
+        buildFile << """
+            enum MyEnumOptions {
+                FIRST, SECOND, THIRD, FORTH
+            }
+
+            interface SomeExtension {
+                Property<MyEnumOptions> getProp()
+            }
+
+            extensions.create('custom', SomeExtension)
+            custom.prop = "first"
+            assert custom.prop.get() == MyEnumOptions.FIRST
+            custom.prop = null
+            assert !custom.prop.isPresent()
+            custom.prop = "FIRST"
+            assert custom.prop.get() == MyEnumOptions.FIRST
+
+            custom.prop = providers.provider { "second" }
+            assert custom.prop.get() == MyEnumOptions.SECOND
+
+            custom.prop = null
+            custom.prop.convention("third")
+            assert custom.prop.get() == MyEnumOptions.THIRD
+
+            custom.prop.convention(providers.provider { "forth" })
+            assert custom.prop.get() == MyEnumOptions.FORTH
+        """
+
+        expect:
+        ["first", "FIRST", "second", "third", "forth"].each {
+            executer.expectDocumentedDeprecationWarning("Assigning String value '$it' to property of enum type 'MyEnumOptions'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
+        }
+        succeeds()
+    }
+
     @Requires(
         value = IntegTestPreconditions.NotConfigCached,
         reason = "Config cache does not support extensions during execution, leading to 'Could not get unknown property 'custom' for task ':wrongValueTypeDsl' of type org.gradle.api.DefaultTask."

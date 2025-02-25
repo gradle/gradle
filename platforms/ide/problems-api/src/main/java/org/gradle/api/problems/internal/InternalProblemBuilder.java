@@ -17,11 +17,14 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public interface InternalProblemBuilder extends InternalProblemSpec {
 
@@ -39,7 +42,7 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder id(String name, String displayName, ProblemGroup parent);
 
     @Override
-    InternalProblemBuilder taskPathLocation(String buildTreePath);
+    InternalProblemBuilder taskLocation(String buildTreePath);
 
     @Override
     InternalProblemBuilder documentedAt(DocLink doc);
@@ -72,11 +75,24 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     InternalProblemBuilder solution(String solution);
 
     @Override
-    <U extends AdditionalDataSpec> InternalProblemBuilder additionalData(Class<? extends U> specType, Action<? super U> config);
+    <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
+
+    // interface should be public <T> void additionalData(Class<T> type, Action<? super T> config)
+    @Override
+    <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config);
+
+    @Override
+    <T extends AdditionalData> InternalProblemBuilder additionalDataInternal(T additionalDataInstance);
 
     @Override
     InternalProblemBuilder withException(Throwable t);
 
     @Override
     InternalProblemBuilder severity(Severity severity);
+
+    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
+
+    Instantiator getInstantiator();
+
+    PayloadSerializer getPayloadSerializer();
 }

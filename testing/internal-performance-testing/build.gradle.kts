@@ -49,6 +49,7 @@ dependencies {
     api(libs.junit)
     api(libs.spock)
 
+    implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.wrapperShared)
 

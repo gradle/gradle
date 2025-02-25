@@ -41,6 +41,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     def coreLibsModules = [
         "base-asm",
+        "base-diagnostics",
         "base-services",
         "base-services-groovy",
         "build-cache",
@@ -48,6 +49,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-cache-local",
         "build-cache-packaging",
         "build-cache-spi",
+        "build-configuration",
         "build-events",
         "build-init-specs",
         "build-init-specs-api",
@@ -56,12 +58,14 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "build-option",
         "build-process-services",
         "build-state",
+        "classloaders",
         "cli",
         "client-services",
         "concurrent",
         "configuration-problems-base",
         "core",
         "core-api",
+        "core-kotlin-extensions",
         "daemon-main",
         "daemon-protocol",
         "daemon-server",
@@ -99,6 +103,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "messaging",
         "model-core",
         "model-groovy",
+        "model-reflect",
         "native",
         "normalization-java",
         "persistent-cache",
@@ -107,7 +112,10 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "problems-rendering",
         "process-memory-services",
         "process-services",
+        "report-rendering",
+        "request-handler-worker",
         "resources",
+        "resources-http",
         "runtime-api-info",
         "serialization",
         "service-lookup",
@@ -141,7 +149,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        81
+        78
     }
 
     /**

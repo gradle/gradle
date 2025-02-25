@@ -37,8 +37,8 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
@@ -122,7 +122,7 @@ import static sun.reflect.ReflectionFactory.getReflectionFactory;
 
 public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private static final ThreadLocal<ObjectCreationDetails> SERVICES_FOR_NEXT_OBJECT = new ThreadLocal<>();
-    private static final AtomicReference<CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
+    private static final AtomicReference<Cache<Class<?>, GeneratedClassImpl>> GENERATED_CLASSES_CACHES = new AtomicReference<>();
     private final boolean decorate;
     private final String suffix;
     private final int factoryId;
@@ -162,7 +162,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         Collection<Class<? extends Annotation>> enabledInjectAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
-        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses,
+        Cache<Class<?>, GeneratedClassImpl> generatedClasses,
         int factoryId
     ) {
         super(allKnownAnnotations, enabledInjectAnnotations, roleHandler, generatedClasses);
@@ -178,11 +178,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
         Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-        CrossBuildInMemoryCacheFactory cacheFactory,
+        ClassCacheFactory cacheFactory,
         int factoryId
     ) {
         String suffix;
-        CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
+        Cache<Class<?>, GeneratedClassImpl> generatedClasses;
         if (enabledInjectAnnotations.isEmpty()) {
             // TODO wolfs: We use `_Decorated` here, since IDEA import currently relies on this
             // See https://github.com/gradle/gradle/issues/8244
@@ -211,7 +211,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
         PropertyRoleAnnotationHandler roleHandler,
         Collection<Class<? extends Annotation>> enabledInjectAnnotations,
-        CrossBuildInMemoryCacheFactory cacheFactory,
+        ClassCacheFactory cacheFactory,
         int factoryId
     ) {
         // TODO - the suffix should be a deterministic function of the known and enabled annotations
@@ -255,7 +255,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @SuppressWarnings("unused")
     public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
         DeprecationLogger
-            .deprecate("Space-assignment syntax in Groovy DSL")
+            .deprecate("Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL")
             .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")

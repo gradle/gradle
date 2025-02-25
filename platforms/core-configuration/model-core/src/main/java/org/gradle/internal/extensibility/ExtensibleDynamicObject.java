@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * A {@link DynamicObject} implementation that provides extensibility.
  *
- * This is the dynamic object implementation that “enhanced” objects expose.
+ * This is the dynamic object implementation that "enhanced" objects expose.
  *
  * @see org.gradle.internal.instantiation.generator.MixInExtensibleDynamicObject
  */
@@ -120,12 +120,6 @@ public class ExtensibleDynamicObject extends MixInClosurePropertiesAsMethodsDyna
 
     public ExtraPropertiesExtension getDynamicProperties() {
         return convention.getExtraProperties();
-    }
-
-    public void addProperties(Map<String, ?> properties) {
-        for (Map.Entry<String, ?> entry : properties.entrySet()) {
-            getDynamicProperties().set(entry.getKey(), entry.getValue());
-        }
     }
 
     public DynamicObject getParent() {

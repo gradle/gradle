@@ -79,7 +79,7 @@ You can manage conflicts using <<resolution_rules.adoc#using-resolution-rules,re
 
 == 6. Understanding Dependency Resolution
 
-In order to influence how Gradle resolves dependencies, it's important to understand <<variant_model.adoc#understanding_dependency_resolution_model,how it works>>. This section covers variants, attributes, capabilities and dependency caching.
+In order to influence how Gradle resolves dependencies, it's important to understand <<dependency_resolution_model.adoc#understanding_dependency_resolution_model,how it works>>. This section covers variants, attributes, capabilities and dependency caching.
 
 == 7. Controlling Dependency Resolution
 

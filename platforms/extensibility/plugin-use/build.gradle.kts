@@ -5,6 +5,7 @@ plugins {
 dependencies {
     api(projects.serviceProvider)
     api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.coreApi)
     api(projects.core)
     api(projects.dependencyManagement)
@@ -13,6 +14,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.problemsApi)
 
     api(libs.guava)
@@ -25,6 +27,7 @@ dependencies {
     implementation(projects.jvmServices)
 
     testImplementation(testFixtures(projects.resourcesHttp))
+    testImplementation(testFixtures(projects.core))
 
     integTestImplementation(projects.baseServicesGroovy)
     integTestImplementation(libs.jetbrainsAnnotations)

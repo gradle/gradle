@@ -32,7 +32,6 @@ import org.gradle.tooling.events.problems.ProblemSummariesEvent
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.TaskPathLocation
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -92,10 +91,8 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName == "Deprecation"
             definition.id.group.name == "deprecation"
             definition.severity == Severity.WARNING
-            locations.size() == 2
-            (locations[0] as LineInFileLocation).path == "build file '$buildFile.path'" // FIXME: the path should not contain a prefix nor extra quotes
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
-            additionalData instanceof GeneralData
+            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : targetVersion < GradleVersion.version('8.14') ? 1 : 2)
+            (locations[0] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
     }
@@ -108,7 +105,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                ${ProblemsApiGroovyScriptUtils.additionalData(targetVersion, 'aKey', 'aValue')}
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -124,7 +121,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.documentationLink?.url == expectedDocumentation
             locations.size() >= 2
             (locations[0] as LineInFileLocation).path == '/tmp/foo'
-            (locations[1] as LineInFileLocation).path == "build file '$buildFile.path'"
+            (locations[1] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
             if (targetVersion >= GradleVersion.version("8.12")) {
                 assert (locations[2] as TaskPathLocation).buildTreePath == ':reportProblem'
             }
@@ -147,7 +144,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 $documentationConfig
                 .lineInFileLocation("/tmp/foo", 1, 2, 3)
                 $detailsConfig
-                .additionalData(org.gradle.api.problems.internal.GeneralDataSpec, data -> data.put("aKey", "aValue"))
+                ${ProblemsApiGroovyScriptUtils.additionalData(targetVersion, 'aKey', 'aValue')}
                 .severity(Severity.WARNING)
                 .solution("try this instead")
             }
@@ -272,7 +269,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        listener.problems[0].additionalData.asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")
@@ -326,5 +323,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     static def failureMessage(failure) {
         failure instanceof Failure ? failure?.message : failure?.failure?.message
+    }
+
+    static String buildFileLocation(File buildFile, GradleVersion targetVersion) {
+        targetVersion.baseVersion >= GradleVersion.version("8.14")
+            ? buildFile.path
+            : "build file '$buildFile.path'"
     }
 }

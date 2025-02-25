@@ -238,6 +238,8 @@ fun prettyPrintLanguageTree(languageTreeElement: LanguageTreeElement): String {
                 appendLine()
                 appendIndented(")")
             }
+
+            is FunctionArgument.GroupedVarargs -> error("should not appear in the sources")
         }
     }
 

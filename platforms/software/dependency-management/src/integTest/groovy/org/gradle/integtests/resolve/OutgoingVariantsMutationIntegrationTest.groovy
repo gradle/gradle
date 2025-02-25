@@ -24,14 +24,12 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             def usage = Attribute.of('usage', String)
             def format = Attribute.of('format', String)
-            allprojects {
-                dependencies {
-                    attributesSchema {
-                        attribute(usage)
-                    }
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
                 }
-                configurations { compile { attributes.attribute(usage, 'for-compile') } }
             }
+            configurations { compile { attributes.attribute(usage, 'for-compile') } }
         """
     }
 
@@ -39,42 +37,41 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
     def "cannot mutate outgoing variants after configuration is resolved"() {
         given:
         buildFile << """
-
-        configurations {
-            compile {
-                attributes.attribute(usage, 'for compile')
-                outgoing {
-                    artifact file('lib1.jar')
-                    variants {
-                        classes {
-                            attributes.attribute(format, 'classes-dir')
-                            artifact file('classes')
-                        }
-                        jar {
-                            attributes.attribute(format, 'classes-jar')
-                            artifact file('lib.jar')
-                        }
-                        sources {
-                            attributes.attribute(format, 'source-jar')
-                            artifact file('source.zip')
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'for compile')
+                    outgoing {
+                        artifact file('lib1.jar')
+                        variants {
+                            classes {
+                                attributes.attribute(format, 'classes-dir')
+                                artifact file('classes')
+                            }
+                            jar {
+                                attributes.attribute(format, 'classes-jar')
+                                artifact file('lib.jar')
+                            }
+                            sources {
+                                attributes.attribute(format, 'source-jar')
+                                artifact file('source.zip')
+                            }
                         }
                     }
                 }
             }
-        }
-        task mutateBeforeResolve {
-            doLast {
-                def classes = configurations.compile.outgoing.variants['classes']
-                classes.attributes.attribute(format, 'classes2')
+            task mutateBeforeResolve {
+                doLast {
+                    def classes = configurations.compile.outgoing.variants['classes']
+                    classes.attributes.attribute(format, 'classes2')
+                }
             }
-        }
-        task mutateAfterResolve {
-            doLast {
-                configurations.compile.resolve()
-                def classes = configurations.compile.outgoing.variants['classes']
-                classes.attributes.attribute(format, 'classes-dir')
+            task mutateAfterResolve {
+                doLast {
+                    configurations.compile.resolve()
+                    def classes = configurations.compile.outgoing.variants['classes']
+                    classes.attributes.attribute(format, 'classes-dir')
+                }
             }
-        }
         """
 
         when:
@@ -94,42 +91,41 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
     def "cannot add outgoing variants after configuration is resolved"() {
         given:
         buildFile << """
-
-        configurations {
-            compile {
-                attributes.attribute(usage, 'for compile')
-                outgoing {
-                    artifact file('lib1.jar')
-                    variants {
-                        classes {
-                            attributes.attribute(format, 'classes-dir')
-                            artifact file('classes')
+            configurations {
+                compile {
+                    attributes.attribute(usage, 'for compile')
+                    outgoing {
+                        artifact file('lib1.jar')
+                        variants {
+                            classes {
+                                attributes.attribute(format, 'classes-dir')
+                                artifact file('classes')
+                            }
                         }
                     }
                 }
             }
-        }
-        task mutateBeforeResolve {
-            doLast {
-                configurations.compile.outgoing.variants {
-                    jar {
-                        attributes.attribute(format, 'classes-jar')
-                        artifact file('lib.jar')
+            task mutateBeforeResolve {
+                doLast {
+                    configurations.compile.outgoing.variants {
+                        jar {
+                            attributes.attribute(format, 'classes-jar')
+                            artifact file('lib.jar')
+                        }
                     }
                 }
             }
-        }
-        task mutateAfterResolve {
-            doLast {
-                configurations.compile.resolve()
-                configurations.compile.outgoing.variants {
-                    sources {
-                        attributes.attribute(format, 'source-jar')
-                        artifact file('source.zip')
+            task mutateAfterResolve {
+                doLast {
+                    configurations.compile.resolve()
+                    configurations.compile.outgoing.variants {
+                        sources {
+                            attributes.attribute(format, 'source-jar')
+                            artifact file('source.zip')
+                        }
                     }
                 }
             }
-        }
         """
 
         when:

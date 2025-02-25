@@ -80,7 +80,7 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
 
         expect:
         fails("help")
-        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 10, any vendor (from gradle/gradle-daemon-jvm.properties)")
+        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=10, vendor=any vendor, implementation=vendor-specific}")
     }
 
     def "Given daemon toolchain criteria with version and vendor that doesn't match installed ones When executing any task Then fails with the expected message"() {
@@ -93,6 +93,6 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
 
         expect:
         fails("help")
-        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 10, IBM (from gradle/gradle-daemon-jvm.properties)")
+        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=10, vendor=IBM, implementation=vendor-specific}")
     }
 }

@@ -18,7 +18,9 @@ package org.gradle.api.internal.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.initialization.SharedModelDefaults;
+import org.gradle.api.GradleException;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.initialization.internal.SharedModelDefaultsInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
@@ -29,13 +31,35 @@ import org.gradle.util.internal.ClosureBackedAction;
 
 import javax.inject.Inject;
 
-public class DefaultSharedModelDefaults implements SharedModelDefaults, MethodMixIn {
+public class DefaultSharedModelDefaults implements SharedModelDefaultsInternal, MethodMixIn {
     private final SoftwareTypeRegistry softwareTypeRegistry;
     private final DynamicMethods dynamicMethods = new DynamicMethods();
+
+    @SuppressWarnings("ThreadLocalUsage")
+    private final ThreadLocal<ProjectLayout> projectLayout = new ThreadLocal<>();
 
     @Inject
     public DefaultSharedModelDefaults(SoftwareTypeRegistry softwareTypeRegistry) {
         this.softwareTypeRegistry = softwareTypeRegistry;
+    }
+
+    @Override
+    public void setProjectLayout(ProjectLayout projectLayout) {
+        this.projectLayout.set(projectLayout);
+    }
+
+    @Override
+    public void clearProjectLayout() {
+        projectLayout.remove();
+    }
+
+    @Override
+    public ProjectLayout getLayout() {
+        ProjectLayout instance = projectLayout.get();
+        if (instance == null) {
+            throw new GradleException("ProjectLayout should be referenced only inside of software type default configuration blocks");
+        }
+        return instance;
     }
 
     @Override

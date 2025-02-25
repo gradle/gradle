@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.extensions.FluidDependenciesResolveTest
 class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     def setup() {
-        createDirs("project-lib")
         settingsFile << """
             rootProject.name = 'root'
             include 'project-lib'
@@ -32,9 +31,6 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
         mavenRepo.module("org.external", "external-lib").publish()
         file('lib/file-lib.jar') << 'content'
         buildFile << """
-            project(':project-lib') {
-                apply plugin: 'java'
-            }
             configurations {
                 compile
             }
@@ -63,6 +59,12 @@ class ArtifactCollectionResultProviderIntegrationTest extends AbstractHttpDepend
                     println(artifactFiles.files)
                     println(resolvedArtifacts.get())
                 }
+            }
+        """
+
+        file("project-lib/build.gradle") << """
+            plugins {
+                id("java-library")
             }
         """
     }

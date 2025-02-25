@@ -176,7 +176,7 @@ class EdgeState implements DependencyGraphEdge {
      * end fail resolution.
      */
     void failWith(Throwable err) {
-        targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
+        targetNodeSelectionFailure = new ModuleVersionResolveException(selector.getSelector(), err);
     }
 
     /**

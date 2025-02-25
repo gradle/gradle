@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Source for JavaCompile, JavaExec and Javadoc tasks, it also contains logic for incremental Java compilation"
@@ -21,32 +20,36 @@ errorprone {
 }
 
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serialization)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
+    api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
     api(projects.files)
     api(projects.hashing)
+    api(projects.jvmServices)
     api(projects.languageJvm)
+    api(projects.modelCore)
     api(projects.persistentCache)
     api(projects.platformBase)
     api(projects.platformJvm)
     api(projects.problemsApi)
     api(projects.processServices)
+    api(projects.serialization)
+    api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.stdlibJavaExtensions)
     api(projects.testSuitesBase)
     api(projects.toolchainsJvm)
     api(projects.toolchainsJvmShared)
     api(projects.workerMain)
     api(projects.workers)
-    api(projects.buildProcessServices)
 
     api(libs.asm)
     api(libs.fastutil)
@@ -59,11 +62,9 @@ dependencies {
     implementation(projects.serviceLookup)
     implementation(projects.time)
     implementation(projects.fileTemp)
-    implementation(projects.jvmServices)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.problemsRendering)
     implementation(projects.toolingApi)
 
@@ -75,6 +76,7 @@ dependencies {
     runtimeOnly(projects.javaCompilerPlugin)
 
     testImplementation(projects.baseServicesGroovy)
+    testImplementation(projects.native)
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.toolchainsJvm))
@@ -88,6 +90,7 @@ dependencies {
     integTestImplementation(projects.messaging)
     // TODO: Make these available for all integration tests? Maybe all tests?
     integTestImplementation(libs.jetbrainsAnnotations)
+    integTestImplementation(libs.commonsHttpclient)
 
     testFixturesApi(testFixtures(projects.languageJvm))
     testFixturesImplementation(projects.baseServices)

@@ -30,7 +30,7 @@ dependencies {
     compileOnly(libs.kotlinStdlib) {
         because(
             "used by the compiler, but there should be no binary dependency on the stdlib; " +
-                "this project should be usable by Kotlin-less consumers, see: `NoKotlinStdlibBinaryDependencyTest`"
+                "this project should be usable by Kotlin-less consumers, see: `DeclarativeDslDependencyTest`"
         )
     }
 }
@@ -40,7 +40,4 @@ tasks.withType<KotlinCompile>().configureEach {
         apiVersion.set(KotlinVersion.KOTLIN_1_9)
         languageVersion.set(KotlinVersion.KOTLIN_1_9)
     }
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

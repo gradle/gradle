@@ -18,10 +18,7 @@ package org.gradle.internal.enterprise.impl;
 
 import org.gradle.internal.enterprise.GradleEnterprisePluginService;
 import org.gradle.internal.enterprise.GradleEnterprisePluginServiceRef;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.BuildTree.class)
 public interface GradleEnterprisePluginServiceRefInternal extends GradleEnterprisePluginServiceRef {
 
     void set(GradleEnterprisePluginService service);

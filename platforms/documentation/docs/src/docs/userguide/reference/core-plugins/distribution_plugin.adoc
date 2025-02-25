@@ -15,8 +15,19 @@
 [[distribution_plugin]]
 = The Distribution Plugin
 
-The Distribution Plugin facilitates building archives that serve as distributions of the project. Distribution archives typically contain the executable application and other supporting files, such as documentation.
+The Distribution Plugin facilitates building archives that serve as distributions of the project.
+Distribution archives typically contain the executable application and other supporting files, such as documentation.
 
+[[sec:distribution_base]]
+== Base Plugin
+
+The distribution plugin is split into the `distribution` and `distribution-base` plugins.
+
+The `distribution-base` plugin adds an extension named `distributions` of type link:{groovyDslPath}/org.gradle.api.distribution.DistributionContainer.html[DistributionContainer] to the project.
+
+The `distribution` plugin applies the `distribution-base` plugin and creates a single distribution in the distributions container extension named `main`.
+
+If your build produces only one distribution, you only need to configure the distribution or rely on the defaults.
 
 [[sec:distribution_usage]]
 == Usage
@@ -28,8 +39,6 @@ To use the Distribution Plugin, include the following in your build script:
 include::sample[dir="snippets/base/distribution/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 include::sample[dir="snippets/base/distribution/groovy",files="build.gradle[tags=use-plugin]"]
 ====
-
-The plugin adds an extension named `distributions` of type link:{groovyDslPath}/org.gradle.api.distribution.DistributionContainer.html[DistributionContainer] to the project. It also creates a single distribution in the distributions container extension named `main`. If your build only produces one distribution you only need to configure this distribution (or use the defaults).
 
 You can run `gradle distZip` to package the main distribution as a ZIP, or `gradle distTar` to create a TAR file. To build both types of archives just run `gradle assembleDist`.
 The files will be created at `__layout.buildDirectory.dir__("distributions/__${project.name}__-__${project.version}__.__«ext»__")`.

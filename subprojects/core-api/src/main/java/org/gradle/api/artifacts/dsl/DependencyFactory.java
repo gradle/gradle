@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Dependency;
@@ -44,7 +43,6 @@ import javax.annotation.Nullable;
  */
 @HasInternalProtocol
 @NonExtensible
-@Incubating
 public interface DependencyFactory {
     /**
      * Create an {@link ExternalModuleDependency} from the <code>"<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>@<i>extension</i>"</code> notation.

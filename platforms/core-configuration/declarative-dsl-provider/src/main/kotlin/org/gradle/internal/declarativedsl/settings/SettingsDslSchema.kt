@@ -26,6 +26,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.common.RunsBeforeClassScopeIsReady
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.defaults.defineModelDefaultsInterpretationSequenceStep
@@ -48,7 +49,11 @@ fun settingsInterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStepWithConversion(
                 "settingsPluginManagement",
-                features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)
+                features = setOf(
+                    SettingsBlocksCheck.feature,
+                    UnsupportedSyntaxFeatureCheck.feature,
+                    RunsBeforeClassScopeIsReady()
+                )
             ) { pluginManagementEvaluationSchema() },
 
             settingsPluginsInterpretationSequenceStep("settingsPlugins"),

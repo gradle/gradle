@@ -99,7 +99,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         USER_CODE_INDIRECT,
 
         /**
-         * The key characteristic is that there is no useful “where was it used information”,
+         * The key characteristic is that there is no useful "where was it used information",
          * as the usage relates to how/where Gradle was invoked.
          *
          * Example: deprecated CLI switch.

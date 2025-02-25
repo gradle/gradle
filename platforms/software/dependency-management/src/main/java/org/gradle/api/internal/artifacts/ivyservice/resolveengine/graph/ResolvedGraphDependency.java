@@ -28,6 +28,9 @@ import javax.annotation.Nullable;
  */
 public interface ResolvedGraphDependency {
 
+    /**
+     * The component selector that the user requested, before substitutions are applied.
+     */
     ComponentSelector getRequested();
 
     @Nullable

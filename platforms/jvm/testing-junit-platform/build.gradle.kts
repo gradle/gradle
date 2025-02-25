@@ -23,6 +23,3 @@ dependencies {
 
     implementation(libs.jsr305)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

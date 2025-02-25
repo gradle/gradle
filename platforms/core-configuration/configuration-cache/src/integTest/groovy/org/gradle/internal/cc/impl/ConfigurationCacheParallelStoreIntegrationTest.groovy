@@ -16,6 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.initialization.StartParameterBuildOptions
+
 class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def "failures while storing different projects are reported"() {
@@ -27,7 +29,7 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         """
 
         def createBuildFile = {
-            file(getDefaultBuildFileName()) << """
+            file(buildFile.name) << """
                 task t {
                     outputs.file({ -> throw new RuntimeException("\${ project.identityPath } went BOOM!") })
                 }
@@ -102,4 +104,32 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         output.contains("[org.gradle.configurationcache] saving task graph in parallel")
         output.contains("[org.gradle.configurationcache] reading task graph sequentially")
     }
+
+    def "parallel store is enabled by IP"() {
+        given:
+        settingsFile.createFile()
+
+        when:
+        run("-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true", "help", "-d")
+
+        then:
+        outputDoesNotContain("Parallel Configuration Cache is an incubating feature.")
+        output.contains("[org.gradle.configurationcache] saving task graph in parallel")
+        output.contains("[org.gradle.configurationcache] reading task graph in parallel")
+    }
+
+    def "parallel store is enabled by IP but can be opted out"() {
+        given:
+        settingsFile.createFile()
+
+        when:
+        run("-D${StartParameterBuildOptions.IsolatedProjectsOption.PROPERTY_NAME}=true", "help", "-d",
+            "-Dorg.gradle.configuration-cache.internal.parallel-store=false")
+
+        then:
+        outputDoesNotContain("Parallel Configuration Cache is an incubating feature.")
+        output.contains("[org.gradle.configurationcache] saving task graph sequentially")
+        output.contains("[org.gradle.configurationcache] reading task graph in parallel")
+    }
+
 }

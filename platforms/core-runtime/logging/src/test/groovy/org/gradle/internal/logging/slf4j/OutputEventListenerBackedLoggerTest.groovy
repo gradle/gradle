@@ -25,10 +25,9 @@ import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import org.slf4j.Marker
 import spock.lang.Specification
-
-import java.util.concurrent.TimeUnit
 
 import static org.gradle.api.logging.LogLevel.DEBUG
 import static org.gradle.api.logging.LogLevel.ERROR
@@ -41,14 +40,9 @@ import static org.slf4j.Logger.ROOT_LOGGER_NAME
 class OutputEventListenerBackedLoggerTest extends Specification {
 
     final List<LogEvent> events = []
-    final long now = TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS)
-    final Clock timeProvider = new Clock() {
-        @Override
-        long getCurrentTime() {
-            return now
-        }
+    final long now = 100L
+    final Clock timeProvider = FixedClock.createAt(now)
 
-    }
     final OutputEventListenerBackedLoggerContext context = new OutputEventListenerBackedLoggerContext(timeProvider)
     private final CurrentBuildOperationRef currentBuildOperationRef = CurrentBuildOperationRef.instance()
 

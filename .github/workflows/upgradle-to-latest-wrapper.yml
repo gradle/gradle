@@ -24,17 +24,19 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Updadle to latest nightly and push to bot/upgradle-to-latest-wrapper
+      - name: Update Gradle to latest nightly and push to bot/upgradle-to-latest-wrapper
         run: |
+          set -eu
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
 
           git reset origin/master --hard
 
           ./gradlew wrapper --gradle-version=nightly
+          ./gradlew wrapper
 
           if ! git diff --quiet; then
-            ./gradlew -v 
+            ./gradlew -v
             VERSION=$(./gradlew -v | grep "Gradle" | cut -d' ' -f2)
             git add .
             git commit -m "Update Gradle wrapper to $VERSION"

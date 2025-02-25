@@ -21,40 +21,50 @@ plugins {
 description = "Services used by the Gradle client to interact with the daemon"
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.messaging)
-    api(projects.logging)
-    api(projects.daemonProtocol)
     api(projects.baseServices)
-    api(projects.jvmServices)
-    api(projects.native)
+    api(projects.buildOperations)
+    api(projects.classloaders)
+    api(projects.concurrent)
+    api(projects.daemonProtocol)
     api(projects.enterpriseLogging)
+    api(projects.functional)
+    api(projects.jvmServices)
+    api(projects.logging)
+    api(projects.messaging)
+    api(projects.modelCore)
+    api(projects.native)
+    api(projects.persistentCache)
     api(projects.processServices)
+    api(projects.resources)
+    api(projects.resourcesHttp)
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.persistentCache)
     api(projects.stdlibJavaExtensions)
+    api(projects.time)
+    api(projects.toolchainsJvmShared)
+    api(projects.toolingApi)
 
     // The client should not depend on core or core-api or projects that depend on these.
     // However, these project still contains some types that are shared between the client and daemon.
     api(projects.core)
     api(projects.coreApi)
     api(projects.fileCollections)
+    api(projects.fileTemp)
 
     api(libs.jsr305)
+    api(libs.nativePlatform)
 
     implementation(projects.baseAsm)
-    implementation(projects.fileTemp)
     implementation(projects.serviceRegistryBuilder)
-    implementation(projects.buildOperations)
+    implementation(projects.buildConfiguration)
+    implementation(projects.buildEvents)
     implementation(projects.buildProcessServices)
+    implementation(projects.files)
     implementation(projects.fileOperations)
-    implementation(projects.fileTemp)
+    implementation(projects.hashing)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
-    implementation(projects.time)
-    implementation(projects.toolchainsJvmShared)
     implementation(projects.io)
 
     implementation(libs.guava)
@@ -68,7 +78,4 @@ dependencies {
         because("Unit tests verify serialization works with TAPI types")
     }
     testImplementation(testFixtures(projects.daemonProtocol))
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

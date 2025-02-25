@@ -106,6 +106,8 @@ import static org.gradle.util.internal.DefaultGradleVersion.VERSION_OVERRIDE_VAR
 public abstract class AbstractGradleExecuter implements GradleExecuter, ResettableExpectations {
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
     private static final String LAUNCHER_DEBUG_SYSPROP = "org.gradle.integtest.launcher.debug";
+    public static final int DAEMON_DEBUG_PORT = 5005;
+    public static final int LAUNCHER_DEBUG_PORT = 5006;
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
     private static final String ALLOW_INSTRUMENTATION_AGENT_SYSPROP = "org.gradle.integtest.agent.allowed";
 
@@ -191,9 +193,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     protected final GradleDistribution distribution;
     private GradleVersion gradleVersionOverride;
 
-    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
+    private JavaDebugOptionsInternal debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
 
-    private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+    private JavaDebugOptionsInternal debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
 
     private String profiler = System.getProperty(PROFILE_SYSPROP, "");
 
@@ -201,6 +203,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace;
+    private boolean useInternalDeprecationStackTraceFlag = true;
     private boolean checkDeprecations = true;
     private boolean filterJavaVersionDeprecation = true;
     private boolean checkDaemonCrash = true;
@@ -267,8 +270,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         renderWelcomeMessage = false;
         disableToolchainDownload = true;
         disableToolchainDetection = true;
-        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP));
-        debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP));
+        debug = new JavaDebugOptionsInternal(Boolean.getBoolean(DEBUG_SYSPROP), DAEMON_DEBUG_PORT);
+        debugLauncher = new JavaDebugOptionsInternal(Boolean.getBoolean(LAUNCHER_DEBUG_SYSPROP), LAUNCHER_DEBUG_PORT);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
         interactive = false;
         checkDeprecations = true;
@@ -383,6 +386,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (fullDeprecationStackTrace) {
             executer.withFullDeprecationStackTraceEnabled();
         }
+        if (!useInternalDeprecationStackTraceFlag) {
+            executer.withoutInternalDeprecationStackTraceFlag();
+        }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
         }
@@ -419,8 +425,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             executer.withGradleVersionOverride(gradleVersionOverride);
         }
 
-        executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts))
-            .startLauncherInDebugger(opts -> debugLauncher.copyTo(opts))
+        if (debug.isEnabled()){
+            executer.startBuildProcessInDebugger(opts -> debug.copyTo(opts));
+        }
+        if (debugLauncher.isEnabled()){
+            executer.startLauncherInDebugger(opts -> debugLauncher.copyTo(opts));
+        }
+
+        executer
             .withProfiler(profiler)
             .withForceInteractive(interactive);
 
@@ -1191,7 +1203,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
+        if (useInternalDeprecationStackTraceFlag) {
+            properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
+        }
 
         boolean useCustomGradleUserHomeDir = gradleUserHomeDir != null && !gradleUserHomeDir.equals(buildContext.getGradleUserHomeDir());
         if (useOwnUserHomeServices || useCustomGradleUserHomeDir) {
@@ -1226,9 +1240,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             properties.put("user.variant", locale.getVariant());
         }
 
-        if (eagerClassLoaderCreationChecksOn) {
-            properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, "true");
-        }
+        properties.put(DefaultClassLoaderScope.STRICT_MODE_PROPERTY, Boolean.toString(eagerClassLoaderCreationChecksOn));
 
         if (interactive) {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
@@ -1536,6 +1548,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter withFullDeprecationStackTraceEnabled() {
         fullDeprecationStackTrace = true;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withoutInternalDeprecationStackTraceFlag() {
+        useInternalDeprecationStackTraceFlag = false;
         return this;
     }
 

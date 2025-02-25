@@ -1,28 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
-            "acceptation": "Protected methods intende to be overriden by Gradle, not API",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationRunner()",
-            "acceptation": "Protected methods intende to be overriden by Gradle, not API",
-            "changes": [
-                "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getObjectFactory()",
-            "acceptation": "Protected methods intende to be overriden by Gradle, not API",
-            "changes": [
-                "Method is now abstract"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

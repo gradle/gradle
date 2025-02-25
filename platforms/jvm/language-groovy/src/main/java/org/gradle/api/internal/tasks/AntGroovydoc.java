@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.api.tasks.javadoc.GroovydocAccess;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.VersionNumber;
 
 import java.io.File;
@@ -42,7 +43,10 @@ import java.util.Set;
 
 /**
  * Generates groovy doc using Ant.
+ *
+ * @deprecated This is an internal API. Do not use this class.
  */
+@Deprecated
 public final class AntGroovydoc {
 
     private final IsolatedAntBuilder ant;
@@ -52,6 +56,7 @@ public final class AntGroovydoc {
         IsolatedAntBuilder ant,
         TemporaryFileProvider temporaryFileProvider
     ) {
+        DeprecationLogger.deprecateType(AntGroovydoc.class).willBeRemovedInGradle9().withUpgradeGuideSection(8, "antgroovydoc").nagUser();
         this.ant = ant;
         this.temporaryFileProvider = temporaryFileProvider;
     }
@@ -118,7 +123,7 @@ public final class AntGroovydoc {
         }
 
         ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
+            @SuppressWarnings("unused")
             public Object doCall(Object it) {
                 final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
 
@@ -141,7 +146,7 @@ public final class AntGroovydoc {
 
     private void invokeGroovydoc(final Set<Groovydoc.Link> links, List<File> combinedClasspath, final Map<String, Object> args) {
         ant.withClasspath(combinedClasspath).execute(new Closure<Object>(this, this) {
-            @SuppressWarnings("UnusedDeclaration")
+            @SuppressWarnings("Unused")
             public Object doCall(Object it) {
                 final GroovyObjectSupport antBuilder = (GroovyObjectSupport) it;
 

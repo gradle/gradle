@@ -58,6 +58,12 @@ Root project 'basic-rule-source-plugin'
       | Creator: 	Project.<init>.tasks()
       | Rules:
          ⤷ PersonRules#createHelloTask(ModelMap<Task>, Person)
+    + artifactTransforms
+          | Type:   	org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask
+          | Value:  	task ':artifactTransforms'
+          | Creator: 	Project.<init>.tasks.artifactTransforms()
+          | Rules:
+             ⤷ copyToTaskContainer
     + buildEnvironment
           | Type:   	org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
           | Value:  	task ':buildEnvironment'

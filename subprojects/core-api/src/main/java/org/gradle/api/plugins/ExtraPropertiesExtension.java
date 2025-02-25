@@ -26,7 +26,7 @@ import java.util.Map;
  * <p>
  * Extra properties extensions allow new properties to be added to existing domain objects. They act like maps,
  * allowing the storage of arbitrary key/value pairs. All {@link ExtensionAware} Gradle domain objects intrinsically have an extension
- * named “{@value #EXTENSION_NAME}” of this type.
+ * named "{@value #EXTENSION_NAME}" of this type.
  * <p>
  * An important feature of extra properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
  * object that owns the extension.
@@ -112,7 +112,7 @@ public interface ExtraPropertiesExtension {
      * </pre>
      *
      * When using the first form, an {@link UnknownPropertyException} exception will be thrown if the
-     * extension does not have a property called “{@code foo}”. When using the second forms (i.e. Groovy notation),
+     * extension does not have a property called "{@code foo}". When using the second forms (i.e. Groovy notation),
      * Groovy's {@link groovy.lang.MissingPropertyException} will be thrown instead.
      *
      * @param name The name of the property to get the value of

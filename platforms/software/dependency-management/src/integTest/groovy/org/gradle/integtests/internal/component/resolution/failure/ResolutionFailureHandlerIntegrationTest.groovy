@@ -399,6 +399,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
                            - state 'solid'""")
 
         and: "Helpful resolutions are provided"
+        assertSuggestRunningArtifactTransformsReport()
         assertSuggestsReviewingAlgorithm()
         assertSuggestsViewingDocs("Transformation failures are explained in more detail at https://docs.gradle.org/${GradleVersion.current().version}/userguide/variant_model.html#sub:transform-ambiguity.")
 
@@ -1120,6 +1121,10 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void assertFullMessageCorrect(String identifyingFragment) {
         failure.assertHasErrorOutput(identifyingFragment)
+    }
+
+    private void assertSuggestRunningArtifactTransformsReport() {
+        failure.assertHasResolution("Run the :artifactTransforms report to see the available artifact transforms.")
     }
 
     private void assertSuggestsReviewingAlgorithm() {

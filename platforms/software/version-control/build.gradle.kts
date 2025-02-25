@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.instrumented-java-project")
 }
 
 description = "Version control integration (with git) for source dependencies"
@@ -18,6 +17,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.dependencyManagement)
     api(projects.fileCollections)
+    api(projects.persistentCache)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
 
@@ -25,7 +25,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.persistentCache)
     implementation(projects.serialization)
     implementation(projects.files)
     implementation(projects.functional)

@@ -31,6 +31,8 @@ import gradlebuild.basics.BuildParams.BUILD_VCS_NUMBER
 import gradlebuild.basics.BuildParams.BUILD_VERSION_QUALIFIER
 import gradlebuild.basics.BuildParams.BUNDLE_GROOVY_4
 import gradlebuild.basics.BuildParams.CI_ENVIRONMENT_VARIABLE
+import gradlebuild.basics.BuildParams.DEBUG_DAEMON
+import gradlebuild.basics.BuildParams.DEBUG_LAUNCHER
 import gradlebuild.basics.BuildParams.DEFAULT_PERFORMANCE_BASELINES
 import gradlebuild.basics.BuildParams.ENABLE_CONFIGURATION_CACHE_FOR_DOCS_TESTS
 import gradlebuild.basics.BuildParams.FLAKY_TEST
@@ -50,7 +52,6 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
 import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
-import gradlebuild.basics.BuildParams.RETRY_BUILD
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.RUN_BROKEN_CONFIGURATION_CACHE_DOCS_TESTS
 import gradlebuild.basics.BuildParams.STUDIO_HOME
@@ -120,7 +121,6 @@ object BuildParams {
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val RERUN_ALL_TESTS = "rerunAllTests"
-    const val RETRY_BUILD = "retryBuild"
     const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_DOGFOODING_TAG = "testDistributionDogfoodingTag"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
@@ -135,6 +135,8 @@ object BuildParams {
     const val RUN_ANDROID_STUDIO_IN_HEADLESS_MODE = "runAndroidStudioInHeadlessMode"
     const val STUDIO_HOME = "studioHome"
     const val BUNDLE_GROOVY_4 = "bundleGroovy4"
+    const val DEBUG_DAEMON = "debugDaemon"
+    const val DEBUG_LAUNCHER = "debugLauncher"
 
     /**
      * Run docs tests with the configuration cache enabled.
@@ -239,10 +241,6 @@ val Project.buildRunningOnCi: Provider<Boolean>
 
 val Project.buildMilestoneNumber: Provider<String>
     get() = gradleProperty(BUILD_MILESTONE_NUMBER)
-
-
-val Project.isRetryBuild: Boolean
-    get() = gradleProperty(RETRY_BUILD).isPresent
 
 
 val Project.buildTimestamp: Provider<String>
@@ -433,3 +431,9 @@ val Project.isPromotionBuild: Boolean
  */
 val Project.isBundleGroovy4: Boolean
     get() = systemProperty(BUNDLE_GROOVY_4).orNull.toBoolean()
+
+val Project.daemonDebuggingIsEnabled: Boolean
+    get() = propertyFromAnySource(DEBUG_DAEMON).isPresent
+
+val Project.launcherDebuggingIsEnabled: Boolean
+    get() = propertyFromAnySource(DEBUG_LAUNCHER).isPresent
