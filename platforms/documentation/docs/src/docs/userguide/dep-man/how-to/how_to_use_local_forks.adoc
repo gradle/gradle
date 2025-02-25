@@ -1,0 +1,103 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[how_to_use_local_forks]]
+= How to Use a Local Fork of a Module Dependency
+
+This guide explains how to replace a module dependency with a **local fork** of the module’s sources, assuming the module itself is built with Gradle.
+
+Using a **local fork** allows you to:
+
+* Apply and test **custom patches** to a dependency.
+* Work with an **unreleased** version of a library.
+* Avoid relying on the **published binary** version.
+
+== Prerequisites
+
+* The module must be **built with Gradle**.
+* You must have a **local copy** of the module's source code.
+* The local module should be set up as a **Gradle build**.
+
+== Use Composite Builds
+
+Gradle’s **composite builds** provide a seamless way to substitute a module dependency with a local fork.
+
+=== Step 1: Include the Local Fork in `settings.gradle`
+
+Modify your project's `settings.gradle` file to include the local module as an **included build**:
+
+[source,groovy]
+----
+includeBuild('../local-fork') // Adjust path to your local fork
+----
+
+Alternatively, for Kotlin DSL:
+
+[source,kotlin]
+----
+includeBuild("../local-fork") // Adjust path to your local fork
+----
+
+=== Step 2: Replace the Published Dependency
+
+In your `build.gradle` file, declare the dependency substitution:
+
+[source,groovy]
+----
+dependencies {
+    implementation("org.example:library:1.0")
+}
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        libs {
+            substitute module("org.example:library") using project(":library")
+        }
+    }
+}
+----
+
+For Kotlin DSL:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("org.example:library:1.0")
+}
+
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            substitute(module("org.example:library")).using(project(":library"))
+        }
+    }
+}
+----
+
+== Running the Build
+
+Once the local fork is included as an **included build**, Gradle will automatically use the local source instead of fetching the dependency from a repository.
+
+To verify, run:
+
+[source,shell]
+----
+./gradlew build
+----
+
+== Summary
+
+By using **composite builds**, you can seamlessly replace a module dependency with a local fork, enabling fast iteration on library changes without modifying external repositories.
+
+For more details, see the section on <<composite_builds.adoc#defining_composite_builds,composite builds>>.

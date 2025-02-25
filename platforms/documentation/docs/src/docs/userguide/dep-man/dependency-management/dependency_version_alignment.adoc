@@ -1,0 +1,199 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[version_alignment]]
+= Aligning dependency versions
+
+Dependency version alignment ensures that different modules belonging to the same logical group (a <<platforms.adoc#platforms,platform>>) use identical versions in the dependency graph.
+
+== Handling inconsistent module versions
+
+Gradle supports aligning versions of modules that belong to the same <<platforms.adoc#platforms,*platform*>>.
+For example, it is often preferable for a component’s **API and implementation modules** to use the **same version**.
+
+However, due to **transitive dependency resolution**, modules within the same platform may end up using **different versions**, leading to potential compatibility issues.
+
+Consider the following example, where your project depends on both `jackson-databind` and `vert.x`:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=dependencies]"]
+====
+
+In this case, dependency resolution results in:
+
+- **`jackson-core`** → `2.9.5` (required by `vertx-core`)
+- **`jackson-databind`** → `2.9.5` (resolved via conflict resolution)
+- **`jackson-annotations`** → `2.9.0` (a dependency of `jackson-databind:2.9.5`)
+
+This mismatch can lead to **incompatibility issues** and unexpected failures.
+
+Gradle provides **dependency version alignment** through the concept of **platforms**, ensuring that related modules use **consistent versions**.
+
+A **platform** represents a group of modules that are designed to work together.
+This can be because:
+
+1. **They are published together** – When one module in the platform is published, all other modules are published with the **same version**.
+2. **They have been tested together** – Certain curated platforms, such as **Spring Platform**, guarantee that all modules in the group work well together.
+
+By leveraging **platforms**, you can avoid version conflicts and ensure **better compatibility** across dependencies.
+
+You can learn more in the <<platforms.adoc#platforms,Platforms>> documentation.
+
+== Aligning versions natively with Gradle
+
+Gradle **natively supports version alignment** for modules produced within a Gradle build.
+This is a direct result of the **transitive nature** of <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps, dependency constraints>>.
+
+If you have a **multi-project build** and want to ensure that consumers get the **same version** of all your modules, you can achieve this using the <<java_platform_plugin.adoc#java_platform_plugin, Java Platform Plugin>>.
+
+Consider a project with three modules:
+
+- `lib`
+- `utils`
+- `core` _(depends on `lib` and `utils`)_
+
+A **consumer project** declares the following dependencies:
+
+- `core:1.0` (`core` version 1.0)
+- `lib:1.1` (`lib` version 1.1)
+
+By default, Gradle selects `core:1.0` and `lib:1.1` because `lib` has no dependency on `core`.
+This can lead to **version misalignment**.
+
+To fix this, we introduce a **platform module** that defines constraints on all modules:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin/platform",files="build.gradle.kts[tags=platform]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy/platform",files="build.gradle[tags=platform]"]
+====
+
+Each module in the project should declare a **dependency on the platform**:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/kotlin/core",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignmentWithPlatform/groovy/core",files="build.gradle[tags=dependencies]"]
+====
+
+By enforcing **constraints at the platform level** and ensuring that each module depends on the platform, Gradle automatically aligns versions.
+Here's how:
+
+1. **`core:1.0` is resolved first**, bringing in `platform:1.0`, which enforces `lib:1.0`.
+2. **`lib:1.1` is added**, which depends on `platform:1.1`.
+3. **Conflict resolution occurs**:
+- Gradle selects **`platform:1.1`**, which enforces `core:1.1`.
+- Gradle resolves the conflict between `core:1.0` and `core:1.1`.
+4. As a result, **`core` and `lib` are now properly aligned** at version **1.1**.
+
+NOTE: This behavior is **only enforced for published components** if you use **Gradle Module Metadata**.
+
+[[sec:align-versions-unpublished]]
+== Aligning versions of modules not published with Gradle
+
+When a publisher **does not use Gradle**, such as in the case of **Jackson**, we can still tell Gradle that certain modules **belong to the same platform**.
+This allows Gradle to **align their versions automatically**, just as it does with **native alignment**.
+
+There are two ways to express that a set of modules belong to a platform:
+
+=== 1. Using a Published BOM (Bill of Materials)
+
+If a platform is **already published as a BOM**, Gradle can import it.
+For example, the **Jackson BOM** (`com.fasterxml.jackson:jackson-bom`) can be used as a platform.
+
+However, when using a BOM, **Gradle does not automatically add it** to the dependencies of its modules.
+You must explicitly declare it as a **platform dependency**.
+
+=== 2. Creating a Virtual Platform in Gradle
+
+If no BOM is available, you can create a **virtual platform** in Gradle.
+In this case, Gradle builds the platform **dynamically** based on the modules being used.
+
+A **virtual platform** ensures that all modules within the platform **resolve to the same version**, even if they are brought in as transitive dependencies.
+
+To tell Gradle how to handle alignment for non-Gradle published modules, you can define <<component_metadata_rules.adoc#component-metadata-rules,**component metadata rules**>>.
+
+
+[[sec:align_bom_platform]]
+=== Align versions of modules using a published BOM
+
+.A dependency version alignment rule
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=bom-alignment-rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=bom-alignment-rule]"]
+====
+
+By using the `belongsTo` with `false` (**not** virtual), we declare that all modules belong to the same _published platform_.
+In this case, the platform is `com.fasterxml.jackson:jackson-bom` and Gradle will look for it, as for any other module, in the declared repositories.
+
+.Making use of a dependency version alignment rule
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=use_bom_rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=use_bom_rule]"]
+====
+
+Using the rule, the versions in the example above align to whatever the selected version of `com.fasterxml.jackson:jackson-bom` defines.
+In this case, `com.fasterxml.jackson:jackson-bom:2.9.5` will be selected as `2.9.5` is the highest version of a module selected.
+In that BOM, the following versions are defined and will be used:
+
+- `jackson-core:2.9.5`,
+- `jackson-databind:2.9.5` and
+- `jackson-annotation:2.9.0`.
+
+The lower versions of `jackson-annotation` here might be the desired result as it is what the BOM recommends.
+
+NOTE: This behavior is working reliable since Gradle 6.1. Effectively, it is similar to a <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>> that adds a platform dependency to all members of the platform using `withDependencies`.
+
+[[sec:virtual_platform]]
+== Align versions of modules without a published platform
+
+When no **published platform (BOM)** exists, you can still **align dependency versions** by creating a **virtual platform** in Gradle.
+A **virtual platform** ensures that all modules within a group resolve to the **same version**, even if they are introduced transitively.
+
+=== 1. Defining a Dependency Version Alignment Rule
+
+To align dependencies without a published platform, you can define a **component metadata rule** that groups related dependencies into a virtual platform:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=alignment-rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=alignment-rule]"]
+====
+
+Using the **`belongsTo`** method assigns all **Jackson modules** to a **virtual platform**.
+A virtual platform **is not retrieved from a repository** but is **created dynamically** by Gradle.
+The identifier **`com.fasterxml.jackson:jackson-virtual-platform`** is **custom-defined** by the build author.
+Gradle **automatically includes all dependencies** that reference this virtual platform.
+
+=== 2. Applying the Version Alignment Rule
+
+Once the rule is defined, apply it to all dependencies:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=use_rule]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=use_rule]"]
+====
+
+This ensures that **all Jackson modules in the project align to the same version**.
+For example, if `jackson-databind:2.9.5` is used, **Gradle will also align `jackson-annotations` to `2.9.5`**.
+
+=== 3. Overriding the Virtual Platform Version
+
+If you need to **override the platform version**, Gradle allows you to **force a specific version**:
+
+====
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/kotlin",files="build.gradle.kts[tags=enforced_platform]"]
+include::sample[dir="snippets/dependencyManagement/managingTransitiveDependencies-dependencyAlignment/groovy",files="build.gradle[tags=enforced_platform]"]
+====
+
+**Using `enforcedPlatform` ensures that all modules align to the specified version (`2.8.9`).**
+This is useful when you need to **maintain compatibility** with older versions.

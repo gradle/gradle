@@ -1,0 +1,109 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[how_to_resolve_specific_artifacts]]
+== How to Resolve Specific Artifacts from a Module Dependency
+
+Gradle resolves module dependencies by looking for metadata files (`.module`, `.pom`, or `ivy.xml`) and a default artifact (usually a JAR). If none of these files are found, the build fails. However, in some cases, you may need to customize how Gradle resolves artifacts.
+
+=== When to Use Custom Artifact Resolution
+
+You might need to tweak artifact resolution in the following scenarios:
+
+* The dependency provides a **non-standard artifact** (e.g., a ZIP file) without metadata.
+* The module metadata declares **multiple artifacts** (e.g., an Ivy dependency descriptor).
+* You want to **download only a specific artifact** without transitive dependencies.
+
+Gradle is a **polyglot build tool** and supports resolving dependencies beyond Java libraries. For example, you can use it to fetch **JavaScript libraries** from an external repository.
+
+=== Resolving a JavaScript Artifact Without Metadata
+
+Let’s say you want to build a web application that uses JavaScript libraries, such as **jQuery**, and download them from a repository instead of checking them into version control.
+
+Google Hosted Libraries provides open-source JavaScript libraries. Using **artifact-only notation**, you can fetch a JavaScript file like `jquery.js`. The `@` character separates the dependency’s coordinates from the artifact’s file extension.
+
+==== Example: Resolving a JavaScript Artifact from Google Hosted Libraries
+
+[source,groovy]
+.build.gradle
+----
+repositories {
+    ivy {
+        url = uri("https://ajax.googleapis.com/ajax/libs")
+        patternLayout {
+            artifact("[organization]/[revision]/[module].[ext]")  // Define artifact pattern
+        }
+        metadataSources {
+            artifact()  // Only resolve artifacts without metadata
+        }
+    }
+}
+
+configurations {
+    create("js")  // Create a separate configuration for JavaScript dependencies
+}
+
+dependencies {
+    "js"("jquery:jquery:3.2.1@js")  // Fetch the JavaScript file directly
+}
+----
+
+=== Resolving an Artifact with a Classifier
+
+Some libraries provide multiple variations or **flavors** of an artifact. In Java, a library may publish:
+* A compiled artifact with class files.
+* A separate artifact containing **source code**.
+* Another one with **Javadocs**.
+
+Similarly, in JavaScript, libraries often have:
+* An **uncompressed** version.
+* A **minified** version (optimized for production).
+
+To specify a particular variation, you can use a **classifier**. In Gradle, classifiers allow you to fetch a **specific** artifact within a module.
+
+==== Example: Resolving a Minified JavaScript Artifact with a Classifier
+
+Instead of downloading the uncompressed `jquery.js` file, you can fetch the **minified** version (`jquery.min.js`) by specifying the classifier `min`.
+
+[source,groovy]
+.build.gradle
+----
+repositories {
+    ivy {
+        url = uri("https://ajax.googleapis.com/ajax/libs")
+        patternLayout {
+            artifact("[organization]/[revision]/[module](.[classifier]).[ext]")  // Include classifier
+        }
+        metadataSources {
+            artifact()  // Only resolve artifacts without metadata
+        }
+    }
+}
+
+configurations {
+    create("js")  // Create a separate configuration for JavaScript dependencies
+}
+
+dependencies {
+    "js"("jquery:jquery:3.2.1:min@js")  // Fetch the minified version
+}
+----
+
+=== Summary
+
+* Use **artifact-only notation (`@`)** when resolving dependencies that lack metadata.
+* Use **classifiers** to specify different versions or variations of an artifact.
+* Gradle can fetch **non-Java** artifacts like JavaScript libraries from external repositories.
+
+By following this approach, you can efficiently manage external dependencies and avoid checking large libraries into version control.
