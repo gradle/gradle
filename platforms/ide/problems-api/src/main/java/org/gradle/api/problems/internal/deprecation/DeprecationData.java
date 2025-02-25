@@ -19,7 +19,6 @@ package org.gradle.api.problems.internal.deprecation;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
-import org.gradle.api.problems.deprecation.DeprecatedVersion;
 import org.gradle.api.problems.deprecation.ReportSource;
 
 import javax.annotation.Nullable;
@@ -44,7 +43,7 @@ public interface DeprecationData extends AdditionalData {
      * @return the version in which the deprecation will become an error.
      */
     @Nullable
-    DeprecatedVersion getRemovedIn();
+    String getRemovedIn();
 
     /**
      * Returns the feature that replaces the deprecated feature.

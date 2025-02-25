@@ -19,6 +19,7 @@ package org.gradle.api.problems.deprecation
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.problems.internal.PluginIdLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.operations.problems.LineInFileLocation
 
 class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
 
@@ -95,19 +96,47 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-//    def "plugin reports another downstream dependency plugin deprecated"() {
-//
-//
-//        // how can plugins detect plugin dependencies?
-//        // maybe this is very similar to deprecating binary dependencies in a plugin. Like this using an old version of lib X will be an error in the next major release of this plugin
-//    }
-
-    def "build script uses deprecated plugin API"() {
-
-    }
-
     def "build script uses deprecated Gradle API"() {
-        // TODO (doinat) should we use deprecatePlugin here?
+        given:
+        javaFile("plugin/src/main/java/MyPlugin.java", """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.problems.Problems;
+            import ${ReportSource.name};
+
+            import javax.inject.Inject;
+
+            public abstract class MyPlugin implements Plugin<Project> {
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void apply(Project project) {
+                    // no-op
+                }
+            }
+        """)
+
+        buildFile "((${GradleInternal.name}) project.getGradle()).testDeprecation()"
+
+        when:
+        executer.expectDeprecationWarning('The GradleInternal.testDeprecation() method has been deprecated. This is scheduled to be removed in Gradle 10.0. Please use the other() method instead.')
+        succeeds('help')
+
+        then:
+        verifyAll(receivedProblem) {
+            definition.id.fqid == 'deprecation:gradle:method:GradleInternal.testDeprecation()'
+            contextualLabel == "Method 'org.gradle.api.internal.GradleInternal#testDeprecation()' is deprecated"
+            details == 'Please use the other() method instead.' // to be replaced
+            (originLocations[0] as LineInFileLocation).path == buildFile.path
+            // TODO (donat) we should have some location pointing to the plugin code. DefaultProblemLocationAnalyzer should identify locations from plugins, not just from build scripts
+            // (contextualLocations[0] as PluginIdLocation).pluginId == 'com.example.my-plugin' // TODO (donat) we should have contextual location of who reported it
+            exception != null
+            // TODO (donat) do we need store the type?
+            additionalData.asMap['source']['id'] == 'gradle'
+            additionalData.asMap['removedIn'] == '10.0'
+            //additionalData.asMap['replacedBy'] == 'org.gradle.api.internal.GradleInternal#other()' // TODO (donat) implement
+        }
     }
 
     def "plugin uses deprecated Gradle API"() { // TODO (donat) same test but during execution time
@@ -139,14 +168,14 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'deprecation:gradle:method:GradleInternal.testDeprecation()'
             contextualLabel == "Method 'org.gradle.api.internal.GradleInternal#testDeprecation()' is deprecated"
-            details == null // to be replaced
+            details == 'Please use the other() method instead.' // TODO (donat) dot is not necessary
             (originLocations[0] as PluginIdLocation).pluginId == 'com.example.my-plugin'
             // TODO (donat) we should have some location pointing to the plugin code. DefaultProblemLocationAnalyzer should identify locations from plugins, not just from build scripts
             // (contextualLocations[0] as PluginIdLocation).pluginId == 'com.example.my-plugin' // TODO (donat) we should have contextual location of who reported it
             exception != null
             // TODO (donat) do we need store the type?
             additionalData.asMap['source']['id'] == 'gradle'
-            additionalData.asMap['removedIn']['version'] == '10.0'
+            additionalData.asMap['removedIn'] == '10.0'
             //additionalData.asMap['replacedBy'] == 'org.gradle.api.internal.GradleInternal#other()' // TODO (donat) implement
         }
     }
@@ -154,86 +183,4 @@ class DeprecationReporterIntegrationTest extends AbstractIntegrationSpec {
     def "plugin uses deprecated plugin API"() {
 
     }
-
-//    def "can report generic deprecation"() {
-//        given:
-//        javaFile("plugin/src/main/java/DeprecationPlugin.java", """
-//            import org.gradle.api.Plugin;
-//            import org.gradle.api.Project;
-//            import org.gradle.api.problems.Problems;
-//
-//            import javax.inject.Inject;
-//
-//            public abstract class DeprecationPlugin implements Plugin<Project> {
-//                @Inject
-//                public abstract Problems getProblems();
-//
-//                @Override
-//                public void apply(Project project) {
-//                    // Report the plugin as deprecated
-//                    getProblems()
-//                        .getDeprecationReporter()
-//                        .deprecate("Generic deprecation message", feature -> feature
-//                            .because("Reasoning of removal")
-//                            .removedInVersion("2.0.0")
-//                            .replacedBy("newMethod(String, String)")
-//                        );
-//                }
-//            }
-//            """)
-//
-//        when:
-//        succeeds("help")
-//
-//        then:
-//        def deprecation = receivedProblem
-//        deprecation.definition.id.fqid == "deprecation:generic"
-//        deprecation.definition.id.displayName == "Generic deprecation"
-//        deprecation.contextualLabel == "Generic deprecation message"
-//        verifyAll(deprecation.additionalData.asMap) {
-//            it["because"] == "Reasoning of removal"
-//            it["replacedBy"] == "newMethod(String, String)"
-//            it["removedIn"]["version"] == "2.0.0"
-//        }
-//    }
-//
-//    def "can report method deprecation"() {
-//        given:
-//        javaFile("deprecation-plugin/src/main/java/DeprecationPlugin.java", """
-//            import org.gradle.api.Plugin;
-//import org.gradle.api.Project;
-//import org.gradle.api.problems.Problems;
-//
-//import javax.inject.Inject;
-//
-//            public abstract class DeprecationPlugin implements Plugin<Project> {
-//                @Inject
-//                public abstract Problems getProblems();
-//
-//                @Override
-//                public void apply(Project project) {
-//                    // Report the plugin as deprecated
-//                    getProblems().getDeprecationReporter().deprecateMethod(
-//                        this.getClass(), "oldMethod(String, String)", feature -> feature
-//                            .because("Reasoning of removal")
-//                            .removedInVersion("2.0.0")
-//                            .replacedBy("newMethod(String, String)")
-//                    );
-//                }
-//            }
-//            """)
-//
-//        when:
-//        succeeds("help")
-//
-//        then:
-//        def deprecation = receivedProblem
-//        deprecation.definition.id.fqid == "deprecation:method"
-//        deprecation.contextualLabel == "Method 'DeprecationPlugin_Decorated#oldMethod(String, String)' is deprecated"
-//        verifyAll(deprecation.additionalData.asMap) {
-//            it["because"] == "Reasoning of removal"
-//            it["replacedBy"] == "newMethod(String, String)"
-//            it["removedIn"]["version"] == "2.0.0"
-//        }
-//    }
 }

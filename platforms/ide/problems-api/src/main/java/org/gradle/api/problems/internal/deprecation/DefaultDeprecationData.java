@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal.deprecation;
 
-import org.gradle.api.problems.deprecation.DeprecatedVersion;
 import org.gradle.api.problems.deprecation.ReportSource;
 
 import javax.annotation.Nullable;
@@ -25,11 +24,11 @@ import java.io.Serializable;
 class DefaultDeprecationData implements DeprecationData, Serializable {
 
     private final ReportSource reportSource;
-    private final DeprecatedVersion removedIn;
+    private final String removedIn;
     private final String replacedBy;
     private final String reason;
 
-    public DefaultDeprecationData(ReportSource reportSource, @Nullable DeprecatedVersion removedIn, @Nullable String because, @Nullable String reason) {
+    public DefaultDeprecationData(ReportSource reportSource, @Nullable String removedIn, @Nullable String because, @Nullable String reason) {
         this.reportSource = reportSource;
         this.removedIn = removedIn;
         this.replacedBy = because;
@@ -43,7 +42,7 @@ class DefaultDeprecationData implements DeprecationData, Serializable {
 
     @Override
     @Nullable
-    public DeprecatedVersion getRemovedIn() {
+    public String getRemovedIn() {
         return removedIn;
     }
 
