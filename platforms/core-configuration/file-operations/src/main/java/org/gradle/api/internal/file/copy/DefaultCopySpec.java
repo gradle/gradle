@@ -48,6 +48,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.LazyPatternFilterable;
+import org.gradle.api.tasks.util.internal.LazyPatternFilterable.DirectInstantiatedLazyPatternFilterable;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -107,7 +108,14 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.patternSetFactory = patternSetFactory;
         this.filePermissions = propertyFactory.property(ConfigurableFilePermissions.class);
         this.dirPermissions = propertyFactory.property(ConfigurableFilePermissions.class);
-        this.lazyPatternFilterable = newLazyPatternFilterable(propertyFactory).applyFrom(patternSet);
+        // We don't have access to ObjectFactory here, so we have to use DirectInstantiatedLazyPatternFilterable
+        this.lazyPatternFilterable = instantiator.newInstance(
+            DirectInstantiatedLazyPatternFilterable.class,
+            propertyFactory.setProperty(String.class),
+            propertyFactory.setProperty(String.class),
+            propertyFactory.setProperty(Spec.class),
+            propertyFactory.setProperty(Spec.class)
+        );
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
@@ -118,37 +126,6 @@ public class DefaultCopySpec implements CopySpecInternal {
         for (CopySpecInternal child : children) {
             addChildSpec(child);
         }
-    }
-
-    private static LazyPatternFilterable newLazyPatternFilterable(PropertyFactory propertyFactory) {
-        // We don't have access to ObjectFactory here, so we need to instantiate lazyPatternFilterable manually
-        SetProperty<String> includes = propertyFactory.setProperty(String.class);
-        SetProperty<String> excludes = propertyFactory.setProperty(String.class);
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        SetProperty<Spec<FileTreeElement>> includeSpecs = (SetProperty<Spec<FileTreeElement>>) (SetProperty) propertyFactory.setProperty(Spec.class);
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        SetProperty<Spec<FileTreeElement>> excludeSpecs = (SetProperty<Spec<FileTreeElement>>) (SetProperty) propertyFactory.setProperty(Spec.class);
-        return new LazyPatternFilterable() {
-            @Override
-            public SetProperty<String> getIncludes() {
-                return includes;
-            }
-
-            @Override
-            public SetProperty<String> getExcludes() {
-                return excludes;
-            }
-
-            @Override
-            public SetProperty<Spec<FileTreeElement>> getIncludeSpecs() {
-                return includeSpecs;
-            }
-
-            @Override
-            public SetProperty<Spec<FileTreeElement>> getExcludeSpecs() {
-                return excludeSpecs;
-            }
-        };
     }
 
     @Override

@@ -25,6 +25,8 @@ import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 
+import javax.inject.Inject;
+
 /**
  * A lazy version of {@link PatternFilterable} that allows includes and excludes to be added lazily.
  */
@@ -89,5 +91,52 @@ public abstract class LazyPatternFilterable {
             patternFilterable.exclude(excludeSpec);
         }
         return patternFilterable;
+    }
+
+    /**
+     * An implementation of LazyPatternFilterable that can be instantiated where ObjectFactory is not available.
+     *
+     * Instantiating this class directly is not recommended. Use {@link LazyPatternFilterable} if possible.
+     */
+    @NonNullApi
+    public static class DirectInstantiatedLazyPatternFilterable extends LazyPatternFilterable {
+
+        private final SetProperty<String> includes;
+        private final SetProperty<String> excludes;
+        private final SetProperty<Spec<FileTreeElement>> includeSpecs;
+        private final SetProperty<Spec<FileTreeElement>> excludeSpecs;
+
+        @Inject
+        public DirectInstantiatedLazyPatternFilterable(
+            SetProperty<String> includes,
+            SetProperty<String> excludes,
+            SetProperty<Spec<FileTreeElement>> includeSpecs,
+            SetProperty<Spec<FileTreeElement>> excludeSpecs
+        ) {
+            this.includes = includes;
+            this.excludes = excludes;
+            this.includeSpecs = includeSpecs;
+            this.excludeSpecs = excludeSpecs;
+        }
+
+        @Override
+        public SetProperty<String> getIncludes() {
+            return includes;
+        }
+
+        @Override
+        public SetProperty<String> getExcludes() {
+            return excludes;
+        }
+
+        @Override
+        public SetProperty<Spec<FileTreeElement>> getIncludeSpecs() {
+            return includeSpecs;
+        }
+
+        @Override
+        public SetProperty<Spec<FileTreeElement>> getExcludeSpecs() {
+            return excludeSpecs;
+        }
     }
 }
