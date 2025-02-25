@@ -22,7 +22,7 @@ public class BaseForkOptionsTest extends Specification {
     def 'JVM options are filtered properly even with bad input'() {
 	    def options = new BaseForkOptions()
 
-        options.jvmArgs = ['', '', '']
+        options.jvmArgs = ['', '\n', ' ']
 
         expect:
         options.jvmArgs.isEmpty()
