@@ -91,7 +91,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName == "Deprecation"
             definition.id.group.name == "deprecation"
             definition.severity == Severity.WARNING
-            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : targetVersion < GradleVersion.version('8.14') ? 1 : 2)
+            locations.size() == (targetVersion < GradleVersion.version('8.13') ? 2 : 1)
             (locations[0] as LineInFileLocation).path == buildFileLocation(buildFile, targetVersion)
             additionalData.asMap['type'] == 'USER_CODE_DIRECT'
         }
