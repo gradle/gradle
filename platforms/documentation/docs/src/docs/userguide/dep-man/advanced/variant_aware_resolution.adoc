@@ -171,6 +171,7 @@ If **multiple candidates still remain**, Gradle processes **unordered attributes
 ** IF **a disambiguation rule exists**, apply it.
 ** IF **a requested attribute has the same value across all remaining candidates**, ignore it.
 * IF **only one candidate remains**, that candidate wins.
+* IF *no candidates remain*, Gradle falls back to the most compatible candidates (step 2).
 
 === Step 4: Disambiguation Using Extra Attributes
 
@@ -182,17 +183,21 @@ If multiple candidates still remain, Gradle considers **extra attributes**:
 
 First, Gradle processes **prioritized extra attributes**:
 
-* FOR each *extra attribute* **in precedence order**:
-** Prefer candidates that **lack the extra attribute**.
-** Remove candidates that do not conform.
+* FOR each *extra attribute* in *precedence order*:
+** IF some candidates have the attribute and others don’t:
+*** Candidates *that lack the extra attribute* are preferred.
+*** Candidates *with the extra attribute* are eliminated.
+* IF **only one candidate remains**, that candidate wins.
+* IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
 
 Then, Gradle processes **unordered extra attributes**:
 
-* FOR each *extra attribute* **without precedence order**:
-** Prefer candidates that **lack the extra attribute**.
-** Remove candidates that do not conform.
-
-If **only one candidate remains**, that candidate wins.
+* FOR each remaining *extra attribute* *without defined precedence*:
+** IF the attribute is present in only some candidates:
+*** Candidates without the attribute are preferred.
+*** Candidates with the extra attribute are eliminated.
+* IF **only one candidate remains**, that candidate wins.
+* IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
 
 === Step 5: Disambiguation Using Extra Attribute Presence
 
@@ -205,7 +210,7 @@ If candidates **still** remain, Gradle eliminates candidates based on **requeste
 
 === Step 6: Failure Condition
 
-If at any point **no candidates remain**, **resolution fails**.
+Unless otherwise indicated, if at any point **no candidates remain**, **resolution fails**.
 
 Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging *attribute* matching failures.
 
