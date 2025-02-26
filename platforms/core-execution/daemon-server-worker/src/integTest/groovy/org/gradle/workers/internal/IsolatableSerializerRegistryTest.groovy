@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.api.attributes.Attribute
+
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -45,7 +45,7 @@ class IsolatableSerializerRegistryTest extends Specification {
         registration.add(InstantiatorFactory, instantiatorFactory)
     }.build()
 
-    def serializer = IsolatableSerializerRegistry.create(classLoaderHasher, managedFactoryRegistry)
+    def serializer = new IsolatableSerializerRegistry(managedFactoryRegistry)
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
 
@@ -127,22 +127,6 @@ class IsolatableSerializerRegistryTest extends Specification {
         then:
         newIsolatables[0].isolate() == long1
         newIsolatables[1].isolate() == long2
-    }
-
-    def "can serialize/deserialize isolated Attribute values"() {
-        Attribute attr1 = Attribute.of("foo", String.class)
-        Attribute attr2 = Attribute.of("bar", SomeType.class)
-        Isolatable<?>[] isolatables = [isolatableFactory.isolate(attr1), isolatableFactory.isolate(attr2)]
-
-        when:
-        serialize(isolatables)
-
-        and:
-        Isolatable<?>[] newIsolatables = deserialize()
-
-        then:
-        newIsolatables[0].isolate() == attr1
-        newIsolatables[1].isolate() == attr2
     }
 
     def "can serialize/deserialize generated Managed values"() {
