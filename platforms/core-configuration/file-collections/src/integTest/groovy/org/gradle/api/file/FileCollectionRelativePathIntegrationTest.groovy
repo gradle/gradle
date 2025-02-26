@@ -53,19 +53,22 @@ class FileCollectionRelativePathIntegrationTest extends AbstractIntegrationSpec 
         outputContains("Effective files: ${files.collect { testDirectory.file(it) }.toSorted()}")
     }
 
-    // Tests a case forbidden by IP
+    // Test implementation is not compatible with IP, but the use case will still exist, though might be more involved to set up
     @Requires(IntegTestPreconditions.NotIsolatedProjects)
     @Issue("https://github.com/gradle/gradle/issues/30052")
-    def "ConfigurableFileCollection supports adding relative files at execution time"() {
+    def "#container supports using relative paths at execution time"() {
         given:
         settingsFile """
             include("abc") // a sibling non-root project that is configured earlier
             include("sub")
         """
 
+        file("abc/subDir1/file1.txt").touch()
+        file("abc/subDir2/file2.txt").touch()
+
         buildFile "abc/build.gradle", """
-            def fileCollection = project.objects.fileCollection()
-            fileCollection.from("file1.txt")
+            def fileCollection = project.objects.${creator}
+            fileCollection.from("subDir1")
             project.ext.myFiles = fileCollection
         """
 
@@ -73,7 +76,7 @@ class FileCollectionRelativePathIntegrationTest extends AbstractIntegrationSpec 
             def otherProjectFiles = project(":abc").ext.myFiles
             tasks.register("foo") {
                 doLast {
-                    otherProjectFiles.from("file2.txt")
+                    otherProjectFiles.from("subDir2")
                     println("files: \${otherProjectFiles.files.toSorted()}")
                 }
             }
@@ -83,8 +86,11 @@ class FileCollectionRelativePathIntegrationTest extends AbstractIntegrationSpec 
         run ":sub:foo"
 
         then:
-        def files = ["abc/file1.txt", "abc/file2.txt"]
-        outputContains("files: ${files.collect { testDirectory.file(it) }.toSorted()}")
-    }
+        outputContains("files: ${expectedFiles.collect { testDirectory.file(it) }.toSorted()}")
 
+        where:
+        container                    | creator            | expectedFiles
+        "ConfigurableFileCollection" | "fileCollection()" | ["abc/subDir1", "abc/subDir2"]
+        "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
+    }
 }
