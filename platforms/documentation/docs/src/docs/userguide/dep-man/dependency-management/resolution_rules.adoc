@@ -47,7 +47,7 @@ Here are the key resolution strategies in Gradle:
 |Control which versions of a module are allowed. Reject specific versions that are known to be broken or undesirable.
 
 |<<sec:configuration-defaults,5>>
-|Default Dependencies
+|Setting Default Dependencies
 |Automatically add dependencies to a configuration when no dependencies are explicitly declared.
 
 |<<sec:exclude-trans-deps,6>>
@@ -65,6 +65,10 @@ Here are the key resolution strategies in Gradle:
 |<<sec:dependency-resolve-rules,9>>
 |Dependency Resolve Rules and Other Conditionals
 |Transform or filter dependencies directly as they are resolved and other corner case scenarios.
+
+|<<sec:dependency-resolve-rules,10>>
+|Modifying Configuration Dependencies Before Resolution
+|Dynamically modify a configuration's dependencies before Gradle resolves them.
 |===
 
 [[sec:forcing-dep-versions]]
@@ -511,7 +515,6 @@ Below are two examples illustrating these use cases.
 
 This example demonstrates how to add a dependency to a configuration based on some condition, evaluated lazily:
 
-.Example 1: Conditionally Adding a Dependency
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=configuration-lazy-add-dependency]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=configuration-lazy-add-dependency]"]
@@ -521,10 +524,15 @@ In this case, `addLater` is used to defer the evaluation of the dependency, allo
 
 In this example, the build script sets a preferred version of a dependency, which will be used if no version is explicitly specified:
 
-Example 2: Preferring a Default Version of a Dependency
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=preferred-version-constraints]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=preferred-version-constraints]"]
 ====
 
 This ensures that `org:foo` uses version `1.0` unless the user specifies another version.
+
+[[changing_configuration_dependencies_prior_to_resolution]]
+== 10. Changing configuration dependencies prior to resolution
+
+The `withDependencies` method in Gradle allows you to dynamically modify a configuration's dependencies before Gradle resolves them.
+This is useful when you need to alter, enforce, or remove dependencies programmatically based on some conditions.
