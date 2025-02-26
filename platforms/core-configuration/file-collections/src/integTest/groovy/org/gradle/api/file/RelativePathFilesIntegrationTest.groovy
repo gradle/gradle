@@ -21,7 +21,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
-class FileCollectionRelativePathIntegrationTest extends AbstractIntegrationSpec {
+class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/30052")
     def "provider-backed relative files are resolved relative to their owner"() {
