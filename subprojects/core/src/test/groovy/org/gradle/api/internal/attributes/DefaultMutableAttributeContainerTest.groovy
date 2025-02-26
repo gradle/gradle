@@ -29,6 +29,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.util.AttributeTestUtil
+import org.gradle.util.TestUtil
 
 /**
  * Unit tests for the {@link DefaultMutableAttributeContainer} class.
@@ -380,7 +381,7 @@ final class DefaultMutableAttributeContainerTest extends AbstractAttributeContai
     }
 
     def "can add deprecated usage then add libraryelements and convert to immutable"() {
-        def container = mutable()
+        def container = getContainer()
 
         when:
         container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
@@ -394,7 +395,7 @@ final class DefaultMutableAttributeContainerTest extends AbstractAttributeContai
     }
 
     def "can add libraryelements then add deprecated usage and convert to immutable"() {
-        def container = mutable()
+        def container = getContainer()
 
         when:
         container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))

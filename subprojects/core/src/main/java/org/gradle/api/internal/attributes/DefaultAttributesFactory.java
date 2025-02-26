@@ -85,7 +85,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     }
 
     ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
-        assertAttributeNotAlreadyPresent(node, key);
+        assertAttributeNotAlreadyPresentFast(node, key);
 
         // Try to retrieve a cached value without locking
         ImmutableList<DefaultImmutableAttributesContainer> cachedChildren = children.get(node);
@@ -212,7 +212,6 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         return concat(attributes, key, castValue);
     }
 
-
     /**
      * Verifies that an attribute with the same name but different types as the given key is not
      * already present in the given container.
@@ -224,11 +223,33 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     public void assertAttributeNotAlreadyPresent(AttributeContainer container, Attribute<?> key) {
         for (Attribute<?> attribute : container.keySet()) {
             String name = key.getName();
-            if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
-                throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
-                    + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
-                    + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
+            if (attribute.getName().equals(name)) {
+                if (attribute.getType() == key.getType()) {
+                    return; // Same name, same type = we're good here
+                } else {
+                    throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
+                        + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
+                        + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
+                }
             }
+        }
+    }
+
+    /**
+     * Verifies that an attribute with the same name but different types as the given key is not
+     * already present in the given immutable container.
+     * <p>
+     * When checking <strong>immutable</strong> containers, we can make use of the faster check via {@link ImmutableAttributes#findEntry(String)}
+     * to check for attribute existence by name first, and then iif we find a match we can use the slower exhaustive check to
+     * verify the type.  This speeds up the process for most cases, when the name alone will be unique.
+     *
+     * @param container the container to check
+     * @param key the attribute to check for
+     * @throws IllegalArgumentException if attribute with same name and different type already exists
+     */
+    private void assertAttributeNotAlreadyPresentFast(ImmutableAttributes container, Attribute<?> key) {
+        if (container.findEntry(key.getName()) != AttributeValue.MISSING) {
+            assertAttributeNotAlreadyPresent(container, key);
         }
     }
 }
