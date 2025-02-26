@@ -115,7 +115,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             propertyFactory.setProperty(String.class),
             propertyFactory.setProperty(Spec.class),
             propertyFactory.setProperty(Spec.class)
-        );
+        ).applyFrom(patternSet);
     }
 
     public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, PropertyFactory propertyFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
