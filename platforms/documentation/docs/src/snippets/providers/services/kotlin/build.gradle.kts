@@ -203,7 +203,7 @@ interface InjectedExecOps {
 }
 
 tasks.register("myAdHocExecOperationsTask") {
-    val injected = project.objects.newInstance<InjectedExecOps>()
+    val injected = project.objects.newInstance(InjectedExecOps::class.java)
 
     doLast {
         injected.execOps.exec {
