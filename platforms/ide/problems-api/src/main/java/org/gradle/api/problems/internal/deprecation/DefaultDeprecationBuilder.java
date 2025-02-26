@@ -15,14 +15,11 @@
  */
 package org.gradle.api.problems.internal.deprecation;
 
-import org.gradle.api.problems.deprecation.DeprecateGenericSpec;
-import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
-import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
 import org.gradle.api.problems.deprecation.ReportSource;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemBuilder;
 
-class DefaultDeprecationBuilder implements DeprecateGenericSpec, DeprecatePluginSpec, DeprecateMethodSpec {
+class DefaultDeprecationBuilder implements InternalDeprecateSpec {
     private final InternalProblemBuilder builder;
     private final DefaultDeprecationData.Builder additionalDataBuilder;
 

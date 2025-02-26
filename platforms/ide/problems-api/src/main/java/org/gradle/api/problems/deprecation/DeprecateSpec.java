@@ -24,6 +24,5 @@ import org.gradle.api.Incubating;
  * @since 8.14
  */
 @Incubating
-public interface DeprecatePluginSpec extends DeprecateSpec {
-
+public interface DeprecateSpec extends BaseDeprecationSpec<DeprecateSpec> {
 }

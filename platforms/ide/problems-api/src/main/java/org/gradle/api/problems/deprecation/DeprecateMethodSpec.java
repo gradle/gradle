@@ -24,5 +24,5 @@ import org.gradle.api.Incubating;
  * @since 8.14
  */
 @Incubating
-public interface DeprecateMethodSpec extends DeprecateGenericSpec {
+public interface DeprecateMethodSpec extends DeprecateSpec {
 }

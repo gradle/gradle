@@ -20,16 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
+import org.gradle.api.problems.deprecation.DeprecateSpec;
 import org.gradle.api.problems.deprecation.DeprecationReporter;
 import org.gradle.api.problems.deprecation.ReportSource;
-import org.gradle.api.problems.internal.DeprecationDataSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.api.problems.internal.InternalProblemReporter;
-import org.gradle.api.problems.internal.InternalProblemSpec;
-import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
@@ -42,14 +37,10 @@ import org.gradle.util.internal.DefaultGradleVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
-
-import static org.gradle.api.problems.Severity.WARNING;
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -91,17 +82,17 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             }
         }
         if (problemsService != null) {
-            reportDeprecation(usage, diagnostics);
+            reportDeprecation(usage);
         }
         fireDeprecatedUsageBuildOperationProgress(usage, diagnostics);
     }
 
-    private void reportDeprecation(final DeprecatedFeatureUsage usage, final ProblemDiagnostics diagnostics) {
-        if (usage.getDeprecationInfo().getMethodClass() != null) {
-            DeprecationReporter reporter = problemsService.getDeprecationReporter();
-            final String removedIn = usage.getDeprecationInfo().getRemovedInVersion();
-            final String advice = usage.getDeprecationInfo().getAdvice();
-            reporter.deprecateMethod(ReportSource.gradle(), usage.getDeprecationInfo().getMethodClass(), usage.getDeprecationInfo().getMethodWithParams(), new Action<DeprecateMethodSpec>() {
+    private void reportDeprecation(final DeprecatedFeatureUsage usage) {
+        DeprecationReporter reporter = problemsService.getDeprecationReporter();
+        final String removedIn = usage.getDeprecationInfo().getRemovedInVersion();
+        final String advice = usage.getDeprecationInfo().getAdvice();
+        if (usage.getDeprecationInfo() != null && usage.getDeprecationInfo().getMethodClass() != null) {
+            reporter.deprecateMethod(ReportSource.gradle(), usage.getDeprecationInfo().getMethodClass(), usage.getDeprecationInfo().getMethodWithParams(), new Action<DeprecateMethodSpec>() { // TODO (donat) why dow ened to use ProblemReporter.report separately?
                     @Override
                     public void execute(DeprecateMethodSpec spec) {
                         spec.because(usage.getContextualAdvice());
@@ -114,55 +105,50 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     }
                 }
             );
-
         } else {
-            InternalProblemReporter reporter = ((InternalProblems) problemsService).getInternalReporter();
-            Problem problem = reporter.internalCreate(new Action<InternalProblemSpec>() {
+            reporter.deprecate(ReportSource.gradle(), usage.getSummary(), new Action<DeprecateSpec>() {
                 @Override
-                public void execute(InternalProblemSpec builder) {
-                    InternalProblemSpec problemSpec = builder
-                        // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                        .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecationLogger())
-                        .contextualLabel(usage.getSummary())
-                        .details(usage.getRemovalDetails())
-                        .documentedAt(usage.getDocumentationUrl())
-                        .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
-                            @Override
-                            public void execute(DeprecationDataSpec data) {
-                                data.type(usage.getType().toDeprecationDataType());
-                            }
-                        })
-                        .severity(WARNING);
+                public void execute(DeprecateSpec spec) {
+                    spec.because(usage.getContextualAdvice());
+                    if (removedIn != null) {
+                        spec.removedInVersion(removedIn);
+                    }
+                    if (advice != null) {
+                        spec.because(advice);
+                    }
+                } // TODO (donat) why dow ened to use ProblemReporter.report separately?
 
-                    addPossibleLocation(diagnostics, problemSpec);
-                    addSolution(usage.getAdvice(), problemSpec);
-                    addSolution(usage.getContextualAdvice(), problemSpec);
                 }
-            });
-            reporter.report(problem);
+            );
         }
     }
 
-    private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
-        if (usage.getProblemId() != null) {
-            return usage.getProblemId();
-        }
-        return createDefaultDeprecationId(usage.getProblemIdDisplayName());
-    }
+//    private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
+//        if (usage.getProblemId() != null) {
+//            return usage.getProblemId();
+//        }
+//        return createDefaultDeprecationId(usage.getProblemIdDisplayName());
+//    }
 
-    private static void addSolution(@Nullable String advice, InternalProblemSpec problemSpec) {
-        if (advice != null) {
-            problemSpec.solution(advice);
-        }
-    }
+//    private static void addContext(@Nullable String context, InternalProblemSpec problemSpec) {
+//        if (context != null) {
+//            problemSpec.details(context);
+//        }
+//    }
 
-    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec deprecationProblemBuilder) {
-        Location location = diagnostics.getLocation();
-        if (location == null) {
-            return;
-        }
-        deprecationProblemBuilder.lineInFileLocation(location.getFilePath(), location.getLineNumber());
-    }
+//    private static void addSolution(@Nullable String advice, InternalProblemSpec problemSpec) {
+//        if (advice != null) {
+//            problemSpec.solution(advice);
+//        }
+//    }
+//
+//    private static void addPossibleLocation(ProblemDiagnostics diagnostics, InternalProblemSpec deprecationProblemBuilder) {
+//        Location location = diagnostics.getLocation();
+//        if (location == null) {
+//            return;
+//        }
+//        deprecationProblemBuilder.lineInFileLocation(location.getFilePath(), location.getLineNumber());
+//    }
 
     private void maybeLogUsage(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         String featureMessage = usage.formattedMessage();

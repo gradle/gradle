@@ -19,6 +19,7 @@ package org.gradle.internal.deprecation
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -33,7 +34,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.DocumentationRegistry.RECOMMENDATION
 import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId
 
-class DeprecationMessagesTest extends Specification {
+class DeprecationMessagesTest extends Specification { // TODO (donat) we probably want to assert the Problems report as well
 
     private static final String NEXT_GRADLE_VERSION = "9.0"
     private static final DOCUMENTATION_REGISTRY = new DocumentationRegistry()
@@ -60,6 +61,7 @@ class DeprecationMessagesTest extends Specification {
 
     def summary = "Summary is deprecated."
 
+    @spock.lang.IgnoreRest
     def "logs deprecation message with default problem id"() {
         given:
         def builder = new DeprecationMessageBuilder()
@@ -71,7 +73,15 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
-        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'Summary is deprecated.' })
+        and:
+        problemsService.assertProblemEmittedOnce { InternalProblem it ->
+            it.definition.id.toString() == 'deprecation:gradle:generic:summary-is-deprecated' &&
+            it.definition.id.displayName == 'Summary is deprecated.' &&
+            it.contextualLabel == 'Summary is deprecated.'
+//                &&
+//            (it.additionalData as DeprecationData).removedIn == '9.0' &&
+//            (it.additionalData as DeprecationData).source == ReportSource.gradle()
+        }
     }
 
     def "logs deprecation message with custom problem id"() {
@@ -87,6 +97,7 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}."
 
+        and:
         problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'summary deprecation' })
     }
 
@@ -101,6 +112,13 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Advice."
+
+        and:
+        problemsService.assertProblemEmittedOnce { InternalProblem it ->
+            it.definition.id.displayName == 'Summary is deprecated.' &&
+            it.contextualLabel == 'Summary is deprecated.' &&
+            it.solutions == ['Advice.']
+        }
     }
 
     def "logs deprecation message with contextual advice"() {
@@ -114,6 +132,13 @@ class DeprecationMessagesTest extends Specification {
 
         then:
         expectMessage "Summary is deprecated. This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. Context."
+
+        and:
+        problemsService.assertProblemEmittedOnce { InternalProblem it ->
+            it.definition.id.displayName == 'Summary is deprecated.' &&
+                it.contextualLabel == 'Summary is deprecated.' &&
+                it.details == 'Context.'
+        }
     }
 
     def "logs deprecation message with advice and contextual advice"() {

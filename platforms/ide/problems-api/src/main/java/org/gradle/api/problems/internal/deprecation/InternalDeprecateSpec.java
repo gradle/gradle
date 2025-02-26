@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.deprecation;
+package org.gradle.api.problems.internal.deprecation;
 
-import org.gradle.api.Incubating;
+import org.gradle.api.problems.deprecation.DeprecateMethodSpec;
+import org.gradle.api.problems.deprecation.DeprecatePluginSpec;
+import org.gradle.api.problems.deprecation.DeprecateSpec;
 
-/**
- * Specification for building deprecations related to behavior.
- *
- * @since 8.14
- */
-@Incubating
-public interface DeprecateGenericSpec extends CommonDeprecationSpec<DeprecateGenericSpec> {
+public interface InternalDeprecateSpec extends DeprecateSpec, DeprecatePluginSpec, DeprecateMethodSpec {
+
 }

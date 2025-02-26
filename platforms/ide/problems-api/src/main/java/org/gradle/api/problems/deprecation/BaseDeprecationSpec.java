@@ -25,7 +25,7 @@ import org.gradle.api.Incubating;
  * @since 8.14
  */
 @Incubating
-public interface CommonDeprecationSpec<T extends CommonDeprecationSpec<?>> {
+public interface BaseDeprecationSpec<T extends BaseDeprecationSpec<?>> {
 
     /**
      * Declares the replacement for the deprecated behavior.
