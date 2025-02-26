@@ -53,6 +53,36 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Effective files: ${files.collect { testDirectory.file(it) }.toSorted()}")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/30052")
+    def "provider-backed files relative to directory property respect execution time directory change"() {
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            def dir = project.objects.directoryProperty()
+            def files = project.objects.fileCollection()
+            files.from(dir.file("file.txt")) // file relative to whatever the directory points to
+
+            dir.set(file("subDir1"))
+
+            tasks.register("foo") {
+                def otherDir = file("subDir2")
+                doLast {
+                    dir.set(otherDir) // change the directory to point elsewhere
+                    println("files: \${files.files.toSorted()}")
+                }
+            }
+        """
+
+        when:
+        run ":sub:foo"
+
+        then:
+        def files = ["sub/subDir2/file.txt"]
+        outputContains("files: ${files.collect { testDirectory.file(it) }.toSorted()}")
+    }
+
     // Test implementation is not compatible with IP, but the use case will still exist, though might be more involved to set up
     @Requires(IntegTestPreconditions.NotIsolatedProjects)
     @Issue("https://github.com/gradle/gradle/issues/30052")
@@ -93,4 +123,5 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "ConfigurableFileCollection" | "fileCollection()" | ["abc/subDir1", "abc/subDir2"]
         "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
     }
+
 }
