@@ -23,7 +23,6 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.internal.Pair;
-import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.reflect.PropertyMutator;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.util.internal.GUtil;
@@ -34,10 +33,12 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import static org.gradle.api.internal.project.ProjectHierarchyUtils.getChildProjectsForInternalUse;
 import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.internal.reflect.JavaPropertyReflectionUtil.writeablePropertyIfExists;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectPropertySettingBuildLoader.class);
@@ -99,7 +100,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
      */
     private static class CachingPropertyApplicator {
         private final Class<? extends Project> projectClass;
-        private final Map<Pair<String, ? extends Class<?>>, PropertyMutator> mutators = new HashMap<>();
+        private final Map<Pair<String, ? extends Class<?>>, Optional<PropertyMutator>> mutators = new HashMap<>();
         private ImmutableMap.Builder<String, Object> extraProjectProperties;
 
         CachingPropertyApplicator(Class<? extends Project> projectClass) {
@@ -125,17 +126,13 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
 
         @Nullable
         private PropertyMutator propertyMutatorFor(String propertyName, @Nullable Class<?> valueType) {
-            final Pair<String, ? extends Class<?>> key = Pair.of(propertyName, valueType);
-            final PropertyMutator cached = mutators.get(key);
-            if (cached != null) {
-                return cached;
-            }
-            if (mutators.containsKey(key)) {
-                return null;
-            }
-            final PropertyMutator mutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(projectClass, propertyName, valueType);
-            mutators.put(key, mutator);
-            return mutator;
+            return mutators.computeIfAbsent(
+                Pair.of(propertyName, valueType),
+                key -> {
+                    assert key.left != null;
+                    return Optional.ofNullable(writeablePropertyIfExists(projectClass, key.left, key.right));
+                }
+            ).orElse(null);
         }
 
         /**

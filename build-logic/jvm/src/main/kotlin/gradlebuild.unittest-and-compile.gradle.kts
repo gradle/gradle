@@ -355,7 +355,14 @@ fun Test.configureJvmForTest() {
     javaLauncher = launcher
     if (jvmVersionForTest().canCompileOrRun(9)) {
         if (isUnitTest() || usesEmbeddedExecuter()) {
-            jvmArgs(org.gradle.internal.jvm.JpmsConfiguration.GRADLE_DAEMON_JPMS_ARGS)
+            // Temporary workaround for smoke tests until we have the new API (`forDaemonProcesses`) available normally.
+            val clazz = org.gradle.internal.jvm.JpmsConfiguration::class.java
+            val jpmsArgs = try {
+                clazz.getDeclaredField("GRADLE_DAEMON_JPMS_ARGS").get(null)
+            } catch (ignored: NoSuchFieldException) {
+                clazz.getMethod("forDaemonProcesses", Int::class.java, Boolean::class.java).invoke(null, jvmVersionForTest().asInt(), true)
+            }
+            jvmArgs(jpmsArgs as List<*>)
         } else {
             jvmArgs(listOf("--add-opens", "java.base/java.util=ALL-UNNAMED")) // Used in tests by native platform library: WrapperProcess.getEnv
             jvmArgs(listOf("--add-opens", "java.base/java.lang=ALL-UNNAMED")) // Used in tests by ClassLoaderUtils

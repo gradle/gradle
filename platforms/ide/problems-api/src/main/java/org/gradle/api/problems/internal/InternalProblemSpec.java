@@ -24,6 +24,7 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
+import org.gradle.problems.ProblemDiagnostics;
 
 import javax.annotation.Nullable;
 
@@ -122,4 +123,11 @@ public interface InternalProblemSpec extends ProblemSpec {
 
     @Override
     InternalProblemSpec severity(Severity severity);
+
+    /**
+     * The diagnostics to determine the stacktrace and the location of the problem.
+     * <p>
+     * We pass this in when we already have a diagnostics object, for example for deprecation warnings.
+     */
+    InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics);
 }

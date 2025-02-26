@@ -157,9 +157,18 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             contextualLabel == null
             solutions == []
             details == null
-            // TODO: Should have the stack location
-            originLocations.empty
             contextualLocations.empty
+            if (isolationMode == "'${WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method}'") {
+                // TODO: Should have the stack location for all isolation modes
+                assert originLocations.empty
+            } else {
+                assert originLocations.size() == 1
+                with(originLocations[0]) {
+                    // TODO: Should have the file location for all isolation modes
+                    fileLocation == null
+                    stackTrace.find { it.className == 'org.gradle.test.ProblemWorkerTask' && it.methodName == 'execute' && it.fileName == 'ProblemWorkerTask.java' }
+                }
+            }
             failure != null
         }
 

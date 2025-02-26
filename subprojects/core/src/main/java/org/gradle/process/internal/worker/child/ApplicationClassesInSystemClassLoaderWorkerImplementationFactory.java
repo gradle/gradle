@@ -84,6 +84,19 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
 
     /**
      * Configures the Java command that will be used to launch the child process.
+     * <p>
+     * Due to Windows command line length limitations, it becomes very easy to exceed the maximum command line length
+     * by supplying large classpaths to the new process. Depending on the Java version, we have two approaches to
+     * avoid this problem:
+     * <ul>
+     *     <li>Java 8 and earlier: We serialize the classpath to stdin. We start Java with a security manager that
+     *     reads the classpath from stdin and hacks it into the system ClassLoader with reflection. Due to changes
+     *     in the classloader structure, this no longer works after Java 8.</li>
+     *     <li>Java 9 and later: We use an options file to pass the classpath to the new process. Options files
+     *     were added to java in Java 9 (they existed for javac in prior versions)</li>
+     * </ul>
+     *
+     * @see <a href="https://issues.gradle.org/browse/GRADLE-3287">Context</a>
      */
     public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo, boolean useOptionsFile) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();

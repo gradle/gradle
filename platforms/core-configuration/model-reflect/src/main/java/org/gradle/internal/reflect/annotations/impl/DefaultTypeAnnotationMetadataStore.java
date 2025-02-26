@@ -29,13 +29,13 @@ import com.google.common.collect.SetMultimap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
-import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
-import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.FunctionAnnotationMetadata;
+import org.gradle.internal.reflect.annotations.HasAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -108,7 +108,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final ImmutableSet<String> ignoredPackagePrefixes;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> functionAnnotationCategories;
-    private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
+    private final Cache<Class<?>, TypeAnnotationMetadata> cache;
     private final ImmutableSet<String> potentiallyIgnoredMethodNames;
     private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final ImmutableSet<Class<?>> mutableNonFinalClasses;
@@ -142,7 +142,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<? extends Annotation>> ignoredMethodAnnotations,
         Collection<Class<? extends Annotation>> ignoredMethodAnnotationsAllowedModifiers,
         Predicate<? super Method> generatedMethodDetector,
-        CrossBuildInMemoryCacheFactory cacheFactory
+        ClassCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
         this.ignoredPackagePrefixes = collectIgnoredPackagePrefixes(ignoredPackagePrefixes);
@@ -186,8 +186,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return builder.build();
     }
 
-    private static CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> initCache(Collection<Class<?>> ignoredSuperTypes, CrossBuildInMemoryCacheFactory cacheFactory) {
-        CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> result = cacheFactory.newClassCache();
+    private static Cache<Class<?>, TypeAnnotationMetadata> initCache(Collection<Class<?>> ignoredSuperTypes, ClassCacheFactory cacheFactory) {
+        Cache<Class<?>, TypeAnnotationMetadata> result = cacheFactory.newClassCache();
         for (Class<?> ignoredSuperType : ignoredSuperTypes) {
             result.put(ignoredSuperType, EMPTY_TYPE_ANNOTATION_METADATA);
         }

@@ -97,6 +97,9 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         getClassMajorVersion(javaClassFile("Thing.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
         getClassMajorVersion(classFile ( "java", "test", "ThingTest.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
 
+        // Ensure there is no warnings from the JDK, e.g. about illegal access
+        outputDoesNotContain("WARNING: ")
+
         where:
         version << javaVersionsToCrossCompileAgainst()
     }

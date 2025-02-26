@@ -23,6 +23,7 @@ description = "Contains the Application plugin, and its supporting classes.  Thi
 dependencies {
     api(projects.core)
     api(projects.coreApi)
+    api(projects.jvmServices)
     api(projects.modelCore)
 
     api(libs.inject)
