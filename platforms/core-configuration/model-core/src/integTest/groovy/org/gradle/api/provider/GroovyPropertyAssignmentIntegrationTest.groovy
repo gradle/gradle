@@ -16,6 +16,8 @@
 
 package org.gradle.api.provider
 
+import org.gradle.util.internal.ToBeImplemented
+
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
 class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
@@ -217,6 +219,18 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
         "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | unsupportedWithCause("Failed to cast object")
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
+    }
+
+    @ToBeImplemented("Needs a fix for -= cycle detection")
+    def "lazy ConfigurableFileCollection -= throws meaningful error"() {
+        def inputDeclaration = "abstract ConfigurableFileCollection getInput()"
+        def inputValue = 'files("a.txt")'
+        def operation = "-="
+        groovyBuildFile(inputDeclaration, inputValue, operation)
+
+        expect:
+        // Fix: It should have a more meaningful error message than StackOverflowError
+        runAndAssert("myTask", unsupportedWithCause("java.lang.StackOverflowError"))
     }
 
     def "lazy FileCollection variables assignment for #description"() {
