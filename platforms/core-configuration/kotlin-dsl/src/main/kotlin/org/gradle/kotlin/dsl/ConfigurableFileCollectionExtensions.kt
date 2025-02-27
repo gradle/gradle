@@ -56,7 +56,7 @@ fun ConfigurableFileCollection.assign(fileCollection: FileCollection) {
  * This is the same as calling [ConfigurableFileCollection.from].
  *
  * @see ConfigurableFileCollection.from
- * @since 9.1.0
+ * @since 9.5.0
  */
 @Incubating
 operator fun ConfigurableFileCollection.plusAssign(fileCollection: FileCollection) {
