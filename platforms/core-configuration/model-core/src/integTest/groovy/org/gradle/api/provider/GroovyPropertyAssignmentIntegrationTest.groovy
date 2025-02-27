@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
@@ -222,6 +223,7 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
     }
 
     @ToBeImplemented("Needs a fix for -= cycle detection")
+    @ToBeFixedForConfigurationCache(because = "With cc it throws 'Could not load the value of field `left` of `org.gradle.internal.serialize.codecs.core.SubtractingFileCollectionSpec`'")
     def "lazy ConfigurableFileCollection -= throws meaningful error"() {
         def inputDeclaration = "abstract ConfigurableFileCollection getInput()"
         def inputValue = 'files("a.txt")'
