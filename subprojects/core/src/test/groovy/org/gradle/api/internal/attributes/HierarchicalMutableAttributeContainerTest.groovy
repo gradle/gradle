@@ -23,16 +23,17 @@ import org.gradle.util.AttributeTestUtil
 /**
  * Unit tests for the {@link HierarchicalMutableAttributeContainer} class.
  */
-final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeContainerTest {
-    private attributesFactory = AttributeTestUtil.attributesFactory()
-
+final class HierarchicalMutableAttributeContainerTest extends BaseAttributeContainerTest {
     private one = Attribute.of("one", String)
     private two = Attribute.of("two", String)
 
     @Override
-    protected <T> DefaultMutableAttributeContainer getContainer(Map<Attribute<T>, T> attributes = [:]) {
+    protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
         DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
         attributes.forEach { key, value ->
+            container.attribute(key, value)
+        }
+        moreAttributes.forEach { key, value ->
             container.attribute(key, value)
         }
         return container
@@ -40,8 +41,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "can override attributes from fallback"() {
         given:
-        def fallback = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def primary = createContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -56,8 +57,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "immutable containers are not modified when updating fallback or primary"() {
         given:
-        def fallback = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def primary = createContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         fallback.attributeProvider(one, Providers.of("fallback"))
@@ -93,8 +94,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "keySet contains attributes from both fallback and primary"() {
         given:
-        def fallback = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def primary = createContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -124,8 +125,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "mutations are passed to primary container"() {
         given:
-        def fallback = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def primary = createContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -147,9 +148,9 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "can chain joined containers"() {
         given:
-        def fallback = getContainer()
-        def middle = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def middle = createContainer()
+        def primary = createContainer()
         def chain = new HierarchicalMutableAttributeContainer(attributesFactory, fallback,
             new HierarchicalMutableAttributeContainer(attributesFactory, middle, primary))
 
@@ -174,12 +175,12 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "joined containers are equal if their fallbacks and primaryren are equal"() {
         given:
-        def hasNone = getContainer()
-        def hasOne = getContainer()
+        def hasNone = createContainer()
+        def hasOne = createContainer()
         hasOne.attribute(one, "one")
-        def hasTwo = getContainer()
+        def hasTwo = createContainer()
         hasTwo.attribute(two, "two")
-        def hasBoth = getContainer()
+        def hasBoth = createContainer()
         hasBoth.attribute(one, "one").attribute(two, "two")
 
         expect:
@@ -197,8 +198,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "has useful toString"() {
         given:
-        def fallback = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def primary = createContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         when:
@@ -212,8 +213,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
 
     def "can inherit attributes from fallback container"() {
         given:
-        def fallback = getContainer()
-        def primary = getContainer()
+        def fallback = createContainer()
+        def primary = createContainer()
         def joined = new HierarchicalMutableAttributeContainer(attributesFactory, fallback, primary)
 
         expect:
@@ -252,8 +253,8 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
         joined.asImmutable().keySet() == [one, two] as Set
 
         when:
-        def primary2 = getContainer()
-        def joined2 = new HierarchicalMutableAttributeContainer(attributesFactory, getContainer(), primary2)
+        def primary2 = createContainer()
+        def joined2 = new HierarchicalMutableAttributeContainer(attributesFactory, createContainer(), primary2)
         primary2.attribute(one, "primary")
 
         then:
@@ -262,5 +263,19 @@ final class HierarchicalMutableAttributeContainerTest extends AbstractAttributeC
         joined2.contains(one)
         joined2.getAttribute(one) == "primary"
         joined2.asImmutable().keySet() == [one] as Set
+    }
+
+    def "can add 2 identically named attributes with the same type, resulting in a single entry and no exception thrown"() {
+        def container = createContainer()
+
+        when:
+        container.attribute(Attribute.of("test", String), "a")
+        container.attribute(Attribute.of("test", String), "b")
+
+        then:
+        container.asMap().with {
+            assert it.size() == 1
+            assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
+        }
     }
 }

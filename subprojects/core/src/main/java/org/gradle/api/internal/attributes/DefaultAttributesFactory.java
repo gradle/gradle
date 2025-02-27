@@ -24,6 +24,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.isolation.IsolatableFactory;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Objects;
@@ -84,7 +85,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         }
     }
 
-    ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
+    /* package */ ImmutableAttributes doConcatIsolatable(ImmutableAttributes node, Attribute<?> key, Isolatable<?> value) {
         assertAttributeNotAlreadyPresentFast(node, key);
 
         // Try to retrieve a cached value without locking
@@ -172,6 +173,8 @@ public final class DefaultAttributesFactory implements AttributesFactory {
         if (attributes2 == ImmutableAttributes.EMPTY) {
             return attributes1;
         }
+
+        // Note that the CURRENT container is attributes2 here, we merge attributes1 INTO it, which seems backwards...
         ImmutableAttributes current = attributes2;
         for (Attribute<?> attribute : attributes1.keySet()) {
             AttributeValue<?> entry = current.findEntry(attribute.getName());
@@ -179,7 +182,7 @@ public final class DefaultAttributesFactory implements AttributesFactory {
                 Object currentAttribute = entry.get();
                 Object existingAttribute = attributes1.getAttribute(attribute);
                 if (!currentAttribute.equals(existingAttribute)) {
-                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute);
+                    throw new AttributeMergingException(attribute, existingAttribute, currentAttribute, buildSameNameDifferentTypeErrorMsg(attribute, attributes2.findAttribute(attribute.getName())));
                 }
             }
             if (attributes1 instanceof DefaultImmutableAttributesContainer) {
@@ -193,6 +196,16 @@ public final class DefaultAttributesFactory implements AttributesFactory {
 
     @Override
     public ImmutableAttributes fromMap(Map<Attribute<?>, Isolatable<?>> attributes) {
+        /*
+         * This should use safeConcat, but can't because of how the GradleModuleMetadataParser
+         * uses the DefaultAttributesFactory in consumeAttributes.  See the "can detect incompatible X when merging" tests
+         * in DefaultAttributesFactoryTest for examples of the type of behavior this method must
+         * support.
+         *
+         * Eventually, we should construct that set of attributes differently, in a way that
+         * allows us to use a safeConcat here.  Possibly we can use a different implementation
+         * of this method in a different factory implementation, and let this one do safeConcat.
+         */
         ImmutableAttributes result = ImmutableAttributes.EMPTY;
         for (Map.Entry<Attribute<?>, Isolatable<?>> entry : attributes.entrySet()) {
             result = uncheckedConcat(result, entry.getKey(), entry.getValue());
@@ -223,16 +236,17 @@ public final class DefaultAttributesFactory implements AttributesFactory {
     public void assertAttributeNotAlreadyPresent(AttributeContainer container, Attribute<?> key) {
         for (Attribute<?> attribute : container.keySet()) {
             String name = key.getName();
-            if (attribute.getName().equals(name)) {
-                if (attribute.getType() == key.getType()) {
-                    return; // Same name, same type = we're good here
-                } else {
-                    throw new IllegalArgumentException("Cannot have two attributes with the same name but different types. "
-                        + "This container already has an attribute named '" + name + "' of type '" + attribute.getType().getName()
-                        + "' and you are trying to store another one of type '" + key.getType().getName() + "'");
-                }
+            if (attribute.getName().equals(name) && attribute.getType() != key.getType()) {
+                throw new IllegalArgumentException(buildSameNameDifferentTypeErrorMsg(key, attribute));
             }
         }
+    }
+
+    @Nonnull
+    private String buildSameNameDifferentTypeErrorMsg(Attribute<?> newAttribute, Attribute<?> oldAttribute) {
+        return "Cannot have two attributes with the same name but different types. "
+            + "This container already has an attribute named '" + newAttribute.getName() + "' of type '" + oldAttribute.getType().getName()
+            + "' and you are trying to store another one of type '" + newAttribute.getType().getName() + "'";
     }
 
     /**

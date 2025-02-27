@@ -166,6 +166,12 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
             return getDesugared().findEntry(name);
         }
 
+        @Nullable
+        @Override
+        public Attribute<?> findAttribute(String name) {
+            return getDesugared().findAttribute(name);
+        }
+
         @Override
         public String toString() {
             return getDesugared().toString();

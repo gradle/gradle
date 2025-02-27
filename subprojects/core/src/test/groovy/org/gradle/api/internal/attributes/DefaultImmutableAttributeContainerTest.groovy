@@ -18,32 +18,34 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
-import org.gradle.util.AttributeTestUtil
 
 /**
  * Unit tests for the {@link DefaultImmutableAttributesContainer} class.
  */
-final class DefaultImmutableAttributeContainerTest extends AbstractAttributeContainerTest {
+final class DefaultImmutableAttributeContainerTest extends BaseAttributeContainerTest {
     @SuppressWarnings(['GroovyAssignabilityCheck', 'GrReassignedInClosureLocalVar'])
     @Override
-    protected <T> DefaultImmutableAttributesContainer getContainer(Map<Attribute<T>, T> attributes = [:]) {
+    protected DefaultImmutableAttributesContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
         DefaultImmutableAttributesContainer container = new DefaultImmutableAttributesContainer()
         attributes.forEach { key, value ->
-            container = AttributeTestUtil.attributesFactory().concat(container, key, value)
+            container = attributesFactory.safeConcat(container, attributesFactory.of(key, value))
+        }
+        // A second map of attributes allows testing the behavior of trying to add the same key twice
+        moreAttributes.forEach { key, value ->
+            container = attributesFactory.safeConcat(container, attributesFactory.of(key, value))
         }
         return container
     }
 
-    // This lenient coercing behavior is only available in the immutable container.  The mutable containers shouldn't ever need it
-    def "if there is a string in the container, and you ask for it as a Named, you get back the same value do to coercion"() {
+    def "if there is a string in the container, and you ask for it as a Named, you get back the value due to coercion"() {
         given:
-        def container = getContainer([(Attribute.of("test", String)): "value"])
+        def container = createContainer([(Attribute.of("test", String)): "value"])
 
         when:
-        //noinspection GroovyAssignabilityCheck
-        def result = (String) container.getAttribute(Attribute.of("test", Named))
+        def result = container.getAttribute(Attribute.of("test", Named))
 
         then:
-        result == "value"
+        result instanceof Named
+        result.toString() == "value"
     }
 }

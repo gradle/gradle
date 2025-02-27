@@ -143,54 +143,55 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         if (isolatable == null) {
             return null;
         }
+        Object value = isolatable.isolate();
 
-        T value = isolatable.isolate();
-        if (isClassWithSameNameButDifferentType(value, key)) {
-            return isolatable.coerce(key.getType());
-        } else {
-            return value;
+        // Ensure that the resulting value is of the requested type after coercion, to satisfy the promise of the method signature
+        if (!isAppropriateType(value, key)) {
+            value = isolatable.coerce(key.getType());
         }
+
+        return Cast.uncheckedCast(value);
     }
 
     /**
-     * Determines if we have a potential case of confusion caused by different classloaders
-     * loading the same type.
+     * Determines if the value is of the appropriate type for the given key; meaning that
+     * it can be assigned to it.
+     * <p>This method is used to ensure potential results of a call to {@link #getAttribute(Attribute)} satisfy the signature of
+     * that method, where when asked for a {@code <T>} we must return one.
      * <p>
-     * We check here for one specific case - when a request for a key with type X1
+     * One interesting potential complication is caused by different classloaders
+     * loading the same type when an typed attribute is put into a container vs. when it is retrieved.
+     * <p>
+     * When a request for a key with type X1
      * is being made in a container holding an attribute with type X2, where X1 and X2 are
      * actually THE SAME CLASS loaded by 2 different classloaders.  In this case we want to both
      * 1) find a match and return the value and 2) coerce this returned attribute value, typed as X2,
      * to the requested X1 type.
      * <p>
-     * This avoids the confusing situation where a build author can request an attribute
+     * Doing so avoids the confusing situation where a build author can request an attribute
      * from a resolved variant of an external dep and have a typed attribute request succeed (because the external attribute is
      * desugared internally); but then if the build author replaces the external dep with an included build
      * generating the same exact variants, the same typed attribute request fails, since the desugaring
      * now doesn't happen and the attribute is typed with the non-identical class with the same name loaded
      * from a different classloader.  This is seriously confusing and unintuitive to a build
-     * author.  When we detect this case, we want to coerce the value of X2 to X1 here, instead of returning
-     * {@code null}.
-     * <p>
-     * We want to avoid doing this coercion when the requested type is {@code Object} because if
-     * an attribute is contained here using a more-specific type, we don't want to try to
-     * coerce the value to {@code Object} - this is unnecessary and breaks
-     * {@code DefaultAttributesFactoryTest#"can detect incompatible attributes with different types when merging"()}.
+     * author.  When we detect this case, we want to coerce the value of X2 to X1, instead of returning {@code null}.
      *
-     * @param value the value stored in this container for a key with the same name as the given key
-     * @param key the given key
+     * @param value the value to check
+     * @param key the key containing the type to check against
      * @return {@code true} if so; {@code false} otherwise
      */
-    private boolean isClassWithSameNameButDifferentType(@Nullable Object value, Attribute<?> key) {
-        return value != null && value.getClass() != key.getType() && value.getClass().getName().equals(key.getType().getName()) && key.getType() != Object.class;
+    private boolean isAppropriateType(@Nullable Object value, Attribute<?> key) {
+        return value != null && key.getType().isAssignableFrom(value.getClass());
     }
 
     /**
      * We lookup by name here to avoid issues with attributes with the type class from different classloaders.  This
-     * can only happen with immutable attribute containers, as mutable containers will not cross classloader boundaries
-     * when included builds are used.
+     * should only happen with immutable attribute containers, as mutable containers will not cross classloader boundaries
+     * when included builds are used, and this is the typical failure case.
      * <p>
-     * This lookup requires that only a single attribute with a given name is present in this container, this invariant
-     * is enforced by the immutable factory construction logic and verified by
+     * This lookup requires that only a single attribute with a given name (regardless of type) is present in this container.  This invariant
+     * must be enforced by the factory construction logic for immutable containers such as
+     * {@link DefaultAttributesFactory#assertAttributeNotAlreadyPresent(AttributeContainer, Attribute)}.
      */
     @Nullable
     /* package */ <T> Isolatable<T> getIsolatableAttribute(Attribute<T> key) {
@@ -198,18 +199,12 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         return Cast.uncheckedCast(attributes == null ? null : attributes.value);
     }
 
-    /**
-     * Locates the entry for the given attribute. Returns a 'missing' value when not present.
-     */
     @Override
     public <T> AttributeValue<T> findEntry(Attribute<T> key) {
         DefaultImmutableAttributesContainer attributes = hierarchy.get(key);
         return Cast.uncheckedNonnullCast(attributes == null ? MISSING : attributes);
     }
 
-    /**
-     * Locates the entry for the attribute with the given name. Returns a 'missing' value when not present.
-     */
     @Override
     public AttributeValue<?> findEntry(String name) {
         //noinspection StringEquality
@@ -219,6 +214,13 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         }
         DefaultImmutableAttributesContainer attributes = hierarchyByName.get(name);
         return attributes == null ? MISSING : attributes;
+    }
+
+    @Override
+    @Nullable
+    public Attribute<?> findAttribute(String name) {
+        DefaultImmutableAttributesContainer attributes = hierarchyByName.get(name);
+        return attributes == null ? null : attributes.attribute;
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -321,11 +323,6 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
     }
 
     @Override
-    public AttributeContainer getAttributes() {
-        return this;
-    }
-
-    @Override
     public String toString() {
         Map<Attribute<?>, Object> sorted = new TreeMap<>(ATTRIBUTE_NAME_COMPARATOR);
         for (Map.Entry<Attribute<?>, DefaultImmutableAttributesContainer> entry : hierarchy.entrySet()) {
@@ -333,5 +330,4 @@ public final class DefaultImmutableAttributesContainer extends AbstractAttribute
         }
         return sorted.toString();
     }
-
 }

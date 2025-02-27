@@ -18,6 +18,7 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.internal.deprecation.DeprecationLogger
@@ -25,19 +26,23 @@ import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
+import org.gradle.util.AttributeTestUtil
+import org.gradle.util.GradleVersion
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
 /**
- * Abstract base class for testing functionality common to all {@link AbstractAttributeContainer} implementations.
+ * Abstract base class for testing functionality common to all {@link AttributeContainer} implementations.
  */
-/* package */ abstract class AbstractAttributeContainerTest extends Specification {
+/* package */ abstract class BaseAttributeContainerTest extends Specification {
+    protected attributesFactory
     protected final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule
     protected final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def setup() {
+        attributesFactory = AttributeTestUtil.attributesFactory()
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
         def buildOperationProgressEventEmitter = Mock(BuildOperationProgressEventEmitter)
         DeprecationLogger.reset()
@@ -48,13 +53,17 @@ import spock.lang.Specification
      * Returns a new instance of the container type tested by this class.
      *
      * @param attributes optional map of attributes with values to populate the container with if present
+     * @param attributes optional map of more attributes with values to populate the container with if present (for testing duplicate keys)
      * @return the container, populated with any given attributes from the argument
      */
-    protected abstract <T> AbstractAttributeContainer getContainer(Map<Attribute<T>, T> attributes = [:])
+    protected abstract AttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:])
 
-    def "requesting a null key emits a deprecation message using #containerStatus"() {
+    def "requesting a null key from an empty container emits a deprecation message"() {
+        given:
+        def container = createContainer()
+
         when:
-        def result = preppedContainer.getAttribute(null)
+        def result = container.getAttribute(null)
 
         then:
         result == null
@@ -62,21 +71,36 @@ import spock.lang.Specification
         and:
         def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
         events.size() == 1
-        events[0].message.startsWith('Using method getAttribute with a null key has been deprecated.')
+        events[0].message == "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup"
+    }
 
-        where:
-        containerStatus                 | preppedContainer
-        "empty container"               | getContainer()
-        "container with elements"       | getContainer([(Attribute.of("testString", String)): "testValue", (Attribute.of("testInt", Integer)): 1])
+    def "requesting a null key from a container with elements emits a deprecation message"() {
+        given:
+        def container = createContainer([(Attribute.of("testString", String)): "testValue", (Attribute.of("testInt", Integer)): 1])
+
+        when:
+        def result = container.getAttribute(null)
+
+        then:
+        result == null
+
+        and:
+        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
+        events.size() == 1
+        events[0].message == "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup"
     }
 
     def "can't contain 2 identically named attributes with different types from the same classloader"() {
         when:
-        getContainer([(Attribute.of("test", String)): "a", (Attribute.of("test", Integer)): 1])
+        def container = createContainer([(Attribute.of("test", String)): "a", (Attribute.of("test", Integer)): 1])
 
         then:
         def exception = thrown(Exception)
-        exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Integer'"
+        if (container instanceof ImmutableAttributes) {
+            exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Integer'"
+        } else {
+            exception.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'test' of type 'java.lang.Integer' and you are trying to store another one of type 'java.lang.String'"
+        }
     }
 
     def "can't contain 2 identically named attributes with the same type loaded from different classloaders"() {
@@ -95,7 +119,7 @@ import spock.lang.Specification
         Named != named2
 
         when:
-        getContainer([(Attribute.of("test", Named)): new MyNamed("name1"), (Attribute.of("test", named2)): new MyNamed("name2")])
+        createContainer([(Attribute.of("test", Named)): new MyNamed("name1"), (Attribute.of("test", named2)): new MyNamed("name2")])
 
         then:
         def exception = thrown(Exception)

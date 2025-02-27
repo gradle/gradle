@@ -36,9 +36,9 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             include 'consumer', 'producer'
         """)
 
-        and: "a producer that adds a new attribute type; a variant using it, and a resolvable configuration for it"
+        and: "a producer that adds a new attribute type and a variant using it"
         file("producer/output.txt") << "sample output"
-        groovyFile("producer/build.gradle", """
+        buildFile("producer/build.gradle", """
             interface MyAttributeType extends Named {}
 
             def MY_ATTRIBUTE_NAME = "myAttribute"
@@ -55,7 +55,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         and: "a consumer build can resolve a variant of the producer using the new attribute type"
-        groovyFile("consumer/build.gradle", """
+        buildFile("consumer/build.gradle", """
             interface MyAttributeType extends Named {}
 
             def MY_ATTRIBUTE_NAME = "myAttribute"
@@ -79,22 +79,14 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             ${defineResolveTask()}
         """)
 
-        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant) or fails as expected"
-        if (result) {
-            succeeds(":consumer:resolve")
-            outputContains("Resolved: output.txt")
-            outputContains("Attribute type: myValue")
-        } else {
-            fails("resolve")
-            failure.assertHasErrorOutput("No matching variant of project :producer was found.")
-        }
+        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant)"
+        assertResolvedWithAttributePresent()
 
         where:
-        result  | attributeCreationLogic
-        true    | "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))"
-        false   | "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'incorrectValue'))"
-        true    | "attribute(Attribute.of('myAttribute', String), 'myValue')"
-        false   | "attribute(Attribute.of('myAttribute', String), 'incorrectValue')"
+        attributeCreationLogic << [
+            "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))",
+            "attribute(Attribute.of('myAttribute', String), 'myValue')",
+        ]
     }
 
     def "new attribute type created by producer as an included build, used by consumer works"() {
@@ -106,7 +98,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
         and: "a producer that adds a new attribute type; a variant using it, and a resolvable configuration for it"
         file("producer/output.txt") << "sample output"
-        groovyFile("producer/build.gradle", """
+        buildFile("producer/build.gradle", """
             interface MyAttributeType extends Named {}
 
             def MY_ATTRIBUTE_NAME = "myAttribute"
@@ -126,7 +118,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         and: "a consumer build can resolve a variant of the producer using the new attribute type"
-        groovyFile("consumer/build.gradle", """
+        buildFile("consumer/build.gradle", """
             interface MyAttributeType extends Named {}
 
             def MY_ATTRIBUTE_NAME = "myAttribute"
@@ -150,93 +142,14 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             ${defineResolveTask()}
         """)
 
-        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant) or fails as expected"
-        if (result) {
-            succeeds(":consumer:resolve")
-            outputContains("Resolved: output.txt")
-            outputContains("Attribute type: myValue")
-        } else {
-            fails("resolve")
-            failure.assertHasErrorOutput("No matching variant of project :producer was found.")
-        }
+        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant)"
+        assertResolvedWithAttributePresent()
 
         where:
-        result  | attributeCreationLogic
-        true    | "attribute(ATTRIBUTE_TYPE, objects.named(MyAttributeType.class, 'myValue'))"
-        false   | "attribute(ATTRIBUTE_TYPE, objects.named(MyAttributeType.class, 'incorrectValue'))"
-        true    | "attribute(Attribute.of('myAttribute', String), 'myValue')"
-        false   | "attribute(Attribute.of('myAttribute', String), 'incorrectValue')"
-    }
-
-    def "new attribute type created by producer as an included build, used by consumer as an included build works"() {
-        given:
-        settingsFile("""
-            includeBuild 'producer'
-            includeBuild 'consumer'
-        """)
-
-        and: "a producer that adds a new attribute type; a variant using it, and a resolvable configuration for it"
-        file("producer/output.txt") << "sample output"
-        groovyFile("producer/build.gradle", """
-            interface MyAttributeType extends Named {}
-
-            def MY_ATTRIBUTE_NAME = "myAttribute"
-            Attribute<MyAttributeType> ATTRIBUTE_TYPE = Attribute.of(MY_ATTRIBUTE_NAME, MyAttributeType.class)
-
-            configurations {
-                consumable("myVariant") {
-                    attributes {
-                        attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))
-                    }
-                    outgoing.artifact(file("output.txt"))
-                }
-            }
-
-            group = 'org.gradle.example'
-            version = '1.0'
-        """)
-
-        and: "a consumer build can resolve a variant of the producer using the new attribute type"
-        groovyFile("consumer/build.gradle", """
-            interface MyAttributeType extends Named {}
-
-            def MY_ATTRIBUTE_NAME = "myAttribute"
-            Attribute<MyAttributeType> ATTRIBUTE_TYPE = Attribute.of(MY_ATTRIBUTE_NAME, MyAttributeType.class)
-
-            configurations {
-                dependencyScope("myDeps")
-                resolvable("myResolver") {
-                    extendsFrom(configurations.getByName("myDeps"))
-
-                    attributes {
-                        $attributeCreationLogic
-                    }
-                }
-            }
-
-            dependencies {
-                myDeps("org.gradle.example:producer:1.0")
-            }
-
-            ${defineResolveTask()}
-        """)
-
-        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant) or fails as expected"
-        if (result) {
-            succeeds(":consumer:resolve")
-            outputContains("Resolved: output.txt")
-            outputContains("Attribute type: myValue")
-        } else {
-            fails(":consumer:resolve")
-            failure.assertHasErrorOutput("No matching variant of project :producer was found.")
-        }
-
-        where:
-        result  | attributeCreationLogic
-        true    | "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))"
-        false   | "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'incorrectValue'))"
-        true    | "attribute(Attribute.of('myAttribute', String), 'myValue')"
-        false   | "attribute(Attribute.of('myAttribute', String), 'incorrectValue')"
+        attributeCreationLogic << [
+            "attribute(ATTRIBUTE_TYPE, objects.named(MyAttributeType.class, 'myValue'))",
+            "attribute(Attribute.of('myAttribute', String), 'myValue')",
+        ]
     }
 
     def "new attribute type created by producer via plugin, used by consumer works"() {
@@ -253,14 +166,14 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
 
         and: "a producer build that uses the plugin"
         file("producer/output.txt") << "sample output"
-        groovyFile("producer/build.gradle", """
+        buildFile("producer/build.gradle", """
             plugins {
                 id 'org.gradle.example.myPlugin'
             }
         """)
 
         and: "a consumer build can resolve a variant of the producer using the new attribute type"
-        groovyFile("consumer/build.gradle", """
+        buildFile("consumer/build.gradle", """
             interface MyAttributeType extends Named {}
 
             def MY_ATTRIBUTE_NAME = "myAttribute"
@@ -284,22 +197,14 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             ${defineResolveTask()}
         """)
 
-        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant) or fails as expected"
-        if (result) {
-            succeeds(":consumer:resolve")
-            outputContains("Resolved: output.txt")
-            outputContains("Attribute type: myValue")
-        } else {
-            fails("resolve")
-            failure.assertHasErrorOutput("No matching variant of project :producer was found.")
-        }
+        expect: "the resolution succeeds (and the attribute value used to resolve can be retrieved from the resolved variant)"
+        assertResolvedWithAttributePresent()
 
         where:
-        result  | attributeCreationLogic
-        true    | "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))"
-        false   | "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'incorrectValue'))"
-        true    | "attribute(Attribute.of('myAttribute', String), 'myValue')"
-        false   | "attribute(Attribute.of('myAttribute', String), 'incorrectValue')"
+        attributeCreationLogic << [
+            "attribute(ATTRIBUTE_TYPE, project.objects.named(MyAttributeType.class, 'myValue'))",
+            "attribute(Attribute.of('myAttribute', String), 'myValue')",
+        ]
     }
 
     def "new attribute type created by producer via plugin, used by a consumer using the attribute type imported from the same plugin works"() {
@@ -315,14 +220,14 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         and: "a producer build that uses the plugin"
-        groovyFile("producer/build.gradle", """
+        buildFile("producer/build.gradle", """
             plugins {
                 id 'org.gradle.example.myPlugin'
             }
         """)
 
         and: "a consumer build can resolve a variant of the producer using the new attribute type using the configuration added by the plugin"
-        groovyFile("consumer/build.gradle", """
+        buildFile("consumer/build.gradle", """
             import org.gradle.example.MyAttributeType
 
             plugins {
@@ -340,9 +245,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         expect: "the resolution succeeds as expected and the attribute value used to resolve can be retrieved from the resolved variant"
-        succeeds(":consumer:resolve")
-        outputContains("Resolved: output.txt")
-        outputContains("Attribute type: myValue")
+        assertResolvedWithAttributePresent()
     }
 
     def "new attribute type created by a plugin applied to an included producer, and an included consumer project which resolves it works"() {
@@ -356,10 +259,10 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         and: "an consumer build that uses the plugin and depends on an included producer build"
-        groovyFile("consumer/settings.gradle", """
+        buildFile("consumer/settings.gradle", """
             includeBuild '../producer'
         """)
-        groovyFile("consumer/build.gradle", """
+        buildFile("consumer/build.gradle", """
             public interface MyAttributeType extends Named {}
             def MY_ATTRIBUTE_NAME = "myAttribute"
             Attribute<MyAttributeType> ATTRIBUTE_TYPE = Attribute.of(MY_ATTRIBUTE_NAME, MyAttributeType.class)
@@ -383,12 +286,12 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         and: "a producer build that uses the plugin"
-        groovyFile("producer/settings.gradle", """
+        buildFile("producer/settings.gradle", """
             pluginManagement {
                 includeBuild '../build-logic'
             }
         """)
-        groovyFile("producer/build.gradle", """
+        buildFile("producer/build.gradle", """
             plugins {
                 id 'org.gradle.example.myPlugin'
             }
@@ -398,9 +301,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         expect: "the resolution succeeds as expected and the attribute value used to resolve can be retrieved from the resolved variant"
-        succeeds(":consumer:resolve")
-        outputContains("Resolved: output.txt")
-        outputContains("Attribute type: myValue")
+        assertResolvedWithAttributePresent()
     }
 
     private void definePluginBuild() {
@@ -441,7 +342,7 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
             public interface MyAttributeType extends Named {}
         """)
 
-        groovyFile("build-logic/build.gradle", """
+        buildFile("build-logic/build.gradle", """
             plugins {
                 id 'java-gradle-plugin'
             }
@@ -476,5 +377,11 @@ final class AttributeCoercionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+    }
+
+    private void assertResolvedWithAttributePresent() {
+        succeeds(":consumer:resolve")
+        outputContains("Resolved: output.txt")
+        outputContains("Attribute type: myValue")
     }
 }

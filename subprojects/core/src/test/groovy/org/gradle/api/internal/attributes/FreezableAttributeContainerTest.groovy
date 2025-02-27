@@ -23,15 +23,31 @@ import org.gradle.util.AttributeTestUtil
 /**
  * Unit tests for the {@link FreezableAttributeContainer} class.
  */
-final class FreezableAttributeContainerTest extends AbstractAttributeContainerTest {
+final class FreezableAttributeContainerTest extends BaseAttributeContainerTest {
     @Override
-    protected <T> FreezableAttributeContainer getContainer(Map<Attribute<T>, T> attributes = [:]) {
-        def attributesFactory = AttributeTestUtil.attributesFactory()
+    protected FreezableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
         def mutableContainer = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
         FreezableAttributeContainer container = new FreezableAttributeContainer(mutableContainer, { "owner" } as Describable);
         attributes.forEach { key, value ->
             container.attribute(key, value)
         }
+        moreAttributes.forEach { key, value ->
+            container.attribute(key, value)
+        }
         return container
+    }
+
+    def "can add 2 identically named attributes with the same type, resulting in a single entry and no exception thrown"() {
+        def container = createContainer()
+
+        when:
+        container.attribute(Attribute.of("test", String), "a")
+        container.attribute(Attribute.of("test", String), "b")
+
+        then:
+        container.asMap().with {
+            assert it.size() == 1
+            assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
+        }
     }
 }

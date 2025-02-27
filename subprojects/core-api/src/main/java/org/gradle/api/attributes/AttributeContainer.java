@@ -75,13 +75,13 @@ public interface AttributeContainer extends HasAttributes {
     <T> AttributeContainer attributeProvider(Attribute<T> key, Provider<? extends T> provider);
 
     /**
-     * Returns the value of an attribute found in this container, or {@code null} if
-     * this container doesn't have it.
+     * Returns the value of an attribute found in this container with the type specified
+     * by the given {@code key}, or {@code null} if this container doesn't have it.
      * <p>
      * Supplying a {@code null} argument is deprecated and will return {@code null}.
      *
      * @param <T> the type of the attribute
-     * @param key the attribute key (should not be {@code null})
+     * @param key the attribute key
      * @return the attribute value, or {@code null} if not found
      */
     @Nullable

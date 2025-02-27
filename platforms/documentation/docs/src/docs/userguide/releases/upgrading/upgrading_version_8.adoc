@@ -48,6 +48,14 @@ The change is driven by the need to interpret such default values in the scope o
 
 === Deprecations
 
+[[null-attribute-lookup]]
+==== Looking up attributes using null keys deprecated ====
+
+Providing a null argument to when retrieving attributes from a container using the `getAttribute(Attribute)` method has been explicitly deprecated.
+
+Prior to this change, a `null` lookup silently returned `null`.  Now it will emit a deprecation warning.
+There should be no need to lookup null values in an `AttributeContainer`.
+
 [[deprecated_string_to_enum_coercion_for_rich_properties]]
 ==== Groovy String to Enum coercion for Property types is deprecated
 

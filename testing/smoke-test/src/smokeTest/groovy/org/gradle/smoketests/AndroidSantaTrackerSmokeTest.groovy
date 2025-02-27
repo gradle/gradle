@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scripts.DefaultScriptFileResolver
+import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
 import java.util.jar.JarOutputStream
@@ -39,7 +40,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
 
         when:
         def result = runnerForLocation(checkoutDir, agpVersion, "assembleDebug")
-            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
             .build()
 
         then:
@@ -48,7 +49,7 @@ class AndroidSantaTrackerDeprecationSmokeTest extends AndroidSantaTrackerSmokeTe
         }
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions.findAll { it.startsWith("8.8") }
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
@@ -125,7 +126,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         // Use --continue so that a deterministic set of tasks runs when some tasks fail
         runner.withArguments(runner.arguments + "--continue")
         def result = runner
-            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
             .buildAndFail()
 
         then:
@@ -141,7 +142,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         )
         SantaTrackerConfigurationCacheWorkaround.beforeBuild(checkoutDir, homeDir)
         runner.withArguments(runner.arguments + "--continue")
-            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Using method getAttribute with a null key has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys.")
+            .maybeExpectLegacyDeprecationWarningIf(VersionNumber.parse(agpVersion) >= VersionNumber.parse("8.8.0"), "Retrieving attribute with a null key. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Don't request attributes from attribute containers using null keys. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_8.html#null-attribute-lookup")
             .buildAndFail()
 
         then:
@@ -151,7 +152,7 @@ class AndroidSantaTrackerLintSmokeTest extends AndroidSantaTrackerSmokeTest {
         result.output.contains("Lint found errors in the project; aborting build.")
 
         where:
-        agpVersion << TestedVersions.androidGradle.versions.findAll { it.startsWith("8.8") }
+        agpVersion << TestedVersions.androidGradle.versions
     }
 }
 
