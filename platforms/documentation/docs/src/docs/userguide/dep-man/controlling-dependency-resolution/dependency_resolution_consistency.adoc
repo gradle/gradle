@@ -23,17 +23,18 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-consist
 ====
 
 These configurations are resolved independently, which can lead to situations where the same dependency appears in different versions across configurations.
+
 For instance, a library used during compilation (`compileClasspath`) might resolve to version 1.0, while at runtime (`runtimeClasspath`), due to additional transitive dependencies, it might resolve to version 1.1.
 This discrepancy can cause unexpected behavior or runtime errors.
 
 To address this, Gradle allows you to enforce consistent resolution of dependencies across configurations.
 By declaring that certain configurations should resolve dependencies consistently with others, you ensure that shared dependencies have the same version in both configurations.
 
-NOTE: Dependency resolution consistency is an incubating feature
+NOTE: Dependency resolution consistency is an incubating feature.
 
-== Implementing Consistent Resolution**
+== Implementing Consistent Resolution
 
-For example, to ensure that the `runtimeClasspath` is consistent with the `compileClasspath`, you can configure your `build.gradle` as follows:
+For example, to ensure that the `runtimeClasspath` is consistent with the `compileClasspath`, you can configure your `build.gradle(.kts)` as follows:
 
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-consistentResolution/kotlin",files="build.gradle.kts[tags=explicit-configuration]"]

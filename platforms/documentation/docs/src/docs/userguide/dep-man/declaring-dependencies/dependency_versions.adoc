@@ -384,7 +384,7 @@ All you need to do is to set the property link:{javadocPath}/org/gradle/api/arti
 [[sec:versioning_file_dependencies]]
 == Versioning file dependencies
 
-It is recommended to clearly express the intention and specify a concrete version when using file dependencies.
+It is recommended to clearly express the intention and specify a concrete version when using <<declaring_dependencies_basics.adoc#sec:file-dependencies,file dependencies>>.
 
 File dependencies are not considered by Gradle's <<dependency_resolution_model.adoc#sec:how-gradle-downloads-deps,version conflict resolution>>.
 Therefore, assigning a version to the file name is crucial to indicate the distinct set of changes included in each release.

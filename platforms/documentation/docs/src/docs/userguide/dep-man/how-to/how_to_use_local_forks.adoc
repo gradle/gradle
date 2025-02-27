@@ -33,6 +33,14 @@ Using a **local fork** allows you to:
 
 Gradle’s **composite builds** provide a seamless way to substitute a module dependency with a local fork.
 
+=== Step 1: Remove the dependency from your project
+
+[source,kotlin]
+----
+// https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp
+implementation("com.squareup.okhttp:okhttp:2.7.5")
+----
+
 === Step 1: Include the Local Fork in `settings.gradle`
 
 Modify your project's `settings.gradle` file to include the local module as an **included build**:

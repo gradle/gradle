@@ -194,7 +194,7 @@ For example, in a project that already uses JUnit for testing, you can define a 
 Each smoke test performs an HTTP request to verify a web service endpoint.
 To reuse the existing test framework dependencies, the `smokeTest` configuration should extend from `testImplementation`.
 This allows smoke tests to leverage the same dependencies as unit tests without duplication.
-The configuration can be declared in `build.gradle` as follows:
+The configuration can be declared in `build.gradle(.kts)` as follows:
 
 ====
 include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
@@ -203,7 +203,7 @@ include::sample[dir="snippets/dependencyManagement/definingUsingConfigurations-i
 
 This setup enables the `smokeTest` source set to inherit JUnit and any other testing dependencies, making it easier to define and execute smoke tests while keeping them separate from unit tests.
 
-Configurations can only extend configurations within the same project.
+TIP: Configurations can only extend configurations within the same project.
 
 When extending a configuration, the new configuration inherits:
 

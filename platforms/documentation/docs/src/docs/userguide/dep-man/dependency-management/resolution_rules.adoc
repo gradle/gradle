@@ -65,10 +65,6 @@ Here are the key resolution strategies in Gradle:
 |<<sec:dependency-resolve-rules,9>>
 |Dependency Resolve Rules and Other Conditionals
 |Transform or filter dependencies directly as they are resolved and other corner case scenarios.
-
-|<<sec:dependency-resolve-rules,10>>
-|Modifying Configuration Dependencies Before Resolution
-|Dynamically modify a configuration's dependencies before Gradle resolves them.
 |===
 
 [[sec:forcing-dep-versions]]
@@ -530,16 +526,3 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDep
 ====
 
 This ensures that `org:foo` uses version `1.0` unless the user specifies another version.
-
-[[sec:changing-configuration-dependencies-prior-to-resolution]]
-== 10. Changing configuration dependencies prior to resolution
-
-At times, a plugin may want to modify the dependencies of a configuration before it is resolved.
-The `withDependencies` method permits dependencies to be added, removed or modified programmatically.
-
-====
-include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
-include::sample[dir="snippets/dependencyManagement/customizingResolution-withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
-====
-
-
