@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.enterprise.core;
+package org.gradle.operations.problems;
 
-import org.gradle.internal.problems.failure.Failure;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
-public interface GradleEnterprisePluginAdapter {
+public interface Failure {
 
-    boolean shouldSaveToConfigurationCache();
+    String getClassName();
 
-    void onLoadFromConfigurationCache();
+    @Nullable
+    String getMessage();
 
-    void buildFinished(@Nullable Throwable buildFailure, @Nullable List<Failure> richBuildFailures);
+    Map<String, String> getMetadata();
 
+    List<StackTraceElement> getStackTrace();
+
+    List<String> getClassLevelAnnotations();
+
+    List<Failure> getCauses();
+
+    List<Problem> getProblems();
 }

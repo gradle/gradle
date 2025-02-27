@@ -21,6 +21,11 @@ import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.problems.failure.Failure;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * An {@link BuildActionRunner} that notifies the GE plugin manager that the build has completed.
@@ -50,6 +55,23 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     private void notifyEnterprisePluginManager(Result result) {
-        gradleEnterprisePluginManager.buildFinished(result.getBuildFailure());
+        List<Failure> unwrappedBuildFailure = unwrapBuildFailure(result.getBuildFailure(), result.getRichBuildFailure());
+        gradleEnterprisePluginManager.buildFinished(result.getBuildFailure(), unwrappedBuildFailure);
+    }
+
+    private static List<Failure> unwrapBuildFailure(@Nullable Throwable buildFailure, @Nullable Failure richBuildFailure) {
+        if (buildFailure != null && richBuildFailure == null) {
+            // There was a problem with the build that could not be translated to a Failure
+            return null;
+        }
+        if (richBuildFailure == null) {
+            // No build failure, empty list
+            return Collections.emptyList();
+        }
+        return richBuildFailure.getCauses().size() > 1
+            // Multiple build failures -- extract the causes
+            ? richBuildFailure.getCauses()
+            // Single build failure
+            : Collections.singletonList(richBuildFailure);
     }
 }

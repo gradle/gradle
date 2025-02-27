@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.execution.statistics.TaskExecutionStatisticsEventAdapter;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.BuildLoggerFactory;
@@ -31,6 +32,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.problems.failure.DefaultFailureFactory;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final ListenerManager listenerManager;
@@ -41,13 +43,14 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
     private final BuildLoggerFactory buildLoggerFactory;
     private final ExceptionProblemRegistry registry;
 
-    public BuildOutcomeReportingBuildActionRunner(StyledTextOutputFactory styledTextOutputFactory,
-                                                  ListenerManager listenerManager,
-                                                  BuildActionRunner delegate,
-                                                  BuildStartedTime buildStartedTime,
-                                                  BuildRequestMetaData buildRequestMetaData,
-                                                  BuildLoggerFactory buildLoggerFactory,
-                                                  ExceptionProblemRegistry registry
+    public BuildOutcomeReportingBuildActionRunner(
+        StyledTextOutputFactory styledTextOutputFactory,
+        ListenerManager listenerManager,
+        BuildActionRunner delegate,
+        BuildStartedTime buildStartedTime,
+        BuildRequestMetaData buildRequestMetaData,
+        BuildLoggerFactory buildLoggerFactory,
+        ExceptionProblemRegistry registry
     ) {
         this.styledTextOutputFactory = styledTextOutputFactory;
         this.listenerManager = listenerManager;
@@ -70,9 +73,16 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
 
         Result result = delegate.run(action, buildController);
 
-        buildLogger.logResult(result.getBuildFailure(), registry.getProblemLocator());
+        ProblemLocator problemLocator = registry.getProblemLocator();
+        DefaultFailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier(problemLocator);
+        Throwable buildFailure = result.getBuildFailure();
+        buildLogger.logResult(buildFailure, problemLocator);
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
-        return result;
+        if (buildFailure != null) {
+            return result.withFailure(failureFactory.create(buildFailure));
+        } else {
+            return result;
+        }
     }
 
     @SuppressWarnings("deprecation")

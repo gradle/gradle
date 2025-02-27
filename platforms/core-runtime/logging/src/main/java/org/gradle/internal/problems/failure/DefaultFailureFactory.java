@@ -19,6 +19,8 @@ package org.gradle.internal.problems.failure;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.util.internal.CollectionUtils;
@@ -31,28 +33,35 @@ import java.util.Set;
 
 public class DefaultFailureFactory implements FailureFactory {
 
-    public static DefaultFailureFactory withDefaultClassifier() {
+    public static DefaultFailureFactory withDefaultClassifier(ProblemLocator problemLocator) {
         return new DefaultFailureFactory(new CompositeStackTraceClassifier(
             new InternalStackTraceClassifier(),
             StackTraceClassifier.USER_CODE
-        ));
+        ), problemLocator);
+    }
+
+    public static DefaultFailureFactory withDefaultClassifier() {
+        return withDefaultClassifier(ProblemLocator.EMPTY_LOCATOR);
     }
 
     private final StackTraceClassifier stackTraceClassifier;
+    private final ProblemLocator problemLocator;
 
-    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier) {
+    public DefaultFailureFactory(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
         this.stackTraceClassifier = stackTraceClassifier;
+        this.problemLocator = problemLocator;
     }
 
     @Override
     public Failure create(Throwable failure) {
-        return new Job(stackTraceClassifier)
+        return new Job(stackTraceClassifier, problemLocator)
             .convert(failure);
     }
 
     private static final class Job {
 
         private final StackTraceClassifier stackTraceClassifier;
+        private final ProblemLocator problemLocator;
 
         private final Set<Throwable> seen = Collections.newSetFromMap(new IdentityHashMap<Throwable, Boolean>());
 
@@ -63,8 +72,9 @@ public class DefaultFailureFactory implements FailureFactory {
             }
         };
 
-        private Job(StackTraceClassifier stackTraceClassifier) {
+        private Job(StackTraceClassifier stackTraceClassifier, ProblemLocator problemLocator) {
             this.stackTraceClassifier = stackTraceClassifier;
+            this.problemLocator = problemLocator;
         }
 
         public Failure convert(Throwable failure) {
@@ -82,7 +92,8 @@ public class DefaultFailureFactory implements FailureFactory {
             List<StackTraceRelevance> relevances = classify(stackTrace, stackTraceClassifier);
             List<Failure> suppressed = convertSuppressed(failure);
             List<Failure> causes = convertCauses(failure);
-            return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes);
+            List<InternalProblem> problems = ImmutableList.copyOf(problemLocator.findAll(failure));
+            return new DefaultFailure(failure, stackTrace, relevances, suppressed, causes, problems);
         }
 
         @SuppressWarnings("Since15")

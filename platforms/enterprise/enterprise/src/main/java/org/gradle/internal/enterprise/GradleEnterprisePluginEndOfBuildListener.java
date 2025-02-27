@@ -16,7 +16,10 @@
 
 package org.gradle.internal.enterprise;
 
+import org.gradle.operations.problems.Failure;
 import org.jspecify.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Used to signal the end of build to the plugin.
@@ -31,6 +34,18 @@ public interface GradleEnterprisePluginEndOfBuildListener {
     interface BuildResult {
         @Nullable
         Throwable getFailure();
+
+        /**
+         * The build failure in a more structured form.
+         * <p>
+         * The non-empty list of failures if the build did fail.
+         * An empty list if the build didn't fail.
+         * {@code null} if the build failure could not be converted to a structured form. Use {@link #getFailure()} in this case.
+         *
+         * @since 8.14
+         */
+        @Nullable
+        List<Failure> getFailures();
     }
 
     void buildFinished(BuildResult buildResult);

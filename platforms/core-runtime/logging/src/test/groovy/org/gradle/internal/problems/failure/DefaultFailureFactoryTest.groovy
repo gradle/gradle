@@ -16,13 +16,14 @@
 
 package org.gradle.internal.problems.failure
 
+import org.gradle.api.problems.internal.ProblemLocator
 import org.gradle.internal.failure.SimulatedJavaException
 import spock.lang.Specification
 
 class DefaultFailureFactoryTest extends Specification {
 
     def "creates failure from a throwable with circular references"() {
-        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE)
+        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE, ProblemLocator.EMPTY_LOCATOR)
 
         def e0 = SimulatedJavaException.simulateDeeperException()
         def e = new RuntimeException("BOOM", e0)
