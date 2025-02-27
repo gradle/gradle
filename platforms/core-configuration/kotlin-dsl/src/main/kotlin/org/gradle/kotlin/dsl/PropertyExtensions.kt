@@ -194,6 +194,45 @@ operator fun <K : Any, V : Any> MapProperty<K, V>.plusAssign(value: Pair<K, V>) 
     this.put(value.first, value.second)
 }
 
+/**
+ * Returns a provider that resolves to the value of the mapping of the given key. It will have no value
+ * if the property has no value, or if it does not contain a mapping for the key.
+ *
+ * @see MapProperty.getting
+ * @since 9.0
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.get(key: K): Provider<V> {
+    return this.getting(key)
+}
+
+/**
+ * Adds a map entry to the property value.
+ *
+ * @param key the key
+ * @param value the value
+ *
+ * @see MapProperty.put
+ * @since 9.0
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.set(key: K, value: V) {
+    this.put(key, value)
+}
+
+/**
+ * Adds a map entry to the property value.
+ *
+ * @param key the key
+ * @param providerOfValue the provider of the value
+ *
+ * @see MapProperty.put
+ * @since 9.0
+ */
+@Incubating
+operator fun <K : Any, V : Any> MapProperty<K, V>.set(key: K, providerOfValue: Provider<out V>) {
+    this.put(key, providerOfValue)
+}
 
 /**
  * Adds a map entry to the property value.
