@@ -25,6 +25,7 @@ import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodePreservingIdentity
 import org.gradle.internal.serialize.graph.encodePreservingIdentityOf
+import org.gradle.internal.serialize.graph.readNonNull
 
 
 class ConfigurableFileCollectionCodec(
@@ -44,7 +45,7 @@ class ConfigurableFileCollectionCodec(
 
     override suspend fun ReadContext.decode(): ConfigurableFileCollection {
         return decodePreservingIdentity { id ->
-            val resolver = read() as PathToFileResolver
+            val resolver = readNonNull<PathToFileResolver>()
             val contents = codec.run { decodeContents() }
             val fileCollection = fileCollectionFactory.withResolver(resolver).configurableFiles()
             fileCollection.from(contents)
