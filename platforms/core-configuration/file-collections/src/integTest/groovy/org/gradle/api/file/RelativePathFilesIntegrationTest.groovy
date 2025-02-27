@@ -17,6 +17,7 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -51,36 +52,6 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         then:
         def files = ["sub/subFile.txt", "other/otherFile.txt", "settingsFile.txt"]
         outputContains("Effective files: ${files.collect { testDirectory.file(it) }.toSorted()}")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/30052")
-    def "provider-backed files relative to directory property respect execution time directory change"() {
-        settingsFile """
-            include("sub")
-        """
-
-        buildFile "sub/build.gradle", """
-            def dir = project.objects.directoryProperty()
-            def files = project.objects.fileCollection()
-            files.from(dir.file("file.txt")) // file relative to whatever the directory points to
-
-            dir.set(file("subDir1"))
-
-            tasks.register("foo") {
-                def otherDir = file("subDir2")
-                doLast {
-                    dir.set(otherDir) // change the directory to point elsewhere
-                    println("files: \${files.files.toSorted()}")
-                }
-            }
-        """
-
-        when:
-        run ":sub:foo"
-
-        then:
-        def files = ["sub/subDir2/file.txt"]
-        outputContains("files: ${files.collect { testDirectory.file(it) }.toSorted()}")
     }
 
     // Test implementation is not compatible with IP, but the use case will still exist, though might be more involved to set up
@@ -124,4 +95,44 @@ class RelativePathFilesIntegrationTest extends AbstractIntegrationSpec {
         "ConfigurableFileTree"       | "fileTree()"       | ["abc/subDir2/file2.txt"]
     }
 
+    // TODO: write a similar test for the RegularFileProperty
+    @ToBeFixedForConfigurationCache
+    def "ConfigurableFileCollection files derived from directory property via #method respect execution time directory change"() {
+        settingsFile """
+            include("sub")
+        """
+
+        buildFile "sub/build.gradle", """
+            def dir = project.objects.directoryProperty()
+            dir.set(file("subDir1"))
+
+            def files = project.objects.fileCollection()
+
+            tasks.register("foo") {
+                def otherDir = file("subDir2")
+                doLast {
+                    dir.set(otherDir) // change the directory to point elsewhere
+                    println("files: \${files.files.toSorted()}")
+                }
+            }
+        """
+        buildFile "sub/build.gradle", """
+            files.from(${expression})
+        """
+
+        when:
+        run ":sub:foo"
+
+        then:
+        outputContains("files: ${expectedFiles.collect { testDirectory.file(it) }.toSorted()}")
+
+        where:
+        method                      | expression                        | expectedFiles
+        "dir(String)"               | "dir.dir('subSubDir')"            | ["sub/subDir2/subSubDir"]
+        "dir(Provider<String>)"     | "dir.dir(provider{'subSubDir'})"  | ["sub/subDir2/subSubDir"]
+        "file(String)"              | "dir.file('file.txt')"            | ["sub/subDir2/file.txt"]
+        "file(Provider<String>)"    | "dir.file(provider{'file.txt'})"  | ["sub/subDir2/file.txt"]
+        "files(<string>)"           | "dir.files('file.txt')"           | ["sub/subDir2/file.txt"]
+        "files(provider{<string>})" | "dir.files(provider{'file.txt'})" | ["sub/subDir2/file.txt"]
+    }
 }
