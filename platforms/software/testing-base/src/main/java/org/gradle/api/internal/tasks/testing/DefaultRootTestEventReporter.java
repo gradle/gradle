@@ -69,9 +69,18 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
     @Override
     public void close() {
-        super.close();
+        try {
+            super.close();
+        } catch (Throwable t) {
+            // Ensure binary results are written to disk.
+            try {
+                testResultWriter.close();
+            } catch (IOException e) {
+                t.addSuppressed(e);
+            }
+            throw t;
+        }
 
-        // Ensure binary results are written to disk.
         try {
             testResultWriter.close();
         } catch (IOException e) {
