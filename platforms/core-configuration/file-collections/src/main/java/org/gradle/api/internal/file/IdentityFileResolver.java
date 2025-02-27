@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**
@@ -41,11 +40,5 @@ public class IdentityFileResolver extends AbstractFileResolver {
     @Override
     public boolean canResolveRelativePath() {
         return false;
-    }
-
-    @Nullable
-    @Override
-    public File getBaseDir() {
-        return null;
     }
 }

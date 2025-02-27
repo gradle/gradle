@@ -18,7 +18,6 @@ package org.gradle.api.internal.file;
 
 import org.gradle.util.internal.GUtil;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 
@@ -80,8 +79,6 @@ public class BaseDirFileResolver extends AbstractFileResolver {
         return true;
     }
 
-    @Nullable
-    @Override
     public File getBaseDir() {
         return baseDir;
     }

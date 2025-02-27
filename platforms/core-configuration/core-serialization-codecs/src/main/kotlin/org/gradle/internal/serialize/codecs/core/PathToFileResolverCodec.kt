@@ -16,11 +16,16 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.api.internal.file.BaseDirFileResolver
+import org.gradle.api.internal.file.DirectoryProviderPathToFileResolver
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
+import org.gradle.internal.serialize.graph.decodeBean
+import org.gradle.internal.serialize.graph.encodeBean
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.writeFile
 
@@ -30,21 +35,40 @@ class PathToFileResolverCodec(
 ) : Codec<PathToFileResolver> {
 
     override suspend fun WriteContext.encode(value: PathToFileResolver) {
-        val baseDir = value.baseDir
-        if (baseDir == null) {
-            writeBoolean(false)
-        } else {
-            writeBoolean(true)
-            writeFile(baseDir)
+        when (value) {
+            is IdentityFileResolver -> {
+                writeByte(1)
+            }
+
+            is BaseDirFileResolver -> {
+                writeByte(2)
+                writeFile(value.baseDir)
+            }
+
+            is DirectoryProviderPathToFileResolver -> {
+                writeByte(3)
+                encodeBean(value)
+            }
+
+            else -> error("Unexpected type of ${PathToFileResolver::class.simpleName} for ${value.javaClass}")
         }
     }
 
-    override suspend fun ReadContext.decode(): PathToFileResolver? {
-        val hasBaseDir = readBoolean()
-        return if (!hasBaseDir) {
-            fileLookup.fileResolver
-        } else {
-            fileLookup.getFileResolver(readFile())
+    override suspend fun ReadContext.decode(): PathToFileResolver {
+        return when (readByte()) {
+            1.toByte() -> {
+                fileLookup.fileResolver
+            }
+
+            2.toByte() -> {
+                fileLookup.getFileResolver(readFile())
+            }
+
+            3.toByte() -> {
+                decodeBean() as DirectoryProviderPathToFileResolver
+            }
+
+            else -> error("Unexpected encoding of ${PathToFileResolver::class.simpleName} type")
         }
     }
 }

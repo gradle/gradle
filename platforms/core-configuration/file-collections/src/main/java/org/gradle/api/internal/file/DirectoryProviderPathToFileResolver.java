@@ -54,9 +54,4 @@ public class DirectoryProviderPathToFileResolver implements PathToFileResolver {
     public boolean canResolveRelativePath() {
         return true;
     }
-
-    @Override
-    public File getBaseDir() {
-        return directoryProvider.get().getAsFile();
-    }
 }
