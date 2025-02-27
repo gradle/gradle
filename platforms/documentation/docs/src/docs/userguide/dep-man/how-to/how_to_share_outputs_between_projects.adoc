@@ -1,0 +1,123 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[variant-aware-sharing]]
+= How to Share Artifacts Between Projects
+
+Gradle provides a mechanism to share artifacts between projects in a flexible and maintainable way using _variant-aware sharing_. This allows consuming projects to select the appropriate artifact based on defined attributes, ensuring compatibility and correctness.
+
+[[sec:why-variant-aware-sharing]]
+== Why use variant-aware sharing?
+
+Unlike simple project dependencies, variant-aware sharing provides:
+
+- Better encapsulation by exposing only intended artifacts.
+- Fine-grained control over artifact selection.
+- Support for multiple variants of the same artifact (e.g., debug vs. release builds).
+
+[[sec:setup-producer]]
+== Configuring the producer project
+
+The producer project defines an artifact (e.g., an instrumented JAR) that other projects can consume based on attributes.
+
+**Define the Instrumented JAR Task:**
+
+[source,groovy]
+----
+// In producer/build.gradle
+plugins {
+    id 'java-library'
+}
+
+task instrumentedJar(type: Jar) {
+    archiveClassifier = 'instrumented'
+    from sourceSets.main.output
+    // Additional processing if needed
+}
+----
+
+**Create a Custom Configuration with Attributes:**
+
+[source,groovy]
+----
+// In producer/build.gradle
+
+configurations {
+    instrumentedJars {
+        canBeConsumed = true
+        canBeResolved = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("instrumented-jar"))
+        }
+    }
+}
+
+artifacts {
+    instrumentedJars instrumentedJar
+}
+----
+
+This configuration ensures that only the correct artifacts are exposed and prevents accidental dependencies on internal tasks.
+
+[[sec:setup-consumer]]
+== Configuring the consumer project
+
+The consumer project requests the instrumented JAR by defining matching attributes.
+
+[source,groovy]
+----
+// In consumer/build.gradle
+plugins {
+    id 'java'
+}
+
+configurations {
+    instrumentedRuntime {
+        canBeConsumed = false
+        canBeResolved = true
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("instrumented-jar"))
+        }
+    }
+}
+
+dependencies {
+    instrumentedRuntime project(':producer')
+}
+
+tasks.register('runWithInstrumentation', JavaExec) {
+    classpath = configurations.instrumentedRuntime
+    mainClass.set('com.example.Main')
+}
+----
+
+This setup ensures that the consumer resolves the correct variant without requiring knowledge of the producer’s implementation details.
+
+[[sec:troubleshooting]]
+== Troubleshooting
+
+If the consumer fails to resolve the artifact, check:
+
+- The attributes in the consumer match those in the producer.
+- The producer project properly declares the artifact.
+- There are no conflicting configurations with different attributes.
+
+[[sec:conclusion]]
+== Conclusion
+
+Variant-aware sharing enables clean and flexible artifact sharing between projects. It avoids hardcoded task dependencies and improves build maintainability. For more advanced configurations, see the [Gradle Variant-Aware Resolution documentation](https://docs.gradle.org/current/userguide/variant_aware_resolution.html).
+
