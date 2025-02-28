@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ChangingValue;
 import org.gradle.api.internal.provider.ChangingValueHandler;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -55,7 +56,24 @@ public abstract class DefaultArtifactPublicationSet {
         configurations.getByName(aggregateArtifactsConfName).getArtifacts().addAllLater(defaultArtifactProvider);
     }
 
+    /**
+     * This interface will be removed in Gradle 9.  We output a deprecation warning in order to warn any external users of this fact.
+     * Please use {@link #addCandidateInternal(PublishArtifact)} instead for any internal usages of this method.
+     */
+    @Deprecated
     public void addCandidate(PublishArtifact artifact) {
+        DeprecationLogger.deprecateInternalApi("DefaultArtifactPublicationSet.addCandidate(PublishArtifact)")
+            .withAdvice("Add the artifact as a direct dependency of the assemble task instead.")
+            .willBeRemovedInGradle9()
+            .undocumented()
+            .nagUser();
+        addCandidateInternal(artifact);
+    }
+
+    /**
+     * Temporary method for internal use that avoids emitting a deprecation warning.
+     */
+    public void addCandidateInternal(PublishArtifact artifact) {
         defaultArtifactProvider.addArtifact(artifact);
     }
 
