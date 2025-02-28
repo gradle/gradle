@@ -51,6 +51,12 @@ The change is driven by the need to interpret such default values in the scope o
 Guava was updated from 32.1.2 to 33.4.5, which deprecates some core features like `Charsets` or `Ints.compare`.
 See https://github.com/google/guava/releases for details.
 
+==== Upgrade to Groovy 3.0.24
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.24.html[Groovy 3.0.24].
+
+Since the previous version was 3.0.22, this includes changes for https://groovy-lang.org/changelogs/changelog-3.0.23.html[Groovy 3.0.23] as well.
+
 === Deprecations
 
 [[null-attribute-lookup]]
