@@ -170,7 +170,7 @@ public class UnixDomainSocketFileLockCommunicator implements FileLockCommunicato
             ServerSocketChannel serverSocketChannel = UnixDomainSocketUtil.openUnixServerSocketChannel();
             return serverSocketChannel.bind(thisProcessAddress);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Address: " + thisProcessAddress, e);
         }
     }
 
