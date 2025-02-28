@@ -38,13 +38,27 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             withInstallations(jvm)
         }
 
-        file("src/test/java/org/example/PublishedApiTestPluginTest.java") << pluginTestJava()
+        buildFile << """
+            plugins {
+                id("org.example.test")
+            }
+        """
+
+        settingsFile << """
+            pluginManagement {
+                ${configurePluginRepositories()}
+            }
+
+            includeBuild("build-logic")
+        """
+
+        file("build-logic/src/test/java/org/example/PublishedApiTestPluginTest.java") << pluginTestJava()
     }
 
-    def "can compile Java code against public API"() {
-        buildFile << configureApiWithPlugin('id("java-library")')
+    def "can compile Java plugin against public API and apply it"() {
+        file("build-logic/build.gradle") << configureApiWithPlugin('id("java-library")')
 
-        file("src/main/java/org/example/PublishedApiTestPlugin.java") << """
+        file("build-logic/src/main/java/org/example/PublishedApiTestPlugin.java") << """
             package org.example;
 
             import org.gradle.api.Plugin;
@@ -57,7 +71,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 }
             }
         """
-        file("src/main/java/org/example/CustomTask.java") << """
+        file("build-logic/src/main/java/org/example/CustomTask.java") << """
             package org.example;
 
             import javax.annotation.Nullable;
@@ -83,13 +97,14 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
         """
 
         expect:
-        succeeds(":test")
+        succeeds(":build-logic:test")
+        succeeds(":customTask")
     }
 
-    def "can compile Groovy code against public API"() {
-        buildFile << configureApiWithPlugin('id("groovy")')
+    def "can compile Groovy plugin against public API and apply it"() {
+        file("build-logic/build.gradle") << configureApiWithPlugin('id("groovy")')
 
-        file("src/main/groovy/org/example/PublishedApiTestPlugin.groovy") << """
+        file("build-logic/src/main/groovy/org/example/PublishedApiTestPlugin.groovy") << """
             package org.example
 
             import org.gradle.api.Plugin
@@ -97,14 +112,14 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             class PublishedApiTestPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    project.tasks.register("myTask", CustomTask) {
+                    project.tasks.register("customTask", CustomTask) {
                         mapValues = ["alma": 1, "bela": 2]
                         println("Hello from plugin")
                     }
                 }
             }
         """
-        file("src/main/groovy/org/example/CustomTask.groovy") << """
+        file("build-logic/src/main/groovy/org/example/CustomTask.groovy") << """
             package org.example
 
             import org.gradle.api.DefaultTask
@@ -127,7 +142,8 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
         """
 
         expect:
-        succeeds(":compileGroovy")
+        succeeds(":build-logic:test")
+        succeeds(":customTask")
     }
 
     def "can compile Kotlin plugin against public API and apply it"() {
@@ -144,7 +160,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
 
             class PublishedApiTestPlugin : Plugin<Project> {
                 override fun apply(project: Project) {
-                    val myTask by project.tasks.registering(CustomTask::class) {
+                    val customTask by project.tasks.registering(CustomTask::class) {
                         mapValues.set(mapOf("alma" to 1, "bela" to 2))
                         println("Hello from plugin")
                     }
@@ -173,21 +189,9 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             }
         """
 
-        buildFile << """
-            plugins {
-                id("org.example.test")
-            }
-        """
-        settingsFile << """
-            pluginManagement {
-                ${configurePluginRepositories()}
-            }
-
-            includeBuild("build-logic")
-        """
-
         expect:
-        succeeds(":myTask")
+        succeeds(":build-logic:test")
+        succeeds(":customTask")
     }
 
     private configureApiWithPlugin(String pluginDefinition) {
