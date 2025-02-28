@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -48,8 +49,11 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         this.listenerManager = listenerManager;
         this.fileSystemAccess = fileSystemAccess;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
+        String cacheKey = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)
+            ? "fileContent-1"
+            : "fileContent";
         this.cache = cacheBuilderFactory
-            .createCacheBuilder("fileContent")
+            .createCacheBuilder(cacheKey)
             .withDisplayName("file content cache")
             .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();

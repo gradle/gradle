@@ -17,6 +17,7 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.cache.CacheConfigurationsInternal;
 import org.gradle.cache.CacheCleanupStrategy;
 import org.gradle.cache.CacheCleanupStrategyFactory;
@@ -45,7 +46,10 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     @VisibleForTesting
     static final String CACHE_NAME = "jars";
     @VisibleForTesting
-    static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
+    private final static String CACHE_KEY_VERSION = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)
+        ? (Integer.valueOf(CACHE_VERSION_MAPPING.getLatestVersion().toString()) + 1 + "")
+        : CACHE_VERSION_MAPPING.getLatestVersion().toString();
+    static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_KEY_VERSION;
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final UsedGradleVersions usedGradleVersions;

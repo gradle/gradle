@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.IndexedCache;
 import org.gradle.cache.IndexedCacheParameters;
@@ -35,7 +36,8 @@ public class CrossBuildFileHashCache implements Closeable {
 
     public CrossBuildFileHashCache(ScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Kind cacheKind) {
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
-        cache = cacheBuilderFactory.createCacheBuilder(cacheKind.cacheId)
+        String cacheKey = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17) ? cacheKind.cacheId + "-1" : cacheKind.cacheId;
+        cache = cacheBuilderFactory.createCacheBuilder(cacheKey)
             .withDisplayName(cacheKind.description)
             .withInitialLockMode(FileLockManager.LockMode.OnDemand)
             .open();
