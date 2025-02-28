@@ -1,6 +1,6 @@
 // tag::avoid-this[]
 abstract class SimplePrintingTask : DefaultTask() {
-    @ge:tInput
+    @get:Input
     abstract val message: Property<String>
 
     @TaskAction
@@ -21,7 +21,7 @@ tasks.register<SimplePrintingTask>("task2") {
 
 // tag::do-this[]
 abstract class BetterPrintingTask : DefaultTask() {
-    @ge:tInput
+    @get:Input
     abstract val message: Property<String>
 
     @get:OutputFile
@@ -30,7 +30,7 @@ abstract class BetterPrintingTask : DefaultTask() {
     @TaskAction
     fun run() {
         logger.lifecycle(message.get())
-        outputFile.get().asFile.write(message.get()) // <1>
+        outputFile.get().asFile.writeText(message.get()) // <1>
     }
 }
 

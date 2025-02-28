@@ -28,8 +28,8 @@ Using `dependsOn` to link tasks is a much coarser-grained mechanism that does **
 ==== Don't Do This
 
 ====
-include::sample[dir="snippets/bestPractices/tasks/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
-include::sample[dir="snippets/bestPractices/tasks/avoidDependsOn/groovy",files="build.gradle[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=avoid-this]"]
 ====
 
 <1> *Explicit Task Dependency*: `task2` will always require `task1` to run first, but Gradle does not understand _why_.
@@ -37,8 +37,8 @@ include::sample[dir="snippets/bestPractices/tasks/avoidDependsOn/groovy",files="
 ==== Do This Instead
 
 ====
-include::sample[dir="snippets/bestPractices/tasks/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
-include::sample[dir="snippets/bestPractices/tasks/avoidDependsOn/groovy",files="build.gradle[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=do-this]"]
 ====
 
 <1> *Register Output*: The `BetterPrintingTask` now writes its output to a file as well.
