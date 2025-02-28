@@ -253,6 +253,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
             [],
             ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             [:],
+            [],
             ["java", "groovy"],
             [],
             [Object, GroovyObject],

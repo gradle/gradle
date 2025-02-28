@@ -111,6 +111,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec imp
         [],
         ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
         FUNCTION_TYPE_ANNOTATIONS.collectEntries { [it, AnnotationCategory.TYPE] },
+        [],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],

@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.junit.Assume
@@ -804,6 +805,43 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         typeName           | producer                   | className                 | reason
         'DeprecationLevel' | 'DeprecationLevel.WARNING' | 'kotlin.DeprecationLevel' | "Type is in 'kotlin.*' package that is reserved for Kotlin stdlib types."
         'String'           | '"abc"'                    | 'java.lang.String'        | "Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types."
+    }
+
+    def "overriding to-be-upgraded property is validated with warning"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.file.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.work.*;
+            import java.util.*;
+
+            public abstract class MyTask extends AbstractCopyTask {
+                @Override
+                public DuplicatesStrategy getDuplicatesStrategy() {
+                    return super.getDuplicatesStrategy();
+                }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith([
+            warning(propertyAccessorMustNotBeOverridden { type("MyTask").method("getDuplicatesStrategy").annotation(ToBeReplacedByLazyProperty) },
+                'validation_problems', 'property_accessor_must_not_be_overridden'),
+        ])
+
+        and:
+        verifyAll(receivedProblem) {
+            fqid == 'validation:property-validation:property-accessor-must-not-be-overridden'
+            contextualLabel == "Type 'MyTask' method 'getDuplicatesStrategy' overrides an accessor of a property annotated with @ToBeReplacedByLazyProperty"
+            solutions == [
+                'Do not override the accessor method',
+            ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'functionName' : "getDuplicatesStrategy",
+            ]
+        }
     }
 
     def "honors configured Java Toolchain to avoid compiled by a more recent version failure"() {

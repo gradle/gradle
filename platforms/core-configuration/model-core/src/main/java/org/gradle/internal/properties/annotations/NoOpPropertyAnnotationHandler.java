@@ -18,6 +18,7 @@ package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 
@@ -25,7 +26,7 @@ import java.lang.annotation.Annotation;
 
 public class NoOpPropertyAnnotationHandler extends AbstractPropertyAnnotationHandler {
     public NoOpPropertyAnnotationHandler(Class<? extends Annotation> annotationType) {
-        super(annotationType, Kind.OTHER, ImmutableSet.of(ReplacesEagerProperty.class));
+        super(annotationType, Kind.OTHER, ImmutableSet.of(ReplacesEagerProperty.class, ToBeReplacedByLazyProperty.class));
     }
     @Override
     public boolean isPropertyRelevant() {

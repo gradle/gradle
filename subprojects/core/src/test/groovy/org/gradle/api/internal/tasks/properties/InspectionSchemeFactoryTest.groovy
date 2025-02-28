@@ -40,6 +40,7 @@ class InspectionSchemeFactoryTest extends Specification {
         [],
         [(Thing1): TYPE, (Thing2): TYPE],
         [:],
+        [],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],

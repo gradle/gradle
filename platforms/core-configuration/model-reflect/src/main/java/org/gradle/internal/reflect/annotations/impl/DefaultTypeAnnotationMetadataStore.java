@@ -61,6 +61,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -68,6 +69,7 @@ import java.util.stream.Stream;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static org.gradle.api.problems.Severity.ERROR;
+import static org.gradle.api.problems.Severity.WARNING;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.annotations.AnnotationCategory.TYPE;
@@ -112,6 +114,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private final ImmutableSet<String> potentiallyIgnoredMethodNames;
     private final ImmutableSet<Equivalence.Wrapper<Method>> globallyIgnoredMethods;
     private final ImmutableSet<Class<?>> mutableNonFinalClasses;
+    private final ImmutableSet<Class<? extends Annotation>> mustNotOverridePropertyAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotations;
     private final ImmutableSet<Class<? extends Annotation>> ignoredMethodAnnotationsAllowedModifiers;
     private final Predicate<? super Method> generatedMethodDetector;
@@ -125,6 +128,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
+     * @param mustNotOverridePropertyAnnotations Annotations signaling properties for which accessor methods should not be overridden.
      * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
      * @param ignoredMethodAnnotationsAllowedModifiers Annotations allowed to be used with the ignore annotations.
      * @param generatedMethodDetector Predicate to test if a method was generated (vs. being provided explicitly by the user).
@@ -135,6 +139,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> functionAnnotationCategories,
+        Collection<Class<? extends Annotation>> mustNotOverridePropertyAnnotations,
         Collection<String> ignoredPackagePrefixes,
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
@@ -147,6 +152,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
         this.ignoredPackagePrefixes = collectIgnoredPackagePrefixes(ignoredPackagePrefixes);
         this.propertyAnnotationCategories = allAnnotationCategoriesForProperties(propertyAnnotationCategories, ignoredMethodAnnotations);
+        this.mustNotOverridePropertyAnnotations = ImmutableSet.copyOf(mustNotOverridePropertyAnnotations);
         this.functionAnnotationCategories = allAnnotationCategories(functionAnnotationCategories, Collections.emptyList());
         this.cache = initCache(ignoredSuperTypes, cacheFactory);
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
@@ -526,6 +532,14 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (accessorType == PropertyAccessorType.SETTER) {
             validateNotAnnotatedForProperty(MethodKind.SETTER, method, annotations.keySet(), validationContext);
             validateSetterForMutableType(method, accessorType, validationContext, propertyName);
+            Class<?> propertyType = method.getParameterTypes()[0];
+            String getterName = propertyType.equals(boolean.class)
+                ? "is" + StringUtils.capitalize(propertyName)
+                : "get" + StringUtils.capitalize(propertyName);
+            PropertyAnnotationMetadataBuilder metadataBuilder = propertyBuilders.get(getterName);
+            if (metadataBuilder != null) {
+                validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(method, metadataBuilder);
+            }
             return;
         }
 
@@ -558,6 +572,26 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         for (Annotation annotation : annotations.values()) {
             metadataBuilder.declareAnnotation(annotation);
         }
+
+        validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(method, metadataBuilder);
+    }
+
+    private static final String PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN = "PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN";
+
+    private void validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(Method method, PropertyAnnotationMetadataBuilder metadataBuilder) {
+        Optional<Class<? extends Annotation>> forbiddenAnnotation = mustNotOverridePropertyAnnotations.stream().filter(metadataBuilder::hasInheritedAnnotation).findFirst();
+        if (!forbiddenAnnotation.isPresent() || metadataBuilder.hasDeclaredAnnotation(forbiddenAnnotation.get())) {
+            return;
+        }
+        metadataBuilder.visitPropertyProblem(problem ->
+            problem
+                .forFunction(method.getName())
+                .id(TextUtil.screamingSnakeToKebabCase(PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN), "Forbidden to override property accessor", GradleCoreProblemGroup.validation().property())
+                .contextualLabel("overrides an accessor of a property annotated with @" + forbiddenAnnotation.get().getSimpleName())
+                .documentedAt(userManual("validation_problems", PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN.toLowerCase(Locale.ROOT)))
+                .severity(WARNING)
+                .solution("Do not override the accessor method")
+        );
     }
 
     private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
@@ -791,12 +825,26 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public boolean hasAnnotation(Class<? extends Annotation> annotationType) {
-            Iterable<Annotation> allAnnotations = Iterables.concat(
+            return hasAnnotation(annotationType, Iterables.concat(
                 declaredAnnotations.values(),
                 inheritedInterfaceAnnotations.values(),
                 inheritedSuperclassAnnotations.values()
-            );
-            for (Annotation annotation : allAnnotations) {
+            ));
+        }
+
+        public boolean hasDeclaredAnnotation(Class<? extends Annotation> annotationType) {
+            return hasAnnotation(annotationType, declaredAnnotations.values());
+        }
+
+        public boolean hasInheritedAnnotation(Class<? extends Annotation> annotationType) {
+            return hasAnnotation(annotationType, Iterables.concat(
+                inheritedInterfaceAnnotations.values(),
+                inheritedSuperclassAnnotations.values()
+            ));
+        }
+
+        private static boolean hasAnnotation(Class<? extends Annotation> annotationType, Iterable<Annotation> annotations) {
+            for (Annotation annotation : annotations) {
                 if (annotation.annotationType().equals(annotationType)) {
                     return true;
                 }
@@ -805,24 +853,38 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         protected ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
+            return resolveAnnotationsWithFilter((category, annotation) -> true);
+        }
+
+        protected ImmutableMap<AnnotationCategory, Annotation> resolveAnnotationsWithFilter(BiPredicate<AnnotationCategory, Annotation> filter) {
             ImmutableMap.Builder<AnnotationCategory, Annotation> builder = ImmutableMap.builder();
             for (AnnotationCategory category : allAnnotationCategories()) {
-                Annotation resolvedAnnotation;
-                Collection<Annotation> declaredAnnotationsForCategory = declaredAnnotations.get(category);
+                Annotation resolvedAnnotation = null;
+                Collection<Annotation> declaredAnnotationsForCategory = filterAnnotations(filter, category, declaredAnnotations.get(category));
                 if (!declaredAnnotationsForCategory.isEmpty()) {
                     resolvedAnnotation = resolveAnnotation("declared", category, declaredAnnotationsForCategory);
                 } else {
-                    Collection<Annotation> interfaceAnnotations = inheritedInterfaceAnnotations.get(category);
+                    Collection<Annotation> interfaceAnnotations = filterAnnotations(filter, category, inheritedInterfaceAnnotations.get(category));
                     if (!interfaceAnnotations.isEmpty()) {
                         resolvedAnnotation = resolveAnnotation("inherited (from interface)", category, interfaceAnnotations);
                     } else {
-                        Collection<Annotation> superclassAnnotations = inheritedSuperclassAnnotations.get(category);
-                        resolvedAnnotation = resolveAnnotation("inherited (from superclass)", category, superclassAnnotations);
+                        Collection<Annotation> superclassAnnotations = filterAnnotations(filter, category, inheritedSuperclassAnnotations.get(category));
+                        if (!superclassAnnotations.isEmpty()) {
+                            resolvedAnnotation = resolveAnnotation("inherited (from superclass)", category, superclassAnnotations);
+                        }
                     }
                 }
-                builder.put(category, resolvedAnnotation);
+                if (resolvedAnnotation != null) {
+                    builder.put(category, resolvedAnnotation);
+                }
             }
             return builder.build();
+        }
+
+        private static Collection<Annotation> filterAnnotations(BiPredicate<AnnotationCategory, Annotation> filter, AnnotationCategory category, Collection<Annotation> annotations) {
+            return annotations.stream()
+                .filter(annotation -> filter.test(category, annotation))
+                .collect(ImmutableList.toImmutableList());
         }
 
         private Annotation resolveAnnotation(String source, AnnotationCategory category, Collection<Annotation> annotationsForCategory) {
@@ -867,7 +929,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         @Override
         protected ImmutableMap<AnnotationCategory, Annotation> resolveAnnotations() {
-            // If method should be ignored, then ignore all other annotations
+            // If method should be ignored, then ignore all other annotations except for allowed modifiers
             List<Annotation> declaredTypes = declaredAnnotations.get(TYPE);
             for (Annotation declaredType : declaredTypes) {
                 Class<? extends Annotation> ignoredMethodAnnotation = declaredType.annotationType();
@@ -875,7 +937,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     if (declaredAnnotations.values().size() > 1 && ignoreAnnotationDisallowedModifiers(declaredAnnotations.values()).count() > 1) {
                         handleAnnotatedIgnoredMethod(ignoredMethodAnnotation);
                     }
-                    return ImmutableMap.of(TYPE, declaredType);
+                    return super.resolveAnnotationsWithFilter((category, annotation) ->
+                        category == AnnotationCategory.TYPE
+                            || ignoredMethodAnnotationsAllowedModifiers.contains(annotation.annotationType()));
                 }
             }
 

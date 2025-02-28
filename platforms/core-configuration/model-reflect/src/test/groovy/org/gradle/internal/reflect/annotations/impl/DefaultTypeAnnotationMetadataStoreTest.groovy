@@ -43,10 +43,7 @@ import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = new AnnotationCategory() {
-        @Override
-        String getDisplayName() {
-            return "color"
-        }
+        final String displayName = "color"
 
         @Override
         String toString() {
@@ -55,10 +52,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     }
 
     private static final BAZ = new AnnotationCategory() {
+        final String displayName = "baz"
+
         @Override
-        String getDisplayName() {
-            return "baz"
+        String toString() {
+            return displayName
         }
+    }
+
+    private static final NO_OVERRIDE = new AnnotationCategory() {
+        final String displayName = "no-override"
 
         @Override
         String toString() {
@@ -68,8 +71,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
-        [(Large): TYPE, (Small): TYPE, (Color): COLOR],
+        [(Large): TYPE, (Small): TYPE, (Color): COLOR, (NoOverride): NO_OVERRIDE],
         [(Foo): TYPE, (Bar): TYPE, (Baz): BAZ],
+        [NoOverride],
         ["java", "groovy"],
         [Object],
         [Object, GroovyObject],
@@ -578,6 +582,52 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         assertFunctions TypeOverridingFunctionFromConflictingInterfaces, [
             overriddenMethod: [(BAZ): { it instanceof Baz && it.declaredBy() == "subtype" }]
         ]
+    }
+
+    def "warns about overriding property accessor methods for must-not override properties"() {
+        expect:
+        assertFunctions TypeWithForbiddenProperty, [:], [
+        ]
+        assertFunctions TypeWithOverriddenForbiddenProperty, [:], [
+            propertyAccessorMustNotBeOverridden { method("getForbiddenProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("setForbiddenProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("isForbiddenBoolProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("setForbiddenBoolProperty").annotation(NoOverride).includeLink() },
+        ]
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithForbiddenProperty {
+        @Large
+        @NoOverride
+        String getForbiddenProperty() { "test" }
+
+        void setForbiddenProperty(String value) {}
+
+        @Large
+        @NoOverride
+        boolean isForbiddenBoolProperty() { true }
+
+        void setForbiddenBoolProperty(boolean value) {}
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithOverriddenForbiddenProperty extends TypeWithForbiddenProperty {
+        @Override
+        String getForbiddenProperty() { "override" }
+
+        @Override
+        void setForbiddenProperty(String value) {}
+
+        @Override
+        void setForbiddenBoolProperty(boolean value) {
+            super.setForbiddenBoolProperty(value)
+        }
+
+        @Override
+        boolean isForbiddenBoolProperty() {
+            return super.isForbiddenBoolProperty()
+        }
     }
 
     @SuppressWarnings("unused")
@@ -1098,6 +1148,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface Color {
     String declaredBy() default ""
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface NoOverride {
 }
 
 @Retention(RetentionPolicy.RUNTIME)

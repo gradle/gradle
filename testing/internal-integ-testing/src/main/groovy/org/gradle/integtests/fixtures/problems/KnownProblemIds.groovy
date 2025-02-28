@@ -137,6 +137,7 @@ class KnownProblemIds {
         'validation:property-validation:unsupported-value-type' : 'Unsupported value type',
         'validation:property-validation:unsupported-value-type-for-input' : 'Unsupported value type for @Input annotation',
         'validation:property-validation:value-not-set' : 'Value not set',
+        'validation:property-validation:property-accessor-must-not-be-overridden' : 'Forbidden to override property accessor',
         'validation:type-validation:ignored-annotations-on-method' : 'Ignored annotations on method',
         'validation:type-validation:invalid-use-of-type-annotation' : 'Incorrect use of type annotation',
         'validation:type-validation:not-cacheable-without-reason' : 'Not cacheable without reason',
