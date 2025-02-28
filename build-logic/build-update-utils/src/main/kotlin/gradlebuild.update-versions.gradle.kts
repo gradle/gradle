@@ -2,6 +2,7 @@
 import com.google.gson.Gson
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.buildutils.model.ReleasedVersion
+import gradlebuild.buildutils.tasks.FixProjectHealthTask
 import gradlebuild.buildutils.tasks.UpdateAgpVersions
 import gradlebuild.buildutils.tasks.UpdateKotlinVersions
 import gradlebuild.buildutils.tasks.UpdateReleasedVersions
@@ -46,5 +47,8 @@ tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }
+
+tasks.register<FixProjectHealthTask>("fixProjectHealth")
+
 
 data class VersionBuildTimeInfo(val version: String, val buildTime: String)
