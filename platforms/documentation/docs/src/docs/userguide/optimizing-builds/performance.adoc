@@ -15,17 +15,40 @@
 [[performance_gradle]]
 = Improve the Performance of Gradle Builds
 
-Build performance is critical to productivity.
-The longer builds take to complete, the more likely they'll disrupt your development flow.
-Builds run many times a day, so even small waiting periods add up.
-The same is true for Continuous Integration (CI) builds: the less time they take, the faster you can react to new issues
-and the more often you can experiment.
+Build performance is essential to productivity.
+The longer a build takes, the more it disrupts your development flow.
+Since builds run many times a day, even small delays add up.
+The same applies to Continuous Integration (CI).
 
-All this means that it’s worth investing some time and effort into making your build as fast as possible.
-This section offers several ways to make a build faster. Additionally, you'll find details about what leads to
-build performance degradation, and how you can avoid it.
+Investing in build speed pays off.
 
-TIP: Want faster Gradle Builds? https://gradle.org/training/#build-cache-deep-dive[Register here] for our Build Cache training session to learn how Develocity can speed up builds by up to 90%.
+This section explores ways to optimize performance, highlights common pitfalls, and explains how to avoid them.
+
+[cols="~,~"]
+|===
+|# |Recommendation
+
+|1
+|<<sec:update-versions,Update Versions>>
+
+|2
+|<<sec:parallel_execution,Enable Parallel Execution>>
+
+|3
+|<<enable_daemon,Enable the Daemon>>
+
+|4
+|<<enable_build_cache, Enable the Build Cache>>
+
+|5
+|<<enable_configuration_cache,Enable the Configuration Cache>>
+
+|6
+|<<enable_inc_builds_custom_tasks, Enable Incremental Build for Custom Tasks>>
+
+|7
+|<<enable_specific_dev_workflows,Create Builds for specific Developer Workflows>>
+|===
 
 == Inspect your build
 
@@ -45,57 +68,65 @@ To best make use of this page:
 
 If the change improved build times, make it permanent. If you don't see an improvement, remove the change and try another.
 
-== Update versions
+[[sec:update-versions]]
+== 1. Update versions
 
 [[update_gradle]]
 === Gradle
 
-The Gradle team continuously improves the performance of Gradle builds.
-If you’re using an old version of Gradle, you’re missing out on the benefits of that work.
-Keeping up with Gradle version upgrades is low risk because the Gradle team ensures backwards compatibility between minor versions of Gradle.
-Staying up-to-date also makes transitioning to the next major version easier, since you'll get early deprecation warnings.
+Each Gradle release brings performance improvements.
+Using an outdated version means missing out on these gains.
+Upgrading is low-risk since Gradle maintains backward compatibility between minor versions.
+Staying up to date also makes major version upgrades smoother by providing early deprecation warnings.
+
+You can use the <<gradle_wrapper.adoc#gradle_wrapper_reference,Gradle Wrapper>> to update the version of Gradle by running `gradle wrapper --gradle-version X.X` where `X.X` is the desired version.
 
 === Java
 
-Gradle runs on the Java Virtual Machine (JVM). Java performance improvements often benefit Gradle.
-For the best Gradle performance, use the latest version of Java.
+Gradle runs on the Java Virtual Machine (JVM), and Java updates often enhance performance.
+To get the best Gradle performance, use the latest Java version.
+
+TIP: Don't forget to check out <<compatibility.adoc#compatibility,compatibility guide>> to make sure your version of Java is compatible with your version of Gradle
 
 === Plugins
 
-Plugin writers continuously improve the performance of their plugins.
-If you're using an old version of a plugin, you're missing out on the benefits of that work.
-The Android, Java, and Kotlin plugins in particular can significantly impact build performance.
-Update to the latest version of these plugins for performance improvements.
+Plugins play a key role in build performance.
+Outdated plugins can slow down your build, while newer versions often include optimizations.
+This is especially true for the Android, Java, and Kotlin plugins. Keep them up to date for the best performance.
 
-[[parallel_execution]]
-== Enable parallel execution
+Simply look at all the declared plugins in your project and check if a newer version is available:
 
-Most projects consist of more than one subproject. Usually, some of those subprojects are independent of one another;
-that is, they do not share state. Yet by default, Gradle only runs one task at a time.
-To execute tasks belonging to different subprojects in parallel, use the `parallel` flag:
+[source,kotlin]
+----
+plugins {
+    id("org.jlleitschuh.gradle.ktlint") version "12.0.0" // A newer version is available!
+}
+----
 
-====
-[listing.terminal]
+[[sec:parallel_execution]]
+== 2. Enable parallel execution
+
+Most projects consist of multiple subprojects, some of which are independent.
+However, by default, Gradle runs only one task at a time.
+
+To execute tasks from different subprojects in parallel, use the `--parallel flag`:
+
+[source,bash]
 ----
 $ gradle <task> --parallel
 ----
-====
 
-To execute project tasks in parallel by default, add the following setting to the `gradle.properties` file in the project root or your Gradle home:
+To enable parallel execution by default, add this setting to `gradle.properties` in the <<directory_layout.adoc#directory_layout,project root or your Gradle home directory>>:
 
-====
-.gradle.properties
 [source,properties]
+.gradle.properties
 ----
 org.gradle.parallel=true
 ----
-====
 
-Parallel builds can significantly improve build times; how much depends on your project structure and
-how many dependencies you have between subprojects.
-A build whose execution time is dominated by a single subproject won't benefit much at all.
-Neither will a project with lots of inter-subproject dependencies.
-But most multi-subproject builds see a reduction in build times.
+Parallel builds can significantly improve build times, but the impact depends on your project’s structure and inter-subproject dependencies.
+If a single subproject dominates execution time or there are many dependencies between subprojects, the benefits will be minimal.
+However, most multi-project builds see a noticeable reduction in build time.
 
 === Visualize parallelism with build scans
 
@@ -110,155 +141,64 @@ reduces the overall build time from 8 seconds to 5 seconds:
 image::performance/parallel-task-fast.png[title="Optimized parallel execution"]
 
 [[enable_daemon]]
-== Re-enable the Gradle Daemon
+== 3. Re-enable the Gradle Daemon
 
-The Gradle Daemon reduces build times by:
+The Gradle Daemon significantly reduces build times by:
 
-* caching project information across builds
-* running in the background so every Gradle build doesn't have to wait for JVM startup
-* benefiting from continuous runtime optimization in the JVM
-* watching the file system to calculate exactly what needs to be rebuilt before you run a build
+* Caching project information across builds
+* Running in the background to avoid JVM startup delays
+* Benefiting from continuous JVM runtime optimizations
+* Watching the file system to determine what needs to be rebuilt
 
-Gradle enables the Daemon by default, but some builds override this preference.
-If your build disables the Daemon, you could see a significant performance improvement
-from enabling the daemon.
+Gradle enables the Daemon by default, but some builds override this setting.
+If your build disables it, enabling the Daemon can lead to substantial performance improvements.
 
-You can enable the Daemon at build time with the `daemon` flag:
+To enable the Daemon at build time, use:
 
-====
-[listing.terminal]
+[source, bash]
 ----
 $ gradle <task> --daemon
 ----
-====
 
-To enable the Daemon by default in older Gradle versions, add the following setting to the
-`gradle.properties` file in the project root or your Gradle home:
+For older Gradle versions, enable it permanently by adding this to `gradle.properties`:
 
-====
-.gradle.properties
 [source,properties]
+.gradle.properties
 ----
 org.gradle.daemon=true
 ----
-====
 
-On developer machines, you should see a significant performance improvement.
-On CI machines, long-lived agents benefit from the Daemon. But short-lived machines don't benefit much.
-Daemons automatically shut down on memory pressure in Gradle 3.0 and above, so it's always safe to leave the Daemon enabled.
+On developer machines, enabling the Daemon improves performance.
+On CI machines, long-lived agents benefit, but short-lived ones may not.
+Since Gradle 3.0, Daemons automatically shut down under memory pressure, making it safe to keep the Daemon enabled.
 
-[[enable_configuration_cache]]
-== Enable the configuration cache
+[[enable_build_cache]]
+== 4. Enable the build cache
 
-[IMPORTANT]
-====
-This feature has the following limitations:
+The Gradle Build Cache optimizes performance by storing task outputs for specific inputs.
+If a task runs again with the same inputs, Gradle retrieves the cached output instead of re-executing the task.
 
-* The configuration cache does not support all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is a work in progress. +
-* Your build and the plugins you depend on might require changes to fulfill the <<configuration_cache#config_cache:requirements, requirements>>. +
-* IDE imports and syncs do not use the configuration cache.
-====
-
-You can cache the result of the configuration phase by enabling the configuration cache.
-When build configuration inputs remain the same across builds, the configuration cache
-allows Gradle to skip the configuration phase entirely.
-
-Build configuration inputs include:
-
-* Init scripts
-* Settings scripts
-* Build scripts
-* System properties used during the configuration phase
-* Gradle properties used during the configuration phase
-* Environment variables used during the configuration phase
-* Configuration files accessed using value suppliers such as providers
-* `buildSrc` inputs, including build configuration inputs and source files
-
-By default, Gradle does not use the configuration cache.
-To enable the configuration cache at build time, use the `configuration-cache` flag:
-
-====
-[listing.terminal]
-----
-$ gradle <task> --configuration-cache
-----
-====
-
-To enable the configuration cache by default, add the following setting to the `gradle.properties` file in the project root or your Gradle home:
-====
-.gradle.properties
-[source,properties]
-----
-org.gradle.configuration-cache=true
-----
-====
-
-For more information about the configuration cache, check out the
-<<configuration_cache.adoc#config_cache,configuration cache documentation>>.
-
-=== Additional configuration cache benefits
-
-The configuration cache enables additional benefits as well. When enabled, Gradle:
-
-* Executes all tasks in parallel, even those in the same subproject.
-* Caches dependency resolution results.
-
-== Enable incremental build for custom tasks
-
-Incremental build is a Gradle optimization that skips running tasks that have previously executed with the same inputs.
-If a task’s inputs and its outputs have not changed since the last execution, Gradle skips that task.
-
-Most built-in tasks provided by Gradle work with incremental build.
-To make a custom task compatible with incremental build, specify the inputs and outputs:
-
-====
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
-include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
-====
-
-For more information about incremental builds, check out the
-<<incremental_build.adoc#incremental_build,incremental build documentation>>.
-
-=== Visualize incremental builds with build scan timelines
-
-Look at the build scan timeline view to identify tasks that could benefit from incremental builds.
-This can also help you understand why tasks execute when you expect Gradle to skip them.
-
-image::performance/timeline.png[title="The timeline view can help with incremental build inspection"]
-
-As you can see in the build scan above, the task was not up-to-date because one of its inputs
-(_"timestamp"_) changed, forcing the task to re-run.
-
-Sort tasks by duration to find the slowest tasks in your project.
-
-== Enable the build cache
-
-The build cache is a Gradle optimization that stores task outputs for specific input.
-When you later run that same task with the same input, Gradle retrieves the output from the build cache instead of running the task again.
 By default, Gradle does not use the build cache.
-To enable the build cache at build time, use the `build-cache` flag:
+To enable it at build time, use:
 
-====
-[listing.terminal]
+[source,bash]
 ----
 $ gradle <task> --build-cache
 ----
-====
 
-To enable the build cache by default, add the following setting to the `gradle.properties` file in the project root or your Gradle home:
+To enable it permanently, add this to `gradle.properties`:
 
-====
-.gradle.properties
 [source,properties]
+.gradle.properties
 ----
 org.gradle.caching=true
 ----
-====
 
-You can use a local build cache to speed up repeated builds on a single machine.
-You can also use a shared build cache to speed up repeated builds across multiple machines.
-Develocity https://gradle.com/build-cache/[provides one].
-Shared build caches can decrease build times for both CI and developer builds.
+You can use:
+
+* A local build cache to speed up repeated builds on the same machine.
+* A shared build cache to accelerate builds across multiple machines.
+** https://gradle.com/build-cache/[Develocity provides] a shared cache solution for CI and developer builds.
 
 For more information about the build cache, check out the
 <<build_cache_use_cases.adoc#use_cases_cache,build cache documentation>>.
@@ -285,30 +225,107 @@ Sort by task duration on the timeline screen to highlight tasks with great time 
 The build scan above shows that `:task1` and `:task3` could be improved and made cacheable
 and shows why Gradle didn't cache them.
 
-== Create builds for specific developer workflows
+[[enable_configuration_cache]]
+== 5. Enable the configuration cache
 
-The fastest task is one that doesn’t execute.
-If you can find ways to skip tasks you don’t need to run, you’ll end up with a faster build overall.
+[IMPORTANT]
+====
+This feature has the following limitations:
 
-If your build includes multiple subprojects, create tasks to build those subprojects
-independently. This helps you get the most out of caching, since a change to one
-subproject won't force a rebuild for unrelated subprojects. And this helps reduce
-build times for teams that work on unrelated subprojects: there's no need for
-front-end developers to build the back-end subprojects every time they change the
-front-end. Documentation writers don't need to build front-end or back-end code
-even if the documentation lives in the same project as that code.
+* Not all <<configuration_cache#config_cache:plugins:core, core Gradle plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>> are supported. Full support is still in progress.
+* Your build and its plugins may need adjustments to meet the <<configuration_cache#config_cache:requirements, requirements>>.
+* IDE imports and syncs do not use the configuration cache.
+====
 
-Instead, create tasks that match the needs of developers. You'll still have a single
-task graph for the whole project. Each group of users suggests a restricted view of
-the task graph: turn that view into a Gradle workflow that excludes unnecessary tasks.
+The configuration cache speeds up builds by caching the results of the configuration phase.
+When build configuration inputs remain unchanged, Gradle can skip this phase entirely.
 
-Gradle provides several features to create these workflows:
+Enabling the configuration cache provides further performance benefits.
+When enabled, Gradle:
 
-* Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups]
-* Create _aggregate tasks_: tasks with no action that only depend on other tasks, such as `assemble`
-* Defer configuration via `gradle.taskGraph.whenReady()` and others, so you can perform verification only when it's necessary
+- Executes all tasks in parallel, even within the same subproject.
+- Caches dependency resolution results to avoid redundant computations.
 
-== Increase the heap size
+Build configuration inputs include:
+
+- Init scripts
+- Settings scripts
+- Build scripts
+- System and Gradle properties used during configuration
+- Environment variables used during configuration
+- Configuration files accessed via value suppliers (`providers`)
+- `buildSrc` inputs, including configuration files and source files
+
+By default, Gradle does not use the configuration cache.
+To enable it at build time, use:
+
+[source,bash]
+----
+$ gradle <task> --configuration-cache
+----
+
+To enable it permanently, add this setting to the `gradle.properties` file:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.configuration-cache=true
+----
+
+For more details, see the <<configuration_cache.adoc#config_cache,configuration cache documentation>>.
+
+[[enable_inc_builds_custom_tasks]]
+== 6. Enable incremental build for custom tasks
+
+Incremental build is a Gradle optimization that skips tasks that have already executed with the same inputs.
+If a task’s inputs and outputs have not changed since the last execution, Gradle will skip that task.
+
+Most built-in Gradle tasks support incremental builds.
+To make a custom task compatible, you must specify its inputs and outputs:
+
+====
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task]"]
+include::sample[dir="snippets/tasks/incrementalBuild-customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task]"]
+====
+
+For more details, see the <<incremental_build.adoc#incremental_build,incremental build documentation>> and the <<writing_tasks.adoc#task_input_and_outputs,writing tasks tutorial>>.
+
+=== Visualize incremental builds with build scan timelines
+
+Look at the build scan timeline view to identify tasks that could benefit from incremental builds.
+This can also help you understand why tasks execute when you expect Gradle to skip them.
+
+image::performance/timeline.png[title="The timeline view can help with incremental build inspection"]
+
+As you can see in the build scan above, the task was not up-to-date because one of its inputs
+(_"timestamp"_) changed, forcing the task to re-run.
+
+Sort tasks by duration to find the slowest tasks in your project.
+
+[[enable_specific_dev_workflows]]
+== 7. Create builds for specific developer workflows
+
+The fastest task is one that doesn’t run.
+By skipping unnecessary tasks, you can significantly improve build performance.
+
+If your build includes multiple subprojects, define tasks that build them independently.
+This maximizes caching efficiency, ensuring that changes to one subproject don’t trigger unnecessary rebuilds in others.
+It also helps teams working on different subprojects avoid unnecessary builds—for example:
+
+- Front-end developers don’t need to build back-end subprojects every time they change the front-end.
+- Documentation writers don’t need to build front-end or back-end code, even if the documentation lives in the same project.
+
+Instead, create tasks tailored to developer needs while maintaining a single task graph for the entire project.
+Each group of users requires a subset of tasks—convert that into a Gradle workflow that excludes unnecessary tasks.
+
+Gradle provides several features to help create efficient workflows:
+
+- Assign tasks to appropriate link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:group[groups].
+- Create aggregate tasks—tasks with no action that depend on other tasks (e.g., `assemble`).
+- Defer configuration using `gradle.taskGraph.whenReady()` to execute verification only when necessary.
+
+[[increase_heap_size]]
+== 8. Increase the heap size
 
 By default, Gradle reserves 512MB of heap space for your build. This is plenty for most projects.
 However, some very large builds might need more memory to hold Gradle's model and caches.
