@@ -27,7 +27,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.SocketException;
-import java.net.StandardSocketOptions;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -169,7 +168,6 @@ public class UnixDomainSocketFileLockCommunicator implements FileLockCommunicato
     private static ServerSocketChannel openAndBindServerSocketChannel(SocketAddress thisProcessAddress) {
         try {
             ServerSocketChannel serverSocketChannel = UnixDomainSocketUtil.openUnixServerSocketChannel();
-            serverSocketChannel.setOption(StandardSocketOptions.SO_REUSEADDR, Boolean.TRUE);
             return serverSocketChannel.bind(thisProcessAddress);
         } catch (IOException e) {
             throw new RuntimeException("Address: " + thisProcessAddress, e);
