@@ -130,14 +130,16 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
         succeeds(":compileGroovy")
     }
 
-    def "can compile Kotlin code against public API"() {
-        buildFile << configureApiWithPlugin("id(\"org.jetbrains.kotlin.jvm\") version \"${kotlinVersion}\"")
+    def "can compile Kotlin plugin against public API and apply it"() {
+        file("build-logic/build.gradle") << configureApiWithPlugin("id(\"org.jetbrains.kotlin.jvm\") version \"${kotlinVersion}\"")
 
-        file("src/main/kotlin/org/example/PublishedApiTestPlugin.kt") << """
+        file("build-logic/src/main/kotlin/org/example/PublishedApiTestPlugin.kt") << """
             package org.example
 
             import org.gradle.api.Plugin
             import org.gradle.api.Project
+            import org.gradle.api.plugins.BasePlugin
+            import org.gradle.api.plugins.BasePluginExtension
             import org.gradle.kotlin.dsl.*
 
             class PublishedApiTestPlugin : Plugin<Project> {
@@ -146,10 +148,12 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                         mapValues.set(mapOf("alma" to 1, "bela" to 2))
                         println("Hello from plugin")
                     }
+                    project.pluginManager.apply(BasePlugin::class.java)
+                    val baseExtension: BasePluginExtension = project.the()
                 }
             }
         """
-        file("src/main/kotlin/org/example/CustomTask.kt") << """
+        file("build-logic/src/main/kotlin/org/example/CustomTask.kt") << """
             package org.example
 
             import org.gradle.api.DefaultTask
@@ -169,8 +173,21 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
             }
         """
 
+        buildFile << """
+            plugins {
+                id("org.example.test")
+            }
+        """
+        settingsFile << """
+            pluginManagement {
+                ${configurePluginRepositories()}
+            }
+
+            includeBuild("build-logic")
+        """
+
         expect:
-        succeeds(":compileKotlin")
+        succeeds(":myTask")
     }
 
     private configureApiWithPlugin(String pluginDefinition) {
@@ -208,6 +225,12 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 }
             }
 
+            ${configurePluginRepositories()}
+        """
+    }
+
+    private configurePluginRepositories() {
+        """
             repositories {
                 maven {
                     url = uri("${apiJarRepoLocation.toURI()}")
