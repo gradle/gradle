@@ -21,6 +21,7 @@ import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.internal.problems.failure.FailurePrinter
 import org.gradle.internal.problems.failure.FailurePrinterListener
+import org.gradle.internal.problems.failure.FailurePrinterListener.Frame
 import org.gradle.internal.problems.failure.StackTraceRelevance
 
 
@@ -163,7 +164,9 @@ data class StackTracePart(
 )
 
 
-class FailureDecorator {
+class FailureDecorator(
+    private val collapseInternal: Boolean = true
+) {
 
     fun decorate(failure: Failure): DecoratedFailure {
         return DecoratedFailure(
@@ -175,7 +178,7 @@ class FailureDecorator {
     private
     fun partitionedTraceFor(failure: Failure): List<StackTracePart> {
         val stringBuilder = StringBuilder()
-        val listener = PartitioningFailurePrinterListener(stringBuilder)
+        val listener = PartitioningFailurePrinterListener(collapseInternal, stringBuilder)
         FailurePrinter.print(stringBuilder, failure, listener)
         return listener.parts
     }
@@ -204,6 +207,7 @@ class FailureDecorator {
 
     private
     class PartitioningFailurePrinterListener(
+        private val collapseInternal: Boolean,
         private val buffer: StringBuilder
     ) : FailurePrinterListener {
 
@@ -216,13 +220,20 @@ class FailureDecorator {
             cutPart(false)
         }
 
-        override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance) {
+        override fun beforeFrame(element: StackTraceElement, relevance: StackTraceRelevance): Frame {
             val lastIsInternal = lastIsInternal
             val curIsInternal = !relevance.isUserCode()
             if (lastIsInternal != null && lastIsInternal != curIsInternal) {
                 cutPart(lastIsInternal)
             }
             this.lastIsInternal = curIsInternal
+
+            if (lastIsInternal == true && curIsInternal) {
+                if (collapseInternal) {
+                    return Frame.COLLAPSE
+                }
+            }
+            return Frame.APPEND
         }
 
         override fun afterFrames() {
@@ -234,7 +245,11 @@ class FailureDecorator {
         private
         fun cutPart(isInternal: Boolean) {
             val text = drainBuffer()
-            parts += StackTracePart(isInternal, text)
+            if (isInternal) {
+                parts += StackTracePart(isInternal, "(some internal lines are skipped)")
+            } else {
+                parts += StackTracePart(isInternal, text)
+            }
         }
 
         private

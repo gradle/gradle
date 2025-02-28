@@ -21,12 +21,19 @@ package org.gradle.internal.problems.failure;
  */
 public interface FailurePrinterListener {
 
+    enum Frame {
+        APPEND,
+        COLLAPSE
+    }
+
     FailurePrinterListener NO_OP = new FailurePrinterListener() {
         @Override
         public void beforeFrames() {}
 
         @Override
-        public void beforeFrame(StackTraceElement element, StackTraceRelevance relevance) {}
+        public Frame beforeFrame(StackTraceElement element, StackTraceRelevance relevance) {
+            return Frame.APPEND;
+        }
 
         @Override
         public void afterFrames() {}
@@ -40,7 +47,7 @@ public interface FailurePrinterListener {
     /**
      * Invoked before a given stack frame is printed.
      */
-    void beforeFrame(StackTraceElement element, StackTraceRelevance relevance);
+    Frame beforeFrame(StackTraceElement element, StackTraceRelevance relevance);
 
     /**
      * Invoked after all stack frames of a failure have been printed.

@@ -49,6 +49,8 @@ public class FailurePrinter {
         private final Appendable builder;
         private final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
+        private int collapsedFrames = 0;
+
         private Job(Appendable builder, FailurePrinterListener listener) {
             this.listener = listener;
             this.builder = builder;
