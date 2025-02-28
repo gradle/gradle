@@ -597,11 +597,20 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     }
 
     @SuppressWarnings("unused")
-    class TypeWithForbiddenProperty {
+    interface InterfaceWithForbiddenProperty {
         @Large
         @NoOverride
+        String getForbiddenProperty()
+
+        void setForbiddenProperty(String value)
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithForbiddenProperty implements InterfaceWithForbiddenProperty {
+        @Override
         String getForbiddenProperty() { "test" }
 
+        @Override
         void setForbiddenProperty(String value) {}
 
         @Large

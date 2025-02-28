@@ -579,7 +579,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private static final String PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN = "PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN";
 
     private void validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(Method method, PropertyAnnotationMetadataBuilder metadataBuilder) {
-        Optional<Class<? extends Annotation>> forbiddenAnnotation = mustNotOverridePropertyAnnotations.stream().filter(metadataBuilder::hasInheritedAnnotation).findFirst();
+        Optional<Class<? extends Annotation>> forbiddenAnnotation = mustNotOverridePropertyAnnotations.stream().filter(metadataBuilder::hasInheritedSuperTypeAnnotation).findFirst();
         if (!forbiddenAnnotation.isPresent() || metadataBuilder.hasDeclaredAnnotation(forbiddenAnnotation.get())) {
             return;
         }
@@ -687,8 +687,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static final String IGNORED_ANNOTATIONS_ON_METHOD = "IGNORED_ANNOTATIONS_ON_METHOD";
 
-    private static void validateNotAnnotatedForProperty(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
-        if (!annotationTypes.isEmpty()) {
+    private void validateNotAnnotatedForProperty(MethodKind methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
+        if (annotationTypes.stream().anyMatch(annotation -> !ignoredMethodAnnotationsAllowedModifiers.contains(annotation))) {
             validationContext.visitTypeProblem(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
                     .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
@@ -836,11 +836,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             return hasAnnotation(annotationType, declaredAnnotations.values());
         }
 
-        public boolean hasInheritedAnnotation(Class<? extends Annotation> annotationType) {
-            return hasAnnotation(annotationType, Iterables.concat(
-                inheritedInterfaceAnnotations.values(),
-                inheritedSuperclassAnnotations.values()
-            ));
+        public boolean hasInheritedSuperTypeAnnotation(Class<? extends Annotation> annotationType) {
+            return hasAnnotation(annotationType, inheritedSuperclassAnnotations.values());
         }
 
         private static boolean hasAnnotation(Class<? extends Annotation> annotationType, Iterable<Annotation> annotations) {
