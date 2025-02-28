@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
 
-    def "Can access 'Settings' API in buildscript block"() {
+    def "can access 'Settings' API in buildscript block"() {
 
         when:
         settingsFile << """
@@ -50,7 +50,7 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         outputContains('signal')
     }
 
-    def "Can type-safely use ExtensionAware with the Groovy DSL"() {
+    def "can type-safely use ExtensionAware with the Groovy DSL"() {
         when:
         def answerFile = "answerHolder.gradle"
         testDirectory.file(answerFile) << """
@@ -76,7 +76,7 @@ class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds('help')
     }
 
-    def "Can type-safely use ExtensionAware with the Kotlin DSL"() {
+    def "can type-safely use ExtensionAware with the Kotlin DSL"() {
         when:
         // Need to use settings.extra because Kotlin DSL needs to be re-compiled
         def answerFile = "answerHolder.settings.gradle.kts"

@@ -112,7 +112,7 @@ class MavenFileModuleTest extends Specification {
         !uniqueSnapshots
     }
 
-    def "On publishing SHA1 and MD5 files are created"() {
+    def "on publishing SHA1 and MD5 files are created"() {
         given:
         TestFile pomTestFile = tmpDir.createFile("build/test/pom.xml")
 
@@ -169,7 +169,7 @@ class MavenFileModuleTest extends Specification {
         version == '1.0-SNAPSHOT'
     }
 
-    def "Publish artifacts for non-snapshot"() {
+    def "publish artifacts for non-snapshot"() {
         when:
         MavenModule mavenModule = mavenFileModule.withoutExtraChecksums().publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
@@ -181,7 +181,7 @@ class MavenFileModuleTest extends Specification {
         mavenFileModule.assertArtifactsPublished('my-artifact-1.0.jar', 'my-artifact-1.0.pom')
     }
 
-    def "Publish artifacts for unique snapshot"() {
+    def "publish artifacts for unique snapshot"() {
         when:
         MavenModule mavenModule = snapshotMavenFileModule.withoutExtraChecksums().publish()
         def publishedFiles = Arrays.asList(testFile.listFiles())
@@ -195,7 +195,7 @@ class MavenFileModuleTest extends Specification {
         snapshotMavenFileModule.assertArtifactsPublished('maven-metadata.xml', 'my-artifact-1.0-20100101.120001-1.jar', 'my-artifact-1.0-20100101.120001-1.pom')
     }
 
-    def "Publish artifacts for non-unique snapshot"() {
+    def "publish artifacts for non-unique snapshot"() {
         given:
         snapshotMavenFileModule.withNonUniqueSnapshots()
 

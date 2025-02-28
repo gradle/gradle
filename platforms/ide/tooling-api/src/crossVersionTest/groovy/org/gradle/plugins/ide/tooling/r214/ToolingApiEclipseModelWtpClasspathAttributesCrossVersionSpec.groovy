@@ -64,7 +64,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         entryHasNoDeploymentInfo(projectDependencies[0])
     }
 
-    def "Web project dependencies have wtp deployment attributes"() {
+    def "web project dependencies have wtp deployment attributes"() {
         given:
         String pluginDeclaration = appliedPlugins.collect { "apply plugin: '$it'" }.join('\n')
         buildFile <<
@@ -90,7 +90,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         ['ear', 'eclipse-wtp'] | _
     }
 
-    def "Wtp utility projects do not deploy any dependencies"() {
+    def "wtp utility projects do not deploy any dependencies"() {
         given:
         buildFile <<
         """apply plugin: 'java'

@@ -34,7 +34,7 @@ class InetAddressesTest extends Specification{
         !addresses.remote.empty
     }
 
-    def "No remote addresses are loopback addresses"() {
+    def "no remote addresses are loopback addresses"() {
         expect:
         addresses.remote.intersect(addresses.loopback).empty
     }

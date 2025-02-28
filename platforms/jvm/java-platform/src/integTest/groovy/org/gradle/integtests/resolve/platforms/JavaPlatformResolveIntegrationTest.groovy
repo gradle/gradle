@@ -201,7 +201,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
-    def "Can handle a published platform dependency that is resolved to a local platform project"() {
+    def "can handle a published platform dependency that is resolved to a local platform project"() {
         given:
         file("src/main/java/SomeClass.java") << "public class SomeClass {}"
         platformModule('')

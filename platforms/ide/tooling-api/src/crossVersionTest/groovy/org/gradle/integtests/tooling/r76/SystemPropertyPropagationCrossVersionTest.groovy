@@ -97,7 +97,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         hasNoSystemProperty('mySystemProperty')
     }
 
-    def "Can define new system property"() {
+    def "can define new system property"() {
         when:
         runTask { withSystemProperties('customKey' : 'customValue') }
 
@@ -105,7 +105,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         hasSystemProperty('customKey', 'customValue')
     }
 
-    def "Can override existing system properties"() {
+    def "can override existing system properties"() {
         when:
         runTask { withSystemProperties('mySystemProperty' : 'newValue') }
 
@@ -124,7 +124,7 @@ class SystemPropertyPropagationCrossVersionTest extends ToolingApiSpecification 
         hasSystemProperty('customKey', 'jvmargValue')
     }
 
-    def "Cannot modify immutable system properties"() {
+    def "cannot modify immutable system properties"() {
         setup:
         toolingApi.requireDaemons() // no separate daemon JVM -> no immutable system properties
 

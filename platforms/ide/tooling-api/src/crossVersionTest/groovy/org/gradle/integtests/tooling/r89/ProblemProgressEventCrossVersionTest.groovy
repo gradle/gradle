@@ -173,7 +173,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
-    def "Can serialize groovy compilation error"() {
+    def "can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
         """
@@ -195,7 +195,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         failureMessage(problems[0].failure) == "Could not compile build file '$buildFile.absolutePath'."
     }
 
-    def "Can use problems service in model builder and get failure objects"() {
+    def "can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)

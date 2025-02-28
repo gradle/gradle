@@ -130,7 +130,7 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/19585")
-    def "Can configure log level with command-line Gradle property on Turkish Locale"() {
+    def "can configure log level with command-line Gradle property on Turkish Locale"() {
         setup:
         prepareWrapper()
 

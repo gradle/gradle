@@ -35,7 +35,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir()
     }
 
-    def "Can access plugin classes when resolved but not applied"() {
+    def "can access plugin classes when resolved but not applied"() {
         when:
         buildFile """
             plugins {
@@ -55,7 +55,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         fails("helloWorld")
     }
 
-    def "Can apply plugins to subprojects"() {
+    def "can apply plugins to subprojects"() {
         when:
         createDirs("sub")
         settingsFile << """

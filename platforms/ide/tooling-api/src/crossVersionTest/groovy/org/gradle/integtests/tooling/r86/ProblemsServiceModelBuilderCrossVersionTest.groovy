@@ -86,7 +86,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
     }
 
     @TargetGradleVersion("=8.6")
-    def "Can use problems service in model builder and get problem"() {
+    def "can use problems service in model builder and get problem"() {
         given:
         Assume.assumeTrue(jdk != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)

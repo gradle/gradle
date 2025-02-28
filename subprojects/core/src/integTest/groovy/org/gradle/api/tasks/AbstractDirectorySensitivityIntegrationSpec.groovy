@@ -157,7 +157,7 @@ abstract class AbstractDirectorySensitivityIntegrationSpec extends AbstractInteg
         [api, pathSensitivity] << [Api.values(), [PathSensitivity.RELATIVE, PathSensitivity.ABSOLUTE, PathSensitivity.NAME_ONLY]].combinations()
     }
 
-    def "Non-empty directories are tracked when empty directories are ignored (#api, #pathSensitivity)"() {
+    def "non-empty directories are tracked when empty directories are ignored (#api, #pathSensitivity)"() {
         createTaskWithSensitivity(DirectorySensitivity.IGNORE_DIRECTORIES, api, pathSensitivity)
         buildFile << """
             taskWithInputs {

@@ -37,7 +37,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener = new ProblemProgressEventCrossVersionTest.ProblemProgressListener()
     }
 
-    def "Can use problems service in model builder and get failure objects"() {
+    def "can use problems service in model builder and get failure objects"() {
         given:
         Assume.assumeTrue(javaHome != null)
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
@@ -66,7 +66,7 @@ class ProblemsServiceModelBuilderCrossVersionTest extends ToolingApiSpecificatio
         listener.problems.collect { it.descriptor }
     }
 
-    def "Can add additional metadata"() {
+    def "can add additional metadata"() {
         given:
         buildFile getBuildScriptSampleContent(false, true, targetVersion)
 

@@ -112,7 +112,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion("=8.5")
-    def "No problem for exceptions in 8.5"() {
+    def "no problem for exceptions in 8.5"() {
         // serialization of exceptions is not working in 8.5 (Gson().toJson() fails)
         withReportProblemTask """
             throw new RuntimeException("boom")
@@ -137,7 +137,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=8.7 <8.9")
     @TargetGradleVersion("=8.7")
-    def "Can serialize groovy compilation error"() {
+    def "can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
         """

@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class GcsClientTest extends Specification {
 
-    def "Should upload to gcs"() {
+    def "should upload to gcs"() {
         given:
         Storage storage = Mock(Storage)
         GcsClient client = new GcsClient(storage)

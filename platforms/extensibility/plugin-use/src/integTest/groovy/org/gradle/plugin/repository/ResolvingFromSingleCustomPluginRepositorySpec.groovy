@@ -221,7 +221,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @NotYetImplemented
-    def "Can specify repo in init script."() {
+    def "can specify repo in init script."() {
         given:
         publishTestPlugin(MAVEN)
         buildFile """
