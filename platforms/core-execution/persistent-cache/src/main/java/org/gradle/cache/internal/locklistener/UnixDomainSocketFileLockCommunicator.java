@@ -68,6 +68,8 @@ public class UnixDomainSocketFileLockCommunicator implements FileLockCommunicato
         this.pid = getCurrentPid();
         this.inProcessId = IN_PROCESS_ID.getAndIncrement();
         this.thisProcessAddress = unixDomainSocketAddressOf(Long.toString(pid), inProcessId);
+        // Delete the socket file if it exists from previous run
+        unixDomainSocketPath(thisProcessAddress).toFile().delete();
         this.serverChannel = openAndBindServerSocketChannel(thisProcessAddress);
         unixDomainSocketPath(thisProcessAddress).toFile().deleteOnExit();
     }
