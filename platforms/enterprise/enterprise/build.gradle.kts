@@ -17,6 +17,7 @@ dependencies {
     api(projects.jvmServices)
     api(projects.launcher)
     api(projects.modelCore)
+    api(projects.problemsApi)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)

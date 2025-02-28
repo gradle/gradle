@@ -18,6 +18,7 @@ package org.gradle.internal.problems.failure;
 
 import org.gradle.api.problems.internal.InternalProblem;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -43,6 +44,7 @@ public interface Failure {
     /**
      * The message of the original exception.
      */
+    @Nullable
     String getMessage();
 
     /**

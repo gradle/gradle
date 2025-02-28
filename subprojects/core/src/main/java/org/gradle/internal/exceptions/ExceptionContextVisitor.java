@@ -16,10 +16,11 @@
 
 package org.gradle.internal.exceptions;
 
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.util.internal.TreeVisitor;
 
-public abstract class ExceptionContextVisitor extends TreeVisitor<Throwable> {
-    protected abstract void visitCause(Throwable cause);
+public abstract class ExceptionContextVisitor extends TreeVisitor<Failure> {
+    protected abstract void visitCause(Failure cause);
 
     protected abstract void visitLocation(String location);
 

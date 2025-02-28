@@ -18,6 +18,7 @@ package org.gradle.internal.problems.failure;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.internal.exceptions.CompilationFailedIndicator;
 
 import java.util.List;
 
@@ -62,7 +63,7 @@ class DefaultFailure implements Failure {
 
     @Override
     public String getMessage() {
-        return original.getMessage();
+        return (original instanceof CompilationFailedIndicator) ? ((CompilationFailedIndicator) original).getShortMessage() : original.getMessage();
     }
 
     @Override

@@ -33,6 +33,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
+import org.gradle.internal.problems.failure.Failure;
 
 public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner {
     private final ListenerManager listenerManager;
@@ -76,10 +77,11 @@ public class BuildOutcomeReportingBuildActionRunner implements BuildActionRunner
         ProblemLocator problemLocator = registry.getProblemLocator();
         DefaultFailureFactory failureFactory = DefaultFailureFactory.withDefaultClassifier(problemLocator);
         Throwable buildFailure = result.getBuildFailure();
-        buildLogger.logResult(buildFailure, problemLocator);
+        Failure richBuildFailure = buildFailure == null ? null : failureFactory.create(buildFailure);
+        buildLogger.logResult(richBuildFailure);
         new TaskExecutionStatisticsReporter(styledTextOutputFactory).buildFinished(taskStatisticsCollector.getStatistics());
         if (buildFailure != null) {
-            return result.withFailure(failureFactory.create(buildFailure));
+            return result.withFailure(richBuildFailure);
         } else {
             return result;
         }
