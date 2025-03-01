@@ -157,7 +157,7 @@ public interface BuildActionRunner {
 
         public Result withFailure(Failure richBuildFailure) {
             assert buildFailure != null;
-            return failed(buildFailure, richBuildFailure);
+            return new Result(hasResult, result, buildFailure, richBuildFailure, clientFailure);
         }
 
         /**
