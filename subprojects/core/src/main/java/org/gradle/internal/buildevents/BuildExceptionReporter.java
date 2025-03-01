@@ -446,7 +446,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.
                 if (failure.getOriginal() instanceof CompilationFailedIndicator) {
-                    String diagnosticCounts = ((CompilationFailedIndicator) failure).getDiagnosticCounts();
+                    String diagnosticCounts = ((CompilationFailedIndicator) failure.getOriginal()).getDiagnosticCounts();
                     if (diagnosticCounts != null) {
                         builder.append(System.lineSeparator());
                         builder.append(diagnosticCounts);
@@ -515,7 +515,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
     static void renderStyledError(Failure failure, StyledTextOutput details) {
         if (failure.getOriginal() instanceof StyledException) {
-            ((StyledException) failure).render(details);
+            ((StyledException) failure.getOriginal()).render(details);
         } else {
             details.text(getMessage(failure));
         }
