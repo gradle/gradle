@@ -17,6 +17,7 @@
 package org.gradle.internal.problems.failure
 
 import org.gradle.api.problems.internal.ProblemLocator
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.failure.SimulatedJavaException
 import spock.lang.Specification
 
@@ -37,6 +38,29 @@ class DefaultFailureFactoryTest extends Specification {
         then:
         failureCause.causes[0].header.contains("CIRCULAR REFERENCE")
         failureCause.suppressed[0].header.contains("CIRCULAR REFERENCE")
+    }
+
+    def "the same exception on different branches is not detected as circular reference"() {
+        def factory = new DefaultFailureFactory(StackTraceClassifier.USER_CODE, ProblemLocator.EMPTY_LOCATOR)
+
+        def e0 = SimulatedJavaException.simulateDeeperException()
+        def e = new RuntimeException("BOOM", e0)
+        def multiCause = new DefaultMultiCauseException("Multiple failure", e, e0)
+        e.addSuppressed(e0)
+
+        when:
+        def failure = factory.create(multiCause)
+        def firstCause = failure.causes[0]
+        def secondCause = failure.causes[1]
+
+
+        then:
+        firstCause.header == "java.lang.RuntimeException: BOOM"
+        firstCause.causes[0].header == "java.lang.RuntimeException: Simulated exception"
+        firstCause.suppressed[0].header == "java.lang.RuntimeException: Simulated exception"
+
+        secondCause.header == "java.lang.RuntimeException: Simulated exception"
+        secondCause.causes.empty
     }
 
 }
