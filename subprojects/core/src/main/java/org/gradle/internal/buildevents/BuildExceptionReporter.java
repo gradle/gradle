@@ -215,7 +215,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
         private final FailureDetails failureDetails;
 
-        private final Set<Failure> printedNodes = new HashSet<>();
+        private final Set<Throwable> printedNodes = new HashSet<>();
         private int depth;
         private int suppressedDuplicateBranchCount;
 
@@ -237,7 +237,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         public void node(Failure node) {
             if (shouldBePrinted(node)) {
-                printedNodes.add(node);
+                printedNodes.add(node.getOriginal());
                 if (node.getCauses().isEmpty() || isUsefulMessage(getMessage(node))) {
                     LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
                     renderStyledError(node, output);
@@ -270,11 +270,11 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
             while (!next.isEmpty()) {
                 Failure curr = next.poll();
-                if (printedNodes.contains(curr)) {
+                if (printedNodes.contains(curr.getOriginal())) {
                     return false;
                 } else {
                     if (!curr.getCauses().isEmpty()) {
-                        next.addAll(curr.getCauses());
+                        next.add(curr.getCauses().get(0));
                     }
                     if (curr.getOriginal() instanceof ContextAwareException) {
                         next.addAll(getReportableCauses(curr));
