@@ -18,6 +18,8 @@ dependencies {
 
     api(libs.inject)
 
+    implementation(projects.dependencyManagementBase)
+
     implementation(libs.commonsLang3)
 
     testImplementation(testFixtures(projects.baseServices))

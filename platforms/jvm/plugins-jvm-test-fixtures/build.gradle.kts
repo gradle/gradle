@@ -34,6 +34,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.core)
     implementation(projects.languageJava)
     implementation(projects.platformJvm)

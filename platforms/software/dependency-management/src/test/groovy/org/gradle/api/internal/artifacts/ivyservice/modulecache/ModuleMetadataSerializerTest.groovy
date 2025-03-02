@@ -184,8 +184,7 @@ class ModuleMetadataSerializerTest extends Specification {
     private GradleModuleMetadataParser gradleMetadataParser() {
         new GradleModuleMetadataParser(
             AttributeTestUtil.attributesFactory(),
-            moduleIdentifierFactory,
-            TestUtil.objectInstantiator()
+            moduleIdentifierFactory
         )
     }
 }

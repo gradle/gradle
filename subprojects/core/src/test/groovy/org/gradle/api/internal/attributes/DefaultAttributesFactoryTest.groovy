@@ -17,6 +17,7 @@
 package org.gradle.api.internal.attributes
 
 import org.gradle.api.internal.attributes.immutable.TestsImmutableAttributes
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
 /**
@@ -111,7 +112,7 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can compare attribute sets created by two different factories"() {
         given:
-        def otherFactory = new DefaultAttributesFactory(attributeValueIsolator, isolatableFactory, instantiator)
+        def otherFactory = AttributeTestUtil.attributesFactory()
 
         when:
         def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
@@ -123,7 +124,7 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can append to a set created with a different factory"() {
         given:
-        def otherFactory = new DefaultAttributesFactory(attributeValueIsolator, isolatableFactory, instantiator)
+        def otherFactory = AttributeTestUtil.attributesFactory()
         def attributes = otherFactory.of(FOO, 'foo')
 
         when:

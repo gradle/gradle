@@ -18,6 +18,7 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.core)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.fileCollections)
     implementation(projects.jvmServices)
     implementation(projects.languageGroovy)

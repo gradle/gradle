@@ -20,6 +20,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.concurrent)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.functional)
     implementation(projects.fileCollections)
     implementation(projects.hashing)

@@ -26,7 +26,7 @@ import javax.annotation.Nullable;
  *
  * @param <T> the type of the value
  */
-abstract class AbstractIsolatableScalarValue<T> extends AbstractScalarValueSnapshot<T> implements Isolatable<T> {
+public abstract class AbstractIsolatableScalarValue<T> extends AbstractScalarValueSnapshot<T> implements Isolatable<T> {
     public AbstractIsolatableScalarValue(T value) {
         super(value);
     }

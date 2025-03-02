@@ -36,6 +36,7 @@ dependencies {
 
     implementation(projects.buildState)
     implementation(projects.classloaders)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.instrumentationAgentServices)

@@ -9,15 +9,16 @@ errorprone {
     )
 }
 dependencies {
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceLookup)
-    api(projects.serviceProvider)
     api(projects.baseServices)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.dependencyManagementBase)
     api(projects.files)
     api(projects.logging)
     api(projects.modelCore)
+    api(projects.serviceLookup)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
 
     api(libs.guava)
     api(libs.inject)

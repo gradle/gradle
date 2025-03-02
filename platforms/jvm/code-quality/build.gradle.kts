@@ -38,6 +38,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.daemonServerWorker)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.logging)
     implementation(projects.native)
     implementation(projects.pluginsGroovy)

@@ -42,6 +42,7 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.coreKotlinExtensions)
     implementation(projects.coreSerializationCodecs)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
     implementation(projects.enterpriseOperations)

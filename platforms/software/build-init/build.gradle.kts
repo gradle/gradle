@@ -40,6 +40,7 @@ dependencies {
     api(projects.workers)
 
     implementation(projects.buildInitSpecsApi)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)

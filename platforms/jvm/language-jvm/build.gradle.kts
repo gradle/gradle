@@ -29,6 +29,7 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.logging)
     implementation(projects.modelReflect)
     implementation(projects.testSuitesBase)

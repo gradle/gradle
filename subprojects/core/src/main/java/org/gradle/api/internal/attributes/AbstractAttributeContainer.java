@@ -18,7 +18,9 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.isolation.Isolatable;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -47,8 +49,16 @@ public abstract class AbstractAttributeContainer implements AttributeContainerIn
         return this;
     }
 
+    @Nullable
+    @Override
+    public <T> T getAttribute(Attribute<T> key) {
+        Isolatable<T> isolatableValue = getAttributeValue(key);
+        return isolatableValue != null ? isolatableValue.isolate() : null;
+    }
+
     @Override
     public abstract boolean equals(Object o);
+
     @Override
     public abstract int hashCode();
 }

@@ -20,9 +20,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.attributes.Attribute;
 import org.gradle.internal.Cast;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.serialize.Decoder;
@@ -33,7 +31,6 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.snapshot.impl.AbstractIsolatedMap;
 import org.gradle.internal.snapshot.impl.ArrayOfPrimitiveValueSnapshot;
-import org.gradle.internal.snapshot.impl.AttributeDefinitionSnapshot;
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot;
 import org.gradle.internal.snapshot.impl.FileValueSnapshot;
 import org.gradle.internal.snapshot.impl.IntegerValueSnapshot;
@@ -68,19 +65,18 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
     private static final byte SHORT_VALUE = (byte) 2;
     private static final byte INTEGER_VALUE = (byte) 3;
     private static final byte LONG_VALUE = (byte) 4;
-    private static final byte ATTRIBUTE_VALUE = (byte) 5;
-    private static final byte MANAGED_VALUE = (byte) 6;
-    private static final byte IMMUTABLE_MANAGED_VALUE = (byte) 7;
-    private static final byte FILE_VALUE = (byte) 8;
-    private static final byte NULL_VALUE = (byte) 9;
-    private static final byte SERIALIZED_VALUE = (byte) 10;
-    private static final byte ENUM_VALUE = (byte) 11;
-    private static final byte ISOLATED_MAP = (byte) 12;
-    private static final byte ISOLATED_ARRAY = (byte) 13;
-    private static final byte ISOLATED_LIST = (byte) 14;
-    private static final byte ISOLATED_SET = (byte) 15;
-    private static final byte ISOLATED_PROPERTIES = (byte) 16;
-    private static final byte ISOLATED_ARRAY_OF_PRIMITIVE = (byte) 17;
+    private static final byte MANAGED_VALUE = (byte) 5;
+    private static final byte IMMUTABLE_MANAGED_VALUE = (byte) 6;
+    private static final byte FILE_VALUE = (byte) 7;
+    private static final byte NULL_VALUE = (byte) 8;
+    private static final byte SERIALIZED_VALUE = (byte) 9;
+    private static final byte ENUM_VALUE = (byte) 10;
+    private static final byte ISOLATED_MAP = (byte) 11;
+    private static final byte ISOLATED_ARRAY = (byte) 12;
+    private static final byte ISOLATED_LIST = (byte) 13;
+    private static final byte ISOLATED_SET = (byte) 14;
+    private static final byte ISOLATED_PROPERTIES = (byte) 15;
+    private static final byte ISOLATED_ARRAY_OF_PRIMITIVE = (byte) 16;
 
     private static final byte ISOLATABLE_TYPE = (byte) 0;
     private static final byte ARRAY_TYPE = (byte) 1;
@@ -93,7 +89,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         new ShortValueSnapshotSerializer(),
         new IntegerValueSnapshotSerializer(),
         new LongValueSnapshotSerializer(),
-        new AttributeDefinitionSnapshotSerializer(),
         new IsolatedManagedValueSerializer(),
         new IsolatedImmutableManagedValueSerializer(),
         new FileValueSnapshotSerializer(),
@@ -108,12 +103,10 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         new IsolatedArrayOfPrimitiveSerializer()
     };
 
-    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final ManagedFactoryRegistry managedFactoryRegistry;
 
-    public IsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
+    public IsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
         super(false);
-        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
         this.managedFactoryRegistry = managedFactoryRegistry;
         registerIsolatableSerializers();
     }
@@ -126,8 +119,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         }
     }
 
-    public static IsolatableSerializerRegistry create(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-        return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
+    public static IsolatableSerializerRegistry create(ManagedFactoryRegistry managedFactoryRegistry) {
+        return new IsolatableSerializerRegistry(managedFactoryRegistry);
     }
 
     public Isolatable<?> readIsolatable(Decoder decoder) throws Exception {
@@ -351,32 +344,6 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         @Override
         public byte getSerializerIndex() {
             return LONG_VALUE;
-        }
-    }
-
-    private class AttributeDefinitionSnapshotSerializer extends IsolatableSerializer<AttributeDefinitionSnapshot> {
-        @Override
-        protected void serialize(Encoder encoder, AttributeDefinitionSnapshot value) throws Exception {
-            encoder.writeString(value.getValue().getType().getName());
-            encoder.writeString(value.getValue().getName());
-        }
-
-        @Override
-        protected AttributeDefinitionSnapshot deserialize(Decoder decoder) throws Exception {
-            String className = decoder.readString();
-            Class<?> attributeClass = fromClassName(className);
-            String name = decoder.readString();
-            return new AttributeDefinitionSnapshot(Attribute.of(name, attributeClass), classLoaderHierarchyHasher);
-        }
-
-        @Override
-        public Class<AttributeDefinitionSnapshot> getIsolatableClass() {
-            return AttributeDefinitionSnapshot.class;
-        }
-
-        @Override
-        public byte getSerializerIndex() {
-            return ATTRIBUTE_VALUE;
         }
     }
 

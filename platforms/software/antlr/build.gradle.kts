@@ -24,6 +24,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.platformJvm)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.pluginsJavaBase)
     implementation(projects.pluginsJavaLibrary)
 

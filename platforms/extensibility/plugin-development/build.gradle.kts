@@ -31,6 +31,7 @@ dependencies {
     api(libs.inject)
 
     implementation(projects.classloaders)
+    implementation(projects.dependencyManagementBase)
     implementation(projects.serviceLookup)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
