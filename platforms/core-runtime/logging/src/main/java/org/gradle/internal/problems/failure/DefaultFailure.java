@@ -106,4 +106,25 @@ class DefaultFailure implements Failure {
         }
         return -1;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DefaultFailure that = (DefaultFailure) o;
+        return getHeader().equals(that.getHeader())
+            && getExceptionType().equals(that.getExceptionType())
+            && stackTrace.equals(that.stackTrace)
+            && frameRelevance.equals(that.frameRelevance)
+            && suppressed.equals(that.suppressed)
+            && causes.equals(that.causes)
+            && problems.equals(that.problems);
+    }
+
+    @Override
+    public int hashCode() {
+        return getHeader().hashCode();
+    }
 }
