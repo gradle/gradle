@@ -20,6 +20,7 @@ import org.gradle.api.file.FileTreeElement
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.IntersectionPatternSet
+import org.gradle.internal.Factory
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -28,7 +29,6 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readStrings
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.serialize.graph.writeStrings
-import org.gradle.internal.Factory
 
 
 class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Codec<PatternSet> {
