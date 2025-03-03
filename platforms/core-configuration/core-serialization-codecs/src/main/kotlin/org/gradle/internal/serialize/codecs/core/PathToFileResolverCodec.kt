@@ -25,7 +25,9 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.decodeBean
+import org.gradle.internal.serialize.graph.decodePreservingSharedIdentity
 import org.gradle.internal.serialize.graph.encodeBean
+import org.gradle.internal.serialize.graph.encodePreservingSharedIdentityOf
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.writeFile
 
@@ -42,7 +44,9 @@ class PathToFileResolverCodec(
 
             is BaseDirFileResolver -> {
                 writeByte(2)
-                writeFile(value.baseDir)
+                encodePreservingSharedIdentityOf(value) {
+                    writeFile(value.baseDir)
+                }
             }
 
             is DirectoryProviderPathToFileResolver -> {
@@ -61,7 +65,9 @@ class PathToFileResolverCodec(
             }
 
             2.toByte() -> {
-                fileLookup.getFileResolver(readFile())
+                decodePreservingSharedIdentity {
+                    fileLookup.getFileResolver(readFile())
+                }
             }
 
             3.toByte() -> {
