@@ -579,19 +579,19 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private static final String PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN = "PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN";
 
     private void validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(Method method, PropertyAnnotationMetadataBuilder metadataBuilder) {
-        Optional<Class<? extends Annotation>> forbiddenAnnotation = mustNotOverridePropertyAnnotations.stream().filter(metadataBuilder::hasInheritedSuperTypeAnnotation).findFirst();
-        if (!forbiddenAnnotation.isPresent() || metadataBuilder.hasDeclaredAnnotation(forbiddenAnnotation.get())) {
-            return;
-        }
-        metadataBuilder.visitPropertyProblem(problem ->
-            problem
-                .forFunction(method.getName())
-                .id(TextUtil.screamingSnakeToKebabCase(PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN), "Forbidden to override property accessor", GradleCoreProblemGroup.validation().property())
-                .contextualLabel("overrides an accessor of a property annotated with @" + forbiddenAnnotation.get().getSimpleName())
-                .documentedAt(userManual("validation_problems", PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN.toLowerCase(Locale.ROOT)))
-                .severity(WARNING)
-                .solution("Do not override the accessor method")
-        );
+        mustNotOverridePropertyAnnotations.stream()
+            .filter(metadataBuilder::hasInheritedSuperTypeAnnotation)
+            .findFirst()
+            .ifPresent(mustNotOverrideAnnotation ->
+                metadataBuilder.visitPropertyProblem(problem ->
+                    problem
+                        .forFunction(method.getName())
+                        .id(TextUtil.screamingSnakeToKebabCase(PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN), "Forbidden to override property accessor", GradleCoreProblemGroup.validation().property())
+                        .contextualLabel("overrides an accessor of a property annotated with @" + mustNotOverrideAnnotation.getSimpleName())
+                        .documentedAt(userManual("validation_problems", PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN.toLowerCase(Locale.ROOT)))
+                        .severity(WARNING)
+                        .solution("Do not override the accessor method")
+                ));
     }
 
     private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
