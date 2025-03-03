@@ -18,10 +18,12 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.tooling.BuildException
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
-    @TargetGradleVersion(">=7.3")
+    @TargetGradleVersion(">=7.3 <8.14")
     def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
         settingsFile << """
             include("a")
@@ -66,5 +68,48 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
                 .withArguments("--parallel")
                 .get()
         }
+    }
+
+    @TargetGradleVersion(">=8.14")
+    def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
+        settingsFile << """
+            include("a")
+        """
+        file("a/build.gradle") << """
+            plugins {
+                id("java-library")
+            }
+        """
+        buildFile << """
+            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+            import org.gradle.tooling.provider.model.ToolingModelBuilder
+            import org.gradle.api.Project
+
+            class MyModelBuilder implements ToolingModelBuilder {
+                boolean canBuild(String modelName) {
+                    return modelName == "${List.class.name}"
+                }
+                Object buildAll(String modelName, Project project) {
+                    println("creating model for \$project")
+                    project.subprojects.each { p ->
+                        p.configurations.compileClasspath.files
+                    }
+                    return ["result"]
+                }
+            }
+
+            project.services.get(ToolingModelBuilderRegistry.class).register(new MyModelBuilder())
+        """
+
+        when:
+        fails { connection ->
+            connection.model(List)
+                .withArguments("--parallel")
+                .get()
+        }
+
+        then:
+        GradleConnectionException e = thrown()
+        e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context. This is not allowed.")
     }
 }
