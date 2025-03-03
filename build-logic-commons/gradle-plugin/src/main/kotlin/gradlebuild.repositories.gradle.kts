@@ -31,6 +31,7 @@ repositories {
         content {
             includeGroup("com.android.databinding")
             includeGroupByRegex("com\\.android\\.tools(\\.[a-z.\\-]*)?")
+            includeGroupByRegex("^androidx\\..+")
         }
     }
     maven {
@@ -41,4 +42,15 @@ repositories {
         }
     }
     mavenCentral()
+    maven("file:///Users/mlopatkin/Projects/gradle/third_party/androidx/out/repository/") {
+        content {
+            includeGroup("androidx.tracing")
+        }
+    }
+    maven("https://androidx.dev/snapshots/builds/13137563/artifacts/repository") {
+        content {
+            includeGroupByRegex("^androidx\\..+")
+            excludeGroup("androidx.tracing")
+        }
+    }
 }

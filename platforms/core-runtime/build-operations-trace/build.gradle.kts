@@ -37,4 +37,20 @@ dependencies {
     implementation(libs.jacksonDatabind)
     implementation(libs.jacksonDatatypeJdk8)
     implementation(libs.jacksonDatatypeJsr310)
+
+    implementation("androidx.tracing:tracing-driver:1.0.0-alpha01") {
+        isChanging = true
+    }
+    implementation("androidx.tracing:tracing-driver-wire:1.0.0-alpha01") {
+        isChanging = true
+    }
+
+    constraints {
+        implementation(libs.kotlinStdlib) {
+            version {
+                strictly(libs.kotlinVersion)
+            }
+        }
+        implementation(libs.kotlinCoroutines)
+    }
 }

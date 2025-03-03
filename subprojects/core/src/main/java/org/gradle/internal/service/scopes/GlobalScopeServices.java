@@ -87,6 +87,8 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationProgressEventEmitter;
+import org.gradle.internal.operations.trace.DefaultTraceService;
+import org.gradle.internal.operations.TraceService;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.reflect.DirectInstantiator;
@@ -385,5 +387,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     @Provides
     ScriptSourceHasher createScriptSourceHasher() {
         return new DefaultScriptSourceHasher();
+    }
+
+    @Override
+    @Provides
+    TraceService createTraceService() {
+        return new DefaultTraceService();
     }
 }

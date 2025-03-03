@@ -64,6 +64,8 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationIdFactory;
 import org.gradle.internal.operations.DefaultBuildOperationListenerManager;
 import org.gradle.internal.operations.DefaultBuildOperationRunner;
+import org.gradle.internal.operations.NoOpTraceService;
+import org.gradle.internal.operations.TraceService;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
@@ -204,14 +206,21 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         CurrentBuildOperationRef currentBuildOperationRef,
         ProgressLoggerFactory progressLoggerFactory,
         BuildOperationIdFactory buildOperationIdFactory,
-        BuildOperationListenerManager buildOperationListenerManager
+        BuildOperationListenerManager buildOperationListenerManager,
+        TraceService traceService
     ) {
         BuildOperationListener listener = buildOperationListenerManager.getBroadcaster();
         return new DefaultBuildOperationRunner(
             currentBuildOperationRef,
             clock,
             buildOperationIdFactory,
-            () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock)
+            () -> new BuildOperationProgressEventListenerAdapter(listener, progressLoggerFactory, clock),
+            traceService
         );
+    }
+
+    @Provides
+    TraceService createTraceService() {
+        return new NoOpTraceService();
     }
 }

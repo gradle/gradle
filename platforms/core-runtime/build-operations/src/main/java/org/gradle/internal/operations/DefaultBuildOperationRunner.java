@@ -35,12 +35,24 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     private final BuildOperationIdFactory buildOperationIdFactory;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final BuildOperationExecutionListenerFactory listenerFactory;
+    private final TraceService traceService;
 
     public DefaultBuildOperationRunner(CurrentBuildOperationRef currentBuildOperationRef, Clock clock, BuildOperationIdFactory buildOperationIdFactory, BuildOperationExecutionListenerFactory listenerFactory) {
+        this(currentBuildOperationRef, clock, buildOperationIdFactory, listenerFactory, new NoOpTraceService());
+    }
+
+    public DefaultBuildOperationRunner(
+        CurrentBuildOperationRef currentBuildOperationRef,
+        Clock clock,
+        BuildOperationIdFactory buildOperationIdFactory,
+        BuildOperationExecutionListenerFactory listenerFactory,
+        TraceService traceService
+    ) {
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.clock = clock;
         this.buildOperationIdFactory = buildOperationIdFactory;
         this.listenerFactory = listenerFactory;
+        this.traceService = traceService;
     }
 
     @Override
@@ -162,7 +174,7 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
         assertParentRunning("Cannot start operation (%s) as parent operation (%s) has already completed.", descriptor, parent);
 
         BuildOperationState operationState = new BuildOperationState(descriptor, clock.getCurrentTime());
-        BuildOperationTrackingListener listener = new BuildOperationTrackingListener(currentBuildOperationRef, listenerFactory.createListener());
+        BuildOperationTrackingListener listener = new BuildOperationTrackingListener(traceService, currentBuildOperationRef, listenerFactory.createListener());
         DefaultBuildOperationContext context = new DefaultBuildOperationContext(descriptor, listener);
         return execution.execute(
             descriptor,
@@ -216,17 +228,20 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
     }
 
     private static class BuildOperationTrackingListener implements BuildOperationExecutionListener {
+        private final TraceService traceService;
         private final CurrentBuildOperationRef currentBuildOperationRef;
         private final BuildOperationExecutionListener delegate;
         private BuildOperationState originalCurrentBuildOperation;
 
-        private BuildOperationTrackingListener(CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
+        private BuildOperationTrackingListener(TraceService traceService, CurrentBuildOperationRef currentBuildOperationRef, BuildOperationExecutionListener delegate) {
+            this.traceService = traceService;
             this.currentBuildOperationRef = currentBuildOperationRef;
             this.delegate = delegate;
         }
 
         @Override
         public void start(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
+            traceService.beginTrace(descriptor.getDisplayName());
             originalCurrentBuildOperation = (BuildOperationState) currentBuildOperationRef.get();
             currentBuildOperationRef.set(operationState);
             operationState.setRunning(true);
@@ -253,10 +268,14 @@ public class DefaultBuildOperationRunner implements BuildOperationRunner {
 
         @Override
         public void close(BuildOperationDescriptor descriptor, BuildOperationState operationState) {
-            delegate.close(descriptor, operationState);
-            currentBuildOperationRef.set(originalCurrentBuildOperation);
-            operationState.setRunning(false);
-            LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+            try {
+                delegate.close(descriptor, operationState);
+                currentBuildOperationRef.set(originalCurrentBuildOperation);
+                operationState.setRunning(false);
+                LOGGER.debug("Build operation '{}' completed", descriptor.getDisplayName());
+            } finally {
+                traceService.endTrace();
+            }
         }
     }
 
