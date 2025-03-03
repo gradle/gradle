@@ -58,8 +58,9 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         executer.withArgument("--parallel")
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :bar:bar was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
-        succeeds(":resolve")
+        fails(":resolve")
+        failure.assertHasDescription("Execution failed for task ':resolve'.")
+        failure.assertHasCause("Resolution of the configuration :bar:bar was attempted from a context different than the project context. This is not allowed.")
     }
 
     private String declareRunInAnotherThread() {
@@ -118,7 +119,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         when:
-        if (expression == "files { true }" ) {
+        if (expression == "files { true }") {
             executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         } else if (expression == "fileCollection { true }.files") {
             executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
@@ -209,22 +210,22 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         }
 
         where:
-        expression                                                      | ccMessage
-        "files"                                                         | _
-        "incoming.resolutionResult.root"                                | _
-        "incoming.resolutionResult.rootComponent.get()"                 | _
-        "incoming.artifacts.artifactFiles.files"                        | _
-        "incoming.artifacts.artifacts"                                  | "org.gradle.api.artifacts.result.ArtifactResult"
-        "incoming.artifactView { }.files.files"                         | _
-        "incoming.artifactView { }.artifacts.artifacts"                 | "org.gradle.api.artifacts.result.ArtifactResult"
-        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()"   | "org.gradle.api.artifacts.result.ArtifactResult"
-        "incoming.artifactView { }.artifacts.failures"                  | _
-        "incoming.artifactView { }.artifacts.artifactFiles.files"       | _
-        "resolve()"                                                     | _
-        "files { true }"                                                | _
-        "fileCollection { true }.files"                                 | _
-        "resolvedConfiguration.files"                                   | _
-        "resolvedConfiguration.resolvedArtifacts"                       | "org.gradle.api.artifacts.ResolvedArtifact"
+        expression                                                    | ccMessage
+        "files"                                                       | _
+        "incoming.resolutionResult.root"                              | _
+        "incoming.resolutionResult.rootComponent.get()"               | _
+        "incoming.artifacts.artifactFiles.files"                      | _
+        "incoming.artifacts.artifacts"                                | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.files.files"                       | _
+        "incoming.artifactView { }.artifacts.artifacts"               | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.artifacts.resolvedArtifacts.get()" | "org.gradle.api.artifacts.result.ArtifactResult"
+        "incoming.artifactView { }.artifacts.failures"                | _
+        "incoming.artifactView { }.artifacts.artifactFiles.files"     | _
+        "resolve()"                                                   | _
+        "files { true }"                                              | _
+        "fileCollection { true }.files"                               | _
+        "resolvedConfiguration.files"                                 | _
+        "resolvedConfiguration.resolvedArtifacts"                     | "org.gradle.api.artifacts.ResolvedArtifact"
     }
 
     def "no exception when non-gradle thread iterates over dependency artifacts that were previously iterated"() {
@@ -302,9 +303,9 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         executer.withArgument("--parallel")
 
-        expect:
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :baz:baz was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
-        succeeds(":bar:help")
+        fails(":bar:help")
+        failure.assertHasDescription("A problem occurred evaluating project ':bar'.")
+        failure.assertHasCause("Resolution of the configuration :bar:baz was attempted from a context different than the project context. This is not allowed.")
     }
 
     def "no deprecation warning when configuration is resolved while evaluating same project"() {
@@ -426,8 +427,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         """
 
         expect:
-        executer.expectDocumentedDeprecationWarning("Resolution of the configuration :foo was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved. This behavior has been deprecated. This will fail with an error in Gradle 9.0. For more information, please refer to https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
         executer.withArguments("--parallel", "-I", "init-script.gradle")
-        succeeds(":help")
+        fails(":help")
     }
 }
