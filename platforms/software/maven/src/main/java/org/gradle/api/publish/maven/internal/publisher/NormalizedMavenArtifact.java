@@ -34,7 +34,7 @@ public class NormalizedMavenArtifact {
         PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
         this.file = artifact.getFile().get().getAsFile();
         this.extension = artifact.getExtension().get();
-        this.classifier = artifact.getClassifier().getOrNull();
+        this.classifier = artifact.getClassifier().filter(classifier -> !classifier.isEmpty()).getOrNull();
         this.shouldBePublished = artifactInternal.shouldBePublished();
     }
 
