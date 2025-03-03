@@ -204,6 +204,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
+import org.gradle.internal.isolated.models.ProjectModelController;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -273,6 +274,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(ScriptClassPathResolver.class, DefaultScriptClassPathResolver.class);
         registration.add(ScriptHandlerFactory.class, DefaultScriptHandlerFactory.class);
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
+        registration.add(ProjectModelController.class);
 
         supplier.applyServicesTo(registration, buildScopeServices);
 
