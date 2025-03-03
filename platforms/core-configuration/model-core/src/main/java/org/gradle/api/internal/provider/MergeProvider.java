@@ -19,26 +19,37 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
- * A provider that takes a list of providers of values and provides a list of those values.
+ * A provider that takes a collection of providers of values and provides a list of those values.
  *
- * This effectively converts a {@code List<Provider<T>>} to a {@code Provider<List<T>>}.
+ * This effectively converts a {@code Collection<Provider<T>>} to a {@code Provider<List<T>>}.
  *
  * @param <R> The type of the values that all source providers must share.
  */
 public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
 
-    private final List<Provider<R>> items;
+    private final Collection<Provider<R>> items;
 
-    public MergeProvider(List<Provider<R>> items) {
-        this.items = ImmutableList.copyOf(items);
+    public MergeProvider(Collection<Provider<R>> items) {
+        this.items = items;
+    }
+
+    /**
+     * Factory method to help create a {@link MergeProvider} from a collection of providers
+     * that all potentially return a different subtype of some common type.
+     */
+    public static <R> MergeProvider<R> of(Collection<Provider<? extends R>> items) {
+        Collection<Provider<R>> castItems = Cast.uncheckedCast(items);
+        return new MergeProvider<>(castItems);
     }
 
     @Override
@@ -129,6 +140,13 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
                 }
             }
             return false;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            for (ValueProducer item : items) {
+                item.visitDependencies(context);
+            }
         }
 
         @Override

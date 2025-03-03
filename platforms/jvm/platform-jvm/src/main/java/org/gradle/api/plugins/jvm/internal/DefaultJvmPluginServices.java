@@ -22,16 +22,18 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.attributes.LibraryElements;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.Directory;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
-import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.internal.artifacts.publish.AbstractProviderBackedPublishArtifact;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstanceGenerator;
@@ -44,19 +46,21 @@ import java.util.stream.Collectors;
 
 public class DefaultJvmPluginServices implements JvmPluginServices {
     private final ObjectFactory objectFactory;
-    private final ProviderFactory providerFactory;
     private final InstanceGenerator instanceGenerator;
     private final ProjectInternal project;
+    private final FileFactory fileFactory;
 
     @Inject
-    public DefaultJvmPluginServices(ObjectFactory objectFactory,
-                                    ProviderFactory providerFactory,
-                                    InstanceGenerator instanceGenerator,
-                                    ProjectInternal project) {
+    public DefaultJvmPluginServices(
+        ObjectFactory objectFactory,
+        InstanceGenerator instanceGenerator,
+        ProjectInternal project,
+        FileFactory fileFactory
+    ) {
         this.objectFactory = objectFactory;
-        this.providerFactory = providerFactory;
         this.instanceGenerator = instanceGenerator;
         this.project = project;
+        this.fileFactory = fileFactory;
     }
 
     @Override
@@ -129,9 +133,10 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.setDescription("Directories containing assembled resource files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.RESOURCES));
         DefaultSourceSetOutput output = Cast.uncheckedCast(sourceSet.getOutput());
-        DefaultSourceSetOutput.DirectoryContribution resourcesContribution = output.getResourcesContribution();
+        Provider<File> resourcesContribution = output.getResourcesContribution();
         if (resourcesContribution != null) {
-            variant.artifact(new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, resourcesContribution.getTask(), resourcesContribution.getDirectory()));
+            Provider<Directory> dirProvider = resourcesContribution.map(fileFactory::dir);
+            variant.artifact(new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_RESOURCES_DIRECTORY, dirProvider));
         }
         return variant;
     }
@@ -143,26 +148,31 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
         variant.setDescription("Directories containing compiled class files for " + sourceSet.getName() + ".");
         variant.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.CLASSES));
         variant.artifactsProvider(() ->  {
-            FileCollection classesDirs = sourceSet.getOutput().getClassesDirs();
+            // TODO: We should not eagerly iterate over the output files. The contents of the source set output
+            // are not necessarily known util after task execution. We should use sourceSet.getOutput().getClassesDirs().getElements()
+            // in some manner. However, at the moment, it is difficult/not possible to create a Set<PublishArtifact> from
+            // Provider<Set<FileSystemLocation>>
+            FileCollectionInternal classesDirs = (FileCollectionInternal) sourceSet.getOutput().getClassesDirs();
             return classesDirs.getFiles().stream()
-                .map(file -> new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, classesDirs, providerFactory.provider(() -> file)))
+                .map(file -> {
+                    Provider<Directory> dirProvider = new BuildableBackedProvider<>(classesDirs, Directory.class, () -> fileFactory.dir(file));
+                    return new LazyJavaDirectoryArtifact(project.getTaskDependencyFactory(), ArtifactTypeDefinition.JVM_CLASS_DIRECTORY, dirProvider);
+                })
                 .collect(Collectors.toList());
         });
         return variant;
     }
 
     /**
-     * A custom artifact type which allows the getFile call to be done lazily only when the
-     * artifact is actually needed.
+     * A non-configurable publish artifact representing a directory.
      */
-    private static class LazyJavaDirectoryArtifact extends AbstractPublishArtifact {
-        private final String type;
-        private final Provider<File> fileProvider;
+    private static class LazyJavaDirectoryArtifact extends AbstractProviderBackedPublishArtifact {
 
-        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Object dependency, Provider<File> fileProvider) {
-            super(taskDependencyFactory, dependency);
+        private final String type;
+
+        public LazyJavaDirectoryArtifact(TaskDependencyFactory taskDependencyFactory, String type, Provider<Directory> fileProvider) {
+            super(taskDependencyFactory, fileProvider);
             this.type = type;
-            this.fileProvider = fileProvider;
         }
 
         @Override
@@ -196,9 +206,5 @@ public class DefaultJvmPluginServices implements JvmPluginServices {
             return false;
         }
 
-        @Override
-        public File getFile() {
-            return fileProvider.get();
-        }
     }
 }

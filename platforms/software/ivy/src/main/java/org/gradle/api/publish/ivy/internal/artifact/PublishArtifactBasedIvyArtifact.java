@@ -16,20 +16,18 @@
 
 package org.gradle.api.publish.ivy.internal.artifact;
 
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
-import org.gradle.api.tasks.TaskDependency;
-
-import java.io.File;
 
 public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
-    private final PublishArtifact artifact;
+    private final PublishArtifactInternal artifact;
     private final IvyPublicationCoordinates coordinates;
 
-    public PublishArtifactBasedIvyArtifact(PublishArtifact artifact, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
-        super(taskDependencyFactory);
+    public PublishArtifactBasedIvyArtifact(PublishArtifactInternal artifact, IvyPublicationCoordinates coordinates, TaskDependencyFactory taskDependencyFactory) {
+        super(taskDependencyFactory, artifact);
         this.artifact = artifact;
         this.coordinates = coordinates;
     }
@@ -60,13 +58,8 @@ public class PublishArtifactBasedIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected TaskDependency getDefaultBuildDependencies() {
-        return artifact.getBuildDependencies();
-    }
-
-    @Override
-    public File getFile() {
-        return artifact.getFile();
+    public Provider<? extends FileSystemLocation> getFileProvider() {
+        return artifact.getFileProvider();
     }
 
     @Override
