@@ -18,12 +18,17 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.internal.instantiation.generator.annotations.ManagedObjectCreator;
+import org.gradle.internal.instantiation.generator.annotations.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface FilePropertyFactory {
+    @ManagedObjectCreator
     DirectoryProperty newDirectoryProperty();
 
+    @ManagedObjectCreator
     RegularFileProperty newFileProperty();
 }

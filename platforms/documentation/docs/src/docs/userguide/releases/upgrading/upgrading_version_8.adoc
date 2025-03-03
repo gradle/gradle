@@ -143,6 +143,11 @@ However, if the build is configured to fail on warnings during Kotlin script or 
 
 A standard Gradle deprecation warning will be printed upon use when these methods are fully deprecated in a future version.
 
+==== Removed incubating method `ObjectFactory#dependencyCollector()`
+
+The incubating `ObjectFactory#dependencyCollector()` method has been removed.
+DependencyCollectors can still be instantiated within Gradle managed objects.
+
 === Deprecations
 
 ==== Recursively querying `AttributeContainer` in lazy provider

@@ -25,9 +25,12 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.CompositeDomainObjectSet;
+import org.gradle.internal.instantiation.generator.annotations.ManagedObjectCreator;
+import org.gradle.internal.instantiation.generator.annotations.ManagedObjectProvider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+@ManagedObjectProvider
 @ServiceScope({Scope.Global.class, Scope.Project.class})
 public interface DomainObjectCollectionFactory {
     /**
@@ -40,6 +43,7 @@ public interface DomainObjectCollectionFactory {
     /**
      * Creates a {@link NamedDomainObjectContainer} for managing named objects of the specified type.
      */
+    @ManagedObjectCreator
     <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType);
 
     /**
@@ -55,6 +59,7 @@ public interface DomainObjectCollectionFactory {
     /**
      * Creates a {@link DomainObjectSet} for managing objects of the specified type.
      */
+    @ManagedObjectCreator
     <T> DomainObjectSet<T> newDomainObjectSet(Class<T> elementType);
 
     <T> NamedDomainObjectSet<T> newNamedDomainObjectSet(Class<T> elementType);
@@ -66,5 +71,6 @@ public interface DomainObjectCollectionFactory {
      */
     <T> CompositeDomainObjectSet<T> newDomainObjectSet(Class<T> elementType, DomainObjectCollection<? extends T> collection);
 
+    @ManagedObjectCreator
     <T> ExtensiblePolymorphicDomainObjectContainer<T> newPolymorphicDomainObjectContainer(Class<T> elementType);
 }

@@ -18,19 +18,6 @@ package org.gradle.internal.instantiation.generator;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Describable;
-import org.gradle.api.DomainObjectSet;
-import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
-import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.api.artifacts.dsl.DependencyCollector;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
@@ -68,53 +55,29 @@ public class ManagedObjectFactory {
 
     // Called from generated code
     public Object newInstance(ModelObject owner, String propertyName, Class<?> type) {
-        if (type.isAssignableFrom(ConfigurableFileCollection.class)) {
-            return attachOwner(getObjectFactory().fileCollection(), owner, propertyName);
-        }
-        if (type.isAssignableFrom(ConfigurableFileTree.class)) {
-            return attachOwner(getObjectFactory().fileTree(), owner, propertyName);
-        }
-        if (type.isAssignableFrom(DirectoryProperty.class)) {
-            return attachOwner(getObjectFactory().directoryProperty(), owner, propertyName);
-        }
-        if (type.isAssignableFrom(RegularFileProperty.class)) {
-            return attachOwner(getObjectFactory().fileProperty(), owner, propertyName);
-        }
-        if (type.isAssignableFrom(DependencyCollector.class)) {
-            return attachOwner(getObjectFactory().dependencyCollector(), owner, propertyName);
+        Object providedType = getManagedObjectProvider().newInstance(type);
+        if (providedType != null) {
+            return attachOwner(providedType, owner, propertyName);
         }
         return attachOwner(instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, propertyName)), owner, propertyName);
     }
 
     // Called from generated code
     public Object newInstance(ModelObject owner, String propertyName, Class<?> type, Class<?> paramType) {
-        if (type.isAssignableFrom(Property.class)) {
-            return attachOwner(getObjectFactory().property(paramType), owner, propertyName);
+        Object providedType = getManagedObjectProvider().newInstance(type, paramType);
+        if (providedType != null) {
+            return attachOwner(providedType, owner, propertyName);
         }
-        if (type.isAssignableFrom(ListProperty.class)) {
-            return attachOwner(getObjectFactory().listProperty(paramType), owner, propertyName);
-        }
-        if (type.isAssignableFrom(SetProperty.class)) {
-            return attachOwner(getObjectFactory().setProperty(paramType), owner, propertyName);
-        }
-        if (type.isAssignableFrom(DomainObjectSet.class)) {
-            return attachOwner(getObjectFactory().domainObjectSet(paramType), owner, propertyName);
-        }
-        if (type.isAssignableFrom(NamedDomainObjectContainer.class)) {
-            return attachOwner(getObjectFactory().domainObjectContainer(paramType), owner, propertyName);
-        }
-        if (type.isAssignableFrom(ExtensiblePolymorphicDomainObjectContainer.class)) {
-            return attachOwner(getObjectFactory().polymorphicDomainObjectContainer(paramType), owner, propertyName);
-        }
-        throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
+        throw new IllegalArgumentException("Unable to create an instance of type " + type.getName());
     }
 
     // Called from generated code
     public Object newInstance(ModelObject owner, String propertyName, Class<?> type, Class<?> keyType, Class<?> valueType) {
-        if (type.isAssignableFrom(MapProperty.class)) {
-            return attachOwner(getObjectFactory().mapProperty(keyType, valueType), owner, propertyName);
+        Object providedType = getManagedObjectProvider().newInstance(type, keyType, valueType);
+        if (providedType != null) {
+            return attachOwner(providedType, owner, propertyName);
         }
-        throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
+        throw new IllegalArgumentException("Unable to create an instance of type " + type.getName());
     }
 
     private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
@@ -136,8 +99,8 @@ public class ManagedObjectFactory {
         });
     }
 
-    private ObjectFactory getObjectFactory() {
-        return (ObjectFactory) serviceLookup.get(ObjectFactory.class);
+    private ManagedObjectRegistry getManagedObjectProvider() {
+        return (ManagedObjectRegistry) serviceLookup.find(ManagedObjectRegistry.class);
     }
 
     private static class ManagedPropertyName implements DisplayName {

@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.internal.artifacts.DependencyManagementMangedTypesFactory
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.jvm.JvmComponentDependencies
@@ -42,6 +43,7 @@ class JvmComponentDependenciesTest extends Specification {
         def of = TestUtil.createTestServices {
             it.add(DependencyFactoryInternal, dependencyFactory)
             it.add(Project, currentProject)
+            it.add(DependencyManagementMangedTypesFactory)
         }.get(ObjectFactory)
 
         dependencies = of.newInstance(JvmComponentDependencies)
