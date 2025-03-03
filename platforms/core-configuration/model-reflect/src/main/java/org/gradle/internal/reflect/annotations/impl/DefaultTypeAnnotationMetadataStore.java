@@ -582,7 +582,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         mustNotOverridePropertyAnnotations.stream()
             .filter(metadataBuilder::hasInheritedSuperTypeAnnotation)
             .findFirst()
-            .ifPresent(mustNotOverrideAnnotation ->
+            .ifPresent(mustNotOverrideAnnotation -> {
+                if (metadataBuilder.hasDeclaredAnnotation(mustNotOverrideAnnotation)) {
+                    return;
+                }
                 metadataBuilder.visitPropertyProblem(problem ->
                     problem
                         .forFunction(method.getName())
@@ -591,7 +594,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         .documentedAt(userManual("validation_problems", PROPERTY_ACCESSOR_MUST_NOT_BE_OVERRIDDEN.toLowerCase(Locale.ROOT)))
                         .severity(WARNING)
                         .solution("Do not override the accessor method")
-                ));
+                );
+            });
     }
 
     private static final String PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED = "PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED";
