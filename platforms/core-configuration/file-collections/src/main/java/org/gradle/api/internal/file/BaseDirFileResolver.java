@@ -78,4 +78,8 @@ public class BaseDirFileResolver extends AbstractFileResolver {
     public boolean canResolveRelativePath() {
         return true;
     }
+
+    public File getBaseDir() {
+        return baseDir;
+    }
 }

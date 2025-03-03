@@ -494,6 +494,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         this.displayName = displayName;
     }
 
+    public PathToFileResolver getResolver() {
+        return resolver;
+    }
+
     private interface ValueCollector {
         void collectSource(Collection<Object> dest);
 
