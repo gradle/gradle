@@ -1105,6 +1105,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         def expectedMethodNames = expectedFunctions.keySet().sort()
         assert actualMethodNames == expectedMethodNames
 
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+        metadata.visitValidationFailures(validationContext)
+        List<String> actualErrors = validationContext.problems
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+        actualErrors.sort()
+        println actualErrors.join("\n--- 8< -------------------------\n")
+
         metadata.functionAnnotationMetadata.forEach { actualMethod ->
             def expectedAnnotations = expectedFunctions[actualMethod.method.name]
 
@@ -1125,11 +1132,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
-        metadata.visitValidationFailures(validationContext)
-        List<String> actualErrors = validationContext.problems
-            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
-        actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
     }
