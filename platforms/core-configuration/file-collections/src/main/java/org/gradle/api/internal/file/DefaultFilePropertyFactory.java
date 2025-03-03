@@ -41,7 +41,6 @@ import java.io.File;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
-import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
     private final PropertyHost host;
@@ -188,7 +187,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<File> getAsFile() {
-            return new MappingProvider<>(File.class, this, transformer(FileSystemLocation::getAsFile));
+            return new MappingProvider<>(File.class, this, new ToFileTransformer());
         }
 
         @Override
@@ -242,7 +241,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public THIS fileProvider(Provider<File> provider) {
-            set(provider.map(transformer(this::fromFile)));
+            set(provider.map(new Transformer<T, File>() {
+                @Override
+                public T transform(File file) {
+                    return fromFile(file);
+                }
+            }));
             return Cast.uncheckedNonnullCast(this);
         }
 
@@ -350,7 +354,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<Directory> dir(final String path) {
-            return new MappingProvider<>(Directory.class, this, transformer(dir -> dir.dir(path)));
+            return new MappingProvider<>(Directory.class, this, new PathToDirectoryTransformer(path));
         }
 
         @Override
@@ -360,7 +364,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
         @Override
         public Provider<RegularFile> file(final String path) {
-            return new MappingProvider<>(RegularFile.class, this, transformer(dir -> dir.file(path)));
+            return new MappingProvider<>(RegularFile.class, this, new PathToFileTransformer(path));
         }
 
         @Override
@@ -372,5 +376,40 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         public FileCollection files(Object... paths) {
             return fileCollectionFactory.withResolver(new DirectoryProviderPathToFileResolver(this, resolver)).resolving(paths);
         }
+
     }
+
+    private static class PathToFileTransformer implements Transformer<RegularFile, Directory> {
+        private final String path;
+
+        public PathToFileTransformer(String path) {
+            this.path = path;
+        }
+
+        @Override
+        public RegularFile transform(Directory directory) {
+            return directory.file(path);
+        }
+    }
+
+    private static class PathToDirectoryTransformer implements Transformer<Directory, Directory> {
+        private final String path;
+
+        public PathToDirectoryTransformer(String path) {
+            this.path = path;
+        }
+
+        @Override
+        public Directory transform(Directory directory) {
+            return directory.dir(path);
+        }
+    }
+
+    private static class ToFileTransformer implements Transformer<File, FileSystemLocation> {
+        @Override
+        public File transform(FileSystemLocation location) {
+            return location.getAsFile();
+        }
+    }
+
 }
