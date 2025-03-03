@@ -69,6 +69,8 @@ import org.objectweb.asm.Handle;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.signature.SignatureVisitor;
+import org.objectweb.asm.signature.SignatureWriter;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -88,6 +90,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -635,7 +638,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             includeNotInheritedAnnotations();
 
-            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
+            visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), encodeSuperTypeTypeVariables(),
                 superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
             generateInitMethod();
@@ -651,6 +654,58 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             if (requiresFactory) {
                 generateManagedPropertyCreationSupport();
             }
+        }
+
+        /**
+         * Take the type variables defined by {@link #type} and encode them into a signature string.
+         *
+         * This allows us to refer to the same type variables in our method signatures without generating undefined type variables that are
+         * <a href="https://bugs.openjdk.org/browse/JDK-8337302">an error in JDK 24</a>.
+         */
+        @Nullable
+        private String encodeSuperTypeTypeVariables() {
+            TypeVariable<? extends Class<?>>[] typeParameters = type.getTypeParameters();
+            if (typeParameters.length == 0) {
+                return null;
+            }
+
+            SignatureWriter writer = new SignatureWriter();
+            copyTypeVariables(writer, typeParameters);
+
+            // Pass the variables to the supertype as well, for some amount of correctness
+            addSuperTypeGenericInfo(writer, typeParameters);
+
+            return writer.toString();
+        }
+
+        private void copyTypeVariables(SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
+            for (TypeVariable<? extends Class<?>> typeParameter : typeParameters) {
+                writer.visitFormalTypeParameter(typeParameter.getName());
+                // For now, not copying the bounds as that is expensive and complex; and we probably don't need to be fully accurate here.
+                // We must still specify _some_ bound due to what I believe to be a bug in the signature parser of the JVM.
+                // Specifically, it requires <T:Ljava/lang/Object;> instead of just <T:> which is legal according to https://docs.oracle.com/javase/specs/jvms/se23/html/jvms-4.html#jvms-4.7.9.1
+                SignatureVisitor typeParameterBoundWriter = writer.visitClassBound();
+                typeParameterBoundWriter.visitClassType(OBJECT_TYPE.getInternalName());
+                typeParameterBoundWriter.visitEnd();
+            }
+        }
+
+        private void addSuperTypeGenericInfo(SignatureWriter writer, TypeVariable<? extends Class<?>>[] typeParameters) {
+            SignatureVisitor superVisitor;
+            if (type.isInterface()) {
+                // We must visit the superclass first
+                SignatureVisitor superclassVisitor = writer.visitSuperclass();
+                superclassVisitor.visitClassType(OBJECT_TYPE.getInternalName());
+                superclassVisitor.visitEnd();
+                superVisitor = writer.visitInterface();
+            } else {
+                superVisitor = writer.visitSuperclass();
+            }
+            superVisitor.visitClassType(superclassType.getInternalName());
+            for (TypeVariable<? extends Class<?>> typeParameter : typeParameters) {
+                superVisitor.visitTypeArgument('=').visitTypeVariable(typeParameter.getName());
+            }
+            superVisitor.visitEnd();
         }
 
         @Override
