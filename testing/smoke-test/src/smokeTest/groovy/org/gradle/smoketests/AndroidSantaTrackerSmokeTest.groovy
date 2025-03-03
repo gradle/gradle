@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.scripts.DefaultScriptFileResolver
 import org.gradle.util.internal.VersionNumber
@@ -182,7 +183,7 @@ class SantaTrackerConfigurationCacheWorkaround {
             androidFakeDependency.parentFile.mkdirs()
             new JarOutputStream(new FileOutputStream(androidFakeDependency)).close()
         }
-        File androidSdkRoot = new File(System.getenv("ANDROID_SDK_ROOT"))
+        File androidSdkRoot = new File(AndroidHome.get())
         File androidSdkPackageXml = new File(androidSdkRoot, "platform-tools/package.xml")
         if (!androidSdkPackageXml.exists()) {
             androidSdkPackageXml.parentFile.mkdirs()

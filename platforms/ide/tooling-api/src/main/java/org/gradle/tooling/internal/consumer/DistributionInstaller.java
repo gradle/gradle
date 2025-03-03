@@ -59,11 +59,13 @@ public class DistributionInstaller {
     private boolean completed;
     private boolean cancelled;
     private Throwable failure;
+    private final int timeout;
 
-    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock) {
+    public DistributionInstaller(ProgressLoggerFactory progressLoggerFactory, InternalBuildProgressListener buildProgressListener, Clock clock, int timeout) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.buildProgressListener = getListener(buildProgressListener);
         this.clock = clock;
+        this.timeout = timeout;
     }
 
     private InternalBuildProgressListener getListener(InternalBuildProgressListener buildProgressListener) {
@@ -179,7 +181,7 @@ public class DistributionInstaller {
                     @Override
                     public void run() {
                         try {
-                            new Download(new Logger(false), listener, APP_NAME, GradleVersion.current().getVersion(), systemProperties).download(address, destination);
+                            new Download(new Logger(false), listener, APP_NAME, GradleVersion.current().getVersion(), systemProperties, timeout).download(address, destination);
                         } catch (Throwable t) {
                             synchronized (lock) {
                                 failure = t;
