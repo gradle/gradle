@@ -43,7 +43,6 @@ import xsbti.compile.ZincCompilerUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -67,27 +66,22 @@ public class ZincScalaCompilerFactory {
     private static final ClassLoaderCache COMPILER_CLASSLOADER_CACHE;
 
     static {
-        // Load TimeCheckingClassLoaderCache and use it to create cache via reflection
-        // If we detect that we are using zinc 1.2.x, we fallback to default cache
-        Class<?> abstractCacheClass;
-        Class<?> checkingClass;
+        ClassLoaderCache cache;
         try {
-            abstractCacheClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("sbt.internal.inc.classpath.AbstractClassLoaderCache");
-            checkingClass = ZincScalaCompilerFactory.class.getClassLoader().loadClass("org.gradle.api.internal.tasks.scala.TimeCheckingClassLoaderCache");
+            cache = createCompilerClassloaderCache();
         } catch (ClassNotFoundException ex) {
-            abstractCacheClass = null;
-            checkingClass = null;
+            cache = new ClassLoaderCache(new URLClassLoader(new URL[]{}));
         }
-        if (checkingClass != null) {
-            try {
-                Constructor<ClassLoaderCache> constructor = ClassLoaderCache.class.getConstructor(abstractCacheClass);
-                Object cache = checkingClass.getConstructors()[0].newInstance(COMPILER_CLASSLOADER_CACHE_SIZE);
-                COMPILER_CLASSLOADER_CACHE = constructor.newInstance(cache);
-            } catch (Exception e) {
-                throw new RuntimeException("Failed to instantiate ClassLoaderCache", e);
-            }
-        } else {
-            COMPILER_CLASSLOADER_CACHE = new ClassLoaderCache(new URLClassLoader(new URL[]{}));
+        COMPILER_CLASSLOADER_CACHE = cache;
+    }
+
+    private static ClassLoaderCache createCompilerClassloaderCache() throws ClassNotFoundException {
+        // Load TimeCheckingClassLoaderCache and use it to create cache
+        // If we detect that we are using zinc 1.2.x, we fallback to default cache
+        try {
+            return new ClassLoaderCache(new TimeCheckingClassLoaderCache(COMPILER_CLASSLOADER_CACHE_SIZE));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to instantiate ClassLoaderCache", e);
         }
     }
 
