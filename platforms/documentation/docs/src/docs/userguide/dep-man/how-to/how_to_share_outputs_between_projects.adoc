@@ -119,5 +119,5 @@ If the consumer fails to resolve the artifact, check:
 [[sec:conclusion]]
 == Conclusion
 
-Variant-aware sharing enables clean and flexible artifact sharing between projects. It avoids hardcoded task dependencies and improves build maintainability. For more advanced configurations, see the [Gradle Variant-Aware Resolution documentation](https://docs.gradle.org/current/userguide/variant_aware_resolution.html).
+Variant-aware sharing enables clean and flexible artifact sharing between projects. It avoids hardcoded task dependencies and improves build maintainability. For more advanced configurations, see the <<variant_aware_resolution.adoc#seven-variant-aware-resolution,  Variant-Aware Resolution documentation>>.
 

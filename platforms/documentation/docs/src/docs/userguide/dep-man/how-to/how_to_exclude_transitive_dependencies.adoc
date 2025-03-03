@@ -13,29 +13,30 @@
 // limitations under the License.
 
 [[how_to_exclude_transitive_dependencies]]
-== How to Exclude Transitive Dependencies
+= How to Exclude Dependencies in Gradle
 
 This guide explains how to **exclude transitive dependencies** from your project when they are not needed or cause conflicts.
 
-=== When to Exclude Transitive Dependencies
+== Why Exclude Transitive Dependencies?
 
 Excluding a transitive dependency should be a **conscious decision**, as removing required dependencies may lead to **runtime errors** if a library depends on them.
+
 Before excluding, ensure:
-✅ Your application does not require the excluded dependency.
-✅ You have sufficient **test coverage** to verify that excluding the dependency does not break functionality.
+
+- ✅ Your application does not require the excluded dependency.
+- ✅ You have sufficient **test coverage** to verify that excluding the dependency does not break functionality.
 
 Exclusions are useful when:
+
 * A **library includes unnecessary transitive dependencies** that are not required by your application.
 * You need to **reduce the size of your dependencies**.
 * A **dependency conflict** exists and must be resolved differently.
 
----
-
-=== Excluding a Transitive Dependency
+== Excluding a Transitive Dependency
 
 You can exclude a transitive dependency **per dependency declaration** by specifying the `group` and `module` attributes.
 
-==== Example: Exclude a Transitive Dependency
+=== Setting Exclude()
 
 [source,groovy]
 .build.gradle
@@ -47,19 +48,17 @@ dependencies {
 }
 ----
 
-🔹 This removes `commons-collections` from the transitive dependencies of `commons-beanutils`.
-🔹 The exclusion only applies to **this specific dependency**.
+- This removes `commons-collections` from the transitive dependencies of `commons-beanutils`.
+- The exclusion only applies to **this specific dependency**.
 
 If your application only uses **a subset** of the library that does not require the excluded dependency, this approach is safe.
 
----
-
-=== Understanding the Impact of Exclusions
+== Understanding the Impact of Exclusions
 
 Exclusions **only apply if all dependency declarations agree** on the exclusion.
 If another dependency in your project **still requires** the excluded dependency, Gradle **will not exclude it**.
 
-==== Example: When an Exclusion is Overridden
+=== When an Exclusion is Overridden
 
 [source,groovy]
 .build.gradle
@@ -72,10 +71,10 @@ dependencies {
 }
 ----
 
-🚨 In this case, `commons-collections` is **still included** because `opencsv` brings it back.
-✅ To **fully exclude** `commons-collections`, you must also exclude it from `opencsv`.
+- In this case, `commons-collections` is **still included** because `opencsv` brings it back.
+- To **fully exclude** `commons-collections`, you must also exclude it from `opencsv`.
 
-==== Example: Exclude a Transitive Dependency for Multiple Dependencies
+=== Exclude a Transitive Dependency for Multiple Dependencies
 
 [source,groovy]
 .build.gradle
@@ -90,11 +89,9 @@ dependencies {
 }
 ----
 
-🔹 Now `commons-collections` is **fully excluded** from all dependencies that reference it.
+Now `commons-collections` is **fully excluded** from all dependencies that reference it.
 
----
-
-=== Alternative Approaches to Dependency Management
+== Alternative Approaches to Dependency Management
 
 Before using exclusions, consider whether **other Gradle features** are better suited for resolving dependency conflicts:
 
@@ -109,7 +106,6 @@ you can **remove the dependency in a component metadata rule** instead of exclud
 If multiple dependencies **conflict** because they represent different implementations of the same feature
 (e.g., `log4j` vs. `log4j-over-slf4j`), it is better to **define component capabilities** than to exclude one implementation.
 
----
 
 === Summary
 

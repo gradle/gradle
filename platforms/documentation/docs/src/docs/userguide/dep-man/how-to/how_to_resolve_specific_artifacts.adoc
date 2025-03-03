@@ -91,7 +91,7 @@ repositories {
     ivy {
         url = uri("https://ajax.googleapis.com/ajax/libs")
         patternLayout {
-            artifact("[organization]/[revision]/[module](.[classifier]).[ext]")  // Include classifier
+            artifact("organization/revision/module(.classifier).ext")  // Include classifier
         }
         metadataSources {
             artifact()  // Only resolve artifacts without metadata
