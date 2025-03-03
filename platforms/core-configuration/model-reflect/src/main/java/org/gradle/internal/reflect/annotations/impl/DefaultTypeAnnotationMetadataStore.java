@@ -296,6 +296,18 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return propertyBuilders.computeIfAbsent(getter.getName(), methodName -> new PropertyAnnotationMetadataBuilder(propertyName, getter, validationContext));
     }
 
+    private Optional<PropertyAnnotationMetadataBuilder> findPropertyBuilder(String propertyName, Class<?> propertyType, Map<String, PropertyAnnotationMetadataBuilder> propertyBuilders) {
+        // For boolean properties, we also look for 'is' getters
+        if (propertyType.equals(boolean.class)) {
+            PropertyAnnotationMetadataBuilder metadataBuilder = propertyBuilders.get("is" + StringUtils.capitalize(propertyName));
+            if (metadataBuilder != null) {
+                return Optional.of(metadataBuilder);
+            }
+        }
+        PropertyAnnotationMetadataBuilder metadataBuilder = propertyBuilders.get("get" + StringUtils.capitalize(propertyName));
+        return Optional.ofNullable(metadataBuilder);
+    }
+
     private FunctionAnnotationMetadataBuilder getOrCreateFunctionBuilder(Method method, TypeValidationContext validationContext, Map<MethodSignature, FunctionAnnotationMetadataBuilder> methodBuilders) {
         return methodBuilders.computeIfAbsent(MethodSignature.of(method), methodName -> new FunctionAnnotationMetadataBuilder(method, validationContext));
     }
@@ -532,14 +544,9 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (accessorType == PropertyAccessorType.SETTER) {
             validateNotAnnotatedForProperty(MethodKind.SETTER, method, annotations.keySet(), validationContext);
             validateSetterForMutableType(method, accessorType, validationContext, propertyName);
-            Class<?> propertyType = method.getParameterTypes()[0];
-            String getterName = propertyType.equals(boolean.class)
-                ? "is" + StringUtils.capitalize(propertyName)
-                : "get" + StringUtils.capitalize(propertyName);
-            PropertyAnnotationMetadataBuilder metadataBuilder = propertyBuilders.get(getterName);
-            if (metadataBuilder != null) {
-                validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(method, metadataBuilder);
-            }
+            findPropertyBuilder(propertyName, method.getParameterTypes()[0], propertyBuilders)
+                .ifPresent(metadataBuilder ->
+                    validatePropertyAccessorDoesNotOverrideForbiddenToOverrideMethod(method, metadataBuilder));
             return;
         }
 

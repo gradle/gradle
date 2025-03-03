@@ -593,6 +593,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             propertyAccessorMustNotBeOverridden { method("setForbiddenProperty").annotation(NoOverride).includeLink() },
             propertyAccessorMustNotBeOverridden { method("isForbiddenBoolProperty").annotation(NoOverride).includeLink() },
             propertyAccessorMustNotBeOverridden { method("setForbiddenBoolProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("getForbiddenBoolProperty2").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("setForbiddenBoolProperty2").annotation(NoOverride).includeLink() },
         ]
     }
 
@@ -618,6 +620,12 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         boolean isForbiddenBoolProperty() { true }
 
         void setForbiddenBoolProperty(boolean value) {}
+
+        @Small
+        @NoOverride
+        boolean getForbiddenBoolProperty2() { true }
+
+        void setForbiddenBoolProperty2(boolean value) {}
     }
 
     @SuppressWarnings("unused")
@@ -636,6 +644,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         @Override
         boolean isForbiddenBoolProperty() {
             return super.isForbiddenBoolProperty()
+        }
+
+        @Override
+        boolean getForbiddenBoolProperty2() {
+            return super.getForbiddenBoolProperty2()
+        }
+
+        @Override
+        void setForbiddenBoolProperty2(boolean value) {
+            super.setForbiddenBoolProperty2(value)
         }
     }
 
