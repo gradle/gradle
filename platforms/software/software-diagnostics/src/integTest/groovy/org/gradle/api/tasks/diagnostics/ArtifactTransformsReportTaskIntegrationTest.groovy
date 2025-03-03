@@ -23,7 +23,7 @@ import org.gradle.util.GradleVersion
  * Integration tests for the {@link ArtifactTransformsReportTask}.
  */
 class ArtifactTransformsReportTaskIntegrationTest extends AbstractIntegrationSpec {
-    private static final String CACHEABILITY_NUDGE = "Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html#artifact_transforms_with_caching."
+    private static final String CACHEABILITY_NUDGE = "Some artifact transforms are not cacheable.  This can have negative performance impacts.  See more documentation here: https://docs.gradle.org/${GradleVersion.current().version}/userguide/artifact_transforms.html#caching-transforms."
 
     def setup() {
         settingsFile << """
