@@ -11,45 +11,30 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 [[how_to_upgrade_transitive_dependencies]]
-== How to Upgrade Versions of Transitive Dependencies
+= How to Upgrade Dependencies in Gradle
 
 This guide explains how to manage and upgrade versions of **transitive dependencies** in Gradle using **dependency constraints**.
 
-=== Understanding Direct vs. Transitive Dependencies
+== Why Upgrade a Dependency?
 
-A component can have two types of dependencies:
+There are many reasons to upgrade a version of a dependency:
 
-* **Direct dependencies** – These are explicitly required by your project and declared in the build script.
-*Example:* If your code directly uses **Guava**, you should declare it as a direct dependency.
+* *Bug fixes* resolve issues present in older versions.
+* *Security patches* address vulnerabilities to keep the project safe.
+* *Performance improvements* make builds faster and more efficient.
+* *New features* provide additional functionality and better compatibility.
 
-* **Transitive dependencies** – These are dependencies that your project **needs indirectly** because another dependency requires them.
+== Adding Constraints on Transitive Dependencies
 
-Managing transitive dependencies correctly is crucial. Developers often mistakenly resolve issues by adding transitive dependencies as **direct dependencies**, which can lead to dependency conflicts and maintainability issues. Instead, Gradle provides **dependency constraints** to enforce specific versions of transitive dependencies.
+Dependency constraints allow you to define the **version** or **version range** of both direct dependencies and transitive dependencies.
 
----
+Dependency constraints can also **override transitive dependencies** and enforce strict versions, even <<how_to_downgrade_dependencies.adoc#how_to_downgrade_dependencies,**downgrading**>> if necessary.
 
-=== Adding Constraints on Transitive Dependencies
+=== Setting Dependency Constraints
 
-Dependency constraints allow you to define the **version** or **version range** of both:
-* Direct dependencies declared in the build script.
-* Transitive dependencies pulled in by other components.
-
-**How Gradle Resolves Dependencies:**
-1. Gradle evaluates **all declared versions** of a module from:
-- Explicit dependency declarations.
-- Transitive dependencies.
-- Dependency constraints.
-2. The **highest matching version** is selected.
-3. If no compatible version is found, Gradle fails with a dependency resolution error.
-
-Dependency constraints can also **override transitive dependencies** and enforce strict versions, even **downgrading** if necessary.
-
----
-
-=== Defining Dependency Constraints
-
-To enforce specific versions of transitive dependencies, use the `constraints` block inside `dependencies`:
+To enforce specific versions of transitive dependencies, use the `constraints` block inside `dependencies {}`:
 
 [source,groovy]
 .build.gradle
@@ -67,35 +52,14 @@ dependencies {
 }
 ----
 
-**Key points in this example:**
 - The `implementation` dependency **omits the version**.
 - The `constraints` block **enforces specific versions** for `httpclient` and `commons-codec`.
 - The constraint for `commons-codec` **only applies if it is pulled transitively**.
 
----
-
-=== When to Use Dependency Constraints
+== Summary
 
 Use dependency constraints when:
-✅ You want to **override transitive dependencies** with a specific version.
-✅ You need to enforce **a strict version or range** across multiple dependencies.
-✅ You want to **prevent dependency conflicts** without manually adding transitive dependencies.
 
----
-
-=== Publishing and Transitive Constraints
-
-* Dependency constraints are **only published** when using **Gradle Module Metadata**.
-* If a module is published using **Maven or Ivy**, these constraints will not be retained.
-* Constraints **can be added transitively**, meaning a module can enforce constraints on its own dependencies.
-
----
-
-=== Summary
-
-✅ **Use dependency constraints** instead of incorrectly adding transitive dependencies as direct dependencies.
-✅ Constraints **ensure consistency** across all configurations.
-✅ Gradle resolves dependencies by selecting the **highest compatible version** from all sources.
-✅ **Gradle Module Metadata** is required to fully support publishing constraints.
-
-By properly managing **transitive dependencies**, you can **prevent dependency conflicts**, **improve maintainability**, and **control versions effectively**.
+- ✅ You want to **override transitive dependencies** with a specific version.
+- ✅ You need to enforce **a strict version or range** across multiple dependencies.
+- ✅ You want to **prevent dependency conflicts** without manually adding transitive dependencies.

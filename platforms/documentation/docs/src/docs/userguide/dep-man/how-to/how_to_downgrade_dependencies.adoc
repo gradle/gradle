@@ -13,31 +13,33 @@
 // limitations under the License.
 
 [[how_to_downgrade_dependencies]]
-== How to Downgrade Dependencies in Gradle
+= How to Downgrade Dependencies in Gradle
 
 This guide explains how to **downgrade transitive dependencies** in Gradle when your project requires an older version due to API compatibility, bugs, or other constraints.
 
----
+== Why Downgrade a Dependency?
 
-=== Why Downgrade a Dependency?
-
-By default, Gradle **resolves dependency version conflicts** by selecting the latest version found in the dependency graph. However, there are cases where an earlier version is required:
+By default, Gradle **resolves dependency version conflicts** by selecting the latest version found in the dependency graph.
+However, there are cases where an earlier version is required:
 
 * A **bug** exists in the latest release.
 * Your project **depends on an older API** that is incompatible with newer versions.
 * Your code does **not require** the features that demand a higher version.
 
-Before downgrading, consider **updating your source code** to support the latest version instead. If downgrading is necessary, use **strict dependencies** or **forced dependencies**.
+Before downgrading, consider **updating your source code** to support the latest version instead.
 
----
+Additionally, you should make sure there aren't existing rule or conditions, including platforms or version catalogs, that are setting the dependency to an undesired version in your project.
 
-=== Enforcing a Strict Version of a Dependency
+If downgrading is necessary, use **strict dependencies** or **forced dependencies**.
 
-Gradle allows you to enforce a **strict version** for a dependency, ensuring that the selected version cannot be upgraded by transitive dependencies.
+== Enforcing a Strict Version of a Dependency
 
-#### Example: Setting a Strict Version
+Gradle allows you to enforce a <<dependency_versions.adoc#sec:rich-version-constraints,**strict version**>> for a dependency, ensuring that the selected version cannot be upgraded by transitive dependencies.
 
-Suppose a project depends on **HttpClient**, which pulls in **Commons Codec 1.10**, but your project requires **Commons Codec 1.9**. You can enforce the required version by setting a **strict version constraint**:
+=== Setting a Strict Version
+
+Suppose a project depends on **HttpClient**, which pulls in **Commons Codec 1.10**, but your project requires **Commons Codec 1.9**.
+You can enforce the required version by setting a **strict version constraint**:
 
 [source,groovy]
 .build.gradle
@@ -52,12 +54,13 @@ dependencies {
 }
 ----
 
-🚨 **Important Notes About Strict Versions:**
+Important notes about strict versions:
+
 - A **strict version behaves like a force**, meaning it overrides transitive dependencies.
 - If another dependency **requires a higher version**, Gradle **will fail** with a resolution error.
-- **Good practice:** Use **version ranges** instead of absolute strict versions to allow flexibility.
+- Use **version ranges** instead of absolute strict versions to allow flexibility.
 
-#### Example: Using a Strict Version Range
+=== Setting a Strict Version Range
 
 Instead of locking to a single version, define a **strict range**:
 
@@ -73,15 +76,13 @@ dependencies {
 }
 ----
 
-✅ **Advantage:** If another dependency requires **1.10**, Gradle can resolve it without failure, as long as it falls within the specified range.
+If another dependency requires **1.10**, Gradle can resolve it without failure, as long as it falls within the specified range.
 
----
-
-=== Forcing a Version at the Configuration Level
+== Forcing a Version at the Configuration Level
 
 If a strict dependency is **too restrictive**, you can **force** a specific version for an entire configuration using `resolutionStrategy.force()`.
 
-#### Example: Forcing a Version for the Entire Build
+=== Forcing a Version for the Entire Build
 
 [source,groovy]
 .build.gradle
@@ -97,21 +98,26 @@ dependencies {
 }
 ----
 
-🔹 This ensures that **Commons Codec 1.9 is always used**, even if transitive dependencies request a newer version.
+This ensures that **Commons Codec 1.9 is always used**, even if transitive dependencies request a newer version.
 
-🚨 **Strict vs. Forced Dependencies**
-| Approach | Behavior |
-|----------|----------|
-| **Strict version (`strictly()`)** | The version is enforced but can trigger resolution failures if conflicts exist. |
-| **Forced version (`force()`)** | The version is forcibly applied at the configuration level, overriding all other constraints. |
+== Summary
 
----
+[cols="1,2"]
+|===
+| Approach | Behavior
 
-### Summary
+| *Strict version (`strictly()`)*
+| The version is enforced but can trigger resolution failures if conflicts exist.
 
-✅ **Use strict versions** if you need to enforce an older version and want to control compatibility.
-✅ **Use version ranges** with a preferred version to allow some flexibility.
-✅ **Use `force()` at the configuration level** when you need to override transitive dependencies without strict constraints.
-✅ **Always test thoroughly** after downgrading a dependency to avoid runtime errors.
+| *Forced version (`force()`)*
+| The version is forcibly applied at the configuration level, overriding all other constraints.
+|===
 
-By carefully managing dependency versions, you can ensure **stability and compatibility** in your Gradle build. 🚀
+In summary:
+
+- ✅ **Use strict versions** if you need to enforce an older version and want to control compatibility.
+- ✅ **Use version ranges** with a preferred version to allow some flexibility.
+- ✅ **Use `force()` at the configuration level** when you need to override transitive dependencies without strict constraints.
+
+**Always test thoroughly** after downgrading a dependency to avoid runtime errors.
+
