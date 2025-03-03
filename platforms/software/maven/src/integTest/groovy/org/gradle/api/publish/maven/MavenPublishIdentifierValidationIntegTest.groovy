@@ -112,6 +112,49 @@ class MavenPublishIdentifierValidationIntegTest extends AbstractMavenPublishInte
         identifier << Identifier.all
     }
 
+    def "can publish artifacts empty classifier"() {
+        given:
+        file("content-file") << "some content"
+        def version = "1.0.0"
+        def extension = "ext"
+        def classifier = ''
+
+        and:
+        settingsFile << "rootProject.name = '${artifactId}'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = '${groupId}'
+            version = '${sq(version)}'
+
+            publishing {
+                repositories {
+                    maven { url = "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        artifact source: 'content-file', extension: '${extension}', classifier: '${classifier}'
+                    }
+                }
+            }
+        """
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module(groupId, artifactId, version)
+        module.assertPublished()
+
+        and:
+        resolveArtifacts(module) {
+            setClassifier(classifier)
+            setExt(extension)
+            expectFiles "${artifactId}-${version}.${extension}"
+        }
+    }
+
     def "fails with reasonable error message for invalid identifier value"() {
         buildFile << """
             apply plugin: 'maven-publish'
