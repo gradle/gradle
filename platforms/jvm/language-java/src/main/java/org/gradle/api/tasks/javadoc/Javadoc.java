@@ -48,6 +48,7 @@ import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -224,7 +225,7 @@ public abstract class Javadoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "SourceTask will be deprecated")
     public FileTree getSource() {
         return super.getSource();
     }

@@ -38,6 +38,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.scala.internal.GenerateScaladoc;
 import org.gradle.api.tasks.scala.internal.ScalaRuntimeHelper;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -100,7 +101,7 @@ public abstract class ScalaDoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "SourceTask will be deprecated")
     public FileTree getSource() {
         return super.getSource();
     }
