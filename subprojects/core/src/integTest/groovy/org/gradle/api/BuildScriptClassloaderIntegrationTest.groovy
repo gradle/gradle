@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 
-class BuildScriptClassloaderIntegrationTest extends AbstractIntegrationSpec{
+class BuildScriptClassloaderIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(IntegTestPreconditions.NotConfigCached)
     def 'cannot eagerly access buildscript classloader of the project'() {
@@ -41,4 +41,5 @@ class BuildScriptClassloaderIntegrationTest extends AbstractIntegrationSpec{
 
         then:
         failureCauseContains("Attempt to define scope class loader before scope is locked, scope identifier is ClassLoaderScopeIdentifier{coreAndPlugins:settings[:]:buildSrc[:]:root-project[:]:project-a}")
-    }}
+    }
+}

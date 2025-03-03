@@ -35,7 +35,7 @@ class GradleCallbacksIntegrationTest extends AbstractIntegrationSpec {
 
         settingsFile """
             gradle.projectsLoaded {
-                plugins.apply("foo")
+                gradle.rootProject.plugins.apply("foo")
             }
         """
 
