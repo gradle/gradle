@@ -935,7 +935,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                         handleAnnotatedIgnoredMethod(ignoredMethodAnnotation);
                     }
                     return super.resolveAnnotationsWithFilter((category, annotation) ->
-                        category == AnnotationCategory.TYPE
+                        // Only preserve the ignored type annotation as we already reported
+                        // any potential conflict with other type annotations above
+                        (category == AnnotationCategory.TYPE && annotation.annotationType().equals(ignoredMethodAnnotation))
+                            // Also preserve allowed modifiers
                             || ignoredMethodAnnotationsAllowedModifiers.contains(annotation.annotationType()));
                 }
             }
