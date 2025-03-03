@@ -40,7 +40,7 @@ public class NormalizedIvyArtifact implements Serializable {
         this.conf = artifact.getConf().getOrNull();
         this.file = artifact.getFile().get().getAsFile();
         this.extension = artifact.getExtension().get();
-        this.classifier = artifact.getClassifier().getOrNull();
+        this.classifier = artifact.getClassifier().filter(classifier -> !classifier.isEmpty()).getOrNull();
     }
 
     public String getName() {

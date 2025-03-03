@@ -383,7 +383,7 @@ public abstract class DefaultIvyPublication implements IvyPublicationInternal {
         File artifactFile = artifact.getFile().get().getAsFile();
         if (!((IvyArtifactInternal) artifact).shouldBePublished()) {
             // Fail if it's the main artifact, otherwise simply disable publication
-            if (!artifact.getClassifier().isPresent()) {
+            if (!artifact.getClassifier().filter(classifier -> !classifier.isEmpty()).isPresent()) {
                 throw new IllegalStateException("Artifact " + artifactFile.getName() + " wasn't produced by this build.");
             }
             return false;
