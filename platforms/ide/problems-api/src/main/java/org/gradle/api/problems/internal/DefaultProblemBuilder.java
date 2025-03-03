@@ -67,6 +67,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
+    private ProblemDiagnostics diagnostics;
 
     public DefaultProblemBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
@@ -111,8 +112,9 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
                     ". Supported types are: " + getAdditionalDataBuilderFactory().getSupportedTypes());
         }
 
-        if (problemStream != null) {
-            addLocationsFromProblemStream(collectStackLocation ? this.locations: this.contextLocations, exceptionForStackLocation());
+        ProblemDiagnostics diagnostics = determineDiagnostics();
+        if (diagnostics != null) {
+            addLocationsFromDiagnostics(collectStackLocation ? this.locations : this.contextLocations, diagnostics);
         }
 
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
@@ -128,19 +130,33 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         );
     }
 
-    private void addLocationsFromProblemStream(List<ProblemLocation> locations, Throwable exceptionForProblemInstantiation) {
-        assert problemStream != null;
-        ProblemDiagnostics problemDiagnostics = problemStream.forCurrentCaller(exceptionForProblemInstantiation);
-        Location loc = problemDiagnostics.getLocation();
-        if (loc != null) {
-            addFileLocationTo(locations, getFileLocation(loc));
+    @Nullable
+    private ProblemDiagnostics determineDiagnostics() {
+        if (diagnostics != null) {
+            return diagnostics;
         }
-        PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(problemDiagnostics);
+        return problemStream != null
+            ? problemStream.forCurrentCaller(exceptionForStackLocation())
+            : null;
+    }
+
+    private void addLocationsFromDiagnostics(List<ProblemLocation> locations, ProblemDiagnostics diagnostics) {
+        Location loc = diagnostics.getLocation();
+        FileLocation fileLocation = loc == null ? null : getFileLocation(loc);
+        if (fileLocation != null) {
+            locations.remove(fileLocation);
+        }
+        if (collectStackLocation || fileLocation != null) {
+            locations.add(new DefaultStackTraceLocation(fileLocation, diagnostics.getStack()));
+        }
+
+        PluginIdLocation pluginIdLocation = getDefaultPluginIdLocation(diagnostics);
         if (pluginIdLocation != null) {
             locations.add(pluginIdLocation);
         }
     }
 
+    @Nullable
     private static PluginIdLocation getDefaultPluginIdLocation(ProblemDiagnostics problemDiagnostics) {
         UserCodeSource source = problemDiagnostics.getSource();
         if (source == null) {
@@ -166,7 +182,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         ).stackLocation();
         ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
-        addLocationsFromProblemStream(problemLocations, exceptionForStackLocation());
+        ProblemDiagnostics diagnostics = determineDiagnostics();
+        if (diagnostics != null) {
+            addLocationsFromDiagnostics(problemLocations, diagnostics);
+        }
         return new DefaultProblem(problemDefinition,
             contextualLabel,
             ImmutableList.<String>of(),
@@ -253,6 +272,12 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public InternalProblemBuilder stackLocation() {
         this.collectStackLocation = true;
+        return this;
+    }
+
+    @Override
+    public InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics) {
+        this.diagnostics = diagnostics;
         return this;
     }
 

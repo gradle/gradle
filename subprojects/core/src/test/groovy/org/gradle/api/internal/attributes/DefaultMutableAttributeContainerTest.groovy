@@ -18,6 +18,9 @@ package org.gradle.api.internal.attributes
 
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.HasAttributes
+import org.gradle.api.attributes.LibraryElements
+import org.gradle.api.attributes.Usage
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
@@ -388,5 +391,33 @@ class DefaultMutableAttributeContainerTest extends Specification {
         for (Attribute<?> attribute : container.keySet()) {
             container.getAttribute(attribute)
         }
+    }
+
+    def "can add deprecated usage then add libraryelements and convert to immutable"() {
+        def container = mutable()
+
+        when:
+        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
+        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))
+
+        then:
+        def immutable = container.asImmutable()
+        immutable.keySet().size() == 2
+        immutable.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
+        immutable.getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == "aar"
+    }
+
+    def "can add libraryelements then add deprecated usage and convert to immutable"() {
+        def container = mutable()
+
+        when:
+        container.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, TestUtil.objectInstantiator().named(LibraryElements, "aar"))
+        container.attribute(Usage.USAGE_ATTRIBUTE, TestUtil.objectInstantiator().named(Usage, JavaEcosystemSupport.DEPRECATED_JAVA_API_JARS))
+
+        then:
+        def immutable = container.asImmutable()
+        immutable.keySet().size() == 2
+        immutable.getAttribute(Usage.USAGE_ATTRIBUTE).name == Usage.JAVA_API
+        immutable.getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).name == "jar"
     }
 }

@@ -31,8 +31,7 @@ class JavaApplicationInitSoakTest extends AbstractIntegrationSpec {
         succeeds('init', '--type', 'java-application', '--dsl', 'groovy')
 
         and:
-        executer.withArgument("-Porg.gradle.java.installations.auto-detect=false")
-        executer.withArgument("-Porg.gradle.java.installations.auto-download=true")
+        executer.withToolchainDownloadEnabled()
         succeeds('run')
 
         then:

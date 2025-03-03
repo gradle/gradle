@@ -31,6 +31,7 @@ import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
@@ -65,21 +66,27 @@ class ReceivedProblem implements InternalProblem {
     private static List<ProblemLocation> fromList(List<Object> locations) {
         List<ProblemLocation> result = []
         locations.each { location ->
-            if (location['pluginId'] != null) {
-                result += new ReceivedPluginIdLocation(location as Map<String, Object>)
-            } else if (location['line'] != null) {
-                result += new ReceivedLineInFileLocation(location as Map<String, Object>)
-            } else if (location['offset'] != null) {
-                result += new ReceivedOffsetInFileLocation(location as Map<String, Object>)
-            } else if (location['path'] != null) {
-                result += new ReceivedFileLocation(location as Map<String, Object>)
-            } else if (location['buildTreePath'] != null) {
-                result += new ReceivedTaskLocation(location as Map<String, Object>)
-            } else {
-                result += new ReceivedFileLocation(location as Map<String, Object>)
-            }
+            result += fromLocation(location)
         }
         result
+    }
+
+    private static ProblemLocation fromLocation(location) {
+        if (location['pluginId'] != null) {
+            return new ReceivedPluginIdLocation(location as Map<String, Object>)
+        } else if (location['line'] != null) {
+            return new ReceivedLineInFileLocation(location as Map<String, Object>)
+        } else if (location['offset'] != null) {
+            return new ReceivedOffsetInFileLocation(location as Map<String, Object>)
+        } else if (location['path'] != null) {
+            return new ReceivedFileLocation(location as Map<String, Object>)
+        } else if (location['buildTreePath'] != null) {
+            return new ReceivedTaskLocation(location as Map<String, Object>)
+        } else if (location['stackTrace'] != null) {
+            return new ReceivedStackTraceLocation(location as Map<String, Object>)
+        } else {
+            return new ReceivedFileLocation(location as Map<String, Object>)
+        }
     }
 
     long getOperationId() {
@@ -358,6 +365,19 @@ class ReceivedProblem implements InternalProblem {
         @Override
         int getLength() {
             length
+        }
+    }
+
+    static class ReceivedStackTraceLocation implements StackTraceLocation {
+        final List<StackTraceElement> stackTrace
+        final FileLocation fileLocation
+
+        ReceivedStackTraceLocation(Map<String, Object> location) {
+            def fileLocationJson = location['fileLocation']
+            this.fileLocation = fileLocationJson == null ? null : fromLocation(fileLocationJson) as FileLocation
+            this.stackTrace = location.stackTrace.collect {
+                new StackTraceElement(it['className'] as String, it['methodName'] as String, it['fileName'] as String, it['lineNumber'] as int)
+            }
         }
     }
 

@@ -67,4 +67,8 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
     public ProviderInternal<?> getProvider() {
         return provider;
     }
+
+    public PathToFileResolver getResolver() {
+        return resolver;
+    }
 }

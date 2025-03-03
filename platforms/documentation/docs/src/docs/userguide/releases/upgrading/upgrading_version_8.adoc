@@ -62,10 +62,24 @@ This behavior is only applicable to plugins written in Groovy and the Groovy DSL
 
 This was an internal API that was inadvertently exposed. This will be removed in Gradle 9.0.
 
+[[deprecated_plugin_development_methods]]
+==== `GradlePluginDevelopmentExtension` constructor and `pluginSourceSet` method have been deprecated
+
+The extension should only be created by the Gradle Plugin Development plugin. The main source set is the only supported source set for plugin development.
+
+These methods will be removed in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
 === Potential breaking changes
+
+==== Changes to JvmTestSuite
+
+The `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
+Test reports and JaCoCo reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
+
+See below for additional details.
 
 ==== Changes to Test Report Aggregation and Jacoco Aggregation
 
@@ -103,9 +117,6 @@ reporting {
     }
 }
 ----
-
-Similarly, the `testType` property was removed from link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html[JvmTestSuite] and both the `TestSuiteTargetName` and `TestSuiteType` attributes have been removed.
-Test reports and Jacoco reports can now be aggregated between projects by specifying the name of the test suite in the target project to aggregate.
 
 ==== Changed behavior when calling `BuildLauncher.addJvmArguments`
 

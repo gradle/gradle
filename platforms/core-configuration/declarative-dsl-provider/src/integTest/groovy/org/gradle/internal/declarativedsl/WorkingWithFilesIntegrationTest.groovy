@@ -32,7 +32,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    def 'set #name (set defaults: #setDefaults) (set values: #setValues)'() {
+    def 'set single value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
         given:
         withSoftwareTypePlugins(
             extensionClassContent,
@@ -40,14 +40,25 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        settingsFile() << getPluginsFromIncludedBuild(setDefaults)
+        def defaultsConfig = """
+            defaults {
+                testSoftwareType {
+                    dir = layout.projectDirectory.dir("defaultDir")
+                    file = layout.settingsDirectory.file("defaultFile")
+                }
+            }
+        """.stripIndent()
+        settingsFile() << getSettingsFileContent(setDefaults ? defaultsConfig : "")
 
-        buildFileForProject("a") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setValues)
-        buildFileForProject("b") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(setValues)
+        def softwareTypeConfig = """
+            dir = layout.projectDirectory.dir("someDir")
+            file = layout.settingsDirectory.file("someFile")
+        """.stripIndent()
+        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "")
+        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "")
 
         when:
         run("printTestSoftwareTypeExtensionConfiguration")
-
 
         then:
         def expectedNamePrefix = setValues ? "some" : "default"
@@ -55,16 +66,57 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         assertThatDeclaredValuesAreSetProperly("b", expectedNamePrefix)
 
         where:
-        extensionClassContent                           | name                                                  | setDefaults | setValues
-        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | false       | true
-        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true        | false
-        withFileSystemLocationProperties                | "DirectoryProperty & RegularFileProperty"             | true        | true
-        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | false       | true
-        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | true        | false
-        withPropertiesOfFileSystemLocations             | "Property<Directory> & Property<RegularFile>"         | true        | true
-        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | false       | true
-        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | true        | false
-        withJavaBeanPropertiesOfFileSystemLocations     | "Directory and RegularFile Java Bean properties"      | true        | true
+        extensionClassContent                       | name                                             | setDefaults | setValues
+        withFileSystemLocationProperties            | "DirectoryProperty & RegularFileProperty"        | false       | true
+        withFileSystemLocationProperties            | "DirectoryProperty & RegularFileProperty"        | true        | false
+        withFileSystemLocationProperties            | "DirectoryProperty & RegularFileProperty"        | true        | true
+        withPropertiesOfFileSystemLocations         | "Property<Directory> & Property<RegularFile>"    | false       | true
+        withPropertiesOfFileSystemLocations         | "Property<Directory> & Property<RegularFile>"    | true        | false
+        withPropertiesOfFileSystemLocations         | "Property<Directory> & Property<RegularFile>"    | true        | true
+        withJavaBeanPropertiesOfFileSystemLocations | "Directory and RegularFile Java Bean properties" | false       | true
+        withJavaBeanPropertiesOfFileSystemLocations | "Directory and RegularFile Java Bean properties" | true        | false
+        withJavaBeanPropertiesOfFileSystemLocations | "Directory and RegularFile Java Bean properties" | true        | true
+    }
+
+    @SkipDsl(dsl = GradleDsl.GROOVY, because = "Groovy doesn't have the `listOf(...)` function")
+    def 'set multi value: #name (set defaults: #setDefaults) (set values: #setValues)'() {
+        given:
+        withSoftwareTypePlugins(
+            extensionClassContent,
+            getProjectPluginThatRegistersItsOwnExtension(true, "extension", null),
+            settingsPluginThatRegistersSoftwareType
+        ).prepareToExecute()
+
+        def defaultsConfig = """
+            defaults {
+                testSoftwareType {
+                    dirs = listOf(layout.projectDirectory.dir("defaultDir1"), layout.projectDirectory.dir("defaultDir2"))
+                    files = listOf(layout.settingsDirectory.file("defaultFile1"), layout.settingsDirectory.file("defaultFile2"))
+                }
+            }
+        """.stripIndent()
+        settingsFile() << getSettingsFileContent(setDefaults ? defaultsConfig : "")
+
+        def softwareTypeConfig = """
+            dirs = listOf(layout.projectDirectory.dir("someDir1"), layout.projectDirectory.dir("someDir2"))
+            files = listOf(layout.settingsDirectory.file("someFile1"), layout.settingsDirectory.file("someFile2"))
+        """.stripIndent()
+        buildFileForProject("a") << getProjectFileContent(setValues ? softwareTypeConfig : "")
+        buildFileForProject("b") << getProjectFileContent(setValues ? softwareTypeConfig : "")
+
+        when:
+        run("printTestSoftwareTypeExtensionConfiguration")
+
+        then:
+        def expectedNamePrefix = setValues ? "some" : "default"
+        assertThatDeclaredListValuesAreSetProperly("a", expectedNamePrefix)
+        assertThatDeclaredListValuesAreSetProperly("b", expectedNamePrefix)
+
+        where:
+        extensionClassContent                | name                                                  | setDefaults | setValues
+        withFileSystemLocationListProperties | "ListProperty<Directory> & ListProperty<RegularFile>" | false       | true
+        withFileSystemLocationListProperties | "ListProperty<Directory> & ListProperty<RegularFile>" | true        | false
+        withFileSystemLocationListProperties | "ListProperty<Directory> & ListProperty<RegularFile>" | true        | true
     }
 
     @SkipDsl(dsl = GradleDsl.KOTLIN, because = "Test is specific to the Declarative DSL")
@@ -77,9 +129,21 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             settingsPluginThatRegistersSoftwareType
         ).prepareToExecute()
 
-        settingsFile() << getPluginsFromIncludedBuild(setDefaults)
+        def defaultsConfig = """
+            defaults {
+                testSoftwareType {
+                    dir = layout.projectDirectory.dir("defaultDir")
+                    file = layout.settingsDirectory.file("defaultFile")
+                }
+            }
+        """.stripIndent()
+        settingsFile() << getSettingsFileContent(setDefaults ? defaultsConfig : "")
 
-        buildFileForProject("a") << getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(true)
+        def softwareTypeConfig = """
+            dir = listOf(layout.projectDirectory.dir("someDir1"), layout.projectDirectory.dir("someDir2"))
+            file = listOf(layout.settingsDirectory.file("someFile1"), layout.settingsDirectory.file("someFile2"))
+        """.stripIndent()
+        buildFileForProject("a") << getProjectFileContent(softwareTypeConfig)
         buildFileForProject("b") << ""
 
         when:
@@ -91,11 +155,11 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         failureCauseContains("assignment to property '$propName' with read-only type '$name'")
 
         where:
-        extensionClassContent                           | name              | propName  | setDefaults
-        withReadOnlyDirectoryProperty                   | "Directory"       | "dir"     | true
-        withReadOnlyDirectoryProperty                   | "Directory"       | "dir"     | false
-        withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"    | true
-        withReadOnlyRegularFileProperty                 | "RegularFile"     | "file"    | false
+        extensionClassContent           | name          | propName | setDefaults
+        withReadOnlyDirectoryProperty   | "Directory"   | "dir"    | true
+        withReadOnlyDirectoryProperty   | "Directory"   | "dir"    | false
+        withReadOnlyRegularFileProperty | "RegularFile" | "file"   | true
+        withReadOnlyRegularFileProperty | "RegularFile" | "file"   | false
     }
 
     @SkipDsl(dsl = GradleDsl.DECLARATIVE, because = "The situation is prohibited in Declarative DSL via other means")
@@ -140,6 +204,32 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
                 @Override
                 public String toString() {
                     return "dir = " + getDir().getOrNull() + ", file = " + getFile().getOrNull();
+                }
+            }
+        """
+    }
+
+    private static String getWithFileSystemLocationListProperties() {
+        """
+            package org.gradle.test;
+
+            import org.gradle.declarative.dsl.model.annotations.Restricted;
+
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.file.Directory;
+            import org.gradle.api.file.RegularFile;
+
+            @Restricted
+            public abstract class TestSoftwareTypeExtension {
+                @Restricted
+                public abstract ListProperty<Directory> getDirs();
+
+                @Restricted
+                public abstract ListProperty<RegularFile> getFiles();
+
+                @Override
+                public String toString() {
+                    return "dirs = " + getDirs().getOrNull() + ", files = " + getFiles().getOrNull();
                 }
             }
         """
@@ -279,15 +369,7 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
         """
     }
 
-    private static String getPluginsFromIncludedBuild(boolean setDefaults) {
-        def defaultsBlock = setDefaults ? """
-            defaults {
-                testSoftwareType {
-                    dir = layout.projectDirectory.dir("defaultDir")
-                    file = layout.settingsDirectory.file("defaultFile")
-                }
-            }
-        """ : ""
+    private static String getSettingsFileContent(String defaultsConfig) {
         return """
             pluginManagement {
                 includeBuild("plugins")
@@ -297,27 +379,27 @@ class WorkingWithFilesIntegrationTest extends AbstractIntegrationSpec implements
             }
             include("a")
             include("b")
-            $defaultsBlock
+            $defaultsConfig
         """
     }
 
-    private static String getDeclarativeScriptThatConfiguresOnlyTestSoftwareType(boolean overwriteDefaults) {
-        if (overwriteDefaults) {
-            return """
-                testSoftwareType {
-                    dir = layout.projectDirectory.dir("someDir")
-                    file = layout.settingsDirectory.file("someFile")
-                }
-            """.stripIndent()
-        } else {
-            return """
-                testSoftwareType {
-                }
-            """.stripIndent()
-        }
+    private static String getProjectFileContent(String softwareTypeConfig) {
+        return """
+            testSoftwareType {
+                $softwareTypeConfig
+            }
+        """.stripIndent()
     }
 
     private void assertThatDeclaredValuesAreSetProperly(String project, String namePrefix) {
-        outputContains("$project: dir = ${testDirectory.file("$project/${namePrefix}Dir").path}, file = ${testDirectory.file("${namePrefix}File").path}")
+        def dirPrefix = testDirectory.file("$project/${namePrefix}").path
+        def filePrefix = testDirectory.file("${namePrefix}").path
+        outputContains("$project: dir = ${dirPrefix}Dir, file = ${filePrefix}File")
+    }
+
+    private void assertThatDeclaredListValuesAreSetProperly(String project, String namePrefix) {
+        def dirPrefix = testDirectory.file("$project/${namePrefix}").path
+        def filePrefix = testDirectory.file("${namePrefix}").path
+        outputContains("$project: dirs = [${dirPrefix}Dir1, ${dirPrefix}Dir2], files = [${filePrefix}File1, ${filePrefix}File2]")
     }
 }

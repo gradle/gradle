@@ -100,7 +100,7 @@ object EvaluationFailureMessageGenerator {
     fun describeResolutionErrorReason(errorReason: ErrorReason) = when (errorReason) {
         is ErrorReason.AmbiguousFunctions ->
             "ambiguous functions: " +
-                errorReason.functions.joinToString(",") { resolution ->
+                errorReason.functions.joinToString(", ") { resolution ->
                     resolution.schemaFunction.simpleName + "(" + resolution.binding.binding.keys.joinToString { it.name.plus(": ") + it.type } + ")"
                 }
 

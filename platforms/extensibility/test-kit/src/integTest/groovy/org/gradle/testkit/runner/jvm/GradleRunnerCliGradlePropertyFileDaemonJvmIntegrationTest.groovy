@@ -26,6 +26,6 @@ class GradleRunnerCliGradlePropertyFileDaemonJvmIntegrationTest extends GradleRu
 
     @Override
     def configureRunner(GradleRunner runner, Jvm jvm) {
-        runner.withArguments("-Dorg.gradle.java.home=" + jvm.javaHome.absolutePath)
+        runner.withArguments(["-Dorg.gradle.java.home=" + jvm.javaHome.absolutePath] + runner.getArguments())
     }
 }

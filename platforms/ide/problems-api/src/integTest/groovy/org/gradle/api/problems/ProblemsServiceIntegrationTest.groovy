@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems
 
+import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
@@ -47,7 +48,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(oneLocation(LineInFileLocation)) {
+            with(oneLocation(StackTraceLocation).fileLocation) {
                 length == -1
                 column == -1
                 line == 13
@@ -90,19 +91,15 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
             originLocations.size() == 1
             //guarantee no duplicate locations
             originLocations.size() == 1
-            with(originLocations[0] as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 10
-                path == buildFile.absolutePath
+            with(originLocations[0] as StackTraceLocation) {
+                with(fileLocation as LineInFileLocation) {
+                    length == -1
+                    column == -1
+                    line == 10
+                    path == buildFile.absolutePath
+                }
             }
-            contextualLocations.size() == 1
-            with(contextualLocations[0] as LineInFileLocation) {
-                length == -1
-                column == -1
-                line == 10
-                path == buildFile.absolutePath
-            }
+            contextualLocations.empty
         }
     }
 
@@ -123,11 +120,14 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'generic:type'
             definition.id.displayName == 'label'
-            with(oneLocation(LineInFileLocation)) {
-                length == -1
-                column == -1
-                line == 13
-                path == buildFile.absolutePath
+            with(oneLocation(StackTraceLocation)) {
+                with(fileLocation as LineInFileLocation) {
+                    length == -1
+                    column == -1
+                    line == 13
+                    path == buildFile.absolutePath
+                }
+                stackTrace.find { it.className == 'ProblemReportingTask' && it.methodName == 'run' }
             }
         }
 
@@ -170,7 +170,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 length == 2
             }
             contextualLocations.size() == 2
-            with(contextualLocations[0] as LineInFileLocation) {
+            with((contextualLocations[0] as StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1
                 line == 13
@@ -204,7 +204,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
                 path == 'test-location'
             }
             contextualLocations.size() == 2
-            with(contextualLocations.get(0) as LineInFileLocation) {
+            with((contextualLocations.get(0) as StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1
                 line == 13
@@ -326,7 +326,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         verifyAll(receivedProblem) {
             definition.id.fqid == 'problems-api:unsupported-additional-data'
             definition.id.displayName == 'Unsupported additional data type'
-            with(oneLocation(LineInFileLocation)) {
+            with(oneLocation(StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1
                 line == 13

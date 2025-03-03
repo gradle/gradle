@@ -61,7 +61,7 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             details == null
             originLocations.empty
             contextualLocations.size() == 1
-            with(contextualLocations[0]) {
+            with(contextualLocations[0].fileLocation) {
                 path == this.buildFile.absolutePath
                 line == 13
                 column == null
@@ -102,10 +102,13 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             details == null
             originLocations.size() == 1
             with(originLocations[0]) {
-                path == this.buildFile.absolutePath
-                line == 13
-                column == null
-                length == null
+                with(fileLocation) {
+                    path == this.buildFile.absolutePath
+                    line == 13
+                    column == null
+                    length == null
+                }
+                stackTrace.find() { it.className == 'ProblemReportingTask' && it.methodName == 'run' }
             }
             contextualLocations.empty
             failure == null
@@ -246,10 +249,12 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             originLocations.empty
             contextualLocations.size() == 1
             with(contextualLocations[0]) {
-                path == this.file('included/sub1/build.gradle').absolutePath
-                line == 13
-                column == null
-                length == null
+                with(fileLocation) {
+                    path == this.file('included/sub1/build.gradle').absolutePath
+                    line == 13
+                    column == null
+                    length == null
+                }
             }
             failure == null
         }

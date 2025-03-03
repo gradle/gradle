@@ -18,24 +18,27 @@ package org.gradle.process.internal.worker.request;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
-import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
+import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.InternalProblems;
-import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
+import org.gradle.cache.Cache;
+import org.gradle.cache.internal.ClassCacheFactory;
+import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
-import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.Scope.Global;
+import org.gradle.internal.state.ModelObject;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
@@ -47,8 +50,11 @@ import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRe
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.lang.annotation.Annotation;
 import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -70,11 +76,19 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Nonnull
     private static PayloadSerializer createPayloadSerializer() {
         ClassLoaderCache classLoaderCache = new ClassLoaderCache();
+
+        ClassLoader parent = WorkerAction.class.getClassLoader();
+        FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
+        FilteringClassLoader modelClassLoader = new FilteringClassLoader(parent, filterSpec);
+
         return new PayloadSerializer(
             new WellKnownClassLoaderRegistry(
                 new DefaultPayloadClassLoaderRegistry(
                     classLoaderCache,
-                    new ModelClassLoaderFactory())));
+                    new ModelClassLoaderFactory(modelClassLoader)
+                )
+            )
+        );
     }
 
     @Override
@@ -90,7 +104,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         try {
             ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
             if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager(Global.class)), Collections.emptyList(), new OutputPropertyRoleAnnotationHandler(Collections.emptyList()));
+                instantiatorFactory = new DefaultInstantiatorFactory(new BasicClassCacheFactory(), Collections.emptyList(), new BasicPropertyRoleAnnotationHandler());
             }
             ServiceRegistry serviceRegistry = ServiceRegistryBuilder.builder()
                 .displayName("worker action services")
@@ -196,4 +210,38 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void handleStreamFailure(Throwable t) {
         responder.failed(t);
     }
+
+    /**
+     * A {@link ClassCacheFactory} that holds strong references to all keys and values. This simple
+     * implementation differs from that of the Gradle Daemon, as the lifecycle for a worker process
+     * is much simpler than that of the daemon.
+     */
+    private static class BasicClassCacheFactory implements ClassCacheFactory {
+
+        @Override
+        public <V> Cache<Class<?>, V> newClassCache() {
+            return new MapBackedCache<>(new ConcurrentHashMap<>());
+        }
+
+        @Override
+        public <V> Cache<Class<?>, V> newClassMap() {
+            return new MapBackedCache<>(new ConcurrentHashMap<>());
+        }
+
+    }
+
+    private static class BasicPropertyRoleAnnotationHandler implements PropertyRoleAnnotationHandler {
+        @Override
+        public Set<Class<? extends Annotation>> getAnnotationTypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void applyRoleTo(ModelObject owner, Object target) {
+            if (target instanceof PropertyInternal) {
+                ((PropertyInternal<?>) target).attachProducer(owner);
+            }
+        }
+    }
+
 }

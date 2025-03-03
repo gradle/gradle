@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
@@ -41,12 +42,10 @@ import java.util.Set;
  *     }
  *
  *     sourceSets {
- *         customMain
  *         functionalTest
  *     }
  *
  *     gradlePlugin {
- *         pluginSourceSet project.sourceSets.customMain
  *         testSourceSets project.sourceSets.functionalTest
  *         plugins {
  *             helloPlugin {
@@ -73,10 +72,22 @@ public abstract class GradlePluginDevelopmentExtension {
     private final NamedDomainObjectContainer<PluginDeclaration> plugins;
 
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
-        this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
+        this.plugins = project.container(PluginDeclaration.class);
+        this.pluginSourceSet = pluginSourceSet;
+        this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
+        this.website = project.getObjects().property(String.class);
+        this.vcsUrl = project.getObjects().property(String.class);
+        testSourceSets(testSourceSet);
     }
 
+    @Deprecated
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
+        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "<init>(Project, SourceSet, SourceSet[])")
+            .withAdvice("Do not create this object directly.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_plugin_development_methods")
+            .nagUser();
+
         this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
@@ -90,8 +101,14 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @param pluginSourceSet the plugin source set
      */
+    @Deprecated
     public void pluginSourceSet(SourceSet pluginSourceSet) {
         this.pluginSourceSet = pluginSourceSet;
+        DeprecationLogger.deprecateMethod(GradlePluginDevelopmentExtension.class, "pluginSourceSet(SourceSet)")
+            .withAdvice("Use the main source set.")
+            .willBeRemovedInGradle9()
+            .withUpgradeGuideSection(8, "deprecated_plugin_development_methods")
+            .nagUser();
     }
 
      /**

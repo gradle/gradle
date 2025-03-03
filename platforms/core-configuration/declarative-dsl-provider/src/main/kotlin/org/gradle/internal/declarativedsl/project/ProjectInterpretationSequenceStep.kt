@@ -31,7 +31,7 @@ internal
 fun projectInterpretationSequenceStep(
     softwareTypeRegistry: SoftwareTypeRegistry,
 ) = SimpleInterpretationSequenceStepWithConversion(
-    "project",
+    PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY,
     features = setOf(
         ApplyModelDefaults(),
         UnsupportedSyntaxFeatureCheck.feature,
@@ -40,3 +40,5 @@ fun projectInterpretationSequenceStep(
 ) {
     projectEvaluationSchema(softwareTypeRegistry)
 }
+
+internal const val PROJECT_INTERPRETATION_SEQUENCE_STEP_KEY = "project"
