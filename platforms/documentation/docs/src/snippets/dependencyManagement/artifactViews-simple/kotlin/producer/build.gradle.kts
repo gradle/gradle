@@ -12,7 +12,7 @@ dependencies {
 }
 
 // Define a task that produces a custom artifact
-tasks.register("createProductionArtifact", Jar) {
+tasks.register<Jar>("createProductionArtifact") {
     archiveBaseName.set("production")
     from(sourceSets["main"].output)
     destinationDirectory.set(file("build/libs"))
