@@ -62,7 +62,7 @@ public class ZincScalaCompilerFactory {
     private static final int COMPILER_CLASSLOADER_CACHE_SIZE = 4;
     private static final String SCALA_3_COMPILER_ID = "scala3-compiler_3";
     private static final String SCALA_3_LIBRARY_ID = "scala3-library_3";
-    private static final GuavaBackedClassLoaderCache<HashCode> CLASSLOADER_CACHE = new GuavaBackedClassLoaderCache<HashCode>(CLASSLOADER_CACHE_SIZE);
+    private static final SimpleBackedClassLoaderCache<HashCode> CLASSLOADER_CACHE = new SimpleBackedClassLoaderCache<HashCode>(CLASSLOADER_CACHE_SIZE);
     private static final ClassLoaderCache COMPILER_CLASSLOADER_CACHE;
 
     static {

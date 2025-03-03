@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
     private final URLClassLoader commonParent;
-    private final GuavaBackedClassLoaderCache<Set<TimestampedFile>> cache;
+    private final SimpleBackedClassLoaderCache<Set<TimestampedFile>> cache;
 
     static class TimestampedFile {
         private final File file;
@@ -71,7 +71,7 @@ class TimeCheckingClassLoaderCache implements AbstractClassLoaderCache {
 
     public TimeCheckingClassLoaderCache(int maxSize) {
         commonParent = new URLClassLoader(new URL[0]);
-        cache = new GuavaBackedClassLoaderCache<>(maxSize);
+        cache = new SimpleBackedClassLoaderCache<>(maxSize);
     }
 
     @Override
