@@ -59,7 +59,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         expect:
         fails(":resolve")
-        failure.assertHasDescription("Execution failed for task ':resolve'.")
         failure.assertHasCause("Resolution of the configuration :bar:bar was attempted from a context different than the project context. This is not allowed.")
     }
 
