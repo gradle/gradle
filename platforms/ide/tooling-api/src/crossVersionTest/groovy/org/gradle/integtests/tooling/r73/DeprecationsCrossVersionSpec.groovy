@@ -19,12 +19,11 @@ package org.gradle.integtests.tooling.r73
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.GradleConnectionException
 import org.gradle.util.GradleVersion
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=7.3 <8.14")
-    def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
+    def "deprecation is reported when tooling model builder resolves configuration from a project other than its target in older Gradle versions"() {
         given:
         setupBuild()
 
@@ -45,7 +44,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=8.14")
-    def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
+    def "resolving configuration from a project other than its target fails in newer Gradle versions"() {
         given:
         setupBuild()
 
