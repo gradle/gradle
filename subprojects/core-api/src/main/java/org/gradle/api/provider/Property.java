@@ -18,6 +18,7 @@ package org.gradle.api.provider;
 
 import org.gradle.api.SupportsKotlinAssignmentOverloading;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.internal.extensions.stdlib.Assignable;
 
 import javax.annotation.Nullable;
 
@@ -51,7 +52,7 @@ import javax.annotation.Nullable;
  * @since 4.3
  */
 @SupportsKotlinAssignmentOverloading
-public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention {
+public interface Property<T> extends Provider<T>, HasConfigurableValue, SupportsConvention, Assignable<T, Provider<? extends T>> {
     /**
      * Sets the value of the property to the given value, replacing whatever value the property already had.
      *
@@ -63,6 +64,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      *
      * @param value The value, can be null.
      */
+    @Override
     void set(@Nullable T value);
 
     /**
@@ -83,6 +85,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      *
      * @param provider The provider of the property's value, can't be null.
      */
+    @Override
     void set(Provider<? extends T> provider);
 
     /**
