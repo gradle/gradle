@@ -457,10 +457,9 @@ org:foo:1.0 FAILED
       - By constraint: Dependency version enforced by Dependency Locking
    Failures:
       - Could not resolve org:foo:{strictly 1.0}.
-          - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
-               Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: Dependency version enforced by Dependency Locking
+          - There were conflicting requirements:
+            Dependency version enforced by Dependency Locking: 1.0
+            constraint: 1.1
 
 org:foo:{strictly 1.0} -> 1.0 FAILED
 \\--- lockedConf

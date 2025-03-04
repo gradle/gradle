@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public interface ResolvedVersionConstraint {
     @Nullable
     VersionSelector getPreferredSelector();
@@ -27,6 +30,24 @@ public interface ResolvedVersionConstraint {
 
     @Nullable
     VersionSelector getRejectedSelector();
+
+    /**
+     * Gets all selectors in {@link #getPreferredSelector()}, {@link #getRequiredSelector()}, {@link #getRejectedSelector()}
+     * that are non-{@code null}.
+     *
+     * @return set of all selectors that are non-{@code null}
+     */
+    default Set<VersionSelector> getSelectors() {
+        Set<VersionSelector> result = new HashSet<>(3);
+        if (getPreferredSelector() != null) {
+            result.add(getPreferredSelector());
+        } else if (getRequiredSelector() != null) {
+            result.add(getRequiredSelector());
+        } else if (getRejectedSelector() != null) {
+            result.add(getRejectedSelector());
+        }
+        return result;
+    }
 
     boolean isRejectAll();
     boolean isDynamic();

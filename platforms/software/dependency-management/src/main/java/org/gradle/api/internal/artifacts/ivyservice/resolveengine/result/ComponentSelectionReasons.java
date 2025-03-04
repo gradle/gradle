@@ -138,7 +138,7 @@ public class ComponentSelectionReasons {
         }
 
         @Override
-        public List<ComponentSelectionDescriptor> getDescriptions() {
+        public List<ComponentSelectionDescriptorInternal> getDescriptions() {
             return ImmutableList.copyOf(descriptions);
         }
 
