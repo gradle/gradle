@@ -486,8 +486,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         void renderStackTrace() {
             if (exceptionStyle == ExceptionStyle.FULL) {
                 try {
-                    // TODO: Print the stacktrace from the Failure instead.
-                    stackTrace.exception(failure.getOriginal());
+                    stackTrace.failure(failure);
                 } catch (Throwable t) {
                     // Discard. Should also render this as a separate build failure
                 }
