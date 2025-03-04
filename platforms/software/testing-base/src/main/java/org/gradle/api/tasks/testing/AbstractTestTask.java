@@ -545,7 +545,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
             if (testsAreNotFiltered()) {
-                emitDeprecationMessage();
+                if (testCountLogger.getTotalDiscovered() == 0) {
+                    emitDeprecationMessage();
+                }
             } else if (shouldFailOnNoMatchingTests()) {
                 throw new TestExecutionException(createNoMatchingTestErrorMessage());
             }
