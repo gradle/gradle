@@ -1065,7 +1065,7 @@ public abstract class StandardJavadocDocletOptions extends CoreJavadocOptions im
 
     /**
      * Copies the values of the given {@code StandardJavadocDocletOptions} to this instance.
-     * @since 9.0
+     * @since 9.1.0
      */
     @Incubating
     public StandardJavadocDocletOptions copy(StandardJavadocDocletOptions original) {
