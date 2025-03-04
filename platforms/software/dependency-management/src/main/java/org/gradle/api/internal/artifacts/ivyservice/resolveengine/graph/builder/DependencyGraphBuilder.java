@@ -410,7 +410,7 @@ public class DependencyGraphBuilder {
             if (selected != null) {
                 ResolutionFailureHandler resolutionFailureHandler = resolveState.getVariantSelector().getFailureHandler();
                 if (selected.isRejected()) {
-                    GradleException error = new GradleException(selected.getRejectedErrorMessage());
+                    GradleException error = resolutionFailureHandler.moduleRejected(module);
                     attachFailureToEdges(error, module.getIncomingEdges());
                     // We need to attach failures on unattached dependencies too, in case a node wasn't selected
                     // at all, but we still want to see an error message for it.

@@ -192,10 +192,10 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project :' (conf) --> 'org:foo'
-   Constraint path: 'root project :' (conf) --> 'org:platform-a:1.0' (runtime) --> 'org:foo:{strictly 1.0}'
-   Constraint path: 'root project :' (conf) --> 'org:platform-b:1.0' (runtime) --> 'org:foo:{strictly 2.0}'"""
+        failure.assertHasCause "Could not resolve org:foo."
+        failure.assertHasCause """There were conflicting requirements:
+constraint: 1.0
+constraint: 2.0"""
     }
 
     def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {

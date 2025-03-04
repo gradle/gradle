@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -51,6 +52,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 /**
  * Resolution state for a given module.
@@ -365,6 +370,14 @@ public class ModuleResolveState implements CandidateModule {
             attributeMergingError = e;
         }
         return dependencyAttributes;
+    }
+
+    public List<ComponentSelectionReasonInternal> getSelectionReasons() {
+        return StreamSupport.stream(
+                Spliterators.spliteratorUnknownSize(selectors.iterator(), Spliterator.ORDERED),
+                false
+            ).map(SelectorState::getSelectionReason)
+            .collect(Collectors.toList());
     }
 
     Set<EdgeState> getIncomingEdges() {
