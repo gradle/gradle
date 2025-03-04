@@ -19,7 +19,7 @@ sealed interface FunctionArgument : LanguageTreeElement {
         override fun toString() = "$expr"
     }
     data class Named(val name: String, override val expr: Expr, override val sourceData: SourceData) : SingleValueArgument {
-        override fun toString() = "$name: $expr"
+        override fun toString() = "$name = $expr"
     }
     data class GroupedVarargs(val elementArgs: List<SingleValueArgument>): ValueLikeArgument {
         override val sourceData: SourceData
@@ -28,7 +28,7 @@ sealed interface FunctionArgument : LanguageTreeElement {
         override fun toString(): String = "[${elementArgs.joinToString()}]"
     }
     data class Lambda(val block: Block, override val sourceData: SourceData) : FunctionArgument {
-        override fun toString() = "{}"
+        override fun toString() = "{ ... }"
     }
 }
 
@@ -64,12 +64,12 @@ data class AccessChain(val nameParts: List<String>)
 
 
 data class NamedReference(val receiver: Expr?, val name: String, override val sourceData: SourceData) : Expr {
-    override fun toString() = name
+    override fun toString() = "${receiver?.let { "$it." }.orEmpty()}$name"
 }
 
 
 data class FunctionCall(val receiver: Expr?, val name: String, val args: List<FunctionArgument>, override val sourceData: SourceData) : Expr {
-    override fun toString() = "$name() with args: ${args.joinToString(", ")}"
+    override fun toString() = "$name(${args.joinToString()})"
 }
 
 
