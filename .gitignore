@@ -12,6 +12,11 @@
 test-splits/
 /gradle/verification-keyring.gpg
 
+# Gradle profiler
+gradle-user-home/
+profile-out/
+profile-out-*/
+
 # Kotlin
 # ------
 .kotlin
