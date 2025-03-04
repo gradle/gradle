@@ -17,11 +17,10 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+
+import java.io.File;
 
 /**
  * A directory based report to be created.
@@ -39,8 +38,7 @@ public interface DirectoryReport extends ConfigurableReport {
      *
      */
     @Internal
-    @ReplacesEagerProperty(adapter = ReportAdapters.EntryPointAdapter.class)
-    Provider<? extends FileSystemLocation> getEntryPoint();
+    File getEntryPoint();
 
     @OutputDirectory
     @Override
@@ -48,7 +46,9 @@ public interface DirectoryReport extends ConfigurableReport {
 
     /**
      * Always returns {@link Report.OutputType#DIRECTORY}
+     *
+     * @return {@link Report.OutputType#DIRECTORY}
      */
     @Override
-    Provider<OutputType> getOutputType();
+    OutputType getOutputType();
 }
