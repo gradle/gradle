@@ -24,6 +24,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
+import java.util.BitSet;
 import java.util.function.Function;
 
 /**
@@ -172,15 +173,17 @@ public abstract class ValueState<S> {
 
     public abstract void warnOnUpgradedPropertyValueChanges();
 
+    private static final int EXPLICIT_FLAG = 0;
+    private static final int FINALIZE_ON_NEXT = EXPLICIT_FLAG+1;
+    private static final int DISALLOW_CHANGES = FINALIZE_ON_NEXT+1;
+    private static final int DISALLOW_UNSAFE = DISALLOW_CHANGES+1;
+    private static final int IS_UPGRADE = DISALLOW_UNSAFE+1;
+    private static final int WARN_ON_UPGRADE = IS_UPGRADE+1;
+
     private static class NonFinalizedValue<S> extends ValueState<S> {
         private final PropertyHost host;
         private final Function<S, S> copier;
-        private boolean explicitValue;
-        private boolean finalizeOnNextGet;
-        private boolean disallowChanges;
-        private boolean disallowUnsafeRead;
-        private boolean isUpgradedPropertyValue;
-        private boolean warnOnUpgradedPropertyChanges;
+        private final BitSet flags = new BitSet(WARN_ON_UPGRADE+1);
         private S convention;
 
         public NonFinalizedValue(PropertyHost host, Function<S, S> copier) {
@@ -190,13 +193,17 @@ public abstract class ValueState<S> {
 
         @Override
         public boolean shouldFinalize(Describable displayName, @Nullable ModelObject producer) {
-            if (disallowUnsafeRead) {
+            if (isDisallowUnsafeRead()) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
                     throw new IllegalStateException(cannotFinalizeValueOf(displayName, reason));
                 }
             }
             return true;
+        }
+
+        private boolean isDisallowUnsafeRead() {
+            return flags.get(DISALLOW_UNSAFE);
         }
 
         @Override
@@ -206,18 +213,18 @@ public abstract class ValueState<S> {
 
         @Override
         public boolean maybeFinalizeOnRead(Describable displayName, @Nullable ModelObject producer, ValueSupplier.ValueConsumer consumer) {
-            if (disallowUnsafeRead || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
+            if (isDisallowUnsafeRead() || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
                     throw new IllegalStateException(cannotQueryValueOf(displayName, reason));
                 }
             }
-            return finalizeOnNextGet || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
+            return isFinalizing() || consumer == ValueSupplier.ValueConsumer.DisallowUnsafeRead;
         }
 
         @Override
         public ValueSupplier.ValueConsumer forUpstream(ValueSupplier.ValueConsumer consumer) {
-            if (disallowUnsafeRead) {
+            if (isDisallowUnsafeRead()) {
                 return ValueSupplier.ValueConsumer.DisallowUnsafeRead;
             } else {
                 return consumer;
@@ -226,9 +233,9 @@ public abstract class ValueState<S> {
 
         @Override
         public void beforeMutate(Describable displayName) {
-            if (disallowChanges) {
+            if (flags.get(DISALLOW_CHANGES)) {
                 throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", displayName.getDisplayName()));
-            } else if (warnOnUpgradedPropertyChanges) {
+            } else if (flags.get(WARN_ON_UPGRADE)) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
                     .startingWithGradle9("changing property value of " + shownDisplayName + " at execution time is deprecated and will fail in Gradle 10")
@@ -240,28 +247,32 @@ public abstract class ValueState<S> {
 
         @Override
         public void disallowChanges() {
-            disallowChanges = true;
+            flags.set(DISALLOW_CHANGES);
         }
 
         @Override
         public void finalizeOnNextGet() {
-            finalizeOnNextGet = true;
+            flags.set(FINALIZE_ON_NEXT);
         }
 
         @Override
         public void disallowUnsafeRead() {
-            disallowUnsafeRead = true;
-            finalizeOnNextGet = true;
+            flags.set(DISALLOW_UNSAFE);
+            finalizeOnNextGet();
         }
 
         @Override
         public boolean isFinalizing() {
-            return finalizeOnNextGet;
+            return flags.get(FINALIZE_ON_NEXT);
+        }
+
+        private void setExplicit(boolean value) {
+            flags.set(EXPLICIT_FLAG, value);
         }
 
         @Override
         public boolean isExplicit() {
-            return explicitValue;
+            return flags.get(EXPLICIT_FLAG);
         }
 
         @Override
@@ -271,7 +282,7 @@ public abstract class ValueState<S> {
 
         @Override
         public S setToConvention() {
-            explicitValue = true;
+            setExplicit(true);
             return shallowCopy(convention);
         }
 
@@ -281,7 +292,7 @@ public abstract class ValueState<S> {
 
         @Override
         public S setToConventionIfUnset(S value) {
-            if (!explicitValue) {
+            if (!isExplicit()) {
                 return setToConvention();
             }
             return value;
@@ -289,28 +300,28 @@ public abstract class ValueState<S> {
 
         @Override
         public void markAsUpgradedPropertyValue() {
-            isUpgradedPropertyValue = true;
+            flags.set(IS_UPGRADE);
         }
 
         @Override
         public boolean isUpgradedPropertyValue() {
-            return isUpgradedPropertyValue;
+            return flags.get(IS_UPGRADE);
         }
 
         @Override
         public void warnOnUpgradedPropertyValueChanges() {
-            warnOnUpgradedPropertyChanges = true;
+            flags.set(WARN_ON_UPGRADE);
         }
 
         @Override
         public S explicitValue(S value) {
-            explicitValue = true;
+            setExplicit(true);
             return value;
         }
 
         @Override
         public S explicitValue(S value, S defaultValue) {
-            if (!explicitValue) {
+            if (!isExplicit()) {
                 return defaultValue;
             }
             return value;
@@ -318,7 +329,7 @@ public abstract class ValueState<S> {
 
         @Override
         public S implicitValue() {
-            explicitValue = false;
+            setExplicit(false);
             return shallowCopy(convention);
         }
 
@@ -331,7 +342,7 @@ public abstract class ValueState<S> {
         @Override
         public S applyConvention(S value, S convention) {
             this.convention = convention;
-            if (!explicitValue) {
+            if (!isExplicit()) {
                 return shallowCopy(convention);
             } else {
                 return value;
