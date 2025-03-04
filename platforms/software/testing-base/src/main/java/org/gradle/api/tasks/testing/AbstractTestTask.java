@@ -544,8 +544,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (testCountLogger.hadFailures()) {
             handleTestFailures();
         } else if (testCountLogger.getTotalTests() == 0) {
+            // No tests were executed, the following rules apply:
+            // - If there are no filters, and no tests or test suites were discovered, emit a deprecation warning
+            // - If there are filters and the task is configured to fail when no tests match the filters, throw an exception
+            // - Otherwise, this is fine - the task should succeed with no warnings or errors
             if (testsAreNotFiltered()) {
-                if (testCountLogger.getTotalDiscovered() == 0) {
+                if (testCountLogger.getTotalDiscoveredItems() == 0) {
                     emitDeprecationMessage();
                 }
             } else if (shouldFailOnNoMatchingTests()) {

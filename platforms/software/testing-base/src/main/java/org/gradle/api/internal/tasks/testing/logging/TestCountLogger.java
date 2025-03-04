@@ -39,7 +39,7 @@ public class TestCountLogger implements TestListener {
     private final Logger logger;
 
     private long totalTests;
-    private long totalDiscoveredTests;
+    private long totalDiscoveredItems;
     private long failedTests;
     private long skippedTests;
     private boolean hadFailures;
@@ -60,7 +60,7 @@ public class TestCountLogger implements TestListener {
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         totalTests += result.getTestCount();
-        totalDiscoveredTests += result.getTestCount();
+        totalDiscoveredItems += result.getTestCount();
         failedTests += result.getFailedTestCount();
         skippedTests += result.getSkippedTestCount();
         progressLogger.progress(summary());
@@ -117,7 +117,7 @@ public class TestCountLogger implements TestListener {
             // Only count suites that can be attributed to a discovered class such as test class suites, explicit test suites,
             // parameterized tests, test templates, dynamic tests, etc, and ignore the "test worker" and root suites.
             if (suite.getClassName() != null) {
-                totalDiscoveredTests++;
+                totalDiscoveredItems++;
             }
         }
     }
@@ -134,7 +134,7 @@ public class TestCountLogger implements TestListener {
      * Returns the total number of test methods, test suites, test classes and/or dynamic tests that were discovered before
      * or during test execution.  This does not include the "test worker" or root suites.
      */
-    public long getTotalDiscovered() {
-        return totalDiscoveredTests;
+    public long getTotalDiscoveredItems() {
+        return totalDiscoveredItems;
     }
 }
