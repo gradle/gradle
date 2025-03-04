@@ -18,6 +18,7 @@ package org.gradle.internal.buildevents
 import org.gradle.internal.exceptions.ContextAwareException
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.Failure
 import spock.lang.Specification
@@ -219,6 +220,24 @@ class ContextAwareExceptionHandlerTest extends Specification {
 
         and:
         getReportableCauses(e) == [childCause1, childCause4, childCause3, childCause2]
+    }
+
+    def "visitor visits location"() {
+        ExceptionContextVisitor visitor = Mock()
+        def cause = new RuntimeException()
+        def e = new LocationAwareException(cause, "location", 42)
+
+        when:
+        accept(e, visitor)
+
+        then:
+        1 * visitor.visitCause(f(cause))
+        1 * visitor.endVisiting()
+        1 * visitor.visitLocation("Location line: 42")
+        0 * visitor._
+
+        and:
+        getReportableCauses(e) == []
     }
 
     @Contextual
