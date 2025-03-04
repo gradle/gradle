@@ -68,7 +68,13 @@ object AccessOnCurrentReceiverCheck : DocumentCheck, DocumentLowLevelResolutionC
                     visitNode(node.value)
                 }
 
-                is DeclarativeDocument.ValueNode.NamedReferenceNode -> TODO()
+                is DeclarativeDocument.ValueNode.NamedReferenceNode -> {
+                    val resolution = valueOrigin(node)
+                    if (resolution is ResolutionTrace.ResolutionOrErrors.Resolution && isViolatingOrigin(resolution.result)) {
+                        report(node)
+                    }
+                }
+
                 is DeclarativeDocument.ValueNode.ValueFactoryNode -> {
                     val resolution = valueOrigin(node)
                     if (resolution is ResolutionTrace.ResolutionOrErrors.Resolution && isViolatingOrigin(resolution.result)) {
