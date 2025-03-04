@@ -167,9 +167,12 @@ public abstract class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureGroovydoc(Project project, GroovyRuntime groovyRuntime) {
         project.getTasks().withType(Groovydoc.class).configureEach(groovydoc -> {
-            FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
-            ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
-            groovydoc.getGroovyClasspath().convention(groovyClasspath.plus(jansi));
+            groovydoc.getGroovyClasspath().convention(project.provider(() -> {
+                FileCollection groovyClasspath = groovyRuntime.inferGroovyClasspath(groovydoc.getClasspath());
+                // Jansi is required to log errors when generating Groovydoc
+                ConfigurableFileCollection jansi = project.getObjects().fileCollection().from(moduleRegistry.getExternalModule("jansi").getImplementationClasspath().getAsFiles());
+                return groovyClasspath.plus(jansi);
+            }));
             groovydoc.getDestinationDir().convention(javaPluginExtension(project).getDocsDir().dir("groovydoc"));
             groovydoc.getDocTitle().convention(extensionOf(project, ReportingExtension.class).getApiDocTitle());
             groovydoc.getWindowTitle().convention(extensionOf(project, ReportingExtension.class).getApiDocTitle());
