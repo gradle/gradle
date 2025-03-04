@@ -25,34 +25,8 @@ import org.gradle.util.GradleVersion
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=7.3 <8.14")
     def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
-        settingsFile << """
-            include("a")
-        """
-        file("a/build.gradle") << """
-            plugins {
-                id("java-library")
-            }
-        """
-        buildFile << """
-            import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-            import org.gradle.tooling.provider.model.ToolingModelBuilder
-            import org.gradle.api.Project
-
-            class MyModelBuilder implements ToolingModelBuilder {
-                boolean canBuild(String modelName) {
-                    return modelName == "${List.class.name}"
-                }
-                Object buildAll(String modelName, Project project) {
-                    println("creating model for \$project")
-                    project.subprojects.each { p ->
-                        p.configurations.compileClasspath.files
-                    }
-                    return ["result"]
-                }
-            }
-
-            project.services.get(ToolingModelBuilderRegistry.class).register(new MyModelBuilder())
-        """
+        given:
+        setupBuild()
 
         expect:
         if (GradleVersion.version(targetDist.version.version) < GradleVersion.version("8.0")) {
@@ -72,14 +46,33 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=8.14")
     def "deprecation is reported when tooling model builder resolves configuration from a project other than its target"() {
+        given:
+        setupBuild()
+
+        when:
+        fails { connection ->
+            connection.model(List)
+                .withArguments("--parallel")
+                .get()
+        }
+
+        then:
+        BuildException e = thrown()
+        e.message.startsWith("Could not fetch model of type 'List' using connection")
+        e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context. This is not allowed.")
+    }
+
+    private void setupBuild() {
         settingsFile << """
             include("a")
         """
+
         file("a/build.gradle") << """
             plugins {
                 id("java-library")
             }
         """
+
         buildFile << """
             import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
             import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -100,16 +93,5 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
 
             project.services.get(ToolingModelBuilderRegistry.class).register(new MyModelBuilder())
         """
-
-        when:
-        fails { connection ->
-            connection.model(List)
-                .withArguments("--parallel")
-                .get()
-        }
-
-        then:
-        GradleConnectionException e = thrown()
-        e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context. This is not allowed.")
     }
 }
