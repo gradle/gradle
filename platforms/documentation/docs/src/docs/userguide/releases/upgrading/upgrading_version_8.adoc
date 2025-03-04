@@ -51,7 +51,7 @@ The change is driven by the need to interpret such default values in the scope o
 [[null-attribute-lookup]]
 ==== Looking up attributes using null keys is deprecated ====
 
-Providing a null argument to when retrieving attributes from a container using the `getAttribute(Attribute)` method has been explicitly deprecated.
+Providing a `null` argument when retrieving attributes from a container using `getAttribute(Attribute)` is now explicitly deprecated.
 
 Prior to this change, a `null` lookup silently returned `null`.  Now it will emit a deprecation warning.
 There should be no need to lookup null values in an `AttributeContainer`.
