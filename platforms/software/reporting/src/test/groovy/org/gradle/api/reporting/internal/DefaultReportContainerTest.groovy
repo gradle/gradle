@@ -113,7 +113,7 @@ class DefaultReportContainerTest extends Specification {
         thrown(MissingMethodException)
     }
 
-    static abstract class TestReport extends SimpleReport {
+    static class TestReport extends SimpleReport {
         final Property<Boolean> required = TestUtil.objectFactory().property(Boolean).value(false)
 
         TestReport(String name, Describable displayName, OutputType outputType) {
