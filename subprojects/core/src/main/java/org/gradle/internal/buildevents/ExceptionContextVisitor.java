@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.exceptions;
+package org.gradle.internal.buildevents;
 
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.util.internal.TreeVisitor;
 
 public abstract class ExceptionContextVisitor extends TreeVisitor<Failure> {
+
     protected abstract void visitCause(Failure cause);
 
     protected abstract void visitLocation(String location);

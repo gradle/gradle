@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.exceptions
+package org.gradle.internal.buildevents
 
-
+import org.gradle.internal.exceptions.ContextAwareException
+import org.gradle.internal.exceptions.Contextual
+import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.problems.failure.DefaultFailureFactory
+import org.gradle.internal.problems.failure.Failure
 import spock.lang.Specification
 
-class ContextAwareExceptionTest extends Specification {
+class ContextAwareExceptionHandlerTest extends Specification {
     private ExceptionContextVisitor visitor = Mock()
+    private failureFactory = DefaultFailureFactory.withDefaultClassifier()
 
     def "visitor does not visit direct cause"() {
         def cause = new RuntimeException()
         def e = new ContextAwareException(cause)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(cause)
+        1 * visitor.visitCause(f(cause))
         1 * visitor.endVisiting()
         0 * visitor._
 
         and:
-        e.reportableCauses == []
+        getReportableCauses(e) == []
     }
 
     def "visitor visits indirect cause"() {
@@ -43,22 +48,22 @@ class ContextAwareExceptionTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(cause)
+        1 * visitor.visitCause(f(cause))
         1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(childCause)
+        1 * visitor.node(f(childCause))
 
         and:
         1 * visitor.endChildren()
         0 * visitor._
 
         and:
-        e.reportableCauses == [childCause]
+        getReportableCauses(e) == [childCause]
     }
 
     def "visitor visits causes of contextual exception"() {
@@ -67,22 +72,22 @@ class ContextAwareExceptionTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(cause)
+        1 * visitor.visitCause(f(cause))
         1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(childCause)
+        1 * visitor.node(f(childCause))
 
         and:
         1 * visitor.endChildren()
         0 * visitor._
 
         and:
-        e.reportableCauses == [childCause]
+        getReportableCauses(e) == [childCause]
     }
 
     def "visitor visits all contextual exceptions and direct cause of last contextual exception"() {
@@ -96,15 +101,15 @@ class ContextAwareExceptionTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(cause)
+        1 * visitor.visitCause(f(cause))
         1 * visitor.endVisiting()
 
-        1 * visitor.node(contextual)
-        1 * visitor.node(lastContextual)
-        1 * visitor.node(reportedCause)
+        1 * visitor.node(f(contextual))
+        1 * visitor.node(f(lastContextual))
+        1 * visitor.node(f(reportedCause))
 
         and:
         _ * visitor.startChildren()
@@ -112,7 +117,7 @@ class ContextAwareExceptionTest extends Specification {
         0 * visitor._
 
         and:
-        e.reportableCauses == [contextual, lastContextual, reportedCause]
+        getReportableCauses(e) == [contextual, lastContextual, reportedCause]
     }
 
     def "visitor visits causes of multi-cause exception"() {
@@ -122,26 +127,26 @@ class ContextAwareExceptionTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(cause)
+        1 * visitor.visitCause(f(cause))
         1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(childCause1)
+        1 * visitor.node(f(childCause1))
 
         and:
-        1 * visitor.node(childCause2)
+        1 * visitor.node(f(childCause2))
 
         and:
         1 * visitor.endChildren()
         0 * visitor._
 
         and:
-        e.reportableCauses == [childCause1, childCause2]
+        getReportableCauses(e) == [childCause1, childCause2]
     }
 
     def "visitor treats multi-cause exception as contextual"() {
@@ -154,38 +159,38 @@ class ContextAwareExceptionTest extends Specification {
         def e = new ContextAwareException(intermediate2)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(intermediate2)
+        1 * visitor.visitCause(f(intermediate2))
         1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(cause)
+        1 * visitor.node(f(cause))
 
         and:
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(childCause1)
+        1 * visitor.node(f(childCause1))
 
         and:
-        1 * visitor.node(childCause2)
+        1 * visitor.node(f(childCause2))
 
         and:
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(detail)
+        1 * visitor.node(f(detail))
 
         and:
         3 * visitor.endChildren()
         0 * visitor._
 
         and:
-        e.reportableCauses == [cause, childCause1, childCause2, detail]
+        getReportableCauses(e) == [cause, childCause1, childCause2, detail]
     }
 
     def "visitor visits causes recursively"() {
@@ -198,22 +203,22 @@ class ContextAwareExceptionTest extends Specification {
         def e = new ContextAwareException(cause)
 
         when:
-        e.accept(visitor)
+        accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(cause)
+        1 * visitor.visitCause(f(cause))
         1 * visitor.endVisiting()
 
         3 * visitor.startChildren()
-        1 * visitor.node(childCause1)
-        1 * visitor.node(childCause4)
-        1 * visitor.node(childCause3)
-        1 * visitor.node(childCause2)
+        1 * visitor.node(f(childCause1))
+        1 * visitor.node(f(childCause4))
+        1 * visitor.node(f(childCause3))
+        1 * visitor.node(f(childCause2))
         3 * visitor.endChildren()
         0 * visitor._
 
         and:
-        e.reportableCauses == [childCause1, childCause4, childCause3, childCause2]
+        getReportableCauses(e) == [childCause1, childCause4, childCause3, childCause2]
     }
 
     @Contextual
@@ -221,5 +226,18 @@ class ContextAwareExceptionTest extends Specification {
         TestContextualException(Throwable throwable) {
             super(throwable)
         }
+    }
+
+    private void accept(ContextAwareException e, ExceptionContextVisitor visitor) {
+        def failure = failureFactory.create(e)
+        ContextAwareExceptionHandler.accept(failure, visitor)
+    }
+
+    private List<Throwable> getReportableCauses(Throwable e) {
+        return ContextAwareExceptionHandler.getReportableCauses(failureFactory.create(e)).collect { it.original }
+    }
+
+    private Failure f(Throwable e) {
+        failureFactory.create(e)
     }
 }

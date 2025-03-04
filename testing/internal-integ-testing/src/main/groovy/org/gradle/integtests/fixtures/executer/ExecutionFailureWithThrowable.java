@@ -19,7 +19,7 @@ package org.gradle.integtests.fixtures.executer;
 import com.google.common.base.Joiner;
 import junit.framework.AssertionFailedError;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.internal.buildevents.BuildExceptionReporter;
+import org.gradle.internal.buildevents.ContextAwareExceptionHandler;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.hamcrest.Matcher;
@@ -95,7 +95,7 @@ public class ExecutionFailureWithThrowable implements DelegatingExecutionFailure
             }
         } else if (failure instanceof LocationAwareException) {
             org.gradle.internal.problems.failure.Failure richFailure = DefaultFailureFactory.withDefaultClassifier().create(failure);
-            for (org.gradle.internal.problems.failure.Failure cause : BuildExceptionReporter.getReportableCauses(richFailure)) {
+            for (org.gradle.internal.problems.failure.Failure cause : ContextAwareExceptionHandler.getReportableCauses(richFailure)) {
                 causes.add(cause.getMessage());
             }
         } else {

@@ -27,11 +27,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.exceptions.CompilationFailedIndicator;
 import org.gradle.internal.exceptions.ContextAwareException;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.exceptions.LocationAwareException;
-import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.exceptions.NonGradleCause;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.exceptions.ResolutionProvider;
@@ -44,7 +40,6 @@ import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.internal.rendering.ProblemRenderer;
 import org.gradle.util.internal.GUtil;
-import org.gradle.util.internal.TreeVisitor;
 import org.jspecify.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullMarked;
@@ -94,7 +89,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
     private final BuildClientMetaData clientMetaData;
     private final GradleEnterprisePluginManager gradleEnterprisePluginManager;
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData, GradleEnterprisePluginManager gradleEnterprisePluginManager) {
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, LoggingConfiguration loggingConfiguration, BuildClientMetaData clientMetaData, @Nullable GradleEnterprisePluginManager gradleEnterprisePluginManager) {
         this.textOutputFactory = textOutputFactory;
         this.loggingConfiguration = loggingConfiguration;
         this.clientMetaData = clientMetaData;
@@ -198,13 +193,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         if (failure.getOriginal() instanceof ContextAwareException) {
             ExceptionFormattingVisitor exceptionFormattingVisitor = new ExceptionFormattingVisitor(details);
-            exceptionFormattingVisitor.accept(failure.getCauses());
-            if (failure.getOriginal() instanceof LocationAwareException) {
-                String location = ((LocationAwareException) failure.getOriginal()).getLocation();
-                if (location != null) {
-                    exceptionFormattingVisitor.visitLocation(location);
-                }
-            }
+            ContextAwareExceptionHandler.accept(failure, exceptionFormattingVisitor);
         } else {
             details.appendDetails();
         }
@@ -237,6 +226,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         public void node(Failure node) {
             if (shouldBePrinted(node)) {
+                // We use the original here, since identity is not preserved when converting to a Failure.
+                // And we still want to report branches even if the most deep exception is the same as the one on another branch.
+                // For example, if you run into timeouts when resolving two different dependencies, we still want to report both.
+                // And the dependency that is being resolved is only part of the context, not part of the root cause.
                 printedNodes.add(node.getOriginal());
                 if (node.getCauses().isEmpty() || isUsefulMessage(getMessage(node))) {
                     LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
@@ -255,7 +248,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
          *
          * A node should be printed iff it is not in the {@link #printedNodes} set, and it is not a
          * transitive cause of a node that is in the set.  Direct causes will be checked, as well
-         * as each branch of {@link #getReportableCauses(Failure)}s for nodes of that type.
+         * as each branch of {@link ContextAwareExceptionHandler#getReportableCauses(Failure)}s for nodes of that type.
          *
          * @param node the node to check
          * @return {@code true} if the node should be printed; {@code false} otherwise
@@ -277,7 +270,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
                         next.add(curr.getCauses().get(0));
                     }
                     if (curr.getOriginal() instanceof ContextAwareException) {
-                        next.addAll(getReportableCauses(curr));
+                        next.addAll(ContextAwareExceptionHandler.getReportableCauses(curr));
                     }
                 }
             }
@@ -285,7 +278,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             return true;
         }
 
-        private boolean isUsefulMessage(String message) {
+        private static boolean isUsefulMessage(String message) {
             return StringUtils.isNotBlank(message) && !message.endsWith(NO_ERROR_MESSAGE_INDICATOR);
         }
 
@@ -320,17 +313,6 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     output.append("There is 1 more failure with an identical cause.");
                 }
             }
-        }
-
-        private void accept(List<Failure> causes) {
-            if (!causes.isEmpty()) {
-                for (Failure cause : causes) {
-                    visitCause(cause);
-                    visitCauses(cause, this);
-
-                }
-            }
-            endVisiting();
         }
     }
 
@@ -371,7 +353,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
 
         if (shouldDisplayGenericResolutions) {
-            context.appendResolution(this::writeGeneralTips);
+            context.appendResolution(BuildExceptionReporter::writeGeneralTips);
         }
     }
 
@@ -423,7 +405,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         return gradleEnterprisePluginManager != null && gradleEnterprisePluginManager.isPresent();
     }
 
-    private void writeGeneralTips(StyledTextOutput resolution) {
+    private static void writeGeneralTips(StyledTextOutput resolution) {
         resolution.text("Get more help at ");
         resolution.withStyle(UserInput).text("https://help.gradle.org");
         resolution.text(".");
@@ -466,7 +448,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    private void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
+    private static void writeFailureDetails(StyledTextOutput output, FailureDetails details) {
         writeSection(details.location, output, "* Where:");
         writeSection(details.details, output, "* What went wrong:");
         writeSection(details.resolution, output, "* Try:");
@@ -558,58 +540,4 @@ public class BuildExceptionReporter implements Action<Throwable> {
         }
     }
 
-    /**
-     * Returns the reportable causes for this failure.
-     *
-     * @return The causes. Never returns null, returns an empty list if this exception has no reportable causes.
-     */
-    public static List<Failure> getReportableCauses(Failure failure) {
-        final List<Failure> causes = new ArrayList<>();
-        for (Failure cause : failure.getCauses()) {
-            visitCauses(cause, new TreeVisitor<Failure>() {
-                @Override
-                public void node(Failure node) {
-                    causes.add(node);
-                }
-            });
-        }
-
-        return causes;
-    }
-
-    private static void visitCauses(Failure t, TreeVisitor<? super Failure> visitor) {
-        List<Failure> causes = t.getCauses();
-        if (!causes.isEmpty()) {
-            visitor.startChildren();
-            for (Failure cause : causes) {
-                visitContextual(cause, visitor);
-            }
-            visitor.endChildren();
-        }
-    }
-
-    private static void visitContextual(Failure t, TreeVisitor<? super Failure> visitor) {
-        Failure next = findNearestContextual(t);
-        if (next != null) {
-            // Show any contextual cause recursively
-            visitor.node(next);
-            visitCauses(next, visitor);
-        } else {
-            // Show the direct cause of the last contextual cause only
-            visitor.node(t);
-        }
-    }
-
-    @Nullable
-    private static Failure findNearestContextual(@Nullable Failure t) {
-        if (t == null) {
-            return null;
-        }
-        if (t.getOriginal().getClass().getAnnotation(Contextual.class) != null || MultiCauseException.class.isAssignableFrom(t.getExceptionType())) {
-            return t;
-        }
-        // Not multicause, so at most one cause.
-        Optional<Failure> cause = t.getCauses().stream().findAny();
-        return findNearestContextual(cause.orElse(null));
-    }
 }
