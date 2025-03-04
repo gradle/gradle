@@ -49,7 +49,7 @@ The change is driven by the need to interpret such default values in the scope o
 === Deprecations
 
 [[null-attribute-lookup]]
-==== Looking up attributes using null keys deprecated ====
+==== Looking up attributes using null keys is deprecated ====
 
 Providing a null argument to when retrieving attributes from a container using the `getAttribute(Attribute)` method has been explicitly deprecated.
 
