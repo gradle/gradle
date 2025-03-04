@@ -693,12 +693,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         DirectoryReport htmlReport = getReports().getHtml();
         if (htmlReport.getRequired().get()) {
-            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint().get().getAsFile());
+            String reportUrl = new ConsoleRenderer().asClickableFileUrl(htmlReport.getEntryPoint());
             message = message.concat(". See the report at: " + reportUrl);
         } else {
             DirectoryReport junitXmlReport = getReports().getJunitXml();
             if (junitXmlReport.getRequired().get()) {
-                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint().get().getAsFile());
+                String resultsUrl = new ConsoleRenderer().asClickableFileUrl(junitXmlReport.getEntryPoint());
                 message = message.concat(". See the results at: " + resultsUrl);
             }
         }

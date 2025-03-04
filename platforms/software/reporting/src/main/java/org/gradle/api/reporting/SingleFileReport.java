@@ -17,7 +17,6 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.OutputFile;
 
 /**
@@ -30,7 +29,9 @@ public interface SingleFileReport extends ConfigurableReport {
 
     /**
      * Always returns {@link Report.OutputType#FILE}
+     *
+     * @return {@link Report.OutputType#FILE}
      */
     @Override
-    Provider<OutputType> getOutputType();
+    OutputType getOutputType();
 }
