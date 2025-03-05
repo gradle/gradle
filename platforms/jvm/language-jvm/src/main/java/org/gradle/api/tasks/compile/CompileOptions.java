@@ -391,7 +391,7 @@ public abstract class CompileOptions extends AbstractOptions {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(CollectionUtils.stringize(getCompilerArgs()));
         for (CommandLineArgumentProvider compilerArgumentProvider : getCompilerArgumentProviders()) {
-            builder.addAll(compilerArgumentProvider.asArguments());
+            builder.addAll(CollectionUtils.toStringList(compilerArgumentProvider.asArguments()));
         }
         return builder.build();
     }

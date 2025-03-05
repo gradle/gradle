@@ -16,7 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.process.CommandLineArgumentProvider
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicReference
@@ -112,5 +114,22 @@ class CompileOptionsTest extends Specification {
 
         expect:
         compileOptions.debugOptions == debugOptions.get()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32606")
+    def "getAllCompilerArgs() returns only Strings"() {
+        given:
+        def commandLineArgumentProvider = new CommandLineArgumentProvider() {
+            @Override
+            Iterable<String> asArguments() {
+                return ["${'make this a GString'}"]
+            }
+        }
+        compileOptions.compilerArgumentProviders.add(commandLineArgumentProvider)
+
+        expect:
+        commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
+        compileOptions.allCompilerArgs.size() == 1
+        compileOptions.allCompilerArgs[0] instanceof String
     }
 }
