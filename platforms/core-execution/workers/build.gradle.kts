@@ -26,7 +26,6 @@ dependencies {
     api(libs.inject)
     api(libs.jsr305)
 
-    implementation(projects.hashing)
     implementation(projects.requestHandlerWorker)
     implementation(projects.serialization)
     implementation(projects.snapshots)

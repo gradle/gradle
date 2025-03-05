@@ -25,7 +25,6 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -108,8 +107,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(managedFactoryRegistry);
         }
 
         @Provides
