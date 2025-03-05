@@ -19,6 +19,9 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 
+import java.util.Map;
+
+@SuppressWarnings("unused") // registered as Groovy extension in ExtensionModule
 public class MapPropertyExtensions {
 
     /**
@@ -78,5 +81,29 @@ public class MapPropertyExtensions {
      */
     public static <V> void propertyMissing(MapProperty<String, V> self, String key, Object value) {
         putAt(self, key, value);
+    }
+
+    /**
+     * Adds map entries to the property value.
+     *
+     * <p>Extension method to support the left shift operator in Groovy.</p>
+     *
+     * @param self the {@link MapProperty}
+     * @param entries the entries
+     */
+    public static <K, V> void leftShift(MapProperty<K, V> self, Map<? extends K, ? extends V> entries) {
+        self.putAll(entries);
+    }
+
+    /**
+     * Adds a provider of the map entries to the property value.
+     *
+     * <p>Extension method to support the left shift operator in Groovy.</p>
+     *
+     * @param self the {@link MapProperty}
+     * @param provider the entries
+     */
+    public static <K, V> void leftShift(MapProperty<K, V> self, Provider<? extends Map<? extends K, ? extends V>> provider) {
+        self.putAll(provider);
     }
 }
