@@ -78,11 +78,11 @@ abstract class IvyPluginPublishingPlugin implements Plugin<Project> {
     }
 
     private void createIvyMarkerPublication(final PluginDeclaration declaration, final IvyPublication mainPublication, PublicationContainer publications) {
-        String pluginId = declaration.getId();
+        Provider<String> pluginId = declaration.getId();
         IvyPublicationInternal publication = (IvyPublicationInternal) publications.create(declaration.getName() + "PluginMarkerIvy", IvyPublication.class);
         publication.setAlias(true);
         publication.getOrganisation().set(pluginId);
-        publication.getModule().set(pluginId + PLUGIN_MARKER_SUFFIX);
+        publication.getModule().set(pluginId.map(id -> id + PLUGIN_MARKER_SUFFIX));
 
         // required for configuration cache to lose the dependency on the IvyPublication and make the lambda below serializable
         Provider<String> organisation = mainPublication.getOrganisation();
