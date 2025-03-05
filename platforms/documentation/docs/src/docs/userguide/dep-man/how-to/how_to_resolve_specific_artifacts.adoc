@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[how_to_resolve_specific_artifacts]]
-= How to Resolve Specific Artifacts from a Module Dependency
+= How to Resolve Specific Artifacts from a Module Dependency with Gradle
 
 Gradle resolves module dependencies by looking for metadata files (`.module`, `.pom`, or `ivy.xml`) and a default artifact (usually a JAR).
 If none of these files are found, the build fails.

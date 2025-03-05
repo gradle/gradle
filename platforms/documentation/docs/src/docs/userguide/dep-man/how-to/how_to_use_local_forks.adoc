@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[how_to_use_local_forks]]
-= How to Use a Local Fork of a Module Dependency
+= How to Use a Local Fork of a Module Dependency with Gradle
 
 This guide explains how to replace a module dependency with a **local fork** of the module’s sources, assuming the module itself is built with Gradle.
 

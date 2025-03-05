@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[variant-aware-sharing]]
-= How to Share Artifacts Between Projects
+= How to Share Artifacts Between Projects with Gradle
 
 Gradle provides a mechanism to share artifacts between projects in a flexible and maintainable way using _variant-aware sharing_. This allows consuming projects to select the appropriate artifact based on defined attributes, ensuring compatibility and correctness.
 

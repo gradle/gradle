@@ -23,8 +23,8 @@ Excluding a transitive dependency should be a **conscious decision**, as removin
 
 Before excluding, ensure:
 
-- ✅ Your application does not require the excluded dependency.
-- ✅ You have sufficient **test coverage** to verify that excluding the dependency does not break functionality.
+* Your application does not require the excluded dependency.
+* You have sufficient **test coverage** to verify that excluding the dependency does not break functionality.
 
 Exclusions are useful when:
 
@@ -32,85 +32,84 @@ Exclusions are useful when:
 * You need to **reduce the size of your dependencies**.
 * A **dependency conflict** exists and must be resolved differently.
 
-== Excluding a Transitive Dependency
+== Step 1: Excluding a Transitive Dependency using `exclude()`
 
-You can exclude a transitive dependency **per dependency declaration** by specifying the `group` and `module` attributes.
+First you must find the dependency that is causing the unwanted transitive.
+You can use the `dependencies` task for this.
+In this example, we want to remove the `commons-collections:commons-collections` dependency brought by:
 
-=== Setting Exclude()
+====
+include::sample[dir="snippets/how-to/exclude-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+====
 
-[source,groovy]
-.build.gradle
-----
-dependencies {
-    implementation("commons-beanutils:commons-beanutils:1.9.4") {
-        exclude(group = "commons-collections", module = "commons-collections")
-    }
-}
-----
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases how `commons-collections:commons-collections` is brought in:
+
+====
+include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependencies.out"]
+====
+
+You can exclude a transitive dependency **per dependency declaration** by specifying the `group` and `module` attributes in an `exclude()` rule:
+
+====
+include::sample[dir="snippets/how-to/exclude-transitives/kotlin",files="build.gradle.kts[tags=dependency-ex]"]
+include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gradle[tags=dependency-ex]"]
+====
 
 - This removes `commons-collections` from the transitive dependencies of `commons-beanutils`.
 - The exclusion only applies to **this specific dependency**.
 
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+====
+include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependencies-excluded.out"]
+====
+
 If your application only uses **a subset** of the library that does not require the excluded dependency, this approach is safe.
 
-== Understanding the Impact of Exclusions
+== Step 2: Understanding the Impact of Exclusions
 
 Exclusions **only apply if all dependency declarations agree** on the exclusion.
 If another dependency in your project **still requires** the excluded dependency, Gradle **will not exclude it**.
 
-=== When an Exclusion is Overridden
+====
+include::sample[dir="snippets/how-to/exclude-transitives/kotlin",files="build.gradle.kts[tags=dependency-extra]"]
+include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gradle[tags=dependency-extra]"]
+====
 
-[source,groovy]
-.build.gradle
-----
-dependencies {
-    implementation("commons-beanutils:commons-beanutils:1.9.4") {
-        exclude(group = "commons-collections", module = "commons-collections")
-    }
-    implementation("com.opencsv:opencsv:4.6") // Depends on 'commons-beanutils' but does NOT exclude 'commons-collections'
-}
-----
+In this case, `commons-collections` is **still included** because `opencsv` brings it back.
 
-- In this case, `commons-collections` is **still included** because `opencsv` brings it back.
-- To **fully exclude** `commons-collections`, you must also exclude it from `opencsv`.
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
-=== Exclude a Transitive Dependency for Multiple Dependencies
+====
+include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependencies-extra.out"]
+====
 
-[source,groovy]
-.build.gradle
-----
-dependencies {
-    implementation("commons-beanutils:commons-beanutils:1.9.4") {
-        exclude(group = "commons-collections", module = "commons-collections")
-    }
-    implementation("com.opencsv:opencsv:4.6") {
-        exclude(group = "commons-collections", module = "commons-collections")
-    }
-}
-----
+To **fully exclude** `commons-collections`, you must also exclude it from `opencsv`.
 
-Now `commons-collections` is **fully excluded** from all dependencies that reference it.
+== Step 3: Exclude a Transitive Dependency for Multiple Dependencies
 
-== Alternative Approaches to Dependency Management
+You must repeat Step 1 for any additional dependency:
 
-Before using exclusions, consider whether **other Gradle features** are better suited for resolving dependency conflicts:
+====
+include::sample[dir="snippets/how-to/exclude-transitives/kotlin",files="build.gradle.kts[tags=dependency-extra-ex]"]
+include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gradle[tags=dependency-extra-ex]"]
+====
 
-✅ **Use Dependency Constraints**
-If a dependency version conflict occurs, **adjust the version using a constraint** rather than excluding the dependency entirely.
+This example actually goes a step further as `com.opencsv:opencsv` brings in `commons-collections4`.
 
-✅ **Apply Component Metadata Rules**
-If a dependency is **incorrectly declared** in metadata (e.g., includes an unnecessary compile-time dependency),
-you can **remove the dependency in a component metadata rule** instead of excluding it.
+Now `commons-collections` AND `commons-collections4` are **fully excluded** from all dependencies that reference it.
 
-✅ **Resolve Mutually Exclusive Dependency Conflicts**
-If multiple dependencies **conflict** because they represent different implementations of the same feature
-(e.g., `log4j` vs. `log4j-over-slf4j`), it is better to **define component capabilities** than to exclude one implementation.
+====
+include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependencies-extra-excluded.out"]
+====
 
+== Summary
 
-=== Summary
-
-✅ **Use exclusions only when necessary** to avoid runtime errors.
-✅ **Ensure all dependencies agree** on an exclusion for it to be effective.
-✅ **Consider alternative Gradle features** like dependency constraints or metadata rules before excluding.
-
-By managing transitive dependencies carefully, you can **reduce conflicts, optimize dependencies, and maintain stability** in your builds. 🚀
+- **Use exclusions only when necessary** to avoid runtime errors.
+- **Ensure all dependencies agree** on an exclusion for it to be effective.
+- **Consider alternative Gradle features** like dependency constraints or metadata rules before excluding.
+** **Use Dependency Constraints** - If a dependency version conflict occurs, **adjust the version using a <<dependency_constraits.adoc#dependency-constraints,constraint>>** rather than excluding the dependency entirely.
+** **Apply Component Metadata Rules** - If a dependency is **incorrectly declared** in metadata (e.g., includes an unnecessary compile-time dependency), you can **remove the dependency in a <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>>** instead of excluding it.
+** **Resolve Mutually Exclusive Dependency Conflicts** - If multiple dependencies **conflict** because they represent different implementations of the same feature
+(e.g., `log4j` vs. `log4j-over-slf4j`), it is better to **define <<component_capabilities.adoc#capabilities,component capabilities>>** than to exclude one implementation.
