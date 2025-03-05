@@ -16,17 +16,20 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.problems.internal.ProblemLocator;
 import org.gradle.internal.operations.BuildOperationType;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.scan.UsedByScanPlugin;
+
+import javax.annotation.Nullable;
 
 @UsedByScanPlugin
 public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
     public interface Details {
-        ProblemLocator getProblemLookup();
     }
 
     public interface Result {
+        @Nullable
+        Failure getFailure();
     }
 }
 
