@@ -89,8 +89,21 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
         }
     }
 
-    private val reconstructedGenericInstantiations = schema.genericInstantiationsByFqName.mapValues { (_, values) ->
-        values.mapKeys { (typeArgs, _) -> typeArgs.map(::reconstructTypeArgument) }
+    /**
+     * The construction of this map has been made lazy to ensure compatibility with past Gradle versions.
+     *
+     * What makes it incompatible with past Gradle versions is that it uses [AnalysisSchema.genericInstantiationsByFqName],
+     * which is not available from the schema in past versions.
+     *
+     * By making initialization lazy and because it's used only by code added in the same version, the
+     * incompatibility problem can be avoided.
+     *
+     * @since 8.14
+     */
+    private val reconstructedGenericInstantiations by lazy {
+        schema.genericInstantiationsByFqName.mapValues { (_, values) ->
+            values.mapKeys { (typeArgs, _) -> typeArgs.map(::reconstructTypeArgument) }
+        }
     }
 
     override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? = when (dataTypeRef) {
