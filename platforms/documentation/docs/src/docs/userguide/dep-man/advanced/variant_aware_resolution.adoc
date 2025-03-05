@@ -1,0 +1,569 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+
+[[sec:understanding-variant-selection]]
+= Variant Selection and Attribute Matching
+
+Gradle's dependency management engine is _variant aware_.
+
+In the <<dependency_resolution.adoc#dependency-resolution-basics,previous section>>, Gradle built a graph of resolved dependencies.
+During graph resolution, Gradle selected the proper *variants* of each dependency based on the requirements of the build.
+
+image::dependency-resolution-variant-selection-model.png[]
+
+*Variants* represent different ways a *component* can be used, such as for Java compilation, native linking, or documentation.
+Each *variant* may have its own *artifacts* and *dependencies*.
+
+Gradle uses *attributes* to determine which *variant* to choose.
+These *attributes* add context to each *variant*, describing when they should be used.
+
+== Components
+
+Let's review our description of <<graph_resolution#sec:components,components>> in the previous section.
+A *component*:
+
+* contains *variants*
+** which contain one or more *artifacts*
+** which contain zero or more *dependencies*
+** which is described by *metadata*
+
+image::component-model-gradle.png[]
+
+In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` is the *component*.
+It has a *module* `org.jetbrains.kotlinx:kotlinx-serialization-json` and a *version* `1.5.1`:
+
+image::component-model-gradle-example.png[]
+
+[[sec:abm-configuration-attributes]]
+== Variants and Attributes
+
+<<variant_attributes.adoc#variant-attributes,*Variants*>> represent different versions or aspects of a *component*, like `api` vs `implementation` or `jar` vs `classes`.
+
+In the example above, `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` has four *variants*: `jvm`, `android`, `js`, and `native`.
+
+<<variant_attributes.adoc#variant-attributes,*Attributes*>> are type-safe key-value pairs used by both the _consumer_ and the _producer_ during *variant* selection: `attribute : value`.
+
+In the example above, there are two *attributes* of importance for the *variants* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1`:
+
+[cols="1,~,~"]
+|===
+|Variant: |Attribute 1: | Attribute 2:
+
+|JVM
+|`org.gradle.usage: java-runtime`
+|`org.jetbrains.kotlin.platform.type: jvm`
+
+|Android
+|`org.gradle.usage: java-runtime`
+|`org.jetbrains.kotlin.platform.type: androidJvm`
+
+|Javascript
+|`org.gradle.usage: java-runtime`
+|`org.jetbrains.kotlin.platform.type: js`
+
+|Native
+|`org.gradle.usage: native-link`
+|`org.jetbrains.kotlin.platform.type: native`
+|===
+
+Note that the *metadata* of `org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1` showcases many more *attributes* to describe its *variants* such as `org.gradle.libraryelements` or `org.gradle.category`.
+However, Gradle may use any number of them during dependency resolution as some *attributes* are more relevant than others:
+
+```json
+"variants": [
+...
+  {
+    "name": "jsLegacyRuntimeElements-published",
+    "attributes": {
+      "org.gradle.category": "library",
+      "org.gradle.usage": "kotlin-runtime",
+      "org.jetbrains.kotlin.js.compiler": "legacy",
+      "org.jetbrains.kotlin.platform.type": "js"
+    }
+  },
+  {
+    "name": "jvmRuntimeElements-published",
+    "attributes": {
+      "org.gradle.category": "library",
+      "org.gradle.libraryelements": "jar",
+      "org.gradle.usage": "java-runtime",
+      "org.jetbrains.kotlin.platform.type": "jvm"
+    }
+  },
+...
+]
+```
+
+There are two _types_ of *attributes* Gradle uses to match the available *variants* to the one required for the build:
+
+- *_Consumer_ attributes*: Define the desired characteristics of a *variant* requested by a resolvable configuration.
+- *_Producer_ attributes*: Each *variant* has a set of *attributes* that describe its purpose.
+
+[[sec:variant-aware-matching]]
+== Variant Attribute Matching
+
+There are no restrictions on how many *variants* a *component* can define.
+
+A typical *component* will include at least an implementation *variant* but may also provide additional *variants*, such as test fixtures, documentation, or source code.
+Furthermore, a *component* can offer different *variants* for the same usage, depending on the consumer.
+For instance, during compilation, a *component* may provide different headers for Linux, Windows, and macOS.
+
+Gradle performs _variant-aware selection_ by *matching the attributes specified by the _consumer_ with those defined by the _producer_* using an *attribute* matching algorithm.
+
+image::dependency-resolution-variant-selection.png[]
+
+IMPORTANT: The *variant* name is primarily used for debugging and error messages. It does not play a role in variant matching; only the variant's *attributes* are used in the matching process.
+
+[[sec:abm-algorithm]]
+== Attribute Matching Algorithm
+
+Gradle's dependency resolution engine follows this *attribute matching* algorithm to determine the best candidate (or fail if no match is found):
+
+image::dep-man-adv-5.png[]
+
+=== Step 1: Find Compatible Candidates
+
+The *requested attributes* are matched against the *candidate attributes*.
+
+* FOR each *candidate*:
+** FOR each *candidate attribute*:
+*** IF the *candidate attribute is missing*, mark the candidate as missing.
+*** ELSE IF the *candidate attribute exactly matches* the requested attribute, the candidate remains compatible.
+*** ELSE IF the *candidate attribute passes the compatibility test*, the candidate remains compatible.
+*** ELSE, the candidate is eliminated.
+
+=== Step 2: Most Matching Attributes
+
+After filtering, Gradle checks if one **candidate is a strict superset** of all others.
+
+* IF **only one candidate** remains, that candidate wins.
+* IF **multiple candidates remain**, check if one:
+** Matches **more attributes** than any other.
+** Has **no missing attributes** compared to another candidate.
+* IF **such a strict superset exists**, that candidate wins.
+
+=== Step 3: Disambiguation Using Requested Attributes
+
+If multiple candidates remain, Gradle attempts **disambiguation**:
+
+* *Requested attributes* are link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(java.util.List)[**sorted by precedence**].
+* FOR each *requested attribute* **in precedence order**:
+** IF **a link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[disambiguation rule] exists**, apply it.
+** IF **a requested attribute has the same value across all remaining candidates**, ignore it.
+* IF **only one candidate remains**, that candidate wins.
+
+If **multiple candidates still remain**, Gradle processes **unordered attributes** (those not in the precedence list):
+
+* FOR each *requested attribute* **without precedence order**:
+** IF **a disambiguation rule exists**, apply it.
+** IF **a requested attribute has the same value across all remaining candidates**, ignore it.
+* IF **only one candidate remains**, that candidate wins.
+* IF *no candidates remain*, Gradle falls back to the most compatible candidates (step 2).
+
+=== Step 4: Disambiguation Using Extra Attributes
+
+If multiple candidates still remain, Gradle considers **extra attributes**:
+
+* These are attributes that exist **only in some candidates**.
+* Candidates that **lack extra attributes** are preferred.
+* The **attribute precedence order** is considered.
+
+First, Gradle processes **prioritized extra attributes**:
+
+* FOR each *extra attribute* in *precedence order*:
+** IF some candidates have the attribute and others don’t:
+*** Candidates *that lack the extra attribute* are preferred.
+*** Candidates *with the extra attribute* are eliminated.
+* IF **only one candidate remains**, that candidate wins.
+* IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
+
+Then, Gradle processes **unordered extra attributes**:
+
+* FOR each remaining *extra attribute* *without defined precedence*:
+** IF the attribute is present in only some candidates:
+*** Candidates without the attribute are preferred.
+*** Candidates with the extra attribute are eliminated.
+* IF **only one candidate remains**, that candidate wins.
+* IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
+
+=== Step 5: Disambiguation Using Extra Attribute Presence
+
+If candidates **still** remain, Gradle eliminates candidates based on **requested attributes**:
+
+* FOR each *extra attribute*:
+** IF **all candidates provide the same value**, ignore it.
+** ELSE, *remove candidates* that do provide it.
+* IF **only one candidate remains**, that candidate wins.
+
+=== Step 6: Failure Condition
+
+Unless otherwise indicated, if at any point **no candidates remain**, **resolution fails**.
+
+Additionally, Gradle outputs a list of all compatible candidates from step 1 to help with debugging *attribute* matching failures.
+
+Plugins and ecosystems can influence the selection algorithm by implementing compatibility rules, disambiguation rules, and defining the precedence of *attributes*.
+*Attributes* with a higher precedence are used to eliminate candidates in order.
+
+For example, in the Java ecosystem, the `org.gradle.usage` *attribute* has a higher precedence than `org.gradle.libraryelements`.
+This means that if two candidates were available with compatible values for both `org.gradle.usage` and `org.gradle.libraryelements`, Gradle will choose the candidate that passes the disambiguation rule for `org.gradle.usage`.
+
+[NOTE]
+====
+There are two exceptions to the variant-aware resolution process:
+
+- When a producer has no *variants*, a default *artifact* is selected.
+- When a consumer _explicitly selects a configuration by name_, the *artifacts* associated with that configuration are used.
+====
+
+== A Simple Example
+
+Let’s walk through an example where a _consumer_ is trying to use a library for compilation.
+
+First, the _consumer_ details how it's going to use the result of dependency resolution.
+This is achieved by setting *attributes* on the consumer's resolvable configuration.
+
+In this case, the _consumer_ wants to resolve a *variant* that matches `org.gradle.usage=java-api`.
+
+Next, the _producer_ exposes different *variants* of its *component*:
+
+- **API variant** (named `apiElements`) with the *attribute* `org.gradle.usage=java-api`
+- **Runtime variant** (named `runtimeElements`) with the *attribute* `org.gradle.usage=java-runtime`
+
+Finally, Gradle evaluates the *variants* and selects the correct one:
+
+- The _consumer_ requests a *variant* with *attributes* `org.gradle.usage=java-api`
+- The _producer_’s `apiElements` *variant* matches this request.
+- The _producer_’s `runtimeElements` *variant* does not match.
+
+[cols="3,3,2,1"]
+|===
+| Consumer Requested Attributes | Producer Available Attributes | Producer Variant | Match?
+
+| `org.gradle.usage=java-api`
+| `org.gradle.usage=java-api`
+| `apiElements`
+| ✅ Yes
+
+| `org.gradle.usage=java-api`
+| `org.gradle.usage=java-runtime`
+| `runtimeElements`
+| ❌ No
+|===
+
+As a result, Gradle selects the `apiElements` *variant* and provides its *artifacts* and *dependencies* to the _consumer_.
+
+== A Complicated Example
+
+In real-world scenarios, both _consumers_ and _producers_ often work with multiple *attributes*.
+
+For instance, a Java Library project in Gradle will involve several *attributes*:
+
+[cols="~,~"]
+|===
+| Attribute | Description
+
+| `org.gradle.usage`
+| Describes how the variant is used.
+
+| `org.gradle.dependency.bundling`
+| Describes how the variant handles dependencies (e.g., shadow jar, fat jar, regular jar).
+
+| `org.gradle.libraryelements`
+| Describes the packaging of the variant (e.g., classes or jar).
+
+| `org.gradle.jvm.version`
+| Describes the _minimal version_ of Java the variant targets.
+
+| `org.gradle.jvm.environment`
+| Describes the type of JVM the variant targets.
+|===
+
+Let’s consider a scenario where the _consumer_ wants to run tests using a library on Java 8, and the _producer_ supports two *versions*: Java 8 and Java 11.
+
+**Step 1: Consumer specifies the requirements.**
+
+The _consumer_ wants to resolve a *variant* that:
+
+- Can be used at runtime (`org.gradle.usage=java-runtime`).
+- Can run on _at least_ Java 8 (`org.gradle.jvm.version=8`).
+
+**Step 2: Producer exposes multiple variants.**
+
+The _producer_ offers *variants* for both Java 8 and Java 11 for both API and runtime usage:
+
+[cols="~,~"]
+|===
+| Variant Name | Attributes
+
+| `apiJava8Elements`
+| `org.gradle.usage=java-api`, `org.gradle.jvm.version=8`
+
+| `runtime8Elements`
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=8`
+
+| `apiJava11Elements`
+| `org.gradle.usage=java-api`, `org.gradle.jvm.version=11`
+
+| `runtime11Elements`
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=11`
+|===
+
+**Step 3: Gradle matches the attributes.**
+
+Gradle compares the _consumer_'s requested *attributes* with the _producer_'s *variants*:
+
+- The _consumer_ requests a *variant* with `org.gradle.usage=java-runtime` and `org.gradle.jvm.version=8`.
+- Both `runtime8Elements` and `runtime11Elements` match the `org.gradle.usage=java-runtime` *attribute*.
+- The API *variants* (`apiJava8Elements` and `apiJava11Elements`) are discarded as they don't match `org.gradle.usage=java-runtime`.
+- The *variant* `runtime8Elements` is selected because it is compatible with Java 8.
+- The *variant* `runtime11Elements` is incompatible because it requires Java 11.
+
+[cols="3,3,2,1"]
+|===
+| Consumer Requested Attributes | Producer Available Attributes | Producer Variant | Match?
+
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=8`
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=8`
+| `runtime8Elements`
+| ✅ Selected
+
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=8`
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=11`
+| `runtime11Elements`
+| ❌ Incompatible
+
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=8`
+| `org.gradle.usage=java-api`, `org.gradle.jvm.version=8`
+| `apiJava8Elements`
+| ❌ Discarded
+
+| `org.gradle.usage=java-runtime`, `org.gradle.jvm.version=8`
+| `org.gradle.usage=java-api`, `org.gradle.jvm.version=11`
+| `apiJava11Elements`
+| ❌ Discarded
+|===
+
+Gradle selects `runtime8Elements` and provides its *artifacts* and *dependencies* to the _consumer_.
+
+But what happens if the _consumer_ sets `org.gradle.jvm.version=7`?
+
+In this case, dependency resolution would _fail_, with an error explaining there is no suitable *variant*.
+Gradle knows the _consumer_ requires a Java 7-compatible library, but the _producer_'s minimum version is 8.
+
+If the _consumer_ requested `org.gradle.jvm.version=15`, Gradle could choose either the Java 8 or Java 11 *variant*.
+Gradle would then select the highest compatible version—Java 11.
+
+[[sec:variant-visual]]
+== Visualizing Variant Information
+
+Gradle offers built-in tasks to visualize the *variant* selection process and display the _producer_ and _consumer_ *attributes* involved.
+
+[[outgoing_variants_report]]
+=== Outgoing variants report
+
+The report task `outgoingVariants` shows the list of *variants* available for selection by _consumers_ of the project.
+It displays the *capabilities*, *attributes* and *artifacts* for each *variant*.
+
+This task is similar to the `dependencyInsight` <<viewing_debugging_dependencies.adoc#sec:identifying-reason-dependency-selection,reporting task>>.
+
+By default, `outgoingVariants` prints information about all *variants*.
+It offers the optional parameter `--variant <variantName>` to select a single *variant* to display.
+It also accepts the `--all` flag to include information about legacy and deprecated configurations, or `--no-all` to exclude this information.
+
+Here is the output of the `outgoingVariants` task on a freshly generated `java-library` project:
+
+[listing]
+----
+> Task :outgoingVariants
+--------------------------------------------------
+Variant apiElements
+--------------------------------------------------
+API elements for the 'main' feature.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-api
+Artifacts
+    - build/libs/lib.jar (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes
+    --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-api
+        Artifacts
+            - build/classes/java/main (artifactType = java-classes-directory)
+
+--------------------------------------------------
+Variant mainSourceElements (i)
+--------------------------------------------------
+Description = List of source directories contained in the Main SourceSet.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = verification
+    - org.gradle.dependency.bundling = external
+    - org.gradle.verificationtype    = main-sources
+Artifacts
+    - src/main/java (artifactType = directory)
+    - src/main/resources (artifactType = directory)
+
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Runtime elements for the 'main' feature.
+
+Capabilities
+    - new-java-library:lib:unspecified (default capability)
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Artifacts
+    - build/libs/lib.jar (artifactType = jar)
+
+Secondary Variants (*)
+
+    --------------------------------------------------
+    Secondary Variant classes
+    --------------------------------------------------
+        Description = Directories containing compiled class files for main.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = classes
+            - org.gradle.usage               = java-runtime
+        Artifacts
+            - build/classes/java/main (artifactType = java-classes-directory)
+
+    --------------------------------------------------
+    Secondary Variant resources
+    --------------------------------------------------
+        Description = Directories containing the project's assembled resource files for use at runtime.
+
+        Attributes
+            - org.gradle.category            = library
+            - org.gradle.dependency.bundling = external
+            - org.gradle.jvm.version         = 11
+            - org.gradle.libraryelements     = resources
+            - org.gradle.usage               = java-runtime
+        Artifacts
+            - build/resources/main (artifactType = java-resources-directory)
+----
+
+From this you can see the two main *variants* that are exposed by a java library, `apiElements` and `runtimeElements`.
+Notice that the main difference is on the `org.gradle.usage` *attribute*, with values `java-api` and `java-runtime`.
+As they indicate, this is where the difference is made between what needs to be on the _compile_ classpath of _consumers_, versus what's needed on the _runtime_ classpath.
+
+It also shows _secondary_ *variants*, which are exclusive to Gradle projects and not published.
+For example, the secondary *variant* `classes` from `apiElements` is what allows Gradle to skip the JAR creation when compiling against a <<java_library_plugin.adoc#sec:java_library_classes_usage,`java-library` project>>.
+
+==== Information about invalid consumable configurations
+
+A project cannot have multiple configurations with the same *attributes* and *capabilities*.
+In that case, the project will fail to build.
+
+In order to be able to visualize such issues, the outgoing *variant* reports handle those errors in a lenient fashion.
+This allows the report to display information about the issue.
+
+=== Resolvable configurations report
+
+Gradle also offers a complimentary report task called `resolvableConfigurations` that displays the _resolvable_ configurations of a project, which are those which can have dependencies added and be resolved.
+
+The report will list their *attributes* and any configurations that they extend.
+It will also list a summary of any *attributes* which will be affected by <<variant_attributes.adoc#sec:abm-compatibility-rules, Compatibility Rules>> or <<variant_attributes.adoc#sec:abm-disambiguation-rules, Disambiguation Rules>> during resolution.
+
+By default, `resolvableConfigurations` prints information about all purely resolvable configurations.
+These are configurations that are marked resolvable but *not* marked consumable.
+Though some resolvable configurations are also marked consumable, these are legacy configurations that should *not* have dependencies added in build scripts.
+
+This report offers:
+
+* An optional parameter:
+** `--configuration <configurationName>` → Selects a single configuration to display.
+* Flags for including or excluding legacy and deprecated configurations:
+** `--all` → Includes information about legacy and deprecated configurations.
+** `--no-all` → Excludes this information.
+* Flags for controlling transitive extensions in the extended configurations section:
+** `--recursive` → Lists configurations that are extended _transitively_ rather than directly.
+** `--no-recursive` → Excludes this information.
+
+
+Here is the output of the `resolvableConfigurations` task on a freshly generated `java-library` project:
+
+[listing]
+----
+> Task :resolvableConfigurations
+--------------------------------------------------
+Configuration compileClasspath
+--------------------------------------------------
+Description = Compile classpath for source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = classes
+    - org.gradle.usage               = java-api
+Extended Configurations
+    - compileOnly
+    - implementation
+
+--------------------------------------------------
+Configuration runtimeClasspath
+--------------------------------------------------
+Description = Runtime classpath of source set 'main'.
+
+Attributes
+    - org.gradle.category            = library
+    - org.gradle.dependency.bundling = external
+    - org.gradle.jvm.environment     = standard-jvm
+    - org.gradle.jvm.version         = 11
+    - org.gradle.libraryelements     = jar
+    - org.gradle.usage               = java-runtime
+Extended Configurations
+    - implementation
+    - runtimeOnly
+
+[...]
+----
+
+From this you can see the two main configurations used to resolve dependencies, `compileClasspath` and `runtimeClasspath`, as well as their corresponding test configurations (truncated).
+
+Now that we understand *variant* selection and *attribute* matching, let's move on to the artifact resolution phase of dependency resolution.
+This phase is also *variant* aware.
+
+[.text-right]
+**Next Step:** <<artifact_resolution.adoc#artifact-resolution,Learn about Artifact Resolution>> >>

@@ -182,7 +182,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-conditi
 [[sec:variant-aware-substitutions]]
 === Substituting a dependency with another variant
 
-You can substitute a dependency with another <<variant_model.adoc#sec:understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
+You can substitute a dependency with another <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
 
 This is useful when your build process needs to change the type of dependency based on specific conditions:
 

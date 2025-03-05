@@ -26,7 +26,7 @@ This is done as the last step when resolving artifacts, before tasks or tools li
 [[sec:artifact-transforms-overview]]
 == Artifact Transforms Overview
 
-Each component exposes a set of <<declaring_configurations.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_model.adoc#sec:abm-configuration-attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
+Each component exposes a set of <<declaring_configurations.adoc#sec:resolvable-consumable-configs,**variants**>>, where each variant is identified by a set of <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,**attributes**>> (i.e., key-value pairs such as `debug=true`).
 
 When Gradle resolves a configuration, it looks at each dependency, resolves it to a component, and selects the corresponding variant from that component that matches the requested attributes.
 If the component does not have a matching variant, resolution fails *unless* Gradle can construct a sequence of transformations that will modify an existing artifact to create a valid match (without changing its transitive dependencies).
@@ -123,7 +123,7 @@ Gradle produces a "virtual artifact set" of the component as part of this proces
 Dependencies can have different <<declaring_configurations.adoc#sec:resolvable-consumable-configs,**variants**>>, essentially different versions or forms of the same dependency.
 These variants can each provide a different artifact set, meant to satisfy different use cases, such as compiling code, browsing documentation or running applications.
 
-Each variant is identified by a set of <<variant_model.adoc#sec:abm-configuration-attributes,**attributes**>>.
+Each variant is identified by a set of <<variant_aware_resolution.adoc#sec:abm-configuration-attributes,**attributes**>>.
 Attributes are key-value pairs that describe specific characteristics of the variant.
 
 image::artifact-transform-4.png[]

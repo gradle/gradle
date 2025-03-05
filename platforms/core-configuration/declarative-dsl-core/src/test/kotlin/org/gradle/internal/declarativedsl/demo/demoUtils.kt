@@ -1,18 +1,10 @@
 package org.gradle.internal.declarativedsl.demo
 
-import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.internal.declarativedsl.analysis.OperationId
 import org.gradle.internal.declarativedsl.analysis.ResolutionResult
-import org.gradle.internal.declarativedsl.analysis.Resolver
 import org.gradle.internal.declarativedsl.analysis.ref
-import org.gradle.internal.declarativedsl.analysis.tracingCodeResolver
 import org.gradle.internal.declarativedsl.language.DataTypeInternal
-import org.gradle.internal.declarativedsl.language.FailingResult
-import org.gradle.internal.declarativedsl.language.MultipleFailuresResult
-import org.gradle.internal.declarativedsl.language.ParsingError
-import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.language.UnsupportedConstruct
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentAdditionResult.AssignmentAdded
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
@@ -20,8 +12,6 @@ import org.gradle.internal.declarativedsl.objectGraph.AssignmentTrace
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
 import org.gradle.internal.declarativedsl.objectGraph.AssignmentTracer
 import org.gradle.internal.declarativedsl.objectGraph.ObjectReflection
-import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
-import org.gradle.internal.declarativedsl.parsing.parse
 
 
 val int = DataTypeInternal.DefaultIntDataType.ref
@@ -31,38 +21,6 @@ val string = DataTypeInternal.DefaultStringDataType.ref
 
 
 val boolean = DataTypeInternal.DefaultBooleanDataType.ref
-
-
-fun AnalysisSchema.resolve(
-    code: String,
-    resolver: Resolver = tracingCodeResolver()
-): ResolutionResult {
-    val parsedTree = parse(code)
-
-    val languageBuilder = DefaultLanguageTreeBuilder()
-    val tree = languageBuilder.build(parsedTree, SourceIdentifier("demo"))
-
-    val failures = tree.allFailures
-
-    if (failures.isNotEmpty()) {
-        println("Failures:")
-        fun printFailures(failure: FailingResult) {
-            when (failure) {
-                is ParsingError -> println(
-                    "Parsing error: " + failure.message
-                )
-                is UnsupportedConstruct -> println(
-                    failure.languageFeature.toString() + " in " + parsedTree.wrappedCode.slice(parsedTree.originalCodeOffset..parsedTree.originalCodeOffset + 100)
-                )
-                is MultipleFailuresResult -> failure.failures.forEach { printFailures(it) }
-            }
-        }
-        failures.forEach { printFailures(it) }
-    }
-
-    val result = resolver.resolve(this, tree.imports, tree.topLevelBlock)
-    return result
-}
 
 
 fun printResolutionResults(
