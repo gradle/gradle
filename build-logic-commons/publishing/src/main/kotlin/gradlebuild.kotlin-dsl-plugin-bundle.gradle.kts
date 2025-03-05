@@ -123,7 +123,11 @@ gradlePlugin {
         }
 
         writeFuturePluginVersions {
-            property(plugin.id, version)
+            /**
+             * TODO: Remove for Gradle 9.0, used as a workaround for Provider API
+             */
+            fun String.get() = this
+            property(plugin.id.get(), version)
         }
     }
 }
