@@ -3,6 +3,7 @@ package org.gradle.internal.declarativedsl.analysis
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
 import org.gradle.declarative.dsl.schema.AnalysisSchema
 import org.gradle.declarative.dsl.schema.DataType
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FqName
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
@@ -65,12 +66,52 @@ interface AnalysisContextView : TypeRefContext {
 
 
 class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
-    override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? =when (dataTypeRef) {
+    /**
+     * "Reconstruction" here and below is the process of making sure that the implementation of the interface like [TypeArgument] or [DataTypeRef] used
+     * as the map key is the _current implementation_, as opposed to a [java.lang.reflect.Proxy] provided by the TAPI implementing those interfaces.
+     *
+     * This is needed to ensure that the keys used in the map match the keys passed during lookup.
+     * When the proxies are stored as keys in the map, they will not match proper instances constructed by the client code, including the resolver code.
+     */
+    private fun reconstructTypeArgument(typeArgument: TypeArgument): TypeArgument = when (typeArgument) {
+        is TypeArgument.ConcreteTypeArgument -> TypeArgumentInternal.DefaultConcreteTypeArgument(reconstructTypeRef(typeArgument.type))
+        is TypeArgument.StarProjection -> TypeArgumentInternal.DefaultStarProjection()
+    }
+
+    private fun reconstructTypeRef(dataTypeRef: DataTypeRef): DataTypeRef {
+        return when (dataTypeRef) {
+            is DataTypeRef.Name -> DataTypeRefInternal.DefaultName(dataTypeRef.fqName)
+            is DataTypeRef.NameWithArgs -> DataTypeRefInternal.DefaultNameWithArgs(
+                dataTypeRef.fqName,
+                dataTypeRef.typeArguments.map { reconstructTypeArgument(it) }
+            )
+            is DataTypeRef.Type -> DataTypeRefInternal.DefaultType(dataTypeRef.dataType)
+        }
+    }
+
+    /**
+     * The construction of this map has been made lazy to ensure compatibility with past Gradle versions.
+     *
+     * What makes it incompatible with past Gradle versions is that it uses [AnalysisSchema.genericInstantiationsByFqName],
+     * which is not available from the schema in past versions.
+     *
+     * By making initialization lazy and because it's used only by code added in the same version, the
+     * incompatibility problem can be avoided.
+     *
+     * @since 8.14
+     */
+    private val reconstructedGenericInstantiations by lazy {
+        schema.genericInstantiationsByFqName.mapValues { (_, values) ->
+            values.mapKeys { (typeArgs, _) -> typeArgs.map(::reconstructTypeArgument) }
+        }
+    }
+
+    override fun maybeResolveRef(dataTypeRef: DataTypeRef): DataType? = when (dataTypeRef) {
         is DataTypeRef.Name ->
             schema.dataClassTypesByFqName[dataTypeRef.fqName]
 
         is DataTypeRef.NameWithArgs ->
-            schema.genericInstantiationsByFqName[dataTypeRef.fqName]?.get(dataTypeRef.typeArguments)
+            reconstructedGenericInstantiations[dataTypeRef.fqName]?.get(dataTypeRef.typeArguments.map(::reconstructTypeArgument))
 
         is DataTypeRef.Type -> dataTypeRef.dataType
     }
