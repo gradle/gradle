@@ -1,0 +1,10 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_exclude_transitive_dependencies'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+\--- commons-beanutils:commons-beanutils:1.9.4
+     +--- commons-logging:commons-logging:1.2
+     \--- commons-collections:commons-collections:3.2.2

@@ -40,6 +40,9 @@ Gradle offers multiple notations for declaring module dependencies, including st
 - **String Notation:** Simplifies dependency declaration by combining the group, name, and version into a single string.
 - **Map Notation:** Allows for specifying each part of the coordinates separately.
 
+Module dependencies use the link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html[`ExternalModuleDependency`] and link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[`DependencyHandler`] APIs.
+These APIs provide various properties and configuration methods for defining dependencies.
+
 For advanced configurations, such as enforcing strict versions, you can also provide a closure when alongside these notations.
 
 [[sec:project-dependencies]]

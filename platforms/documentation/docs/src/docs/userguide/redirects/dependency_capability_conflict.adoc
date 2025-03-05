@@ -3,7 +3,8 @@
 const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
 
 const redirectionRules = {
-  "sub:capabilities": "component_capabilities.html#capabilities",
+  "sub:capabilities": "component_capabilities.html#sec:capabilities",
+  "capability_coordinates": "component_capabilities.html#sec:declaring-capabilities-external-modules",
   "sub:declaring-component-capabilities": "component_capabilities.html#sec:declaring-component-capabilities",
   "sub:selecting-between-candidates": "component_capabilities.html#sec:selecting-between-candidates",
   "sub:selecting-preferred-capability-provider": "component_capabilities.html#sec:selecting-preferred-capability-provider"

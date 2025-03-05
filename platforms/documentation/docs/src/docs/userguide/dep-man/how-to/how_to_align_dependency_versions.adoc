@@ -1,0 +1,150 @@
+// Copyright 2025 Gradle and contributors.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.
+// You may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[version_alignment]]
+= How to Align Dependency Versions in Gradle
+
+Dependency version alignment ensures that different modules belonging to the same logical group (a <<platforms.adoc#platforms,platform>>) use identical versions in the dependency graph.
+
+== Step 1: Understanding Inconsistent Module Versions
+
+Gradle supports aligning versions of modules that belong to the same <<platforms.adoc#platforms,*platform*>>.
+For example, a component’s **API and implementation modules** should use the **same version**.
+
+However, due to **transitive dependency resolution**, modules within the same platform may end up using **different versions**, leading to potential compatibility issues.
+
+Consider the following example, where your project depends on both `jackson-databind` and `vert.x`:
+
+[source,groovy]
+----
+dependencies {
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.5'
+    implementation 'io.vertx:vertx-core:3.5.0'
+}
+----
+
+Dependency resolution may result in:
+
+- **`jackson-core`** → `2.9.5` (required by `vertx-core`)
+- **`jackson-databind`** → `2.9.5` (resolved via conflict resolution)
+- **`jackson-annotations`** → `2.9.0` (a dependency of `jackson-databind:2.9.5`)
+
+This mismatch can lead to **incompatibility issues** and unexpected failures.
+
+== Step 2: Using Platforms to Align Versions
+
+Gradle provides **dependency version alignment** through **platforms**, ensuring related modules use **consistent versions**.
+
+A **platform** represents a group of modules that:
+
+1. **Are published together** – All modules are released with the **same version**.
+2. **Have been tested together** – Curated platforms, such as **Spring Platform**, ensure compatibility across modules.
+
+Using **platforms** prevents version conflicts and ensures **better compatibility**.
+
+== Step 3: Aligning Versions Natively with Gradle
+
+Gradle **natively supports version alignment** using the <<java_platform_plugin.adoc#java_platform_plugin, Java Platform Plugin>>.
+
+Consider a project with three modules:
+
+- `lib`
+- `utils`
+- `core` _(depends on `lib` and `utils`)_
+
+A **consumer project** declares:
+
+[source,groovy]
+----
+dependencies {
+    implementation 'com.example:core:1.0'
+    implementation 'com.example:lib:1.1'
+}
+----
+
+By default, Gradle selects `core:1.0` and `lib:1.1`, leading to **version misalignment**.
+
+To fix this, introduce a **platform module** that enforces constraints:
+
+[source,groovy]
+----
+dependencies {
+    constraints {
+        implementation 'com.example:core:1.1'
+        implementation 'com.example:lib:1.1'
+    }
+}
+----
+
+Each module should declare a **dependency on the platform**:
+
+[source,groovy]
+----
+dependencies {
+    implementation platform('com.example:platform:1.1')
+}
+----
+
+== Step 4: Aligning Versions for Unpublished Modules
+
+When a publisher **does not use Gradle**, like **Jackson**, you can still align module versions manually:
+
+=== Option 1: Using a Published BOM (Bill of Materials)
+
+If a BOM is available, import it as a platform:
+
+[source,groovy]
+----
+dependencies {
+    implementation platform('com.fasterxml.jackson:jackson-bom:2.9.5')
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+}
+----
+
+=== Option 2: Creating a Virtual Platform
+
+If no BOM exists, create a **virtual platform** in Gradle:
+
+[source,groovy]
+----
+dependencies {
+    components {
+        withModule('com.fasterxml.jackson.core:jackson-databind') {
+            belongsTo('com.fasterxml.jackson:jackson-virtual-platform')
+        }
+    }
+}
+----
+
+This ensures that all **Jackson modules align to the same version**, even if brought in transitively.
+
+== Step 5: Overriding a Platform Version
+
+If needed, you can **enforce a specific version**:
+
+[source,groovy]
+----
+dependencies {
+    implementation enforcedPlatform('com.fasterxml.jackson:jackson-bom:2.8.9')
+}
+----
+
+This guarantees that **all Jackson modules use version 2.8.9**, even if another version is declared.
+
+== Conclusion
+
+Using **platforms and BOMs**, Gradle ensures **consistent dependency versions**, avoiding compatibility issues. When no published BOM exists, **virtual platforms** allow manual alignment of dependencies.
+
+For more details, see the <<platforms.adoc#platforms, Platforms documentation>>.
+

@@ -16,7 +16,7 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[feature_variants]]
-= Modeling library features
+= How to create Feature Variants for a Library in Gradle
 
 Gradle supports the concept of _features_: it's often the case that a single library can be split up into multiple related yet distinct libraries, where each _feature_ can be used alongside the _main_ library.
 
