@@ -150,7 +150,7 @@ public class DefaultFailureFactory implements FailureFactory {
         private List<Failure> convertSuppressed(SuppressedAndCauses suppressedAndCauses) {
             Throwable[] suppressed = suppressedAndCauses.suppressed;
             if (suppressed == null) {
-                return ImmutableList.of();
+                return Collections.emptyList();
             }
 
             return CollectionUtils.collect(
@@ -163,7 +163,7 @@ public class DefaultFailureFactory implements FailureFactory {
         private List<Failure> convertCauses(SuppressedAndCauses suppressedAndCauses) {
             List<Throwable> causes = suppressedAndCauses.causes;
             if (causes.isEmpty()) {
-                return ImmutableList.of();
+                return Collections.emptyList();
             }
             return CollectionUtils.collect(
                 causes,

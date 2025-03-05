@@ -35,7 +35,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
         0 * visitor._
 
@@ -52,12 +52,12 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(f(childCause))
+        1 * visitor.node(asFailure(childCause))
 
         and:
         1 * visitor.endChildren()
@@ -76,12 +76,12 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(f(childCause))
+        1 * visitor.node(asFailure(childCause))
 
         and:
         1 * visitor.endChildren()
@@ -105,12 +105,12 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
 
-        1 * visitor.node(f(contextual))
-        1 * visitor.node(f(lastContextual))
-        1 * visitor.node(f(reportedCause))
+        1 * visitor.node(asFailure(contextual))
+        1 * visitor.node(asFailure(lastContextual))
+        1 * visitor.node(asFailure(reportedCause))
 
         and:
         _ * visitor.startChildren()
@@ -131,16 +131,16 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(f(childCause1))
+        1 * visitor.node(asFailure(childCause1))
 
         and:
-        1 * visitor.node(f(childCause2))
+        1 * visitor.node(asFailure(childCause2))
 
         and:
         1 * visitor.endChildren()
@@ -163,28 +163,28 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(intermediate2))
+        1 * visitor.visitCause(asFailure(intermediate2))
         1 * visitor.endVisiting()
 
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(f(cause))
+        1 * visitor.node(asFailure(cause))
 
         and:
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(f(childCause1))
+        1 * visitor.node(asFailure(childCause1))
 
         and:
-        1 * visitor.node(f(childCause2))
+        1 * visitor.node(asFailure(childCause2))
 
         and:
         1 * visitor.startChildren()
 
         and:
-        1 * visitor.node(f(detail))
+        1 * visitor.node(asFailure(detail))
 
         and:
         3 * visitor.endChildren()
@@ -207,14 +207,14 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
 
         3 * visitor.startChildren()
-        1 * visitor.node(f(childCause1))
-        1 * visitor.node(f(childCause4))
-        1 * visitor.node(f(childCause3))
-        1 * visitor.node(f(childCause2))
+        1 * visitor.node(asFailure(childCause1))
+        1 * visitor.node(asFailure(childCause4))
+        1 * visitor.node(asFailure(childCause3))
+        1 * visitor.node(asFailure(childCause2))
         3 * visitor.endChildren()
         0 * visitor._
 
@@ -231,7 +231,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         accept(e, visitor)
 
         then:
-        1 * visitor.visitCause(f(cause))
+        1 * visitor.visitCause(asFailure(cause))
         1 * visitor.endVisiting()
         1 * visitor.visitLocation("Location line: 42")
         0 * visitor._
@@ -256,7 +256,7 @@ class ContextAwareExceptionHandlerTest extends Specification {
         return ContextAwareExceptionHandler.getReportableCauses(failureFactory.create(e)).collect { it.original }
     }
 
-    private Failure f(Throwable e) {
+    private Failure asFailure(Throwable e) {
         failureFactory.create(e)
     }
 }
