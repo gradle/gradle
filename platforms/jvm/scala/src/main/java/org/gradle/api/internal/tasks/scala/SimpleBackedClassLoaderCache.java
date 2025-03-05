@@ -17,53 +17,54 @@
 package org.gradle.api.internal.tasks.scala;
 
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
-
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
- * Simple guava-based classloader cache. Usually used with a very small size (&lt; 10),
- * as classloaders are strongly referenced.
+ * Simple classloader cache. Usually used with a very small size (&lt; 10) as classloaders are strongly referenced.
  *
  * Keeping them strongly referenced allows us to correctly release resources for the evicted entries.
  */
-public class GuavaBackedClassLoaderCache<K> implements AutoCloseable {
-    private final Cache<K, ClassLoader> cache;
+public class SimpleBackedClassLoaderCache<K> implements AutoCloseable {
+    private final Map<K, ClassLoader> cache;
 
-
-    public GuavaBackedClassLoaderCache(int maxSize) {
-        cache = CacheBuilder
-            .newBuilder()
-            .maximumSize(maxSize)
-            .removalListener(new RemovalListener<K, ClassLoader>() {
-                @Override
-                public void onRemoval(RemovalNotification<K, ClassLoader> notification) {
-                    ClassLoader value = notification.getValue();
+    public SimpleBackedClassLoaderCache(int maxSize) {
+        cache = new LinkedHashMap<K, ClassLoader>() {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<K, ClassLoader> eldest) {
+                boolean remove = size() > maxSize;
+                if (remove) {
+                    ClassLoader value = eldest.getValue();
                     if (value instanceof AutoCloseable) {
                         try {
                             ((AutoCloseable) value).close();
-                        } catch(Exception ex) {
+                        } catch (Exception ex) {
                             throw new RuntimeException("Failed to close classloader", ex);
                         }
                     }
                 }
-            })
-            .build();
+                return remove;
+            }
+        };
     }
 
     public ClassLoader get(K key, Callable<ClassLoader> loader) throws Exception {
-        return cache.get(key, loader);
+        return cache.computeIfAbsent(key, k -> {
+            try {
+                return loader.call();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public void clear() {
-        cache.invalidateAll();
+        cache.clear();
     }
 
     @Override
     public void close() {
-        cache.invalidateAll();
+        clear();
     }
 }
