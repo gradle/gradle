@@ -57,6 +57,8 @@ import org.gradle.internal.component.resolution.failure.type.NoCompatibleVariant
 import org.gradle.internal.component.resolution.failure.type.NoVariantsWithMatchingCapabilitiesFailure;
 import org.gradle.internal.component.resolution.failure.type.UnknownArtifactSelectionFailure;
 import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -83,6 +85,7 @@ import java.util.stream.Stream;
  * @implNote The methods for reporting failures via this class are ordered to match the stages of the variant selection process and
  * within those stages alphabetically, with names aligned with the failure type hierarchy.  This makes it much easier to navigate.
  */
+@ServiceScope(Scope.Project.class)
 public class ResolutionFailureHandler {
     public static final String DEFAULT_MESSAGE_PREFIX = "Review the variant matching algorithm at ";
 

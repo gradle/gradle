@@ -23,6 +23,8 @@ import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -32,6 +34,7 @@ import java.util.List;
 /**
  * Adds additional context to exceptions thrown during resolution.
  */
+@ServiceScope(Scope.Project.class)
 public class ResolveExceptionMapper {
 
     private final DomainObjectContext domainObjectContext;
