@@ -46,6 +46,9 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     companion object {
         private
         const val NULL_VALUE: Int = -1
+
+        private
+        const val SENTINEL_VALUE: Byte = 0
     }
 
     private
@@ -62,22 +65,47 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
             }, value) {
                 encoding.run { encode(value) }
             }
+            if (isIntegrityCheckEnabled) {
+                writeSmallInt(tag)
+                writeByte(SENTINEL_VALUE)
+            }
         }
     }
 
-    override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
-        NULL_VALUE -> null
-        else -> {
-            val binding = try {
-                bindings[tag]
-            } catch (e: ArrayIndexOutOfBoundsException) {
-                onError(e) {
-                    text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
-                    text("The value may have been written incorrectly or its data is corrupted.")
+    override suspend fun ReadContext.decode(): Any? {
+        val tag = readSmallInt()
+        when (tag) {
+            NULL_VALUE -> return null
+            else -> {
+                val binding = try {
+                    bindings[tag]
+                } catch (e: IndexOutOfBoundsException) {
+                    onError(e) {
+                        text("Cannot deserialize the value because the type tag $tag is not in the valid range [-1..${bindings.size}). ")
+                        text("The value may have been written incorrectly or its data is corrupted.")
+                    }
+                    // We may end up here if the errors are suppressed.
+                    return null
                 }
-                null
+
+                val decoding = binding.decoding
+                val result = decoding.run { decode() }
+                if (isIntegrityCheckEnabled) {
+                    val tagGuard = readSmallInt()
+                    val sentinel = readByte()
+
+                    if (tag != tagGuard || sentinel != SENTINEL_VALUE) {
+                        onError(IllegalArgumentException(
+                            "Tag guard mismatch for ${decoding.displayName}: expected <$tag><$SENTINEL_VALUE>, found <$tagGuard><$sentinel>")
+                        ) {
+                            text("The value cannot be decoded properly with ")
+                            reference(decoding.displayName)
+                            text(". It may have been written incorrectly or its data is corrupted.")
+                        }
+                    }
+                }
+                return result
             }
-            binding?.let { it.decoding.run { decode() } }
         }
     }
 
