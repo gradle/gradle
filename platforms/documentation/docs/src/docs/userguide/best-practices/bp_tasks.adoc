@@ -1,0 +1,74 @@
+// Copyright (C) 2025 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[best_practices_for_tasks]]
+= Best Practices for Tasks
+
+== Avoid DependsOn
+
+The task link:{javadocPath}/org/gradle/api/DefaultTask.html#setDependsOn(java.lang.Iterable)[dependsOn] method should only be used for <<organizing_tasks.adoc#sec:lifecycle_tasks,lifecycle tasks>> (tasks without task actions).
+
+=== Explanation
+Tasks with actions should declare their inputs and outputs so that Gradle’s up-to-date checking can automatically determine when these tasks need to be run or rerun.
+Using `dependsOn` to link tasks is a much coarser-grained mechanism that does **not** allow Gradle to understand why a task requires a prerequisite task to run.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Explicit Task Dependency*: `task2` will always require `task1` to run first, but Gradle does not understand _why_.
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidDependsOn/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidDependsOn/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *Register Output*: The `BetterPrintingTask` now writes its output to a file as well.
+<2> *Register Implicit Task Dependency*: `task4` requires the file that is produced by `task3` and registered as an output.  Gradle understands that `task4` requires `task3` to have run successfully first in order to use this file.
+
+=== References
+<<incremental_build.adoc#sec:task_input_output_side_effects,Task Inputs and Outputs>>
+
+=== Tags
+`#tasks`, `#inputs-and-outputs`, `#up-to-date-checking`
+
+== Another Practice
+
+Introduction to another best practice.
+
+=== Explanation
+Explanation of the best practice.
+
+=== Example
+
+==== Don't Do This
+
+Negative example of what to avoid.
+
+==== Do This Instead
+
+Positive example of what to do.
+
+=== References
+Links to related documentation.
+
+=== Tags
+`#some-tag`, `#some-other-tag`
