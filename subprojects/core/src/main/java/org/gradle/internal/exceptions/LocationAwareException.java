@@ -105,13 +105,4 @@ public class LocationAwareException extends ContextAwareException implements Fai
             resolutionAware.appendResolutions(context);
         }
     }
-
-    @Override
-    public void accept(ExceptionContextVisitor contextVisitor) {
-        super.accept(contextVisitor);
-        String location = getLocation();
-        if (location != null) {
-            contextVisitor.visitLocation(location);
-        }
-    }
 }
