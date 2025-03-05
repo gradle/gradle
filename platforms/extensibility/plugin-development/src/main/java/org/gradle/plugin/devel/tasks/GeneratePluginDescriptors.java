@@ -47,7 +47,12 @@ public abstract class GeneratePluginDescriptors extends DefaultTask {
 
     public GeneratePluginDescriptors() {
         implementationClassById = getDeclarations().map(declarations -> declarations.stream()
-            .collect(Collectors.toMap(PluginDeclaration::getId, PluginDeclaration::getImplementationClass, (a, b) -> b, LinkedHashMap::new))
+            .collect(Collectors.toMap(
+                plugin -> plugin.getId().get(),
+                plugin -> plugin.getImplementationClass().get(),
+                (a, b) -> b,
+                LinkedHashMap::new
+            ))
         );
     }
 
