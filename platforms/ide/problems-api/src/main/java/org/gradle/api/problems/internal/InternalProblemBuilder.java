@@ -23,8 +23,6 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.Severity;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 public interface InternalProblemBuilder extends InternalProblemSpec {
 
@@ -90,9 +88,5 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     @Override
     InternalProblemBuilder severity(Severity severity);
 
-    AdditionalDataBuilderFactory getAdditionalDataBuilderFactory();
-
-    Instantiator getInstantiator();
-
-    PayloadSerializer getPayloadSerializer();
+    ProblemsInfrastructure getInfrastructure();
 }

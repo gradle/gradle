@@ -26,17 +26,13 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
-import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
-import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 
 /*
  * A deserialized representation of a problem received from the build operation trace.
@@ -168,7 +164,7 @@ class ReceivedProblem implements InternalProblem {
     }
 
     @Override
-    InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer, IsolatableFactory isolatbleFactory, IsolatableToBytesSerializer isolatableSerializer) {
+    InternalProblemBuilder toBuilder(ProblemsInfrastructure infrastructure) {
         throw new UnsupportedOperationException("Not implemented")
     }
 

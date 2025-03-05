@@ -32,17 +32,12 @@ import javax.annotation.Nonnull;
 @SuppressWarnings({"static", "StaticAssignmentInConstructor"})
 public class DefaultProblems implements InternalProblems {
 
-    private final ProblemStream problemStream;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final ProblemSummarizer problemSummarizer;
     private final InternalProblemReporter internalReporter;
-    private final AdditionalDataBuilderFactory additionalDataBuilderFactory = new AdditionalDataBuilderFactory();
     private final ExceptionProblemRegistry exceptionProblemRegistry;
     private final ExceptionAnalyser exceptionAnalyser;
-    private final Instantiator instantiator;
-    private final PayloadSerializer payloadSerializer;
-    private final IsolatableFactory isolatableFactory;
-    private final IsolatableToBytesSerializer isolatableSerializer;
+    private final ProblemsInfrastructure infrastructure;
 
     public DefaultProblems(
         ProblemSummarizer problemSummarizer,
@@ -56,14 +51,10 @@ public class DefaultProblems implements InternalProblems {
         IsolatableToBytesSerializer isolatableSerializer
     ) {
         this.problemSummarizer = problemSummarizer;
-        this.problemStream = problemStream;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
-        this.instantiator = instantiator;
-        this.payloadSerializer = payloadSerializer;
-        this.isolatableFactory = isolatableFactory;
-        this.isolatableSerializer = isolatableSerializer;
+        this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
         this.internalReporter = createReporter();
     }
 
@@ -76,15 +67,10 @@ public class DefaultProblems implements InternalProblems {
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,
-            problemStream,
             currentBuildOperationRef,
-            additionalDataBuilderFactory,
             exceptionProblemRegistry,
             exceptionAnalyser,
-            instantiator,
-            payloadSerializer,
-            isolatableFactory,
-            isolatableSerializer);
+            infrastructure);
     }
 
     @Override
@@ -94,26 +80,26 @@ public class DefaultProblems implements InternalProblems {
 
     @Override
     public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        return additionalDataBuilderFactory;
+        return infrastructure.getAdditionalDataBuilderFactory();
     }
 
     @Override
     public Instantiator getInstantiator() {
-        return instantiator;
+        return infrastructure.getInstantiator();
     }
 
     @Override
     public InternalProblemBuilder getProblemBuilder() {
-        return new DefaultProblemBuilder(problemStream, additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer);
+        return new DefaultProblemBuilder(infrastructure);
     }
 
     @Override
     public IsolatableFactory getIsolatableFactory() {
-        return isolatableFactory;
+        return infrastructure.getIsolatableFactory();
     }
 
     @Override
     public IsolatableToBytesSerializer getIsolatableSerializer() {
-        return isolatableSerializer;
+        return infrastructure.getIsolatableSerializer();
     }
 }

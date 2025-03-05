@@ -42,13 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultProblemBuilder implements InternalProblemBuilder {
-    private final IsolatableToBytesSerializer isolatableSerializer;
-    @Nullable
-    private final ProblemStream problemStream;
-    private final AdditionalDataBuilderFactory additionalDataBuilderFactory;
-    private final Instantiator instantiator;
-    private final PayloadSerializer payloadSerializer;
-    private final IsolatableFactory isolatableFactory;
+    private final ProblemsInfrastructure problemsInfrastructure;
 
     private ProblemId id;
     private String contextualLabel;
@@ -64,21 +58,11 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     private ProblemDiagnostics diagnostics;
 
     public DefaultProblemBuilder(
-        AdditionalDataBuilderFactory additionalDataBuilderFactory,
-        Instantiator instantiator,
-        PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory,
-        IsolatableToBytesSerializer isolatableSerializer,
-        @Nullable ProblemStream problemStream
+        ProblemsInfrastructure infrastructure
     ) {
-        this.additionalDataBuilderFactory = additionalDataBuilderFactory;
-        this.instantiator = instantiator;
-        this.payloadSerializer = payloadSerializer;
-        this.isolatableFactory = isolatableFactory;
-        this.isolatableSerializer = isolatableSerializer;
+        this.problemsInfrastructure = infrastructure;
         this.additionalData = null;
         this.solutions = new ArrayList<String>();
-        this.problemStream = problemStream;
     }
 
     public DefaultProblemBuilder(
@@ -89,18 +73,14 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         IsolatableFactory isolatableFactory,
         IsolatableToBytesSerializer isolatableSerializer
     ) {
-        this(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
+        this(new ProblemsInfrastructure(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream));
     }
 
     public DefaultProblemBuilder(
         InternalProblem problem,
-        AdditionalDataBuilderFactory additionalDataBuilderFactory,
-        Instantiator instantiator,
-        PayloadSerializer payloadSerializer,
-        IsolatableFactory isolatableFactory,
-        IsolatableToBytesSerializer isolatableSerializer
+        ProblemsInfrastructure infrastructure
     ) {
-        this(additionalDataBuilderFactory, instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, null);
+        this(infrastructure);
         this.id = problem.getDefinition().getId();
         this.contextualLabel = problem.getContextualLabel();
         this.solutions = new ArrayList<String>(problem.getSolutions());
@@ -125,7 +105,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (additionalData instanceof UnsupportedAdditionalDataSpec) {
             return invalidProblem("unsupported-additional-data", "Unsupported additional data type",
                 "Unsupported additional data type: " + ((UnsupportedAdditionalDataSpec) additionalData).getType().getName() +
-                    ". Supported types are: " + getAdditionalDataBuilderFactory().getSupportedTypes());
+                    ". Supported types are: " + problemsInfrastructure.getAdditionalDataBuilderFactory().getSupportedTypes());
         }
 
         ProblemDiagnostics diagnostics = determineDiagnostics();
@@ -151,8 +131,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
         if (diagnostics != null) {
             return diagnostics;
         }
-        return problemStream != null
-            ? problemStream.forCurrentCaller(exceptionForStackLocation())
+        return problemsInfrastructure.getProblemStream() != null
+            ? problemsInfrastructure.getProblemStream().forCurrentCaller(exceptionForStackLocation())
             : null;
     }
 
@@ -234,6 +214,11 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     public InternalProblemBuilder severity(Severity severity) {
         this.severity = severity;
         return this;
+    }
+
+    @Override
+    public ProblemsInfrastructure getInfrastructure() {
+        return problemsInfrastructure;
     }
 
     @Override
@@ -352,8 +337,8 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     @SuppressWarnings("unchecked")
     public <U extends AdditionalDataSpec> InternalProblemBuilder additionalDataInternal(Class<? extends U> specType, Action<? super U> config) {
-        if (getAdditionalDataBuilderFactory().hasProviderForSpec(specType)) {
-            AdditionalDataBuilder<? extends AdditionalData> additionalDataBuilder = getAdditionalDataBuilderFactory().createAdditionalDataBuilder(specType, additionalData);
+        if (problemsInfrastructure.getAdditionalDataBuilderFactory().hasProviderForSpec(specType)) {
+            AdditionalDataBuilder<? extends AdditionalData> additionalDataBuilder = problemsInfrastructure.getAdditionalDataBuilderFactory().createAdditionalDataBuilder(specType, additionalData);
             config.execute((U) additionalDataBuilder);
             additionalData = additionalDataBuilder.build();
         } else {
@@ -365,10 +350,10 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
     @Override
     public <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config) {
         AdditionalData additionalDataInstance = createAdditionalData(type, config);
-        Isolatable<AdditionalData> isolated = isolatableFactory.isolate(additionalDataInstance);
+        Isolatable<AdditionalData> isolated = problemsInfrastructure.getIsolatableFactory().isolate(additionalDataInstance);
 
-        SerializedPayload serializedBaseClass = getPayloadSerializer().serialize(type);
-        byte[] serialized = this.isolatableSerializer.serialize(isolated);
+        SerializedPayload serializedBaseClass = problemsInfrastructure.getPayloadSerializer().serialize(type);
+        byte[] serialized = this.problemsInfrastructure.getIsolatableSerializer().serialize(isolated);
 
         this.additionalData = new DefaultTypedAdditionalData(serializedBaseClass, serialized);
         return this;
@@ -376,7 +361,7 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     @Nonnull
     private <T extends AdditionalData> AdditionalData createAdditionalData(Class<T> type, Action<? super T> config) {
-        T additionalDataInstance = getInstantiator().newInstance(type);
+        T additionalDataInstance = problemsInfrastructure.getInstantiator().newInstance(type);
         config.execute(additionalDataInstance);
         return additionalDataInstance;
     }
@@ -400,21 +385,6 @@ public class DefaultProblemBuilder implements InternalProblemBuilder {
 
     public ProblemId getId() {
         return id;
-    }
-
-    @Override
-    public AdditionalDataBuilderFactory getAdditionalDataBuilderFactory() {
-        return additionalDataBuilderFactory;
-    }
-
-    @Override
-    public Instantiator getInstantiator() {
-        return instantiator;
-    }
-
-    @Override
-    public PayloadSerializer getPayloadSerializer() {
-        return payloadSerializer;
     }
 
     private static class UnsupportedAdditionalDataSpec implements AdditionalData {
