@@ -16,6 +16,17 @@
 
 package org.gradle.workers.internal;
 
+import javax.annotation.Nullable;
+
+/**
+ * A very crude way of worker actions returning some type of data
+ * to the daemon after executing.
+ */
 public interface ProvidesWorkResult {
-    DefaultWorkResult getWorkResult();
+
+    boolean getDidWork();
+
+    @Nullable
+    Throwable getException();
+
 }

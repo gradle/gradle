@@ -183,8 +183,4 @@ public abstract class ScalaDocOptions extends org.gradle.api.tasks.compile.Abstr
         this.additionalParameters = additionalParameters;
     }
 
-    private String toOnOffString(boolean value) {
-        return value ? "on" : "off";
-    }
-
 }

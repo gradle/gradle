@@ -62,7 +62,8 @@ public class DefaultWorkerServer implements Worker {
             }
             execution.execute();
             if (execution instanceof ProvidesWorkResult) {
-                return ((ProvidesWorkResult) execution).getWorkResult();
+                ProvidesWorkResult provider = (ProvidesWorkResult) execution;
+                return new DefaultWorkResult(provider.getDidWork(), provider.getException());
             } else {
                 return DefaultWorkResult.SUCCESS;
             }

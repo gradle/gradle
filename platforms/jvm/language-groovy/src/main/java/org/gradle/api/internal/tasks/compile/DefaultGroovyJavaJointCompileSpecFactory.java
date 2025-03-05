@@ -54,23 +54,4 @@ public class DefaultGroovyJavaJointCompileSpecFactory extends AbstractJavaCompil
         }
     }
 
-    private static class DefaultForkingGroovyJavaJointCompileSpec extends DefaultGroovyJavaJointCompileSpec implements ForkingJavaCompileSpec {
-        private final File javaHome;
-        private final int javaLanguageVersion;
-
-        private DefaultForkingGroovyJavaJointCompileSpec(File javaHome, int javaLanguageVersion) {
-            this.javaHome = javaHome;
-            this.javaLanguageVersion = javaLanguageVersion;
-        }
-
-        @Override
-        public File getJavaHome() {
-            return javaHome;
-        }
-
-        @Override
-        public int getJavaLanguageVersion() {
-            return javaLanguageVersion;
-        }
-    }
 }

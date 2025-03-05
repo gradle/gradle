@@ -28,8 +28,11 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.internal.tasks.compile.MinimalJavaCompileOptionsConverter;
 import org.gradle.api.internal.tasks.scala.DefaultScalaJavaJointCompileSpec;
+import org.gradle.api.internal.tasks.scala.MinimalIncrementalCompileOptions;
 import org.gradle.api.internal.tasks.scala.MinimalScalaCompileOptions;
+import org.gradle.api.internal.tasks.scala.MinimalScalaCompilerDaemonForkOptions;
 import org.gradle.api.internal.tasks.scala.ScalaCompileSpec;
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec;
 import org.gradle.api.logging.Logger;
@@ -47,6 +50,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompileOptions;
+import org.gradle.api.tasks.scala.ScalaForkOptions;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -172,13 +176,47 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         }
         spec.setCompileClasspath(effectiveClasspath);
         configureCompatibilityOptions(spec);
-        spec.setCompileOptions(getOptions());
-        spec.setScalaCompileOptions(new MinimalScalaCompileOptions(scalaCompileOptions));
+        spec.setCompileOptions(MinimalJavaCompileOptionsConverter.toMinimalJavaCompileOptions(compileOptions));
+        spec.setScalaCompileOptions(toMinimalScalaCompileOptions(scalaCompileOptions));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
         return spec;
+    }
+
+    private static MinimalScalaCompileOptions toMinimalScalaCompileOptions(BaseScalaCompileOptions compileOptions) {
+        ScalaForkOptions forkOptions = compileOptions.getForkOptions();
+        IncrementalCompileOptions incrementalOptions = compileOptions.getIncrementalOptions();
+
+        MinimalScalaCompileOptions result = new MinimalScalaCompileOptions();
+
+        // TODO: MinimalScalaCompileOptions should be immutable.
+        result.setFailOnError(compileOptions.isFailOnError());
+        result.setDeprecation(compileOptions.isDeprecation());
+        result.setUnchecked(compileOptions.isUnchecked());
+        result.setDebugLevel(compileOptions.getDebugLevel());
+        result.setOptimize(compileOptions.isOptimize());
+        result.setEncoding(compileOptions.getEncoding());
+        result.setForce(compileOptions.isForce());
+        result.setAdditionalParameters(ImmutableList.copyOf(compileOptions.getAdditionalParameters()));
+        result.setListFiles(compileOptions.isListFiles());
+        result.setLoggingLevel(compileOptions.getLoggingLevel());
+        result.setLoggingPhases(compileOptions.getLoggingPhases() == null ? null : ImmutableList.copyOf(compileOptions.getLoggingPhases()));
+        result.setForkOptions(new MinimalScalaCompilerDaemonForkOptions(
+            forkOptions.getMemoryInitialSize(),
+            forkOptions.getMemoryMaximumSize(),
+            forkOptions.getAllJvmArgs()
+        ));
+        RegularFileProperty publishedCodeFile = incrementalOptions.getPublishedCode();
+        result.setIncrementalOptions(new MinimalIncrementalCompileOptions(
+            incrementalOptions.getAnalysisFile().get().getAsFile(),
+            incrementalOptions.getClassfileBackupDir().get().getAsFile(),
+            publishedCodeFile.isPresent() ? publishedCodeFile.get().getAsFile() : null
+        ));
+        result.setKeepAliveMode(compileOptions.getKeepAliveMode().get().name());
+
+        return result;
     }
 
     private void configureCompatibilityOptions(DefaultScalaJavaJointCompileSpec spec) {
@@ -197,18 +235,17 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     }
 
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {
-        IncrementalCompileOptions incrementalOptions = scalaCompileOptions.getIncrementalOptions();
-
-        File analysisFile = incrementalOptions.getAnalysisFile().getAsFile().get();
-        File classpathBackupDir = incrementalOptions.getClassfileBackupDir().getAsFile().get();
+        MinimalIncrementalCompileOptions incrementalOptions = spec.getScalaCompileOptions().getIncrementalOptions();
+        File analysisFile = incrementalOptions.getAnalysisFile();
+        File classpathBackupDir = incrementalOptions.getClassfileBackupDir();
         Map<File, File> globalAnalysisMap = resolveAnalysisMappingsForOtherProjects();
         spec.setAnalysisMap(globalAnalysisMap);
         spec.setAnalysisFile(analysisFile);
         spec.setClassfileBackupDir(classpathBackupDir);
 
         // If this Scala compile is published into a jar, generate a analysis mapping file
-        if (incrementalOptions.getPublishedCode().isPresent()) {
-            File publishedCode = incrementalOptions.getPublishedCode().getAsFile().get();
+        if (incrementalOptions.getPublishedCode() != null) {
+            File publishedCode = incrementalOptions.getPublishedCode();
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("scala-incremental Analysis file: {}", analysisFile);
