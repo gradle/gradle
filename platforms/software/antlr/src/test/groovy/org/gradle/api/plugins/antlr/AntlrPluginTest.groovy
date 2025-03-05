@@ -93,4 +93,19 @@ class AntlrPluginTest extends AbstractProjectBuilderSpec {
         def main = project.sourceSets.main
         main.extensions.extensionsSchema.find { it.name == 'antlr' }.publicType == typeOf(AntlrSourceDirectorySet)
     }
+
+    def 'adds task dependency to sourcesJar'() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        and:
+        project.java {
+            withSourcesJar()
+        }
+
+        then:
+        def generateGrammarSource = project.tasks.generateGrammarSource
+        def sourcesJar = project.tasks.sourcesJar
+        sourcesJar.taskDependencies.getDependencies(null).contains(generateGrammarSource)
+    }
 }
