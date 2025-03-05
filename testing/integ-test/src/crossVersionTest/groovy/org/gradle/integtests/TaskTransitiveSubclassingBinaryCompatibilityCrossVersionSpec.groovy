@@ -118,9 +118,21 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
                 }
             }
         """
-
         expect:
-        version previous withTasks 'publish' inDirectory(file("plugin")) run()
-        version current requireDaemon() requireIsolatedDaemons() withTasks 'sofExec' run()
+        version(previous)
+            .withTasks( 'publish')
+            .inDirectory(file("plugin"))
+            .run()
+
+        version(current)
+            .requireDaemon()
+            .requireIsolatedDaemons()
+            .expectDocumentedDeprecationWarning(
+                "In plugin 'com.example.plugin' type 'CustomJavaExec' method 'setArgs' overrides an accessor of a property annotated with @ToBeReplacedByLazyProperty. " +
+                "This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. " +
+                "Execution optimizations are disabled to ensure correctness. " +
+                "For more information, please refer to https://docs.gradle.org/current/userguide/validation_problems.html#property_accessor_must_not_be_overridden in the Gradle documentation.")
+            .withTasks('sofExec')
+            .run()
     }
 }
