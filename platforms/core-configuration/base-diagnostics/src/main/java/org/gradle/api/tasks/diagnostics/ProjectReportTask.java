@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectHierarchyUtils;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.diagnostics.internal.ProjectDetails;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.initialization.BuildClientMetaData;
@@ -56,17 +57,15 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {
 
-    private final TextReportRenderer renderer = new TextReportRenderer();
+    public ProjectReportTask() {
+        getRenderer().convention(new TextReportRenderer()).finalizeValueOnRead();
+    }
 
     @Override
-    protected TextReportRenderer getRenderer() {
-        return renderer;
-    }
+    protected abstract Property<TextReportRenderer> getRenderer();
 
     @Inject
-    public BuildStateRegistry getBuildStateRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    public abstract BuildStateRegistry getBuildStateRegistry();
 
     @Inject
     protected abstract SoftwareTypeRegistry getSoftwareTypeRegistry();
@@ -164,7 +163,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     private void renderSectionTitle(String sectionName) {
-        StyledTextOutput styledTextOutput = getRenderer().getTextOutput();
+        StyledTextOutput styledTextOutput = getRenderer().get().getTextOutput();
         styledTextOutput.println();
         styledTextOutput.withStyle(Header).append(sectionName).append(":");
         styledTextOutput.println();
@@ -183,7 +182,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
             .sorted(Comparator.comparing(SoftwareTypeImplementation::getSoftwareType))
             .collect(Collectors.toList());
 
-        StyledTextOutput styledTextOutput = getRenderer().getTextOutput();
+        StyledTextOutput styledTextOutput = getRenderer().get().getTextOutput();
         if (!softwareTypes.isEmpty()) {
             renderSectionTitle("Available software types");
             styledTextOutput.println();
@@ -198,7 +197,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     private void renderProjectTree(ProjectReportModel model) {
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
+        StyledTextOutput textOutput = getRenderer().get().getTextOutput();
         renderProject(model, new GraphRenderer(textOutput), true, textOutput);
         if (model.children.isEmpty()) {
             textOutput.withStyle(Info).text("No sub-projects");
@@ -245,7 +244,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
     }
 
     private void renderIncludedBuilds(ProjectReportModel model) {
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
+        StyledTextOutput textOutput = getRenderer().get().getTextOutput();
         if (model.isRootProject) {
             int index = 0;
             if (!model.includedBuildIdentityPaths.isEmpty()) {
@@ -267,7 +266,7 @@ public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<P
 
     private void renderHelp(ProjectReportModel model) {
         BuildClientMetaData metaData = getClientMetaData();
-        StyledTextOutput textOutput = getRenderer().getTextOutput();
+        StyledTextOutput textOutput = getRenderer().get().getTextOutput();
 
         textOutput.println();
         textOutput.text("To see a list of the tasks of a project, run ");

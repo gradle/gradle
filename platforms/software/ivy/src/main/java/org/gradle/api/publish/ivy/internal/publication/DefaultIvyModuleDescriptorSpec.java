@@ -32,9 +32,9 @@ import org.gradle.api.publish.ivy.IvyModuleDescriptorLicense;
 import org.gradle.api.publish.ivy.internal.dependency.IvyDependency;
 import org.gradle.api.publish.ivy.internal.dependency.IvyExcludeRule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.MutableActionSet;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +44,6 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
     private final MutableActionSet<XmlProvider> xmlActions = new MutableActionSet<>();
     private final ObjectFactory objectFactory;
     private final IvyPublicationCoordinates ivyPublicationCoordinates;
-    private String status;
-    private String branch;
     private final IvyExtraInfoSpec extraInfo = new DefaultIvyExtraInfoSpec();
     private final List<IvyModuleDescriptorAuthor> authors = new ArrayList<>();
     private final List<IvyModuleDescriptorLicense> licenses = new ArrayList<>();
@@ -57,27 +55,13 @@ public abstract class DefaultIvyModuleDescriptorSpec implements IvyModuleDescrip
         this.ivyPublicationCoordinates = ivyPublicationCoordinates;
     }
 
-    @Nullable
+    @Optional
     @Override
-    public String getStatus() {
-        return status;
-    }
+    public abstract Property<String> getStatus();
 
+    @Optional
     @Override
-    public void setStatus(@Nullable String status) {
-        this.status = status;
-    }
-
-    @Nullable
-    @Override
-    public String getBranch() {
-        return branch;
-    }
-
-    @Override
-    public void setBranch(@Nullable String branch) {
-        this.branch = branch;
-    }
+    public abstract Property<String> getBranch();
 
     @Override
     public IvyExtraInfoSpec getExtraInfo() {

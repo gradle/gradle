@@ -145,7 +145,7 @@ public abstract class CppUnitTestPlugin implements Plugin<Project> {
                 task.getInputs()
                     .dir(installDirectory)
                     .withPropertyName("installDirectory");
-                task.setExecutable(installTask.getRunScriptFile().get().getAsFile());
+                task.getExecutable().set(installTask.getRunScriptFile().map(file -> file.getAsFile().getPath()));
                 task.dependsOn(installDirectory);
                 // TODO: Honor changes to build directory
                 task.setOutputDir(project.getLayout().getBuildDirectory().dir("test-results/" + binary.getNames().getDirName()).get().getAsFile());

@@ -88,7 +88,7 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
     }
 
     private void configureTestTask(AbstractTestTask test) {
-        test.getFilter().setFailOnNoMatchingTests(false);
+        test.getFilter().getFailOnNoMatchingTests().set(false);
         test.getOutputs().upToDateWhen(Specs.SATISFIES_NONE);
         if (test instanceof Test) {
             InternalDebugOptions debugOptions = testExecutionRequest.getDebugOptions();
@@ -137,10 +137,9 @@ class TestExecutionBuildConfigurationAction implements EntryTaskSelector {
                             filter.includeCommandLineTest(cls, method);
                         }
                     }
-                    Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns();
-                    commandLineIncludePatterns.addAll(testSpec.getPatterns());
+                    filter.getCommandLineIncludePatterns().addAll(testSpec.getPatterns());
                     for (String pkg : testSpec.getPackages()) {
-                        commandLineIncludePatterns.add(pkg + ".*");
+                        filter.getCommandLineIncludePatterns().add(pkg + ".*");
                     }
                 }
             }

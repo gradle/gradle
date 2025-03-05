@@ -293,7 +293,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
-        task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
+        task.options.annotationProcessorPath.files == project.sourceSets.main.annotationProcessorPath.files
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
@@ -322,7 +322,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
-        task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
+        task.options.annotationProcessorPath.files == project.sourceSets.test.annotationProcessorPath.files
         task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
         task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
         task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
@@ -370,8 +370,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME)
         task.source.files == project.sourceSets.main.allJava.files
         assertThat(task.classpath, sameCollection(project.layout.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        task.destinationDir == project.file("$project.docsDir/javadoc")
-        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+        task.destinationDir.get().asFile == project.file("$project.docsDir/javadoc")
+        task.title.get() == project.extensions.getByType(ReportingExtension).apiDocTitle.get()
 
         when:
         task = project.tasks["buildArchives"]
@@ -414,7 +414,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JvmConstants.TEST_CLASSES_TASK_NAME, JvmConstants.CLASSES_TASK_NAME, JvmConstants.COMPILE_JAVA_TASK_NAME, JvmConstants.COMPILE_TEST_JAVA_TASK_NAME)
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
-        task.workingDir == project.projectDir
+        task.workingDir.asFile.get() == project.projectDir
     }
 
     def "applies mappings to tasks added by the build script"() {
@@ -427,7 +427,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         then:
         task.classpath.files == project.sourceSets.test.runtimeClasspath.files
         task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
-        task.workingDir == project.projectDir
+        task.workingDir.asFile.get() == project.projectDir
         task.reports.junitXml.outputLocation.get().asFile == new File(project.testResultsDir, 'customTest')
         task.reports.html.outputLocation.get().asFile == new File(project.testReportDir, 'customTest')
     }

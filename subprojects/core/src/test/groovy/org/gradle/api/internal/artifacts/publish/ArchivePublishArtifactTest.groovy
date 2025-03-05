@@ -38,7 +38,7 @@ class ArchivePublishArtifactTest extends Specification {
 
         then:
         a.archiveTask == quiteEmptyJar
-        a.classifier == ""
+        a.classifier == null
         a.date.time == quiteEmptyJar.archiveFile.get().asFile.lastModified()
         a.extension == "jar"
         a.file == quiteEmptyJar.archiveFile.get().asFile
@@ -69,7 +69,7 @@ class ArchivePublishArtifactTest extends Specification {
         new ArchivePublishArtifact(taskDependencyFactory, withAppendixOnly).name == "javadoc"
     }
 
-    static class DummyJar extends AbstractArchiveTask {
+    static abstract class DummyJar extends AbstractArchiveTask {
         DummyJar() {
             archiveExtension.set("jar")
         }

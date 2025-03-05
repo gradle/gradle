@@ -214,6 +214,10 @@ abstract class AbstractGradleViolationRule extends AbstractContextAwareViolation
         return context.getUserData().get("currentVersion")
     }
 
+    String getCurrentMasterVersion() {
+        return context.getUserData().get("currentMasterVersion")
+    }
+
     private String relativePathToMainApiChanges() {
         if (null != mainApiChangesJsonFile && null != projectRootDir) {
             return projectRootDir.relativePath(mainApiChangesJsonFile)

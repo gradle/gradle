@@ -86,7 +86,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
     def "can override archiveBaseName in custom Jar task"() {
         buildFile """
             apply plugin: 'base'
-            class MyJar extends Jar {
+            abstract class MyJar extends Jar {
                 MyJar() {
                     super()
                     archiveBaseName.set("myjar")

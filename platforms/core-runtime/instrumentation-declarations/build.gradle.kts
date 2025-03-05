@@ -14,15 +14,6 @@ dependencies {
     compileOnly(projects.modelCore)
     compileOnly(projects.reporting)
     compileOnly(libs.groovy)
-    compileOnly(projects.codeQuality)
-
-    // Instrumentation dependencies
-    compileOnly(projects.internalInstrumentationApi)
-    compileOnly(libs.asm)
-    compileOnly(libs.asmUtil)
-    compileOnly(libs.asmTree)
-    annotationProcessor(projects.internalInstrumentationProcessor)
-    annotationProcessor(platform(projects.distributionsDependencies))
 }
 
 tasks.named<JavaCompile>("compileJava") {
