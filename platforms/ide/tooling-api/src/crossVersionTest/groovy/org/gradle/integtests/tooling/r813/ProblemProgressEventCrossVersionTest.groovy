@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r813
 
-
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -30,6 +29,8 @@ import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
+import org.gradle.workers.fixtures.WorkerExecutorFixture
+import spock.lang.IgnoreRest
 
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 
@@ -138,6 +139,194 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         thrown(BuildException)
         listener.problems.size() == 1
         (listener.problems[0].additionalData as DefaultAdditionalData).asMap['typeName'] == 'MyTask'
+    }
+
+    def setupBuild() {
+        file('buildSrc/build.gradle') << """
+            plugins {
+                id 'java'
+            }
+
+            dependencies {
+                implementation(gradleApi())
+            }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
+            package org.gradle.test;
+
+            import org.gradle.workers.WorkParameters;
+
+            public interface ProblemsWorkerTaskParameter extends WorkParameters { }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/SomeOtherData.java') << """
+            package org.gradle.test;
+
+            import org.gradle.api.provider.Property;
+
+// composition, collections
+
+            public interface SomeOtherData{
+                String getOtherName();
+                void setOtherName(String name);
+            }
+
+        """
+        file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
+            package org.gradle.test;
+
+            import org.gradle.api.problems.AdditionalData;
+            import org.gradle.api.provider.Property;
+
+            import java.util.List;
+
+// composition, collections
+            public interface SomeData extends AdditionalData {
+                  Property<String> getSome();
+                  String getName();
+                  void setName(String name);
+
+                  List<String> getNames();
+                  void setNames(List<String> names);
+
+                  SomeOtherData getOtherData();
+                  void setOtherData(SomeOtherData otherData);
+            }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerAction.java') << """
+            package org.gradle.test;
+
+            import java.io.File;
+            import java.util.Collections;
+            import java.io.FileWriter;
+            import org.gradle.api.problems.Problems;
+            import org.gradle.api.problems.internal.InternalProblems;
+            import org.gradle.api.problems.ProblemId;
+            import org.gradle.api.problems.ProblemGroup;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.internal.operations.CurrentBuildOperationRef;
+
+            import org.gradle.workers.WorkAction;
+
+            import javax.inject.Inject;
+
+            public abstract class ProblemWorkerAction implements WorkAction<ProblemsWorkerTaskParameter> {
+
+                @Inject
+                public abstract InternalProblems getProblems();
+
+                @Inject
+                public abstract ObjectFactory getObjectFactory();
+
+                @Override
+                public void execute() {
+                    try {
+                        ObjectFactory of = getObjectFactory();
+                        SomeData sd = of.newInstance(SomeData.class);
+//                        sd.getName().set("someData");
+                        sd.setName("someData");
+//                        System.out.println("someData: " + sd.getName().get());
+                        System.out.println("someData: " + sd.getName());
+
+                        sd = getProblems().getInstantiator().newInstance(SomeData.class);
+//                        sd.getSome().set("some");
+//                        sd.getName().set("someData");
+                        sd.setName("someData");
+                        System.out.println("someData: " + sd.getName());
+//                        System.out.println("someData: " + sd.getName().get());
+                        Exception wrappedException = new Exception("Wrapped cause");
+                        // Create and report a problem
+                        // This needs to be Java 6 compatible, as we are in a worker
+                        ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
+                        getProblems().getReporter().report(problemId, problem -> problem
+                                    .additionalData(SomeData.class, d -> {
+                                    d.getSome().set("some");
+                                    d.setName("someData");
+                                    d.setNames(Collections.singletonList("someMoreData"));
+                                    SomeOtherData sod = of.newInstance(SomeOtherData.class);
+                                    sod.setOtherName("otherName");
+                                    d.setOtherData(sod);
+                                }
+                                )
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        """
+    }
+
+    interface SomeOtherDataView {
+        String getOtherName();
+    }
+
+    interface SomeDataView {
+//        String getSome();
+
+        String getName();
+
+        List<String> getNames();
+
+        SomeOtherDataView getOtherData();
+    }
+
+    @IgnoreRest
+    @ToolingApiVersion(">=8.14")
+    @TargetGradleVersion(">=8.14")
+    def "problems are emitted correctly from a worker when using #isolationMode"() {
+        setupBuild()
+
+        given:
+        buildFile << """
+            import javax.inject.Inject
+            import org.gradle.test.ProblemWorkerAction
+
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().${isolationMode}(
+//                                            spec -> {
+//                                                    spec.getForkOptions().getDebugOptions().getEnabled().set(true);
+//                                                    spec.getForkOptions().getDebugOptions().getPort().set(5005);
+//                                                    spec.getForkOptions().getDebugOptions().getServer().set(false);
+//                                                    spec.getForkOptions().getDebugOptions().getHost().set("localhost");
+//                                                }
+                                            ).submit(ProblemWorkerAction.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+
+        when:
+        def listener = new ProblemProgressListener()
+        withConnection { connection ->
+            connection.newBuild()
+                .forTasks("reportProblem")
+                .addProgressListener(listener)
+                .setStandardError(System.err)
+                .setStandardOutput(System.out)
+                .addArguments("--info")
+                .run()
+        }
+
+        then:
+        listener.problems.size() == 1
+
+        def someDataView = listener.problems[0].additionalData.get(SomeDataView)
+        someDataView.name == "someData"
+//        someDataView.some == "some"
+        someDataView.names == ["someMoreData"]
+        someDataView.otherData.otherName == "otherName"
+
+        where:
+        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+//        isolationMode << [WorkerExecutorFixture.IsolationMode.PROCESS_ISOLATION.method]
+//        isolationMode << [WorkerExecutorFixture.IsolationMode.CLASSLOADER_ISOLATION.method]
     }
 
     class ProblemProgressListener implements ProgressListener {

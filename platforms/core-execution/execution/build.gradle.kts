@@ -27,6 +27,7 @@ dependencies {
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.snapshots)
+    api(projects.snapshotsWorker)
 
     implementation(projects.time)
     implementation(projects.logging)

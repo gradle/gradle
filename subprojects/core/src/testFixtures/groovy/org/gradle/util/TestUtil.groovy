@@ -51,6 +51,7 @@ import org.gradle.api.problems.internal.InternalProblem
 import org.gradle.api.problems.internal.InternalProblemBuilder
 import org.gradle.api.problems.internal.InternalProblemReporter
 import org.gradle.api.problems.internal.InternalProblems
+import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.reflect.ObjectInstantiationException
@@ -62,6 +63,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
@@ -406,6 +408,8 @@ class TestProblems implements InternalProblems {
             new ExceptionProblemRegistry(),
             null,
             new MockInstantiator(),
+            null,
+            null,
             null
         )
     }
@@ -433,6 +437,16 @@ class TestProblems implements InternalProblems {
     @Override
     InternalProblemBuilder getProblemBuilder() {
         delegate.getProblemBuilder()
+    }
+
+    @Override
+    IsolatableFactory getIsolatableFactory() {
+        return null
+    }
+
+    @Override
+    IsolatableToBytesSerializer getIsolatableSerializer() {
+        return null
     }
 
     void assertProblemEmittedOnce(Object expectedProblem) {

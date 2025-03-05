@@ -48,6 +48,7 @@ import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
+import org.gradle.process.internal.worker.request.IsolatableSerializerRegistry;
 import org.gradle.workers.WorkerExecutor;
 
 @SuppressWarnings("UnusedMethod")

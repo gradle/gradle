@@ -29,10 +29,12 @@ import org.gradle.api.problems.internal.GeneralDataSpec
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.InternalDocLink
 import org.gradle.api.problems.internal.InternalProblemReporter
+import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.ProblemSummarizer
 import org.gradle.api.problems.internal.TypeValidationData
 import org.gradle.api.problems.internal.TypeValidationDataSpec
 import org.gradle.internal.exception.ExceptionAnalyser
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Specification
@@ -50,7 +52,9 @@ class ValidationProblemSerializationTest extends Specification {
         new ExceptionProblemRegistry(),
         Mock(ExceptionAnalyser),
         null,
-        Mock(PayloadSerializer)
+        Mock(PayloadSerializer),
+        Mock(IsolatableFactory),
+        Mock(IsolatableToBytesSerializer)
     )
 
     def "can serialize and deserialize a validation problem"() {

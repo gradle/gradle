@@ -14,6 +14,7 @@ dependencies {
     api(libs.guava)
     api(libs.jsr305)
 
+    api(projects.snapshotsWorker)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.processServices)

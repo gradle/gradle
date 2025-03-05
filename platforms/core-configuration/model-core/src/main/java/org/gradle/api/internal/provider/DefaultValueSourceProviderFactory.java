@@ -81,7 +81,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         this.execOperations = execOperations;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
-        this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
+        this.specInstantiator = instantiatorFactory.decorateLenient(services);
     }
 
     @Override

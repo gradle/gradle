@@ -18,22 +18,22 @@ package org.gradle.internal.serialize.codecs.core
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readNonNull
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot
 import org.gradle.internal.snapshot.impl.FileValueSnapshot
 import org.gradle.internal.snapshot.impl.IntegerValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedArray
 import org.gradle.internal.snapshot.impl.IsolatedEnumValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedImmutableManagedValue
+import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedList
 import org.gradle.internal.snapshot.impl.IsolatedManagedValue
 import org.gradle.internal.snapshot.impl.IsolatedMap
-import org.gradle.internal.snapshot.impl.IsolatedJavaSerializedValueSnapshot
 import org.gradle.internal.snapshot.impl.IsolatedSet
 import org.gradle.internal.snapshot.impl.MapEntrySnapshot
 import org.gradle.internal.snapshot.impl.NullValueSnapshot

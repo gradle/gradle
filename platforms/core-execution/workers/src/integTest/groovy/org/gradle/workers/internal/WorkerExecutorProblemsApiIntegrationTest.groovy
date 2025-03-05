@@ -21,7 +21,6 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.internal.jvm.Jvm
 import org.gradle.operations.problems.ProblemUsageProgressDetails
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 
@@ -31,15 +30,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     // We will use this to verify if the problem was reported in the correct build operation
     def buildOperationIdFile = file('build-operation-id.txt')
 
-    def forkingOptions(Jvm javaVersion) {
-        return """
-            options.fork = true
-            // We don't use toolchains here for consistency with the rest of the test suite
-            options.forkOptions.javaHome = file('${javaVersion.javaHome}')
-        """
-    }
-
-    def setupBuild(Jvm javaVersion) {
+    def setupBuild() {
         file('buildSrc/build.gradle') << """
             plugins {
                 id 'java'
@@ -48,10 +39,6 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             dependencies {
                 implementation(gradleApi())
             }
-
-            tasks.withType(JavaCompile) {
-                ${javaVersion == null ? '' : forkingOptions(javaVersion)}
-            }
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemsWorkerTaskParameter.java') << """
             package org.gradle.test;
@@ -59,6 +46,17 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.workers.WorkParameters;
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
+        """
+        file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
+            package org.gradle.test;
+
+            import org.gradle.api.problems.AdditionalData;
+
+            public interface SomeData extends AdditionalData {
+                String getName();
+                void setName(String name);
+            }
+
         """
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
@@ -87,6 +85,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
                     ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
                     getProblems().getReporter().report(problemId, problem -> problem
                             .stackLocation()
+                            .additionalData(SomeData.class, d -> d.setName("someData"))
                             .withException(new RuntimeException("Exception message", wrappedException))
                     );
 
@@ -107,7 +106,7 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "problems are emitted correctly from a worker when using #isolationMode"() {
-        setupBuild(null)
+        setupBuild()
         enableProblemsApiCheck()
 
         given:

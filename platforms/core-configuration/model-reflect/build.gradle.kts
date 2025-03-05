@@ -10,7 +10,6 @@ dependencies {
     api(projects.logging)
     api(projects.persistentCache)
     api(projects.problemsApi)
-    api(projects.serialization)
     api(projects.stdlibJavaExtensions)
 
     api(libs.guava)

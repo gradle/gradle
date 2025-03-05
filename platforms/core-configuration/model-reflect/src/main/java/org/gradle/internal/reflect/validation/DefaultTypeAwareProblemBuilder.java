@@ -32,6 +32,7 @@ import java.util.Optional;
 @NonNullApi
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
+
     public DefaultTypeAwareProblemBuilder(InternalProblemBuilder problemBuilder) {
         super(problemBuilder);
     }
@@ -73,7 +74,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());
         String prefix = introductionFor(additionalData, isTypeIrrelevantInErrorMessage(problem.getDefinition().getId()));
         String text = Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName());
-        return problem.toBuilder(getAdditionalDataBuilderFactory(), getInstantiator(), getPayloadSerializer()).contextualLabel(prefix + text).build();
+        return problem.toBuilder(getInfrastructure()).contextualLabel(prefix + text).build();
     }
 
     private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {

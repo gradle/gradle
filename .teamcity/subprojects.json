@@ -1232,6 +1232,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "snapshots-worker",
+    "path": "platforms/core-execution/snapshots-worker",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "soak",
     "path": "testing/soak",
     "unitTests": false,
