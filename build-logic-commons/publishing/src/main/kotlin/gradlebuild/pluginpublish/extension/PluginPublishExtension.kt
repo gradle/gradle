@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
+/**
+ * TODO: Remove with Gradle 9.0, used for org.gradle.kotlin.dsl.assign
+ */
+@file:Suppress("UnusedImport")
+
 package gradlebuild.pluginpublish.extension
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
+import org.gradle.kotlin.dsl.assign
 
 
 abstract class PluginPublishExtension(

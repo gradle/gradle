@@ -17,9 +17,10 @@
 package org.gradle.plugin.devel;
 
 import org.gradle.api.Named;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * Describes a Gradle plugin under development.
@@ -28,11 +29,8 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  * @since 2.14
  */
 public abstract class PluginDeclaration implements Named {
+
     private final String name;
-    private String id;
-    private String implementationClass;
-    private String displayName;
-    private String description;
 
     /**
      * Creates a new {@code PluginDeclaration}.
@@ -54,38 +52,16 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Sets the id.
-     *
-     * @since 2.14
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getId();
 
     /**
      * Returns the implementation class.
      *
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    public String getImplementationClass() {
-        return implementationClass;
-    }
-
-    /**
-     * Sets the implementation class.
-     *
-     * @since 2.14
-     */
-    public void setImplementationClass(String implementationClass) {
-        this.implementationClass = implementationClass;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getImplementationClass();
 
     /**
      * Returns the display name for this plugin declaration.
@@ -95,22 +71,8 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 4.10
      */
-    @ToBeReplacedByLazyProperty
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    /**
-     * Sets the display name for this plugin declaration.
-     *
-     * <p>The display name is used when publishing this plugin to repositories
-     * that support human-readable artifact names.
-     *
-     * @since 4.10
-     */
-    public void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDisplayName();
 
     /**
      * Returns the description for this plugin declaration.
@@ -120,22 +82,8 @@ public abstract class PluginDeclaration implements Named {
      *
      * @since 4.10
      */
-    @ToBeReplacedByLazyProperty
-    public String getDescription() {
-        return description;
-    }
-
-    /**
-     * Sets the description for this plugin declaration.
-     *
-     * <p>The description is used when publishing this plugin to repositories
-     * that support providing descriptions for artifacts.
-     *
-     * @since 4.10
-     */
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getDescription();
 
     /**
      * Returns the tags property for this plugin declaration.
