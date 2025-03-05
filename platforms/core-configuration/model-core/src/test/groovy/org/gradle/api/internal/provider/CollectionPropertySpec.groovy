@@ -1534,4 +1534,15 @@ The value of this property is derived from: <source>""")
         "fixed provider"          | { p, v -> p.add(Providers.of(v)) }
         "changing provider"       | { p, v -> p.add(Providers.changing { v }) }
     }
+
+    def "can chain left shift"() {
+        when:
+        property << one << two
+
+        then:
+        assertValueIs toMutable(["foo", "bar"])
+
+        where:
+        [one, two] << [["foo", Providers.of("foo")], ["bar", Providers.of("bar")]].combinations()
+    }
 }

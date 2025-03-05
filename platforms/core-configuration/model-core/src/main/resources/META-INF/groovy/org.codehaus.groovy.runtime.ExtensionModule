@@ -16,4 +16,4 @@
 
 moduleName=model-core
 moduleVersion=1.0
-extensionClasses=org.gradle.api.internal.provider.MapPropertyExtensions
+extensionClasses=org.gradle.api.internal.provider.MapPropertyExtensions,org.gradle.api.internal.provider.CollectionPropertyExtensions
