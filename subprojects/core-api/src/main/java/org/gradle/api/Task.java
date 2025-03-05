@@ -856,4 +856,49 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      * @see org.gradle.api.services.ServiceReference
      */
     void usesService(Provider<? extends BuildService<?>> service);
+
+    /**
+     * Returns the name of the task.
+     *
+     * @return The name of the task.
+     */
+    default String getTaskName() {
+        return getName();
+    }
+
+    /**
+     * Returns the description of the task.
+     *
+     * @return The description of the task.
+     */
+    default String getTaskDescription() {
+        return getDescription();
+    }
+
+    /**
+     * Returns the group of the task.
+     *
+     * @return The group of the task.
+     */
+    default String getTaskGroup() {
+        return getGroup();
+    }
+
+    /**
+     * Returns the type of the task.
+     *
+     * @return The type of the task.
+     */
+    default String getTaskType() {
+        return getClass().getName();
+    }
+
+    /**
+     * Returns the dependencies of the task.
+     *
+     * @return The dependencies of the task.
+     */
+    default Set<Object> getTaskDependsOn() {
+        return getDependsOn();
+    }
 }
