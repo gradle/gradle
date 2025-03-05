@@ -16,6 +16,7 @@
 package org.gradle.internal.build.event.types;
 
 import org.gradle.api.problems.internal.InternalProblem;
+import org.gradle.internal.exceptions.MultiCauseException;
 import org.gradle.internal.problems.failure.DefaultFailureFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailurePrinter;
@@ -30,6 +31,7 @@ import java.io.StringWriter;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
@@ -88,6 +90,11 @@ public class DefaultFailure implements Serializable, InternalFailure {
         FailurePrinter.print(wrt, buildFailure, FailurePrinterListener.NO_OP);
         List<Failure> causes = buildFailure.getCauses();
         List<InternalFailure> causeFailures = causes.stream()
+            // Skip multi cause exceptions - no idea why
+            // For example TaskExecutionException is a MultiCauseException and skipped, so the task that failed is not added as a context here.
+            .flatMap(cause -> cause.getOriginal() instanceof MultiCauseException
+                ? cause.getCauses().stream()
+                : Stream.of(cause))
             .map(cause -> fromFailure(cause, mapper))
             .collect(toList());
         List<InternalBasicProblemDetailsVersion3> problemDetails = buildFailure.getProblems().stream()
