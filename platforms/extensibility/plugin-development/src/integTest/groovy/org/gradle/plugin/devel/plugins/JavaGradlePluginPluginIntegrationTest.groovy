@@ -180,7 +180,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
             }
         """
         expect:
-        fails "jar"
+        fails "jar", "--stacktrace"
         failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
     }
 
