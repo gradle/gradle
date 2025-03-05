@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
+import org.gradle.api.internal.tasks.testing.AssumptionTestFailure;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -105,7 +106,11 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
                     "Received a failure event for test with unknown id '%s'. Registered test ids: '%s'",
                     testId, executing.keySet()));
         }
-        testState.failures.add(testFailure);
+        if (testFailure instanceof AssumptionTestFailure) {
+            testState.assumptionFailure = testFailure;
+        } else {
+            testState.failures.add(testFailure);
+        }
     }
 
     @Override
