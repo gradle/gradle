@@ -17,11 +17,8 @@
 package org.gradle.internal.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
 class GradleBuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
     def 'can know the current environment if daemon = #daemon'() {
         given:
         buildFile << """
