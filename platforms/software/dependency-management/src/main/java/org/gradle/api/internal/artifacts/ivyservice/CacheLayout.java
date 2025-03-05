@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.internal.versionedcache.CacheVersionMapping;
 
@@ -91,9 +92,11 @@ public enum CacheLayout {
 
     private final String name;
     private final CacheVersionMapping versionMapping;
+    private final boolean isRootCache;
 
     CacheLayout(@Nullable CacheLayout parent, String name, CacheVersionMapping.Builder versionMappingBuilder) {
         this.name = name;
+        this.isRootCache = parent == null;
         this.versionMapping = parent == null ? versionMappingBuilder.build() : versionMappingBuilder.build(parent.getVersion());
     }
 
@@ -102,6 +105,11 @@ public enum CacheLayout {
     }
 
     public CacheVersion getVersion() {
+        if (isRootCache) {
+            return JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)
+                ? CacheVersion.parse(Integer.toString(Integer.parseInt(versionMapping.getLatestVersion().toString()) + 1))
+                : versionMapping.getLatestVersion();
+        }
         return versionMapping.getLatestVersion();
     }
 
