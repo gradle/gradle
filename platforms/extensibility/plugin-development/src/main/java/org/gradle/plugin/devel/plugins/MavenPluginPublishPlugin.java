@@ -73,10 +73,10 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
     }
 
     private void createMavenMarkerPublication(PluginDeclaration declaration, final MavenPublication coordinates, PublicationContainer publications) {
-        String pluginId = declaration.getId();
+        Provider<String> pluginId = declaration.getId();
         MavenPublicationInternal publication = (MavenPublicationInternal) publications.create(declaration.getName() + "PluginMarkerMaven", MavenPublication.class);
         publication.setAlias(true);
-        publication.getArtifactId().set(pluginId + PLUGIN_MARKER_SUFFIX);
+        publication.getArtifactId().set(pluginId.map(id -> id + PLUGIN_MARKER_SUFFIX));
         publication.getGroupId().set(pluginId);
 
         // required for configuration cache to lose the dependency on the MavenPublication and make the lambda below serializable
