@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.SourceTask",
+            "member": "Method org.gradle.api.tasks.SourceTask.getPatternSet()",
+            "acceptation": "No longer needed",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
+}

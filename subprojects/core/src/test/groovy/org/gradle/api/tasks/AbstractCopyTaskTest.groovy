@@ -47,7 +47,7 @@ class AbstractCopyTaskTest extends WorkspaceTest {
         task.include "include"
 
         then:
-        task.mainSpec.getIncludes() == ["include"].toSet()
+        task.mainSpec.getIncludes().get() == ["include"].toSet()
         task.mainSpec.buildRootResolver().source.files == task.project.fileTree(projectDir).files
     }
 
