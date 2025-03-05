@@ -86,8 +86,8 @@ class PrecompiledGroovyScript {
     }
 
     void declarePlugin(PluginDeclaration pluginDeclaration) {
-        pluginDeclaration.setImplementationClass(getPluginAdapterClassName());
-        pluginDeclaration.setId(pluginId.getId());
+        pluginDeclaration.getImplementationClass().set(getPluginAdapterClassName());
+        pluginDeclaration.getId().set(pluginId.getId());
     }
 
     String getId() {
