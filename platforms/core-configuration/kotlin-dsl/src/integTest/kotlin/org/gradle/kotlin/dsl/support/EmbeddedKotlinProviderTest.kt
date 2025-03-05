@@ -101,11 +101,11 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
         assertThat(
             result.error,
-            containsString("Cannot find a version of 'org.jetbrains.kotlin:kotlin-stdlib' that satisfies the version constraints")
+            containsString("There were conflicting requirements:")
         )
         assertThat(
             result.error,
-            containsString("because of the following reason: Pinned to the embedded Kotlin")
+            containsString("Pinned to the embedded Kotlin org.jetbrains.kotlin:kotlin-stdlib:{strictly 2.0.21}")
         )
     }
 }
