@@ -262,10 +262,10 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
     private void validatePluginDeclarations(Project project, GradlePluginDevelopmentExtension extension) {
         project.afterEvaluate(evaluatedProject -> {
             for (PluginDeclaration declaration : extension.getPlugins()) {
-                if (declaration.getId() == null) {
+                if (!declaration.getId().isPresent()) {
                     throw new IllegalArgumentException(String.format(DECLARATION_MISSING_ID_MESSAGE, declaration.getName()));
                 }
-                if (declaration.getImplementationClass() == null) {
+                if (!declaration.getImplementationClass().isPresent()) {
                     throw new IllegalArgumentException(String.format(DECLARATION_MISSING_IMPLEMENTATION_MESSAGE, declaration.getName()));
                 }
             }
@@ -498,7 +498,7 @@ public abstract class JavaGradlePluginPlugin implements Plugin<Project> {
 
         @Override
         public PluginId getPluginId() {
-            return DefaultPluginId.of(pluginDeclaration.getId());
+            return DefaultPluginId.of(pluginDeclaration.getId().get());
         }
     }
 }
