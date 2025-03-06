@@ -18,8 +18,8 @@ package org.gradle.problems.internal.rendering;
 
 import com.google.common.base.Strings;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.util.internal.TextUtil;
 
 import java.io.PrintWriter;
@@ -36,24 +36,24 @@ public class ProblemRenderer {
         output = new PrintWriter(writer);
     }
 
-    public void render(List<Problem> problems) {
+    public void render(List<InternalProblem> problems) {
         render(output, problems);
     }
 
-    public void render(Problem problem) {
+    public void render(InternalProblem problem) {
         render(Collections.singletonList(problem));
     }
 
-    private static void render(PrintWriter output, List<Problem> problems) {
+    private static void render(PrintWriter output, List<InternalProblem> problems) {
         String sep = "";
-        for (Problem problem : problems) {
+        for (InternalProblem problem : problems) {
             output.printf(sep);
             renderProblem(output, problem);
             sep = "%n";
         }
     }
 
-    static void renderProblem(PrintWriter output, Problem problem) {
+    static void renderProblem(PrintWriter output, InternalProblem problem) {
         boolean isJavaCompilationProblem = problem.getDefinition().getId().getGroup().equals(GradleCoreProblemGroup.compilation().java());
         if (isJavaCompilationProblem) {
             formatMultiline(output, problem.getDetails(), 0);

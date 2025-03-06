@@ -6,8 +6,9 @@
         <mockk.version>1.13.13</mockk.version>
         <bytebuddy.version>1.15.7</bytebuddy.version>
         <junit.version>5.11.3</junit.version>
-        <fastjson.version>1.2.83</fastjson.version>
+        <jackson.version>2.18.2</jackson.version>
         <dslContextParameter.branch>master</dslContextParameter.branch>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <groupId>Gradle_Check</groupId>
     <artifactId>Gradle_Check_dsl</artifactId>
@@ -95,7 +96,10 @@
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
                 <artifactId>ktlint-maven-plugin</artifactId>
-                <version>1.11.1</version>
+                <version>3.5.0</version>
+                <configuration>
+                    <ktlintVersion>1.5.0</ktlintVersion>
+                </configuration>
                 <executions>
                     <execution>
                         <id>check</id>
@@ -126,11 +130,6 @@
     </build>
 
     <dependencies>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.jetbrains.teamcity</groupId>
             <artifactId>server-api</artifactId>
@@ -176,6 +175,22 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
 </project>

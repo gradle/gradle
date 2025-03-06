@@ -17,11 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ResolutionStrategy;
-import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -38,7 +36,6 @@ import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
-import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
@@ -63,9 +60,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Visit
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.FailOnVersionConflictGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.DefaultVisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
@@ -117,7 +111,6 @@ import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -265,7 +258,7 @@ public class ResolutionExecutor {
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.BUILD_DEPENDENCIES_RESOLVED);
 
         Set<UnresolvedDependency> unresolvedDependencies = failureCollector.complete(Collections.emptySet());
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies, null);
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResultBuilder.getResolutionResult(), unresolvedDependencies);
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
 
         TransformUpstreamDependenciesResolver.Factory dependenciesResolverFactory = visitedArtifacts -> new DefaultTransformUpstreamDependenciesResolver(
@@ -332,12 +325,6 @@ public class ResolutionExecutor {
         graphVisitors.add(localComponentsVisitor);
         graphVisitors.add(failureCollector);
 
-        FailOnVersionConflictGraphVisitor versionConflictVisitor = null;
-        if (params.getModuleConflictResolutionStrategy() == ConflictResolution.strict) {
-            versionConflictVisitor = new FailOnVersionConflictGraphVisitor();
-            graphVisitors.add(versionConflictVisitor);
-        }
-
         DependencyLockingGraphVisitor lockingVisitor = null;
         if (params.isDependencyLockingEnabled()) {
             lockingVisitor = new DependencyLockingGraphVisitor(params.getDependencyLockingId(), params.getResolutionHost().displayName(), dependencyLockingProvider);
@@ -359,27 +346,14 @@ public class ResolutionExecutor {
         VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
         ResolvedGraphResults legacyGraphResults = oldModelBuilder.complete();
 
-        // TODO: Failures from dependency locking should be included in the nonFatalFailuresBuilder.
         Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
-        ImmutableSet.Builder<Throwable> nonFatalFailuresBuilder = ImmutableSet.builder();
         if (lockingVisitor != null) {
             lockingFailures = lockingVisitor.collectLockingFailures();
         }
 
-        if (versionConflictVisitor != null) {
-            Set<Conflict> versionConflicts = versionConflictVisitor.getAllConflicts();
-            if (!versionConflicts.isEmpty()) {
-                List<String> resolutions = params.getFailureResolutions().forVersionConflict(versionConflicts);
-                nonFatalFailuresBuilder.add(new VersionConflictException(versionConflicts, resolutions));
-            }
-        }
-
-        Set<Throwable> nonFatalFailures = nonFatalFailuresBuilder.build();
         Set<UnresolvedDependency> resolutionFailures = failureCollector.complete(lockingFailures);
-
         MinimalResolutionResult resolutionResult = newModelBuilder.getResolutionResult(lockingFailures);
-        Optional<? extends ResolveException> failure = params.getResolutionHost().consolidateFailures("dependencies", nonFatalFailures);
-        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures, failure.orElse(null));
+        VisitedGraphResults graphResults = new DefaultVisitedGraphResults(resolutionResult, resolutionFailures);
 
         // Only write dependency locks if resolution completed without failure.
         if (lockingVisitor != null && !graphResults.hasAnyFailure()) {
@@ -493,6 +467,7 @@ public class ResolutionExecutor {
             legacyParams.getCapabilityConflictResolutionRules(),
             params.isFailingOnDynamicVersions(),
             params.isFailingOnChangingVersions(),
+            params.getFailureResolutions(),
             new CompositeDependencyGraphVisitor(visitors)
         );
     }

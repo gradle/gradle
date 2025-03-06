@@ -34,7 +34,8 @@ import static org.gradle.internal.serialize.JavaClassUtil.getClassMajorVersion
 class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
 
     static List<String> javaVersionsToCrossCompileAgainst() {
-        return ["1.6", "1.7", "1.8", "11", "15", "16", "17", "18", "19", "20", "21", "22", "23"]
+        // Keep this to 6, 7, LTS versions, and latest
+        return ["1.6", "1.7", "1.8", "11", "17", "21", "24"]
     }
 
     static JavaVersion toJavaVersion(String version) {
@@ -95,6 +96,9 @@ class JavaCrossCompilationIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'test'
         getClassMajorVersion(javaClassFile("Thing.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
         getClassMajorVersion(classFile ( "java", "test", "ThingTest.class")) == TestJavaClassUtil.getClassVersion(toJavaVersion(version))
+
+        // Ensure there is no warnings from the JDK, e.g. about illegal access
+        outputDoesNotContain("WARNING: ")
 
         where:
         version << javaVersionsToCrossCompileAgainst()

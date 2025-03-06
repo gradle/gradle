@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemDefinition;
@@ -25,7 +26,8 @@ import org.gradle.api.problems.Severity;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.Arrays;
+
+import static com.google.common.base.Objects.equal;
 
 @NonNullApi
 public class DefaultProblemDefinition implements Serializable, ProblemDefinition {
@@ -61,10 +63,6 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
         return documentationLink;
     }
 
-    private static boolean equals(@Nullable Object a, @Nullable Object b) {
-        return (a == b) || (a != null && a.equals(b));
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -75,13 +73,21 @@ public class DefaultProblemDefinition implements Serializable, ProblemDefinition
         }
         DefaultProblemDefinition that = (DefaultProblemDefinition) o;
         return severity == that.severity &&
-            equals(id, that.id) &&
-            equals(documentationLink, that.documentationLink);
+            equal(id, that.id) &&
+            equal(documentationLink, that.documentationLink);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{id, severity, documentationLink});
+        return Objects.hashCode(id, severity, documentationLink);
     }
 
+    @Override
+    public String toString() {
+        return "DefaultProblemDefinition{" +
+            "id=" + id +
+            ", severity=" + severity +
+            ", documentationLink=" + documentationLink +
+            '}';
+    }
 }

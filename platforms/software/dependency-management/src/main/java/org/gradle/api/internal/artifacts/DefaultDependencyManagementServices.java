@@ -31,6 +31,7 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
@@ -379,8 +380,15 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         @Provides
-        VariantTransformRegistry createVariantTransformRegistry(InstantiatorFactory instantiatorFactory, AttributesFactory attributesFactory, ServiceRegistry services, TransformRegistrationFactory transformRegistrationFactory, TransformParameterScheme parameterScheme) {
-            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme());
+        VariantTransformRegistry createVariantTransformRegistry(
+            InstantiatorFactory instantiatorFactory,
+            AttributesFactory attributesFactory,
+            ServiceRegistry services,
+            TransformRegistrationFactory transformRegistrationFactory,
+            TransformParameterScheme parameterScheme,
+            DocumentationRegistry documentationRegistry
+        ) {
+            return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformRegistrationFactory, parameterScheme.getInstantiationScheme(), documentationRegistry);
         }
 
         @Provides

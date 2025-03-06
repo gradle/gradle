@@ -525,7 +525,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                 && Objects.equal(reason, that.reason)
                 && Objects.equal(attributes, that.attributes)
                 && Objects.equal(requestedCapabilities, that.requestedCapabilities)
-                && Objects.equal(endorsing, that.endorsing)
+                && endorsing == that.endorsing
                 && Objects.equal(dependencyArtifact, that.dependencyArtifact);
         }
 

@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.distribution.implementation-java")
 }
 
 dependencies {
@@ -29,6 +29,3 @@ dependencies {
     implementation(libs.groovy)
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

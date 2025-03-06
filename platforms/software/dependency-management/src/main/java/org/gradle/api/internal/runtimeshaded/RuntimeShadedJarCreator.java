@@ -230,11 +230,11 @@ class RuntimeShadedJarCreator {
 
     private static class ShadingClassRemapper extends ClassRemapper {
         final Map<String, String> remappedClassLiterals;
-        private final ImplementationDependencyRelocator remapper;
+        private final ImplementationDependencyRelocator dependencyRelocator;
 
-        public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator remapper) {
-            super(classWriter, remapper);
-            this.remapper = remapper;
+        public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator dependencyRelocator) {
+            super(classWriter, dependencyRelocator);
+            this.dependencyRelocator = dependencyRelocator;
             remappedClassLiterals = new HashMap<>();
         }
 
@@ -242,7 +242,7 @@ class RuntimeShadedJarCreator {
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
             ImplementationDependencyRelocator.ClassLiteralRemapping remapping = null;
             if (CLASS_DESC.equals(desc)) {
-                remapping = remapper.maybeRemap(name);
+                remapping = dependencyRelocator.maybeRemap(name);
                 if (remapping != null) {
                     remappedClassLiterals.put(remapping.getLiteral(), remapping.getLiteralReplacement().replace("/", "."));
                 }
@@ -259,11 +259,11 @@ class RuntimeShadedJarCreator {
                         String literal = remappedClassLiterals.get(cst);
                         if (literal == null) {
                             // tries to relocate literals in the form of foo/bar/Bar
-                            literal = remapper.maybeRelocateResource((String) cst);
+                            literal = dependencyRelocator.maybeRelocateResource((String) cst);
                         }
                         if (literal == null) {
                             // tries to relocate literals in the form of foo.bar.Bar
-                            literal = remapper.maybeRelocateResource(((String) cst).replace('.', '/'));
+                            literal = dependencyRelocator.maybeRelocateResource(((String) cst).replace('.', '/'));
                             if (literal != null) {
                                 literal = literal.replace("/", ".");
                             }
@@ -277,7 +277,7 @@ class RuntimeShadedJarCreator {
                 @Override
                 public void visitFieldInsn(int opcode, String owner, String name, String desc) {
                     if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && CLASS_DESC.equals(desc)) {
-                        ImplementationDependencyRelocator.ClassLiteralRemapping remapping = remapper.maybeRemap(name);
+                        ImplementationDependencyRelocator.ClassLiteralRemapping remapping = dependencyRelocator.maybeRemap(name);
                         if (remapping != null) {
                             super.visitFieldInsn(opcode, owner, remapping.getFieldNameReplacement(), desc);
                             return;

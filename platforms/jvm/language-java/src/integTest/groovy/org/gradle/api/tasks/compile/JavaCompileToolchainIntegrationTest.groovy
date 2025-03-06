@@ -306,9 +306,10 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
             .runWithFailure()
 
         then:
-        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=99, vendor=any vendor, implementation=vendor-specific}. " +
+                "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,
                 SCAN,
@@ -376,9 +377,10 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         fails("compileJava")
 
         then:
-        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=$version, vendor=Amazon Corretto, implementation=vendor-specific}. " +
+                "Toolchain auto-provisioning is not enabled.")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,
                 SCAN,
@@ -402,9 +404,10 @@ class JavaCompileToolchainIntegrationTest extends AbstractIntegrationSpec implem
         withInstallations(jre).fails("compileJava")
 
         then:
-        failure.assertHasCause("No locally installed toolchains match and toolchain auto-provisioning is not enabled.")
+        failure.assertHasCause("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=${jre.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific}. " +
+                "Toolchain auto-provisioning is not enabled")
             .assertHasResolutions(
-                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
+                DocumentationUtils.normalizeDocumentationLink("Learn more about toolchain auto-detection and auto-provisioning at https://docs.gradle.org/current/userguide/toolchains.html#sec:auto_detection."),
                 STACKTRACE_MESSAGE,
                 INFO_DEBUG,
                 SCAN,

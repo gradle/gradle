@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationCr
 import org.gradle.api.internal.artifacts.configurations.UsageDescriber;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.internal.tasks.JvmConstants;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
@@ -128,11 +129,13 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
 
     private final boolean javaClasspathPackaging;
     private final ObjectFactory objectFactory;
+    private final PropertyFactory propertyFactory;
     private final JvmPluginServices jvmPluginServices;
 
     @Inject
-    public JavaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices) {
+    public JavaBasePlugin(ObjectFactory objectFactory, JvmPluginServices jvmPluginServices, PropertyFactory propertyFactory) {
         this.objectFactory = objectFactory;
+        this.propertyFactory = propertyFactory;
         this.javaClasspathPackaging = Boolean.getBoolean(COMPILE_CLASSPATH_PACKAGING_SYSTEM_PROPERTY);
         this.jvmPluginServices = jvmPluginServices;
     }
@@ -225,7 +228,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             javaCompile.setSource(javaSource);
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(javaCompile, objectFactory));
+                JavaCompileExecutableUtils.getExecutableOverrideToolchainSpec(javaCompile, propertyFactory));
             javaCompile.getJavaCompiler().convention(getToolchainTool(project, JavaToolchainService::compilerFor, toolchainOverrideSpec));
 
             String generatedHeadersDir = "generated/sources/headers/" + javaSource.getName() + "/" + sourceSet.getName();
@@ -349,7 +352,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
             javadoc.getConventionMapping().map("title", () -> project.getExtensions().getByType(ReportingExtension.class).getApiDocTitle());
 
             Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-                JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, objectFactory));
+                JavadocExecutableUtils.getExecutableOverrideToolchainSpec(javadoc, propertyFactory));
             javadoc.getJavadocTool().convention(getToolchainTool(project, JavaToolchainService::javadocToolFor, toolchainOverrideSpec));
         });
     }
@@ -391,7 +394,7 @@ public abstract class JavaBasePlugin implements Plugin<Project> {
         test.workingDir(project.getProjectDir());
 
         Provider<JavaToolchainSpec> toolchainOverrideSpec = project.provider(() ->
-            TestExecutableUtils.getExecutableToolchainSpec(test, objectFactory));
+            TestExecutableUtils.getExecutableToolchainSpec(test, propertyFactory));
         test.getJavaLauncher().convention(getToolchainTool(project, JavaToolchainService::launcherFor, toolchainOverrideSpec));
     }
 

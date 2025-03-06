@@ -50,7 +50,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
         file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
 
         then:
-        succeeds 'test'
+        succeeds 'test', '-s'//, '-Dorg.gradle.debug=true'
     }
 
     private static String pluginTest() {

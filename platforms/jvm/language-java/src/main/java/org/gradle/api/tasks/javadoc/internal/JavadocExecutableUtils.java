@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.javadoc.internal;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
@@ -26,10 +26,10 @@ import javax.annotation.Nullable;
 public class JavadocExecutableUtils {
 
     @Nullable
-    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(Javadoc task, ObjectFactory objectFactory) {
+    public static JavaToolchainSpec getExecutableOverrideToolchainSpec(Javadoc task, PropertyFactory propertyFactory) {
         String customExecutable = task.getExecutable();
         if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
+            return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
         }
 
         return null;

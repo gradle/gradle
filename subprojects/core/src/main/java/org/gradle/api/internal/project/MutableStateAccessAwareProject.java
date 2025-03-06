@@ -521,30 +521,35 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
         return delegate.getTasksByName(name, recursive);
     }
 
+    @Deprecated
     @Override
     public Task task(String name) throws InvalidUserDataException {
         onMutableStateAccess("task");
         return delegate.task(name);
     }
 
+    @Deprecated
     @Override
     public Task task(Map<String, ?> args, String name) throws InvalidUserDataException {
         onMutableStateAccess("task");
         return delegate.task(args, name);
     }
 
+    @Deprecated
     @Override
     public Task task(Map<String, ?> args, String name, Closure configureClosure) {
         onMutableStateAccess("task");
         return delegate.task(args, name, configureClosure);
     }
 
+    @Deprecated
     @Override
     public Task task(String name, Closure configureClosure) {
         onMutableStateAccess("task");
         return delegate.task(name, configureClosure);
     }
 
+    @Deprecated
     @Override
     public Task task(String name, Action<? super Task> configureAction) {
         onMutableStateAccess("task");

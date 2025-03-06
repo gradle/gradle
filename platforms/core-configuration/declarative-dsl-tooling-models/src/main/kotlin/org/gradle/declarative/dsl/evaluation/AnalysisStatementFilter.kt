@@ -31,8 +31,8 @@ import java.io.Serializable
 @ToolingModelContract(
     subTypes = [
         CompositionFilter::class,
-        AndFilter::class,
-        OrFilter::class,
+            AndFilter::class,
+            OrFilter::class,
         NotFilter::class,
         ConfiguringCallFilter::class,
         TopLevelElementFilter::class,

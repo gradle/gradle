@@ -33,7 +33,6 @@ import java.util.Map;
 @Incubating
 @NonNullApi
 public interface AdditionalData {
-
     /**
      * Returns additional data as a map.
      *

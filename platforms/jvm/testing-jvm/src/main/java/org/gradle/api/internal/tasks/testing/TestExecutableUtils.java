@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.SpecificInstallationToolchainSpec;
@@ -26,10 +26,10 @@ import javax.annotation.Nullable;
 public class TestExecutableUtils {
 
     @Nullable
-    public static JavaToolchainSpec getExecutableToolchainSpec(Test task, ObjectFactory objectFactory) {
+    public static JavaToolchainSpec getExecutableToolchainSpec(Test task, PropertyFactory propertyFactory) {
         String customExecutable = task.getExecutable();
         if (customExecutable != null) {
-            return SpecificInstallationToolchainSpec.fromJavaExecutable(objectFactory, customExecutable);
+            return SpecificInstallationToolchainSpec.fromJavaExecutable(propertyFactory, customExecutable);
         }
 
         return null;

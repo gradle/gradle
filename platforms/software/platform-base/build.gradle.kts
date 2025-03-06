@@ -25,6 +25,7 @@ dependencies {
 
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
+    implementation(projects.modelReflect)
 
     implementation(libs.commonsLang)
 
@@ -35,7 +36,6 @@ dependencies {
     testImplementation(projects.processServices)
 
     testFixturesApi(projects.fileCollections)
-    testFixturesApi(testFixtures(projects.diagnostics))
     testFixturesApi(testFixtures(projects.modelCore))
 
     testFixturesImplementation(libs.guava)

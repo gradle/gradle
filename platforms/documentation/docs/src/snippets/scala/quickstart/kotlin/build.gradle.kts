@@ -1,23 +1,23 @@
 // tag::use-plugin[]
 plugins {
     // end::use-plugin[]
-    eclipse
+    id("eclipse")
 // tag::use-plugin[]
-    scala
+    id("scala")
 }
 // end::use-plugin[]
 
-// tag::scala-dependency[]
+// tag::scala-version[]
 repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("org.scala-lang:scala-library:2.13.12")
-    testImplementation("junit:junit:4.13")
+scala {
+    scalaVersion = "2.13.12"
 }
-// end::scala-dependency[]
+// end::scala-version[]
 
 dependencies {
     implementation("commons-collections:commons-collections:3.2.2")
+    testImplementation("junit:junit:4.13")
 }

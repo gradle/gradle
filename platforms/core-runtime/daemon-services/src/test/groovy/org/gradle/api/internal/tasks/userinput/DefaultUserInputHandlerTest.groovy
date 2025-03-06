@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
-import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -35,7 +35,7 @@ class DefaultUserInputHandlerTest extends Specification {
     private static final String TEXT = 'Accept license?'
     def outputEventBroadcaster = Mock(OutputEventListener)
     def userInputReader = Mock(UserInputReader)
-    def clock = Mock(Clock)
+    def clock = FixedClock.create()
     @Subject
     def userInputHandler = new DefaultUserInputHandler(outputEventBroadcaster, clock, userInputReader)
 

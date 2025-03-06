@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 public class DefaultDocLink implements InternalDocLink {
@@ -34,5 +35,26 @@ public class DefaultDocLink implements InternalDocLink {
     @Override
     public String getConsultDocumentationMessage() {
         return "For more information, please refer to " + url + ".";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof DefaultDocLink)) {
+            return false;
+        }
+        DefaultDocLink that = (DefaultDocLink) o;
+        return Objects.equal(url, that.url);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(url);
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultDocLink{" +
+            "url='" + url + '\'' +
+            '}';
     }
 }

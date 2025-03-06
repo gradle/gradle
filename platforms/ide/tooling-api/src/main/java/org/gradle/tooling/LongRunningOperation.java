@@ -105,6 +105,9 @@ public interface LongRunningOperation {
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
      * If not configured, null, or an empty array is passed, then the reasonable default will be used.
+     * <p>
+     * The jvm argument set by this method is independent of arguments set by {{@code addJvmArguments}} methods.
+     * The daemon JVM arguments list will always have the arguments from the {{@code setJvmArguments}} at the beginning of the list, and then have the {{@code addJvmArguments}} configuration appended.
      *
      * @param jvmArguments to use for the Gradle process
      * @return this
@@ -114,6 +117,9 @@ public interface LongRunningOperation {
 
     /**
      * Appends Java VM arguments to the existing list.
+     * <p>
+     * The jvm argument set by this method is independent of arguments set by {{@code setJvmArguments}} methods.
+     * The daemon JVM arguments list will always have the arguments from the {{@code setJvmArguments}} at the beginning of the list, and then have the {{@code addJvmArguments}} configuration appended.
      *
      * @param jvmArguments the argument to use for the Gradle process
      * @return this
@@ -145,6 +151,9 @@ public interface LongRunningOperation {
 
     /**
      * Appends Java VM arguments to the existing list.
+     * <p>
+     * The jvm argument set by this method is independent of arguments set by {{@code setJvmArguments}} methods.
+     * The daemon JVM arguments list will always have the arguments from the {{@code setJvmArguments}} at the beginning of the list, and then have the {{@code addJvmArguments}} configuration appended.
      *
      * @param jvmArguments the argument to use for the Gradle process
      * @return this
@@ -159,6 +168,9 @@ public interface LongRunningOperation {
      * If you want to get hold of this information you can ask tooling API to build this model.
      * <p>
      * If not configured, null, or an empty list is passed, then the reasonable default will be used.
+     * <p>
+     * The jvm argument set by this method is independent of arguments set by {{@code addJvmArguments}} methods.
+     * The daemon JVM arguments list will always have the arguments from the {{@code setJvmArguments}} at the beginning of the list, and then have the {{@code addJvmArguments}} configuration appended.
      *
      * @param jvmArguments to use for the Gradle process
      * @return this

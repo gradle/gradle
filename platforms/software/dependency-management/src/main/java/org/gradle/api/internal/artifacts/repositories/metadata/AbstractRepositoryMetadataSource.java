@@ -52,7 +52,7 @@ import java.util.List;
 abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponentResolveMetadata> implements MetadataSource<S> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
 
-    final MetadataArtifactProvider metadataArtifactProvider;
+    protected final MetadataArtifactProvider metadataArtifactProvider;
     private final FileResourceRepository fileResourceRepository;
     private final ChecksumService checksumService;
 

@@ -35,6 +35,10 @@ public enum JavaInstallationCapability {
      */
     JAVADOC_TOOL,
     /**
+     * The installation has the Jar tool. This is not present for JREs.
+     */
+    JAR_TOOL,
+    /**
      * The installation uses the J9 virtual machine. This is only present for IBM J9 JVMs.
      */
     J9_VIRTUAL_MACHINE;
@@ -42,7 +46,7 @@ public enum JavaInstallationCapability {
     /**
      * All capabilities needed by our uses of a JDK. When something "is JDK", it has all of these.
      */
-    public static final Set<JavaInstallationCapability> JDK_CAPABILITIES = Sets.immutableEnumSet(JAVA_COMPILER, JAVADOC_TOOL);
+    public static final Set<JavaInstallationCapability> JDK_CAPABILITIES = Sets.immutableEnumSet(JAVA_COMPILER, JAVADOC_TOOL, JAR_TOOL);
 
     public final String toDisplayName() {
         switch (this) {
@@ -50,6 +54,8 @@ public enum JavaInstallationCapability {
                 return "executable 'javac'";
             case JAVADOC_TOOL:
                 return "executable 'javadoc'";
+            case JAR_TOOL:
+                return "executable 'jar'";
             case J9_VIRTUAL_MACHINE:
                 return "J9 virtual machine";
             default:

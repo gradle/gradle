@@ -18,9 +18,11 @@ package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Shared
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Shared String version = buildContext.distZipVersion.version
@@ -36,7 +38,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 224 * 1024 * 1024
+        return 225 * 1024 * 1024
     }
 
     @Requires(UnitTestPreconditions.StableGroovy) // cannot link to public javadocs of Groovy snapshots like https://docs.groovy-lang.org/docs/groovy-4.0.5-SNAPSHOT/html/gapi/

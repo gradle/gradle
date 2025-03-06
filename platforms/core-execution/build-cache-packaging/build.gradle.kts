@@ -28,6 +28,3 @@ dependencies {
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.snapshots))
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

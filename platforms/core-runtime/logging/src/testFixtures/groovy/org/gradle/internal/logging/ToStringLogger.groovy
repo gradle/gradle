@@ -19,7 +19,7 @@ package org.gradle.internal.logging
 import groovy.transform.CompileStatic
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
 import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
-import org.gradle.internal.time.MockClock
+import org.gradle.internal.time.FixedClock
 import org.slf4j.helpers.FormattingTuple
 import org.slf4j.helpers.MessageFormatter
 
@@ -28,7 +28,7 @@ class ToStringLogger extends OutputEventListenerBackedLogger {
     private final StringBuilder log = new StringBuilder()
 
     ToStringLogger() {
-        super("ToStringLogger", new OutputEventListenerBackedLoggerContext(new MockClock()), new MockClock())
+        super("ToStringLogger", new OutputEventListenerBackedLoggerContext(FixedClock.create()), FixedClock.create())
     }
 
     @Override

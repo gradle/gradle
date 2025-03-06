@@ -17,12 +17,14 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.DocLink;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Severity;
+import org.gradle.problems.ProblemDiagnostics;
 
 import javax.annotation.Nullable;
 
@@ -40,7 +42,12 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @return this
      * @param <U> The type of the configurator object that will be applied to the additional data
      */
-    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalData(Class<? extends U> specType, Action<? super U> config);
+    <U extends org.gradle.api.problems.internal.AdditionalDataSpec> InternalProblemSpec additionalDataInternal(Class<? extends U> specType, Action<? super U> config);
+
+    @Override
+    <T extends AdditionalData> InternalProblemSpec additionalData(Class<T> type, Action<? super T> config);
+
+    <T extends AdditionalData> InternalProblemSpec additionalDataInternal(T additionalDataInstance);
 
     /**
      * Declares that this problem was emitted by a task with the given path.
@@ -48,7 +55,7 @@ public interface InternalProblemSpec extends ProblemSpec {
      * @param buildTreePath the absolute path of the task within the build tree
      * @return this
      */
-    InternalProblemSpec taskPathLocation(String buildTreePath);
+    InternalProblemSpec taskLocation(String buildTreePath);
 
     /**
      * Declares the documentation for this problem.
@@ -116,4 +123,11 @@ public interface InternalProblemSpec extends ProblemSpec {
 
     @Override
     InternalProblemSpec severity(Severity severity);
+
+    /**
+     * The diagnostics to determine the stacktrace and the location of the problem.
+     * <p>
+     * We pass this in when we already have a diagnostics object, for example for deprecation warnings.
+     */
+    InternalProblemSpec diagnostics(ProblemDiagnostics diagnostics);
 }

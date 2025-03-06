@@ -23,6 +23,7 @@ description = "The messages and types sent between client and daemon"
 dependencies {
     api(libs.jsr305)
     api(projects.baseServices)
+    api(projects.classloaders)
     api(projects.loggingApi)
     api(projects.serialization)
     api(projects.logging)
@@ -36,18 +37,12 @@ dependencies {
     api(projects.serviceProvider)
 
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon
-    api(projects.coreApi)
     api(projects.core)
 
     implementation(libs.guava)
-    implementation(libs.slf4jApi)
-    implementation(projects.io)
     implementation(projects.enterpriseLogging)
     implementation(projects.time)
 
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

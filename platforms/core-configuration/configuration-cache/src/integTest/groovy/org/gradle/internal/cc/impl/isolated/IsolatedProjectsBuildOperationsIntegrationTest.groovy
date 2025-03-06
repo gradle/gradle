@@ -45,6 +45,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             status == "NOT_FOUND"
             buildInvalidationReasons == []
             projectInvalidationReasons == []
+            originBuildInvocationId == null
         }
     }
 
@@ -66,6 +67,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
             status == "VALID"
             buildInvalidationReasons == []
             projectInvalidationReasons == []
+            originBuildInvocationId != null
         }
     }
 
@@ -97,6 +99,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                 ]
             ]
             projectInvalidationReasons == []
+            originBuildInvocationId != null
         }
         outputContains("file 'settings.gradle' has changed")
     }
@@ -130,6 +133,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     ]
                 ]
             ]
+            originBuildInvocationId != null
         }
         outputContains("file 'build.gradle' has changed")
     }
@@ -172,6 +176,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     ]
                 ]
             ]
+            originBuildInvocationId != null
         }
         outputContains("file '${relpath(buildFileA)}' has changed")
     }
@@ -224,6 +229,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     ]
                 ]
             ]
+            originBuildInvocationId != null
         }
         outputContains("file '${relpath(buildFileA)}' has changed")
         outputDoesNotContain("file '${relpath(buildFileB)}' has changed")
@@ -277,6 +283,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     ]
                 ]
             ]
+            originBuildInvocationId != null
         }
         outputContains("file '${relpath(buildFileA)}' has changed")
         outputDoesNotContain("project dependency ':a' has changed")
@@ -330,6 +337,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     ]
                 ],
             ]
+            originBuildInvocationId != null
         }
         outputContains("file '${relpath(buildFileB)}' has changed")
         outputDoesNotContain("project dependency ':b' has changed")
@@ -372,6 +380,7 @@ class IsolatedProjectsBuildOperationsIntegrationTest extends AbstractIsolatedPro
                     ]
                 ]
             ]
+            originBuildInvocationId != null
         }
         outputContains("file '${relpath(buildFileA)}' has changed")
     }

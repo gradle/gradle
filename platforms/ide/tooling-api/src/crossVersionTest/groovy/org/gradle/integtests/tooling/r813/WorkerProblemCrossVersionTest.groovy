@@ -57,14 +57,33 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
 
             public interface ProblemsWorkerTaskParameter extends WorkParameters { }
         """
+        file("buildSrc/src/main/java/org/gradle/test/SomeData.java") << """
+            package org.gradle.test;
+
+            import org.gradle.api.problems.AdditionalData;
+
+            public interface SomeData extends AdditionalData {
+                String getName();
+                void setName(String name);
+            }
+        """
+
         file('buildSrc/src/main/java/org/gradle/test/ProblemWorkerTask.java') << """
             package org.gradle.test;
 
             import java.io.File;
-            import java.io.FileWriter;
-            import org.gradle.api.problems.Problems;
+            import java.lang.reflect.Method;
+            import java.net.URL;
+            import java.io.FileWriter;import java.util.stream.Stream;
+            import org.gradle.api.problems.AdditionalData;
+            import org.gradle.api.problems.internal.InternalProblems;
+            import org.gradle.api.problems.internal.InternalProblem;
+            import org.gradle.api.problems.internal.InternalProblemSpec;
             import org.gradle.api.problems.ProblemId;
             import org.gradle.api.problems.ProblemGroup;
+            import org.gradle.api.model.ObjectFactory;
+            import org.gradle.internal.classloader.VisitableURLClassLoader;
+            import org.gradle.internal.isolation.IsolatableFactory;
             import org.gradle.internal.operations.CurrentBuildOperationRef;
 
             import org.gradle.workers.WorkAction;
@@ -74,14 +93,20 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
             public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
 
                 @Inject
-                public abstract Problems getProblems();
+                public abstract InternalProblems getProblems();
 
                 @Override
                 public void execute() {
                     ProblemId problemId = ProblemId.create("name", "Display name", ProblemGroup.create("generic", "Generic"));
-                    getProblems().getReporter().report(problemId, problem ->
-                        problem.contextualLabel("Tooling API client should receive this problem")
+                    InternalProblem p = getProblems().getInternalReporter().internalCreate(problem -> {
+                        InternalProblemSpec spec = problem.contextualLabel("Tooling API client should receive this problem")
+                        .id(problemId);
+                         spec.additionalData(SomeData.class, data -> data.setName("someData"));
+
+}
                     );
+                    getProblems().getReporter().report(p);
+
                 }
             }
         """
@@ -117,9 +142,10 @@ class WorkerProblemCrossVersionTest extends ToolingApiSpecification {
         def event = problemProgressListener.problemEvents.find {it.problem.definition.id.name == 'name' }
         event.problem.definition.id.displayName == 'Display name'
         event.problem.contextualLabel.contextualLabel == 'Tooling API client should receive this problem'
+        event.problem.getAdditionalData().get(SomeData).getName() == 'someData'
 
         where:
-        isolationMode << WorkerExecutorFixture.IsolationMode.values().collect {it.method }
+        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
 
 

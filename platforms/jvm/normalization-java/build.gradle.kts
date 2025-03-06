@@ -43,6 +43,3 @@ listOf(configurations["apiElements"], configurations["runtimeElements"]).forEach
     }
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

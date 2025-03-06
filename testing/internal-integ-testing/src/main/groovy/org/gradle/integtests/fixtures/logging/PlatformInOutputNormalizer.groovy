@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures.logging
 import org.gradle.exemplar.executor.ExecutionMetadata
 import org.gradle.exemplar.test.normalizer.OutputNormalizer
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.jvm.toolchain.internal.CurrentBuildPlatform;
+import org.gradle.platform.internal.CurrentBuildPlatform;
 
 /**
  * This normalizer converts toolchain error message so it doesn't contain platform-specific information.
@@ -40,6 +40,7 @@ class PlatformInOutputNormalizer implements OutputNormalizer {
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
         return commandOutput
+            .replaceAll(internalOs.toString() ,"%OS_ARCH%")
             .replaceAll(arch, "%ARCH%")
             .replaceAll(os.name(), "%OS%")
     }

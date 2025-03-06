@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.AntUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -29,6 +30,7 @@ import org.gradle.util.internal.ToBeImplemented
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
 import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
@@ -38,7 +40,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 62 * 1024 * 1024
+        return 63 * 1024 * 1024
     }
 
     @Override

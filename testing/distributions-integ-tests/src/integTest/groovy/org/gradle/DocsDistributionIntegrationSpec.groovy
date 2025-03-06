@@ -19,9 +19,11 @@ package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Shared
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
     @Shared String version = buildContext.distZipVersion.version
 
@@ -32,7 +34,7 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 84 * 1024 * 1024
+        return 86 * 1024 * 1024
     }
 
     @Override

@@ -21,7 +21,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.problems.internal.ProblemTaskPathTracker;
+import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
+import org.gradle.api.problems.internal.TaskIdentity;
 
 /**
  * Notifies the Problems API about which tasks is being executed.
@@ -36,10 +37,10 @@ public class ProblemsTaskPathTrackingTaskExecuter implements TaskExecuter {
     @Override
     public TaskExecuterResult execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         try {
-            ProblemTaskPathTracker.setTaskIdentityPath(task.getIdentityPath().getPath());
+            ProblemTaskIdentityTracker.setTaskIdentity(new TaskIdentity(task.getTaskIdentity().getBuildPath(), task.getTaskIdentity().getTaskPath()));
             return taskExecuter.execute(task, state, context);
         } finally {
-            ProblemTaskPathTracker.clear();
+            ProblemTaskIdentityTracker.clear();
         }
     }
 }

@@ -40,6 +40,10 @@ import javax.annotation.Nullable;
  * </p>
  *
  * <p>
+ * Instances of this interface are not thread-safe for reading and writing.
+ * It is not safe to share the same Property instance between different projects.
+ * </p>
+ * <p>
  * <b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
  * </p>
  *

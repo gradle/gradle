@@ -52,6 +52,7 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.loggingApi)
     implementation(projects.messaging)
+    implementation(projects.modelReflect)
     implementation(projects.platformJvm)
     implementation(projects.publish)
     implementation(projects.serialization)
@@ -63,7 +64,4 @@ dependencies {
     implementation(libs.fastutil)
     implementation(libs.groovy)
     implementation(libs.guava)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

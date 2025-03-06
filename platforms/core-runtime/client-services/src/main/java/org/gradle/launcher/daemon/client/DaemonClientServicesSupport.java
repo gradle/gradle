@@ -26,6 +26,9 @@ import org.gradle.cache.internal.scopes.DefaultGlobalScopedCacheBuilderFactory;
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory;
 import org.gradle.initialization.layout.GlobalCacheDir;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
@@ -35,6 +38,7 @@ import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.jvm.inspection.PersistentJvmMetadataDetector;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -49,12 +53,12 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.time.Time;
+import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.toolchain.DaemonJavaToolchainQueryService;
 import org.gradle.process.internal.ClientExecHandleBuilderFactory;
 
 import java.io.InputStream;
@@ -141,7 +145,12 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
     }
 
     @Provides
-    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonJavaToolchainQueryService daemonJavaToolchainQueryService, DaemonRequestContext daemonRequestContext) {
-        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionValidator, jvmVersionDetector, daemonJavaToolchainQueryService);
+    DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, DaemonGreeter daemonGreeter, JvmVersionValidator jvmVersionValidator, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, Lazy<JavaToolchainQueryService> javaToolchainQueryService, PropertyFactory propertyFactory) {
+        return new DefaultDaemonStarter(daemonDir, daemonParameters, daemonRequestContext, daemonGreeter, jvmVersionValidator, jvmVersionDetector, javaToolchainQueryService, propertyFactory);
+    }
+
+    @Provides
+    DefaultPropertyFactory createDefaultPropertyFactory() {
+        return new DefaultPropertyFactory(PropertyHost.NO_OP);
     }
 }

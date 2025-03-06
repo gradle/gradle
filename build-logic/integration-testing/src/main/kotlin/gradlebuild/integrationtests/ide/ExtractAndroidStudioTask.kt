@@ -72,7 +72,7 @@ abstract class ExtractAndroidStudioTask @Inject constructor(
                 }
             }
 
-            into(project.layout.buildDirectory.dir(ANDROID_STUDIO_INSTALL_PATH))
+            into(outputDir)
         }
     }
 

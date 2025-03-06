@@ -242,7 +242,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
         treeTaskGraphOps.size() == 2
         treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
-        treeTaskGraphOps[0].parentId == applyRootProjectBuildScript.id
+        applyRootProjectBuildScript in operations.parentsOf(treeTaskGraphOps[0])
         treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
         treeTaskGraphOps[1].parentId == root.id
 
@@ -321,7 +321,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def treeTaskGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
         treeTaskGraphOps.size() == 2
         treeTaskGraphOps[0].displayName == "Calculate build tree task graph"
-        treeTaskGraphOps[0].parentId == applyRootProjectBuildScript.id
+        applyRootProjectBuildScript in operations.parentsOf(treeTaskGraphOps[0])
         treeTaskGraphOps[1].displayName == "Calculate build tree task graph"
         treeTaskGraphOps[1].parentId == root.id
 
@@ -345,7 +345,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         def runTasksOps = operations.all(Pattern.compile("Run tasks.*"))
         runTasksOps.size() == 3
         runTasksOps[0].displayName == "Run tasks (:buildB)"
-        runTasksOps[0].parentId == applyRootProjectBuildScript.id
+        applyRootProjectBuildScript in operations.parentsOf(runTasksOps[0])
         // Build operations are run in parallel, so can appear in either order
         [runTasksOps[1].displayName, runTasksOps[2].displayName].sort() == ["Run tasks", "Run tasks (:buildB)"]
         runTasksOps[1].parentId == runMainTasks.id

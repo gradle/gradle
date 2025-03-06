@@ -23,13 +23,13 @@ import org.gradle.test.fixtures.file.TestFile
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
 
     @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
+    TestFile getBuildFile() {
+        return super.getBuildKotlinFile()
     }
 
     @Override
     protected TestFile getSettingsFile() {
-        testDirectory.file('settings.gradle.kts')
+        return super.getSettingsKotlinFile()
     }
 
     def setup() {

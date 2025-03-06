@@ -62,7 +62,7 @@ class DaemonToolchainInvalidCriteriaIntegrationTest extends AbstractIntegrationS
         fails 'help'
 
         then:
-        failureDescriptionContains("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: Compatible with Java 17, vendor matching('unexpectedVendor') (from gradle/gradle-daemon-jvm.properties).")
+        failureDescriptionContains("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=17, vendor=vendor matching('unexpectedVendor'), implementation=vendor-specific}.")
     }
 
     @NotYetImplemented

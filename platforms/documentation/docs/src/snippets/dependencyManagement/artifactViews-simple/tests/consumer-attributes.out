@@ -1,0 +1,9 @@
+RuntimeClasspath Configuration:
+- Component: project :producer
+    - Variant: runtimeElements
+       - org.gradle.category -> library
+       - org.gradle.usage -> java-runtime
+       - org.gradle.libraryelements -> jar
+       - org.gradle.dependency.bundling -> external
+       - org.gradle.jvm.version -> 11
+- Artifact: producer.jar

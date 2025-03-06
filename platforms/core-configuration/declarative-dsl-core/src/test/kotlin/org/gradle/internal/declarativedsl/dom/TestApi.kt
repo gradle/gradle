@@ -71,6 +71,9 @@ class TestApi {
         var number: Int
 
         @get:Restricted
+        var otherNumber: Int
+
+        @get:Restricted
         var enum: Enum
 
         @Adding

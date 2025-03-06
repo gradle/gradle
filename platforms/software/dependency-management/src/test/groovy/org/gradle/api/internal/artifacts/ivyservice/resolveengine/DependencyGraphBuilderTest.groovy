@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutionApplicator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
@@ -156,6 +157,9 @@ class DependencyGraphBuilderTest extends Specification {
 
     private TestGraphVisitor resolve(Spec<? super DependencyMetadata> edgeFilter = { true }) {
         def graphVisitor = new TestGraphVisitor()
+
+        ResolutionParameters.FailureResolutions failureResolutions = () -> []
+
         builder.resolve(
             root,
             root.getConfigurationLegacy('root'),
@@ -171,6 +175,7 @@ class DependencyGraphBuilderTest extends Specification {
             ConflictResolution.latest,
             false,
             false,
+            failureResolutions,
             graphVisitor
         )
         return graphVisitor

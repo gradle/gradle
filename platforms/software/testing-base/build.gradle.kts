@@ -58,6 +58,7 @@ dependencies {
     testImplementation(testFixtures(projects.messaging))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.serialization))
+    testImplementation(testFixtures(projects.time))
 
     testImplementation(libs.commonsIo)
 

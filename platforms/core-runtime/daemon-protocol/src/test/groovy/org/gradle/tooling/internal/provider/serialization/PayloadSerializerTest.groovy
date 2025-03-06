@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.serialization
 
+import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.tooling.internal.provider.AbstractClassGraphSpec
 import org.gradle.tooling.internal.provider.CustomPayload
@@ -29,8 +30,9 @@ import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
 class PayloadSerializerTest extends AbstractClassGraphSpec {
-    final PayloadSerializer originator = new PayloadSerializer(new WellKnownClassLoaderRegistry(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory())))
-    final PayloadSerializer receiver = new PayloadSerializer(new WellKnownClassLoaderRegistry(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory())))
+    def rootClassloader = new FilteringClassLoader(ModelClassLoaderFactory.class.getClassLoader(), new FilteringClassLoader.Spec())
+    def originator = new PayloadSerializer(new WellKnownClassLoaderRegistry(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory(rootClassloader))))
+    def receiver = new PayloadSerializer(new WellKnownClassLoaderRegistry(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory(rootClassloader))))
 
     def "can send an object between two parties"() {
         expect:

@@ -23,13 +23,13 @@ import javax.xml.namespace.QName
 class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPublishIntegTest {
 
     @Override
-    protected String getDefaultBuildFileName() {
-        'build.gradle.kts'
+    TestFile getBuildFile() {
+        return super.getBuildKotlinFile()
     }
 
     @Override
     protected TestFile getSettingsFile() {
-        testDirectory.file('settings.gradle.kts')
+        return super.getSettingsKotlinFile()
     }
 
     def setup() {

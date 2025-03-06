@@ -27,7 +27,6 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.GradleVersion
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
@@ -494,7 +493,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    @Ignore("https://github.com/gradle/gradle-private/issues/4566")
     def "inputs become empty for task"() {
         given:
         def sourceFile1 = file('source/source1.txt')

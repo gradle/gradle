@@ -457,6 +457,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         return this;
     }
 
+    @Override
+    protected boolean isDebuggerAttached() {
+        return false; // no need for remote debugging for embedded executor
+    }
+
     private static class BuildListenerImpl implements TaskExecutionListener, InternalListener {
         private final List<String> executedTasks = new CopyOnWriteArrayList<>();
         private final Set<String> skippedTasks = new CopyOnWriteArraySet<>();

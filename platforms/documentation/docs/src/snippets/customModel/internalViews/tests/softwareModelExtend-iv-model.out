@@ -21,6 +21,12 @@ Root project 'internal-view'
 + tasks
       | Type:   	org.gradle.model.ModelMap<org.gradle.api.Task>
       | Creator: 	Project.<init>.tasks()
+    + artifactTransforms
+          | Type:   	org.gradle.api.tasks.diagnostics.ArtifactTransformsReportTask
+          | Value:  	task ':artifactTransforms'
+          | Creator: 	Project.<init>.tasks.artifactTransforms()
+          | Rules:
+             ⤷ copyToTaskContainer
     + assemble
           | Type:   	org.gradle.api.DefaultTask
           | Value:  	task ':assemble'

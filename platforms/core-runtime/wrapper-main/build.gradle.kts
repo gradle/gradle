@@ -16,6 +16,7 @@
 
 import com.gradleup.gr8.EmbeddedJarTask
 import com.gradleup.gr8.Gr8Task
+import gradlebuild.basics.launcherDebuggingIsEnabled
 import java.util.jar.Attributes
 
 plugins {
@@ -98,10 +99,23 @@ val copyGr8OutputJarAsGradleWrapperJar by tasks.registering(Copy::class) {
     into(layout.buildDirectory.dir("libs"))
 }
 
-tasks.jar {
-    from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
-    dependsOn(copyGr8OutputJarAsGradleWrapperJar)
+val debuggableJar by tasks.registering(Jar::class) {
+    archiveFileName = "gradle-wrapper.jar"
+    from(executableJar.map { it.source })
+    from(configurations.runtimeClasspath.get().incoming.artifactView {
+        attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.CLASSES))
+    }.files)
 }
+
+tasks.jar {
+    if (launcherDebuggingIsEnabled) { // shadowing and minification prevents debugging
+        from(debuggableJar)
+    } else {
+        from(tasks.named<Gr8Task>("gr8R8Jar").flatMap { it.outputJar() })
+        dependsOn(copyGr8OutputJarAsGradleWrapperJar)
+    }
+}
+
 tasks.isolatedProjectsIntegTest {
     enabled = false
 }

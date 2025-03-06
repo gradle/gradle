@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.jvm.toolchain.JvmImplementation;
@@ -25,7 +27,11 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Objects;
 
-public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal {
+public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
+
+    private final Property<JavaLanguageVersion> version;
+    private final Property<JvmVendorSpec> vendor;
+    private final Property<JvmImplementation> implementation;
 
     public static class Key implements JavaToolchainSpecInternal.Key {
         private final JavaLanguageVersion languageVersion;
@@ -67,12 +73,31 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
         }
     }
 
-    // TODO Since we might need to use it on the launcher, we may have to decouple it from instantiator features
     @Inject
-    public DefaultToolchainSpec() {
+    public DefaultToolchainSpec(PropertyFactory propertyFactory) {
+        version = propertyFactory.property(JavaLanguageVersion.class);
+        vendor = propertyFactory.property(JvmVendorSpec.class);
+        implementation = propertyFactory.property(JvmImplementation.class);
+
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
     }
+
+    @Override
+    public Property<JavaLanguageVersion> getLanguageVersion() {
+        return version;
+    }
+
+    @Override
+    public Property<JvmVendorSpec> getVendor() {
+        return vendor;
+    }
+
+    @Override
+    public Property<JvmImplementation> getImplementation() {
+        return implementation;
+    }
+
     @Override
     public JavaToolchainSpecInternal.Key toKey() {
         return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull());
@@ -100,13 +125,6 @@ public abstract class DefaultToolchainSpec implements JavaToolchainSpecInternal 
     private boolean isSecondaryPropertiesUnchanged() {
         return Objects.equals(getConventionVendor(), getVendor().getOrNull()) &&
             Objects.equals(getConventionImplementation(), getImplementation().getOrNull());
-    }
-
-    @Override
-    public void finalizeProperties() {
-        getLanguageVersion().finalizeValue();
-        getVendor().finalizeValue();
-        getImplementation().finalizeValue();
     }
 
     @Override

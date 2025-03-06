@@ -18,6 +18,3 @@ dependencies {
     implementation(libs.inject)
 }
 
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

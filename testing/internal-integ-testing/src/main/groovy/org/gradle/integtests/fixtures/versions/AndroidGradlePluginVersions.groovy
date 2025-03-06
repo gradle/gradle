@@ -182,9 +182,11 @@ class AndroidGradlePluginVersions {
             return "30.0.3"
         } else if (version < VersionNumber.parse("8.2")) {
             return "33.0.1"
+        } else if (version < VersionNumber.parse("8.8")) {
+            return "34.0.0"
         }
 
-        return "34.0.0"
+        return "35.0.0"
     }
 
     static JavaVersion getMinimumJavaVersionFor(VersionNumber agpVersion) {

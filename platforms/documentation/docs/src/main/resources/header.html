@@ -1,3 +1,19 @@
+<!--
+  ~ Copyright 2025 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
 <div class="layout">
     <header class="site-layout__header site-header" itemscope="itemscope" itemtype="https://schema.org/WPHeader">
         <nav class="site-header__navigation" itemscope="itemscope" itemtype="https://schema.org/SiteNavigationElement">
@@ -292,8 +308,14 @@
                         <li><a href="../userguide/declaring_repositories.html">3. Declaring Repositories</a></li>
                         <li><a href="../userguide/centralizing_dependencies.html">4. Centralizing Dependencies</a></li>
                         <li><a href="../userguide/dependency_constraints_conflicts.html">5. Dependency Constraints and Conflict Resolution</a></li>
-                        <li><a href="../userguide/dependency_resolution.html">6. Dependency Resolution</a></li>
-                        <li><a href="../userguide/variant_aware_resolution.html">7. Variant Aware Dependency Resolution</a></li>
+                    </ul>
+                </li>
+                <li><a class="nav-dropdown" data-toggle="collapse" href="#understanding_dep_res" aria-expanded="false" aria-controls="understanding_dep_res">Advanced Concepts</a>
+                    <ul id="understanding_dep_res">
+                        <li><a href="../userguide/dependency_resolution.html">1. Dependency Resolution</a></li>
+                        <li><a href="../userguide/graph_resolution.html">2. Graph Resolution</a></li>
+                        <li><a href="../userguide/variant_aware_resolution.html">3. Variant Selection</a></li>
+                        <li><a href="../userguide/artifact_resolution.html">4. Artifact Resolution</a></li>
                     </ul>
                 </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependencies" aria-expanded="false" aria-controls="declaring-dependencies">Declaring Dependencies</a>
@@ -330,18 +352,11 @@
                         <li><a href="../userguide/dependency_caching.html">Caching Dependencies</a></li>
                     </ul>
                 </li>
-                <li><a class="nav-dropdown" data-toggle="collapse" href="#understanding_dep_res" aria-expanded="false" aria-controls="understanding_dep_res">Understanding Dependency Resolution</a>
-                    <ul id="understanding_dep_res">
-                        <li><a href="../userguide/variant_model.html">Understanding The Model</a></li>
-                        <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
-                        <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
-                    </ul>
-                </li>
                 <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-resolution" aria-expanded="false" aria-controls="dependency-resolution">Controlling Dependency Resolution</a>
                     <ul id="dependency-resolution">
-                        <li><a href="../userguide/dependency_resolution_basics.html">Dependency Resolution Basics</a></li>
-                        <li><a href="../userguide/dependency_graph_resolution.html">Graph Resolution</a></li>
-                        <li><a href="../userguide/artifact_resolution.html">Artifact Resolution</a></li>
+                        <li><a href="../userguide/component_capabilities.html">Capabilities</a></li>
+                        <li><a href="../userguide/variant_attributes.html">Variants and Attributes</a></li>
+                        <li><a href="../userguide/artifact_views.html">Artifact Views</a></li>
                         <li><a href="../userguide/artifact_transforms.html">Artifact Transforms</a></li>
                     </ul>
                 </li>
@@ -405,8 +420,8 @@
             <h3 id="third-party-integration">Integration</h3>
             <ul>
                 <li><a href="../userguide/third_party_integration.html">Third-party Tools</a></li>
-                <li><a href="../userguide/third_party_integration.html">Tooling API</a></li>
-                <li><a href="../userguide/third_party_integration.html">Test Reporting API</a></li>
+                <li><a href="../userguide/tooling_api.html">Tooling API</a></li>
+                <li><a href="../userguide/test_reporting_api.html">Test Reporting API</a></li>
             </ul>
 
             <h3 id="reference">Reference</h3>

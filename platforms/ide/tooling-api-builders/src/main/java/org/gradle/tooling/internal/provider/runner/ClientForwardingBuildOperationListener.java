@@ -106,7 +106,7 @@ class ClientForwardingBuildOperationListener implements BuildOperationListener {
         // RunBuildBuildOperationType.Details is the type of the details object associated with the root build operation
         if (rootRequested && buildOperation.getDetails() instanceof RunBuildBuildOperationType.Details) {
             ProblemLocator problemLocator = ((RunBuildBuildOperationType.Details) buildOperation.getDetails()).getProblemLookup();
-            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), createRootOperationDescriptor(buildOperation), ClientForwardingBuildOperationListener.toOperationResult(result, problemLocator)));
+            eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), createRootOperationDescriptor(buildOperation), toOperationResult(result, problemLocator)));
         } else if (genericRequested) {
             eventConsumer.finished(new DefaultOperationFinishedProgressEvent(result.getEndTime(), toBuildOperationDescriptor(buildOperation), toOperationResult(result)));
         }

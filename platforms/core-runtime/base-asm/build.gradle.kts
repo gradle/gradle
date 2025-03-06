@@ -26,6 +26,3 @@ dependencies {
     api(libs.asm)
     api(libs.jsr305)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

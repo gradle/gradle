@@ -21,6 +21,8 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -38,7 +40,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem header is correct when only group display name is present"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = createProblemBuilder()
             .id("test-id", "test-id-display-name", level1Group)
             .build()
 
@@ -49,9 +51,13 @@ class ProblemRendererTest extends Specification {
         renderedTextLines[0] == "  test-id-display-name"
     }
 
+    def DefaultProblemBuilder createProblemBuilder() {
+        new DefaultProblemBuilder(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer))
+    }
+
     def "individual problem header is correct when contextual label is present"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = createProblemBuilder()
             .id("test-id", "display-name", level1Group)
             .contextualLabel("contextual-label")
             .build()
@@ -65,7 +71,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem with details are displayed"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = createProblemBuilder()
             .id("id", "display-name", level1Group)
             .details("details")
             .build()
@@ -79,7 +85,7 @@ class ProblemRendererTest extends Specification {
 
     def "individual problem with multiline details are displayed and indented correctly"() {
         given:
-        def problem = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem = createProblemBuilder()
             .id("id", "display-name", level1Group)
             .details("details:1\ndetails:2")
             .build()
@@ -95,11 +101,11 @@ class ProblemRendererTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/32016")
     def "reports are properly separated"() {
         given:
-        def problem1 = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem1 = createProblemBuilder()
             .id("id", "display-name", level1Group)
             .details("details:1\ndetails:2")
             .build()
-        def problem2 = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem2 = createProblemBuilder()
             .id("id", "display-name", level1Group)
             .details("details:1\ndetails:2")
             .build()
@@ -120,11 +126,11 @@ class ProblemRendererTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/32016")
     def "java compilation reports are properly separated"() {
         given:
-        def problem1 = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem1 = createProblemBuilder()
             .id("id", "display-name", GradleCoreProblemGroup.compilation().java())
             .details("Unused variable a in line 10")
             .build()
-        def problem2 = new DefaultProblemBuilder(new AdditionalDataBuilderFactory())
+        def problem2 = createProblemBuilder()
             .id("id", "display-name", GradleCoreProblemGroup.compilation().java())
             .details("Unused variable a in line 20")
             .build()

@@ -17,12 +17,19 @@
 
 package org.gradle.integtests
 
+import org.apache.http.HttpResponse
+import org.apache.http.client.methods.CloseableHttpResponse
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClientBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.process.TestExecHttpServer
 import org.gradle.process.TestJavaMain
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.precondition.Requires
@@ -30,6 +37,8 @@ import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
+
+import java.util.concurrent.TimeUnit
 
 class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -810,6 +819,97 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         "JavaExec" | javaExecSpec()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/32213")
+    @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
+    def "project.#method process is stopped when build is cancelled"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            tasks.register("appStart") {
+                doLast {
+                    // Using a new Thread is important to escape the task lifecycle and reproduce the issue
+                    Thread.start {
+                        project.${method} {
+                            ${configuration(getHttpServerInfoFile())}
+                        }
+                    }.join()
+                }
+            }
+        """
+
+        when:
+        executer
+            .requireDaemon()
+            .requireIsolatedDaemons()
+            .noDeprecationChecks()
+            .withStackTraceChecksDisabled()
+            // Needed to get client pid
+            .withArgument("--debug")
+            .withTasks("appStart")
+        def client = new DaemonClientFixture(executer.start())
+
+        then:
+        long port = waitForHttpServerPort()
+        callGet("http://127.0.0.1:$port/test").statusLine.statusCode == 200
+
+        when:
+        client.kill()
+        callGet("http://127.0.0.1:$port/test")
+
+        then:
+        def e = thrown(ConnectException)
+        e.message.contains("Connection refused")
+
+        where:
+        method     | configuration
+        "exec"     | { File serverInfoFile -> execSpecWithHttpServerExecutable(serverInfoFile) }
+        "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/32213")
+    def "execOperations.#method process is stopped when build is cancelled"() {
+        settingsFile << "include 'a'"
+        file("a/build.gradle") << """
+            tasks.register("appStart") {
+                def execOperations = services.get(ExecOperations)
+                doLast {
+                    // Using a new Thread is important to escape the task lifecycle and reproduce the issue
+                    Thread.start {
+                        execOperations.${method} {
+                            ${configuration(getHttpServerInfoFile())}
+                        }
+                    }.join()
+                }
+            }
+        """
+
+        when:
+        executer
+            .requireDaemon()
+            .requireIsolatedDaemons()
+            .withStackTraceChecksDisabled()
+            // Needed to get client pid
+            .withArgument("--debug")
+            .withTasks("appStart")
+        def client = new DaemonClientFixture(executer.start())
+
+        then:
+        long port = waitForHttpServerPort()
+        callGet("http://127.0.0.1:$port/test").statusLine.statusCode == 200
+
+        when:
+        client.kill()
+        callGet("http://127.0.0.1:$port/test")
+
+        then:
+        def e = thrown(ConnectException)
+        e.message.contains("Connection refused")
+
+        where:
+        method     | configuration
+        "exec"     | { File serverInfoFile -> execSpecWithHttpServerExecutable(serverInfoFile) }
+        "javaexec" | { File serverInfoFile -> javaExecSpecWithHttpServer(serverInfoFile) }
+    }
+
     private static def execSpec(def owner = "") {
         "${prop(owner, "commandLine")}(${echoCommandLineArgs("Hello")});"
     }
@@ -818,6 +918,13 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """
             ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
             ${prop(owner, "args")}('-cp',${javaExecClasspath()}, '${TestJavaMain.name}', "Hello")
+        """
+    }
+
+    private static def execSpecWithHttpServerExecutable(File serverInfoFile, def owner = "") {
+        """
+            ${prop(owner, "executable")}(org.gradle.internal.jvm.Jvm.current().getJavaExecutable())
+            ${prop(owner, "args")}('-cp',${javaExecHttpServerClasspath()}, '${TestExecHttpServer.name}', '${TextUtil.normaliseFileSeparators(serverInfoFile.absolutePath)}')
         """
     }
 
@@ -836,12 +943,24 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    private static def javaExecSpecWithHttpServer(File serverInfo, def owner = "") {
+        """
+            ${prop(owner, "getMainClass()")}.set("${TestExecHttpServer.name}");
+            ${prop(owner, "classpath")}(${javaExecHttpServerClasspath()});
+            ${prop(owner, "args")}("${TextUtil.normaliseFileSeparators(serverInfo.absolutePath)}");
+        """
+    }
+
     private static String prop(String owner, String propertyName) {
         return owner ? owner + '.' + propertyName : propertyName
     }
 
     private static def javaExecClasspath() {
         """ "${TextUtil.escapeString(TestJavaMain.classLocation)}" """.trim()
+    }
+
+    private static def javaExecHttpServerClasspath() {
+        """ "${TextUtil.escapeString(TestExecHttpServer.classLocation)}" """.trim()
     }
 
     private void expectExecMethodDeprecation(String deprecation, String replacements) {
@@ -856,5 +975,33 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             "This will fail with an error in Gradle 10.0. " +
             "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#task_project")
+    }
+
+    private long waitForHttpServerPort(int waitTimeSeconds = 20) {
+        // Server needs some time to start so we wait for the server info file with port to be created
+        File serverInfoFile = getHttpServerInfoFile()
+        long start = System.currentTimeMillis()
+        while (System.currentTimeMillis() - start < TimeUnit.SECONDS.toMillis(waitTimeSeconds)) {
+            if (serverInfoFile.exists()) {
+                try {
+                    return Long.parseLong(serverInfoFile.text)
+                } catch (Exception ignore) {
+                }
+            }
+            Thread.sleep(25)
+        }
+        throw new IllegalStateException("Cannot get server port. Was the server started?")
+    }
+
+    private File getHttpServerInfoFile() {
+        return testDirectory.file("httpServerInfo")
+    }
+
+    private static HttpResponse callGet(String url) {
+        try (CloseableHttpClient client = HttpClientBuilder.create().build()) {
+            CloseableHttpResponse response = client.execute(new HttpGet(url))
+            response.close()
+            return response
+        }
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ModuleSelectorNotationConverter;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.ComponentSelectorNotationConverter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.BuildTreeLocalComponentProvider;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.composite.CompositeBuildContext;
@@ -92,11 +92,11 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
             CompositeBuildContext context,
             Instantiator instantiator,
             ObjectFactory objectFactory,
-            ModuleSelectorNotationConverter moduleSelectorNotationParser,
+            ComponentSelectorNotationConverter componentSelectorNotationParser,
             AttributesFactory attributesFactory
         ) {
             NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
-            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, moduleSelectorNotationParser, capabilityNotationParser);
+            return new IncludedBuildDependencySubstitutionsBuilder(context, instantiator, objectFactory, attributesFactory, componentSelectorNotationParser, capabilityNotationParser);
         }
 
         @Provides

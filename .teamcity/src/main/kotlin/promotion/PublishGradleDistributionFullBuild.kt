@@ -27,7 +27,7 @@ abstract class PublishGradleDistributionFullBuild(
     gitUserName: String = "bot-teamcity",
     gitUserEmail: String = "bot-teamcity@gradle.com",
     extraParameters: String = "",
-    vcsRootId: String = gradlePromotionMaster
+    vcsRootId: String = gradlePromotionMaster,
 ) : BasePublishGradleDistribution(promotedBranch, prepTask, triggerName, gitUserName, gitUserEmail, extraParameters, vcsRootId) {
     init {
         steps {

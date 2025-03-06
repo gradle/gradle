@@ -20,8 +20,8 @@ public class UpdateDevelocityPluginVersion {
             File f = new File(file);
             if (f.exists()) {
                 String content = new String(Files.readAllBytes(f.toPath()));
-                content = content.replaceAll("com.gradle:develocity-gradle-plugin:[\\d\\.]*\"", "com.gradle:develocity-gradle-plugin:" + newVersion + '"');
-                content = content.replaceAll("com.gradle.develocity\"\\).version\\(\"[\\d\\.]*\"", "com.gradle.develocity\"\\).version\\(\"" + newVersion + '"');
+                content = content.replaceAll("com.gradle:develocity-gradle-plugin:[^\\\"]*\"", "com.gradle:develocity-gradle-plugin:" + newVersion + '"');
+                content = content.replaceAll("com.gradle.develocity\"\\).version\\(\"[^\\\"]*\"", "com.gradle.develocity\"\\).version\\(\"" + newVersion + '"');
 
                 Files.write(f.toPath(), content.getBytes());
                 System.out.println("Updated " + file + " to version " + newVersion);

@@ -24,6 +24,7 @@ description = "Tools to serialize data"
 gradlebuildJava.usedInWorkers()
 
 dependencies {
+    api(projects.classloaders)
     api(projects.hashing)
     api(projects.stdlibJavaExtensions)
 
@@ -32,12 +33,10 @@ dependencies {
 
     implementation(projects.io)
 
+    implementation(libs.commonsIo)
     implementation(libs.fastutil)
     implementation(libs.kryo)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.errorProneAnnotations)
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

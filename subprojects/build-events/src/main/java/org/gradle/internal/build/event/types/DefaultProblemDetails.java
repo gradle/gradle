@@ -41,7 +41,7 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     private final List<InternalLocation> originLocations;
     private final List<InternalLocation> contextualLocations;
     private final List<InternalSolution> solutions;
-    private final InternalAdditionalData additionalData;
+    private InternalAdditionalData additionalData;
     private final InternalFailure failure;
 
     public DefaultProblemDetails(
@@ -115,4 +115,9 @@ public class DefaultProblemDetails implements InternalBasicProblemDetailsVersion
     public InternalAdditionalData getAdditionalData() {
         return additionalData;
     }
+
+    public void setAdditionalData(InternalAdditionalData additionalData) {
+        this.additionalData = additionalData;
+    }
+
 }

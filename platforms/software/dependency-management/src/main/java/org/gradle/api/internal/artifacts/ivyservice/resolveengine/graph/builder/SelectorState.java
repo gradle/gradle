@@ -64,7 +64,7 @@ import static org.gradle.util.internal.TextUtil.getPluralEnding;
  * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
-    private final Long id;
+
     private final DependencyState dependencyState;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
@@ -95,8 +95,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     // evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
 
-    SelectorState(Long id, DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
-        this.id = id;
+    SelectorState(DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
         this.resolver = resolver;
         this.targetModule = resolveState.getModule(targetModuleId);
         if (versionByAncestor) {
@@ -135,11 +134,6 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private void removeAndMarkSelectorForReuse() {
         targetModule.removeSelector(this);
         resolved = false;
-    }
-
-    @Override
-    public Long getResultId() {
-        return id;
     }
 
     @Override

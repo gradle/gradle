@@ -23,6 +23,11 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 
+/**
+ * Service representing the build level configuration of the JVM toolchain subsystem.
+ * <p>
+ * Used also in the launcher for the daemon toolchain
+ */
 @ServiceScope({ Scope.Build.class, Scope.Global.class })
 public interface ToolchainConfiguration {
     String AUTO_DETECT = "org.gradle.java.installations.auto-detect";

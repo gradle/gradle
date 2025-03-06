@@ -112,7 +112,7 @@ public class DefaultTaskSelector implements TaskSelector {
     }
 
     private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
-        ((InternalProblemSpec) spec).additionalData(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
+        ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;
     }

@@ -13,6 +13,3 @@ dependencies {
     api(libs.jsr305)
     api(libs.errorProneAnnotations)
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

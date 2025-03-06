@@ -40,7 +40,6 @@ dependencies {
     testImplementation(projects.snapshots)
     testImplementation(libs.ant)
     testImplementation(testFixtures(projects.core))
-    testImplementation(testFixtures(projects.diagnostics))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.platformBase))
     testImplementation(testFixtures(projects.platformNative))

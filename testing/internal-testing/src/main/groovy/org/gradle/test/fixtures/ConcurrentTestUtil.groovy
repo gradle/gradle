@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 
 import java.util.concurrent.AbstractExecutorService
 import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
@@ -166,6 +167,26 @@ class ConcurrentTestUtil extends ExternalResource {
             TestThread thread = new TestThread(this, lock, cl)
             thread.start()
             return new TestParticipantImpl(this, thread)
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    void startSynchronizedNTimes(int times, Runnable cl) {
+        lock.lock()
+        try {
+            def threadCondition = new CountDownLatch(times)
+            def startCondition = new CountDownLatch(1)
+            times.times {
+                TestThread thread = new TestThread(this, lock, {
+                    threadCondition.countDown()
+                    startCondition.await()
+                    cl.run();
+                })
+                thread.start()
+            }
+            threadCondition.await()
+            startCondition.countDown()
         } finally {
             lock.unlock()
         }
@@ -364,6 +385,17 @@ class TestThread extends Thread {
             lock.unlock()
         }
     }
+}
+
+class SyncStartTestThread extends TestThread {
+//    Condition startCondition
+
+    SyncStartTestThread(ConcurrentTestUtil owner, Lock lock, Condition startCondition, Runnable action) {
+        super(owner, lock,)
+//        this.startCondition = startCondition
+    }
+
+
 }
 
 /**

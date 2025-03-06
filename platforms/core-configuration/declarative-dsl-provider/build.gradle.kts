@@ -41,6 +41,8 @@ dependencies {
     implementation(libs.kotlinReflect)
 
     testImplementation(libs.mockitoKotlin2)
+    testImplementation(testFixtures(projects.declarativeDslCore))
+    testImplementation(testFixtures(projects.declarativeDslEvaluator))
 
     integTestImplementation(projects.internalTesting)
     integTestImplementation(projects.logging)

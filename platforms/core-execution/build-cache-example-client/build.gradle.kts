@@ -48,6 +48,3 @@ dependencies {
 application {
     mainClass = "org.gradle.caching.example.ExampleBuildCacheClient"
 }
-tasks.isolatedProjectsIntegTest {
-    enabled = false
-}

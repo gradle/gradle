@@ -17,10 +17,13 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     /*
@@ -35,7 +38,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 135 * 1024 * 1024
+        return 136 * 1024 * 1024
     }
 
     /**

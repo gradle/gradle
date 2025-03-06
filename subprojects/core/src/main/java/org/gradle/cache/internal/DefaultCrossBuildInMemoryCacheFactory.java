@@ -17,23 +17,27 @@
 package org.gradle.cache.internal;
 
 import org.gradle.cache.ManualEvictionInMemoryCache;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.session.BuildSessionLifecycleListener;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.SoftReference;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import static java.util.Collections.synchronizedMap;
 
 /**
  * A factory for {@link CrossBuildInMemoryCache} instances.
@@ -53,10 +57,29 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCache() {
-        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(new HashMap<>());
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.STRONG);
         listenerManager.addListener(cache);
         return cache;
     }
+
+    @Override
+    public <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
+        DefaultCrossBuildInMemoryCache<K, V> cache = new DefaultCrossBuildInMemoryCache<K, V>(KeyRetentionPolicy.STRONG) {
+            @Nullable
+            @Override
+            protected V maybeGetRetainedValue(K key) {
+                V v = super.maybeGetRetainedValue(key);
+                if (v != null) {
+                    // This callback better be swift as it runs under the cache lock.
+                    onReuse.accept(v);
+                }
+                return v;
+            }
+        };
+        listenerManager.addListener(cache);
+        return cache;
+    }
+
 
     @Override
     public <K, V> CrossBuildInMemoryCache<K, V> newCacheRetainingDataFromPreviousBuild(Predicate<V> retentionFilter) {
@@ -67,9 +90,9 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
 
     @Override
     public <V> CrossBuildInMemoryCache<Class<?>, V> newClassCache() {
-        // Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
-        // for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
-        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(new WeakHashMap<>());
+        // TODO: Should use some variation of DefaultClassMap below to associate values with classes, as currently we retain a strong reference to each value for one session after the ClassLoader
+        //       for the entry's key is discarded, which is unnecessary because we won't attempt to locate the entry again once the ClassLoader has been discarded
+        DefaultCrossBuildInMemoryCache<Class<?>, V> cache = new DefaultCrossBuildInMemoryCache<>(KeyRetentionPolicy.WEAK);
         listenerManager.addListener(cache);
         return cache;
     }
@@ -82,108 +105,132 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     }
 
     private abstract static class AbstractCrossBuildInMemoryCache<K, V> implements CrossBuildInMemoryCache<K, V>, BuildSessionLifecycleListener {
-        private final Object lock = new Object();
-        private final Map<K, V> valuesForThisSession = new HashMap<>();
+        private final ConcurrentHashMap<K, Lazy<V>> valuesForThisSession = new ConcurrentHashMap<>();
 
         @Override
         public void beforeComplete() {
-            synchronized (lock) {
-                retainValuesFromCurrentSession(valuesForThisSession.values());
-                valuesForThisSession.clear();
-            }
+            retainValuesFromCurrentSession(valuesForThisSession.values().stream().map(Lazy::get));
+            valuesForThisSession.clear();
         }
 
         @Override
         public void clear() {
-            synchronized (lock) {
-                valuesForThisSession.clear();
-                discardRetainedValues();
-            }
+            valuesForThisSession.clear();
+            discardRetainedValues();
         }
 
-        protected abstract void retainValuesFromCurrentSession(Collection<V> values);
+        protected abstract void retainValuesFromCurrentSession(Stream<V> values);
 
         protected abstract void discardRetainedValues();
 
+        /**
+         * Must be thread-safe.
+         */
         protected abstract void retainValue(K key, V v);
 
+        /**
+         * Must be thread-safe.
+         */
         @Nullable
         protected abstract V maybeGetRetainedValue(K key);
 
         @Nullable
         @Override
         public V getIfPresent(K key) {
-            synchronized (lock) {
-                return getIfPresentWithoutLock(key);
-            }
+            Lazy<V> present = valuesForThisSession
+                .computeIfAbsent(key, k -> {
+                    V retained = maybeGetRetainedValue(k);
+                    return retained != null
+                        ? Lazy.fixed(retained)
+                        : null;
+                });
+            return present != null
+                ? present.get()
+                : null;
         }
 
+        /**
+         * Factory must be thread-safe and must not rely on thread-local state as it might
+         * be executed from a different thread than the one that submitted it.
+         */
         @Override
         public V get(K key, Function<? super K, ? extends V> factory) {
-            synchronized (lock) {
-                V v = getIfPresentWithoutLock(key);
-                if (v != null) {
-                    return v;
-                }
-
-                // TODO - do not hold lock while computing value
-                v = factory.apply(key);
-
-                retainValue(key, v);
-
-                // Retain strong reference
-                valuesForThisSession.put(key, v);
-
-                return v;
-            }
+            return valuesForThisSession.computeIfAbsent(key, k -> {
+                V retained = maybeGetRetainedValue(k);
+                return retained != null
+                    ? Lazy.fixed(retained)
+                    : Lazy.locking().of(() -> produceAndRetain(factory, k));
+            }).get();
         }
 
         @Override
         public void put(K key, V value) {
-            synchronized (lock) {
-                retainValue(key, value);
-                valuesForThisSession.put(key, value);
-            }
+            // Update doesn't need to be atomic since all retained values are equivalent
+            retainValue(key, value);
+            valuesForThisSession.put(key, Lazy.fixed(value));
         }
 
-        // Caller must be holding lock
-        @Nullable
-        private V getIfPresentWithoutLock(K key) {
-            V v = valuesForThisSession.get(key);
-            if (v != null) {
-                return v;
-            }
+        private V produceAndRetain(Function<? super K, ? extends V> factory, K k) {
+            V newValue = produce(factory, k);
+            retainValue(k, newValue);
+            return newValue;
+        }
 
-            v = maybeGetRetainedValue(key);
-            if (v != null) {
-                // Retain strong reference
-                valuesForThisSession.put(key, v);
-                return v;
+        private V produce(Function<? super K, ? extends V> factory, K k) {
+            V newValue;
+            try {
+                newValue = factory.apply(k);
+                if (newValue == null) {
+                    // Factory should never produce null
+                    throw new IllegalStateException("Factory '" + factory + "' failed to produce a value for key '" + k + "'!");
+                }
+            } catch (Throwable e) {
+                valuesForThisSession.remove(k);
+                throw UncheckedException.throwAsUncheckedException(e);
             }
-
-            return null;
+            return newValue;
         }
     }
 
+    private enum KeyRetentionPolicy {
+        WEAK,
+        STRONG
+    }
+
     private static class DefaultCrossBuildInMemoryCache<K, V> extends AbstractCrossBuildInMemoryCache<K, V> {
+
         // This is used only to retain strong references to the values
         private final Set<V> valuesForPreviousSession = new HashSet<>();
         private final Map<K, SoftReference<V>> allValues;
 
-        public DefaultCrossBuildInMemoryCache(Map<K, SoftReference<V>> allValues) {
-            this.allValues = allValues;
+        public DefaultCrossBuildInMemoryCache(KeyRetentionPolicy retentionPolicy) {
+            this.allValues = mapFor(retentionPolicy);
+        }
+
+        private Map<K, SoftReference<V>> mapFor(KeyRetentionPolicy retentionPolicy) {
+            switch (retentionPolicy) {
+                case WEAK:
+                    return synchronizedMap(new WeakHashMap<>());
+                case STRONG:
+                    return new ConcurrentHashMap<>();
+            }
+            throw new IllegalArgumentException("Unknown retention policy: " + retentionPolicy);
         }
 
         @Override
-        protected void retainValuesFromCurrentSession(Collection<V> values) {
+        protected void retainValuesFromCurrentSession(Stream<V> values) {
             // Retain strong references to the values created for this session
-            valuesForPreviousSession.clear();
-            valuesForPreviousSession.addAll(values);
+            synchronized (valuesForPreviousSession) {
+                valuesForPreviousSession.clear();
+                values.forEach(valuesForPreviousSession::add);
+            }
         }
 
         @Override
         protected void discardRetainedValues() {
-            valuesForPreviousSession.clear();
+            synchronized (valuesForPreviousSession) {
+                valuesForPreviousSession.clear();
+            }
             allValues.clear();
         }
 
@@ -209,10 +256,10 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
     private static class DefaultClassMap<V> extends AbstractCrossBuildInMemoryCache<Class<?>, V> {
         // Currently retains strong references to types that are not loaded using a VisitableURLClassLoader
         // This is fine for JVM types, but a problem when a custom ClassLoader is used (which should probably be deprecated instead of supported)
-        private final Map<Class<?>, V> leakyValues = new HashMap<>();
+        private final Map<Class<?>, V> leakyValues = new ConcurrentHashMap<>();
 
         @Override
-        protected void retainValuesFromCurrentSession(Collection<V> values) {
+        protected void retainValuesFromCurrentSession(Stream<V> values) {
             // Ignore
         }
 
@@ -235,7 +282,7 @@ public class DefaultCrossBuildInMemoryCacheFactory implements CrossBuildInMemory
         private Map<Class<?>, V> getCacheScope(Class<?> type) {
             ClassLoader classLoader = type.getClassLoader();
             if (classLoader instanceof VisitableURLClassLoader) {
-                return ((VisitableURLClassLoader) classLoader).getUserData(this, HashMap::new);
+                return ((VisitableURLClassLoader) classLoader).getUserData(this, ConcurrentHashMap::new);
             }
             return leakyValues;
         }

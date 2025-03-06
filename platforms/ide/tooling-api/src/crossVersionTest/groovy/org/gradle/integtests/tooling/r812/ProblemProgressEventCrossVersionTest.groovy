@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r85.CustomModel
+import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -34,7 +35,6 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
-import org.gradle.tooling.events.problems.internal.GeneralData
 import org.junit.Assume
 
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk17
@@ -42,6 +42,7 @@ import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk21
 import static org.gradle.integtests.fixtures.AvailableJavaHomes.getJdk8
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionTest.getBuildScriptSampleContent
+import static org.gradle.integtests.tooling.r89.ProblemProgressEventCrossVersionTest.buildFileLocation
 
 @ToolingApiVersion(">=8.12")
 @TargetGradleVersion(">=8.9")
@@ -94,10 +95,11 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
             definition.id.group.displayName in ["Deprecation", "deprecation", "repository-jcenter"]
             definition.id.group.name in ["deprecation", "repository-jcenter", "deprecation-logger"]
             definition.severity == Severity.WARNING
-            locations(it).find { l -> l instanceof LineInFileLocation && l.path == "build file '$buildFile.path'" } // FIXME: the path should not contain a prefix nor extra quotes
+            locations(it).find { l -> l instanceof LineInFileLocation && l.path == buildFileLocation(buildFile, targetVersion) }
         }
     }
 
+    @TargetGradleVersion(">=8.9 <8.13")
     def "Problems expose details via Tooling API events with failure"() {
         given:
         withReportProblemTask """
@@ -134,6 +136,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @TargetGradleVersion(">=8.9 <8.13")
     def "Problems expose details via Tooling API events with problem definition"() {
         given:
         withReportProblemTask """
@@ -171,6 +174,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         ''                         | null            | ''                                          | null
     }
 
+    @Flaky(because = "https://github.com/gradle/gradle-private/issues/4609")
     def "Can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
@@ -258,14 +262,13 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 .setStandardError(System.err)
                 .setStandardOutput(System.out)
                 .addArguments("--info")
-
                 .run()
         }
 
         then:
         thrown(BuildException)
         listener.problems.size() == 1
-        (listener.problems[0].additionalData as GeneralData).asMap['typeName']== 'MyTask'
+        (listener.problems[0].additionalData).asMap['typeName'] == 'MyTask'
     }
 
     @TargetGradleVersion("=8.6")

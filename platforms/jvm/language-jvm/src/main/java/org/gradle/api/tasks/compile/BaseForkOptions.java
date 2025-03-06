@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -96,8 +97,7 @@ public class BaseForkOptions extends AbstractOptions {
     public void setJvmArgs(@Nullable List<String> jvmArgs) {
         this.jvmArgs = jvmArgs == null ? null : jvmArgs.stream()
             .filter(Objects::nonNull)
-            .map(String::trim)
-            .filter(string -> !string.isEmpty())
+            .filter(string -> !StringUtils.isBlank(string))
             .collect(Collectors.toList());
     }
 }

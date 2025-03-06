@@ -24,6 +24,7 @@ import org.gradle.tooling.internal.provider.serialization.DeserializeMap;
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.lang.ref.WeakReference;
 import java.net.URI;
@@ -122,6 +123,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         };
     }
 
+    @Nullable
     private Set<ClassLoader> getClassLoaders(ClassLoaderDetails details) {
         lock.lock();
         try {

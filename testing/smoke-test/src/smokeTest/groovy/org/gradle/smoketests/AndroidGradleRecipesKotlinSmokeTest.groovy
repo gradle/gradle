@@ -19,10 +19,12 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.testdistribution.LocalOnly
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
+@LocalOnly(because = "Needs Android environment")
 class AndroidGradleRecipesKotlinSmokeTest extends AbstractSmokeTest implements RunnerFactory {
 
     @Issue('https://github.com/gradle/gradle/issues/23014')

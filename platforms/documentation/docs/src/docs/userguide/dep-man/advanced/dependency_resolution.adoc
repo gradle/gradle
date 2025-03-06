@@ -1,0 +1,48 @@
+// Copyright (C) 2024 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency-resolution-basics]]
+= Dependency Resolution
+
+Dependency resolution in Gradle can largely be thought of as a two-step process.
+
+First, the _graph resolution_ phase constructs the dependency graph based on declared dependencies.
+Second, the _artifact resolution_ phase fetches the actual files (artifacts) for the resolved components:
+
+1. **Graph resolution phase**:
+- Driven by declared dependencies and their metadata
+- Uses the request attributes defined by the configuration being resolved
+
+2. **Artifact resolution phase**:
+- Based on nodes in the resolved dependency graph
+- Matches each node to a variant and an artifact
+
+image::dep-man-adv-1.png[]
+
+[[sec:graph-resolution]]
+== 1. Graph Resolution
+
+During the _graph resolution_ phase, Gradle constructs a *dependency graph*, which models the relationships between different components and their variants.
+
+See <<graph_resolution.adoc#dependency-graph-resolution,Graph Resolution>> to learn more.
+
+[[sec:artifact-resolution]]
+== 2. Artifact Resolution
+
+Once the dependency graph is resolved, the _artifact resolution_ phase determines which *artifacts* (i.e. files) need to be downloaded or retrieved for each variant.
+
+See <<artifact_resolution.adoc#artifact-resolution,Artifact Resolution>> to learn more.
+
+[.text-right]
+**Next Step:** <<graph_resolution.adoc#dependency-graph-resolution,Learn about Graph Resolution>> >>

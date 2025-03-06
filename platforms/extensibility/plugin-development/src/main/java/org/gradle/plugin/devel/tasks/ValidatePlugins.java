@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.problems.Problem;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.InternalProblemReporter;
 import org.gradle.api.problems.internal.InternalProblems;
 import org.gradle.api.provider.Property;
@@ -109,7 +110,7 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        List<? extends Problem> problems = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
+        List<? extends InternalProblem> problems = ValidationProblemSerialization.parseMessageList(new String(Files.readAllBytes(getOutputFile().get().getAsFile().toPath())));
 
         Stream<String> messages = ValidationProblemSerialization.toPlainMessage(problems).sorted();
         if (problems.isEmpty()) {

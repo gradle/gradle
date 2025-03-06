@@ -113,8 +113,8 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
             SpecKey that = (SpecKey) o;
 
             return Objects.equal(this.patterns, that.patterns)
-                && Objects.equal(this.include, that.include)
-                && Objects.equal(this.caseSensitive, that.caseSensitive);
+                && this.include == that.include
+                && this.caseSensitive == that.caseSensitive;
         }
 
         @Override

@@ -17,7 +17,10 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
 
+@Requires(IntegTestPreconditions.NotEmbeddedExecutor)
 class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     def setup() {
@@ -31,7 +34,7 @@ class BinDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getMaxDistributionSizeBytes() {
-        return 135 * 1024 * 1024
+        return 136 * 1024 * 1024
     }
 
     def binZipContents() {

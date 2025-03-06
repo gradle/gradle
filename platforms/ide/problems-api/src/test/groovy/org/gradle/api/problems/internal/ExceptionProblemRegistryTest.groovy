@@ -16,7 +16,7 @@
 
 package org.gradle.api.problems.internal
 
-import org.gradle.api.problems.Problem
+
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.CyclicBarrier
@@ -26,7 +26,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
     def "can store and retrieve problems"() {
         setup:
         def exception = new RuntimeException("Boom")
-        def problem = Mock(Problem)
+        def problem = Mock(InternalProblem)
         def registry = new ExceptionProblemRegistry()
         registry.onProblem(exception, problem)
 
@@ -43,7 +43,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
         async {
             10.times {
                 start {
-                    def problem = Mock(Problem)
+                    def problem = Mock(InternalProblem)
                     barrier.await()
                     registry.onProblem(exception, problem)
                 }
@@ -64,7 +64,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
             10.times {i ->
                 start {
                     def exception = exceptions[i]
-                    def problem = Mock(Problem)
+                    def problem = Mock(InternalProblem)
                     barrier.await()
                     registry.onProblem(exception, problem)
                 }
@@ -90,7 +90,7 @@ class ExceptionProblemRegistryTest extends ConcurrentSpec {
                     registry.getProblemLocator().findAll(exception)
                 }
                 start {
-                    def problem = Mock(Problem)
+                    def problem = Mock(InternalProblem)
                     barrier.await()
                     registry.onProblem(exception, problem)
                 }

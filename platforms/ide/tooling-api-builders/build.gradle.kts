@@ -24,16 +24,17 @@ dependencies {
     implementation(libs.commonsIo)
     implementation(libs.guava)
 
-    api(libs.jsr305)
     api(projects.baseServices)
     api(projects.buildEvents)
     api(projects.buildOperations)
     api(projects.core)
-    api(projects.daemonProtocol)
     api(projects.enterpriseOperations)
-    api(projects.stdlibJavaExtensions)
+    api(projects.serialization)
     api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
     api(projects.toolingApi)
+
+    api(libs.jsr305)
 
     runtimeOnly(projects.compositeBuilds)
     runtimeOnly(libs.groovy) // for 'Closure'
@@ -48,7 +49,4 @@ dependencies {
 
 strictCompile {
     ignoreDeprecations()
-}
-tasks.isolatedProjectsIntegTest {
-    enabled = false
 }

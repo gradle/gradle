@@ -38,11 +38,11 @@ import org.gradle.api.internal.file.copy.FileCopier;
 import org.gradle.api.internal.file.delete.DefaultDeleteSpec;
 import org.gradle.api.internal.file.delete.DeleteSpecInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
@@ -74,7 +74,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 @SuppressWarnings({"Convert2Lambda", "Anonymous2MethodRef"})
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
-    private final ObjectFactory objectFactory;
+    private final PropertyFactory propertyFactory;
     private final Instantiator instantiator;
     private final Deleter deleter;
     private final ResourceHandler resourceHandler;
@@ -96,7 +96,7 @@ public class DefaultFileOperations implements FileOperations {
         FileHasher fileHasher,
         DefaultResourceHandler.Factory resourceHandlerFactory,
         FileCollectionFactory fileCollectionFactory,
-        ObjectFactory objectFactory,
+        PropertyFactory propertyFactory,
         FileSystem fileSystem,
         Factory<PatternSet> patternSetFactory,
         Deleter deleter,
@@ -108,7 +108,7 @@ public class DefaultFileOperations implements FileOperations {
     ) {
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
-        this.objectFactory = objectFactory;
+        this.propertyFactory = propertyFactory;
         this.instantiator = instantiator;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.resourceHandler = resourceHandlerFactory.create(this);
@@ -123,7 +123,7 @@ public class DefaultFileOperations implements FileOperations {
             fileCollectionFactory,
             fileResolver,
             patternSetFactory,
-            objectFactory,
+            propertyFactory,
             fileSystem,
             instantiator,
             documentationRegistry
@@ -297,7 +297,7 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public CopySpec copySpec() {
-        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, objectFactory, instantiator, patternSetFactory);
+        return instantiator.newInstance(DefaultCopySpec.class, fileCollectionFactory, propertyFactory, instantiator, patternSetFactory);
     }
 
     @Override
@@ -312,7 +312,7 @@ public class DefaultFileOperations implements FileOperations {
 
     public static DefaultFileOperations createSimple(FileResolver fileResolver, FileCollectionFactory fileTreeFactory, ServiceRegistry services) {
         Instantiator instantiator = services.get(Instantiator.class);
-        ObjectFactory objectFactory = services.get(ObjectFactory.class);
+        PropertyFactory propertyFactory = services.get(PropertyFactory.class);
         FileSystem fileSystem = services.get(FileSystem.class);
         DirectoryFileTreeFactory directoryFileTreeFactory = services.get(DirectoryFileTreeFactory.class);
         FileHasher fileHasher = services.get(FileHasher.class);
@@ -340,7 +340,7 @@ public class DefaultFileOperations implements FileOperations {
             fileHasher,
             resourceHandlerFactory,
             fileTreeFactory,
-            objectFactory,
+            propertyFactory,
             fileSystem,
             patternSetFactory,
             deleter,

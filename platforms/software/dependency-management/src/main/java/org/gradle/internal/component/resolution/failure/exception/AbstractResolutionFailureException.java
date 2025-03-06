@@ -83,7 +83,7 @@ public abstract class AbstractResolutionFailureException extends StyledException
                 .contextualLabel(getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
                 .severity(ERROR)
-                .additionalData(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
+                .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));
         });
         problemsService.getInternalReporter().report(problem);
 

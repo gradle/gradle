@@ -33,9 +33,10 @@ public class JvmInstallationMetadataComparator implements Comparator<JvmInstalla
     public int compare(JvmInstallationMetadata o1, JvmInstallationMetadata o2) {
         return Comparator
             .comparing(this::isCurrentJvm)
-            // Prefer installations with compiler and javadoc
+            // Prefer installations with compiler, javadoc and jar
             .thenComparing(this::hasCompiler)
             .thenComparing(this::hasJavadoc)
+            .thenComparing(this::hasJar)
             .thenComparing(this::extractVendor, Comparator.reverseOrder())
             .thenComparing(this::getToolchainVersion)
             // It is possible for different JDK builds to have exact same version. The input order
@@ -56,6 +57,10 @@ public class JvmInstallationMetadataComparator implements Comparator<JvmInstalla
 
     private boolean hasJavadoc(JvmInstallationMetadata metadata) {
         return metadata.getCapabilities().contains(JavaInstallationCapability.JAVADOC_TOOL);
+    }
+
+    private boolean hasJar(JvmInstallationMetadata metadata) {
+        return metadata.getCapabilities().contains(JavaInstallationCapability.JAR_TOOL);
     }
 
     private JvmVendor.KnownJvmVendor extractVendor(JvmInstallationMetadata metadata) {

@@ -29,12 +29,11 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
-import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.internal.model.InMemoryCacheFactory;
+import org.gradle.internal.model.InMemoryLoadingCache;
 import org.gradle.util.Path;
 
 import javax.inject.Inject;
-import java.io.File;
 
 /**
  * Default implementation of {@link BuildTreeLocalComponentProvider}.
@@ -106,12 +105,7 @@ public class DefaultBuildTreeLocalComponentProvider implements BuildTreeLocalCom
         // Get the local component, then transform it to have a foreign identifier
         LocalComponentGraphResolveState originalComponent = originalComponents.get(projectIdentifier);
         ProjectComponentIdentifier foreignIdentifier = buildState.idToReferenceProjectFromAnotherBuild(projectIdentifier);
-        return originalComponent.copy(foreignIdentifier, originalArtifact -> {
-            // Currently need to resolve the file, so that the artifact can be used in both a script classpath and
-            // the main build. This accesses project state. Instead, the file should be resolved as required.
-            File file = projectState.fromMutableState(p -> originalArtifact.getFile());
-            return new CompositeProjectComponentArtifactMetadata(foreignIdentifier, originalArtifact, file);
-        });
+        return originalComponent.copyWithComponentId(foreignIdentifier);
     }
 
     @Override

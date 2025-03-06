@@ -85,6 +85,7 @@ class DefaultConfigurationContainerTest extends Specification {
         Stub(ResolveExceptionMapper),
         new AttributeDesugaring(AttributeTestUtil.attributesFactory()),
         userCodeApplicationContext,
+        CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
         Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
@@ -316,7 +317,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
         where:
         role << [
-            ConfigurationRoles.LEGACY,
+            ConfigurationRoles.ALL,
             ConfigurationRoles.RESOLVABLE,
             ConfigurationRoles.CONSUMABLE,
             ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE,
@@ -386,7 +387,7 @@ class DefaultConfigurationContainerTest extends Specification {
         e.message == "Cannot maybe create invalid role: ${role.getName()}"
 
         where:
-        role << [ConfigurationRoles.LEGACY, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
+        role << [ConfigurationRoles.ALL, ConfigurationRoles.CONSUMABLE_DEPENDENCY_SCOPE, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE]
     }
 
     // withType when used with a class that is not a super-class of the container does not work with registered elements

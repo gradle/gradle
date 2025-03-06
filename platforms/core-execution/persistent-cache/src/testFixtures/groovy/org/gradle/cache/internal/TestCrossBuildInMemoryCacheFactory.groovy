@@ -19,6 +19,7 @@ package org.gradle.cache.internal
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
+import java.util.function.Consumer
 import java.util.function.Function
 import java.util.function.Predicate
 
@@ -31,6 +32,11 @@ class TestCrossBuildInMemoryCacheFactory implements CrossBuildInMemoryCacheFacto
 
     @Override
     <K, V> CrossBuildInMemoryCache<K, V> newCache() {
+        return new TestCache<K, V>()
+    }
+
+    @Override
+    <K, V> CrossBuildInMemoryCache<K, V> newCache(Consumer<V> onReuse) {
         return new TestCache<K, V>()
     }
 

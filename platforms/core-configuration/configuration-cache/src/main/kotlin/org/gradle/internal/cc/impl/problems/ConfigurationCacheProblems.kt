@@ -206,7 +206,7 @@ class ConfigurationCacheProblems(
             documentOfProblem(problem)
             locationOfProblem(problem)
             severity(severity.toProblemSeverity())
-            additionalData(PropertyTraceDataSpec::class.java) {
+            additionalDataInternal(PropertyTraceDataSpec::class.java) {
                 trace(problem.trace.containingUserCode)
             }
         }.also { internalReporter.report(it) }

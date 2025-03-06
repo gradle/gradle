@@ -23,7 +23,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Multimaps;
 import org.gradle.api.Incubating;
-import org.gradle.api.problems.Problem;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -42,9 +41,9 @@ import java.util.Set;
 @ServiceScope(Scope.BuildSession.class)
 public class ExceptionProblemRegistry {
 
-    private final Multimap<Throwable, Problem> problemsForThrowables = Multimaps.synchronizedMultimap(MultimapBuilder.linkedHashKeys().linkedHashSetValues().<Throwable, Problem>build());
+    private final Multimap<Throwable, InternalProblem> problemsForThrowables = Multimaps.synchronizedMultimap(MultimapBuilder.linkedHashKeys().linkedHashSetValues().<Throwable, InternalProblem>build());
 
-    public void onProblem(Throwable exception, Problem problem) {
+    public void onProblem(Throwable exception, InternalProblem problem) {
         problemsForThrowables.put(exception, problem);
     }
 
@@ -58,10 +57,10 @@ public class ExceptionProblemRegistry {
      */
     private static class DefaultProblemLocator implements ProblemLocator {
 
-        private final Multimap<Throwable, Problem> problemsForThrowables;
+        private final Multimap<Throwable, InternalProblem> problemsForThrowables;
         private Multimap<String, Throwable> exceptionLookup = null;
 
-        DefaultProblemLocator(Multimap<Throwable, Problem> problemsForThrowables) {
+        DefaultProblemLocator(Multimap<Throwable, InternalProblem> problemsForThrowables) {
             this.problemsForThrowables = ImmutableMultimap.copyOf(problemsForThrowables);
         }
 
@@ -96,9 +95,9 @@ public class ExceptionProblemRegistry {
         }
 
         @Override
-        public Collection<Problem> findAll(Throwable t) {
+        public Collection<InternalProblem> findAll(Throwable t) {
             Throwable throwable = find(t);
-            return throwable == null ? ImmutableList.<Problem>of() : ImmutableList.copyOf(problemsForThrowables.get(throwable));
+            return throwable == null ? ImmutableList.<InternalProblem>of() : ImmutableList.copyOf(problemsForThrowables.get(throwable));
         }
 
         @Nullable

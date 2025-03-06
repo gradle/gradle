@@ -23,25 +23,31 @@ import org.gradle.internal.logging.format.DurationFormatter
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.time.Clock
+import org.gradle.internal.time.FixedClock
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.concurrent.TimeUnit
+
 @Subject(BuildResultLogger)
 class BuildResultLoggerTest extends Specification {
+    private static final long BUILD_START_MS = 0L
+    private static final long BUILD_DURATION_MS = TimeUnit.SECONDS.toMillis(10)
+
+    private BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(BUILD_START_MS)
+    private Clock clock = FixedClock.createAt(BUILD_START_MS + BUILD_DURATION_MS)
+
     private StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
-    private BuildStartedTime buildStartedTime = BuildStartedTime.startingAt(0)
-    private Clock clock = Mock(Clock)
     private DurationFormatter durationFormatter = Mock(DurationFormatter)
     def workValidationWarningReporter = Stub(WorkValidationWarningReporter)
     private BuildResultLogger subject = new BuildResultLogger(textOutputFactory, buildStartedTime, clock, durationFormatter, workValidationWarningReporter)
 
     def "logs build success with total time"() {
         when:
-        1 * clock.currentTime >> 10
         subject.buildFinished(new BuildResult("Action", null, null));
 
         then:
-        1 * durationFormatter.format(10L) >> { "10s" }
+        1 * durationFormatter.format(BUILD_DURATION_MS) >> { "10s" }
         textOutputFactory.category == BuildResultLogger.canonicalName
         textOutputFactory.logLevel == LogLevel.LIFECYCLE
         textOutputFactory.output == """
@@ -51,11 +57,10 @@ class BuildResultLoggerTest extends Specification {
 
     def "logs build failure with total time"() {
         when:
-        1 * clock.currentTime >> 10
         subject.buildFinished(new BuildResult("Action", null, new RuntimeException()));
 
         then:
-        1 * durationFormatter.format(10L) >> { "10s" }
+        1 * durationFormatter.format(BUILD_DURATION_MS) >> { "10s" }
         textOutputFactory.category == BuildResultLogger.canonicalName
         textOutputFactory.logLevel == LogLevel.ERROR
         textOutputFactory.output == """

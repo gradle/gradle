@@ -5,15 +5,16 @@ plugins {
 description = "Implementation of build event services and build event types (work item, tasks, tests, configuration, etc)"
 
 dependencies {
-    api(projects.concurrent)
-    api(projects.stdlibJavaExtensions)
-    api(projects.serviceProvider)
     api(projects.buildOperations)
+    api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
     api(projects.messaging)
-    api(projects.toolingApi)
     api(projects.problemsApi)
+    api(projects.serialization)
+    api(projects.serviceProvider)
+    api(projects.stdlibJavaExtensions)
+    api(projects.toolingApi)
 
     implementation(projects.modelCore)
 

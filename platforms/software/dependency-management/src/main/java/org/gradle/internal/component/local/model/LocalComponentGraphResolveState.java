@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
@@ -56,9 +55,9 @@ public interface LocalComponentGraphResolveState extends ComponentGraphResolveSt
     LocalComponentGraphResolveMetadata getMetadata();
 
     /**
-     * Copies this state, but with the new component ID and the artifacts transformed by the given transformer.
+     * Copies this state, but with the new component ID.
      */
-    LocalComponentGraphResolveState copy(ComponentIdentifier newComponentId, Transformer<LocalComponentArtifactMetadata, LocalComponentArtifactMetadata> transformer);
+    LocalComponentGraphResolveState copyWithComponentId(ComponentIdentifier newComponentId);
 
     /**
      * We currently allow a configuration that has been partially observed for resolution to be modified

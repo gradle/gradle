@@ -105,6 +105,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
         def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
         buildFile << compileDependency('customImplementation', module)
+        executer.expectDocumentedDeprecationWarning("The GradlePluginDevelopmentExtension.pluginSourceSet(SourceSet) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use the main source set. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_plugin_development_methods")
 
         when:
         succeeds 'build'

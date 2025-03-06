@@ -49,7 +49,6 @@ import java.util.Set;
  *
  * @since 8.6
  */
-@Incubating
 @NonExtensible
 @SuppressWarnings("JavadocReference")
 public interface DependencyCollector {
@@ -102,6 +101,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule);
 
     /**
@@ -112,6 +112,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     void add(ProviderConvertible<? extends MinimalExternalModuleDependency> externalModule, Action<? super ExternalModuleDependency> configuration);
 
     /**
@@ -193,6 +194,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     <D extends Dependency> void bundle(Iterable<? extends D> bundle);
 
     /**
@@ -203,6 +205,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     <D extends Dependency> void bundle(Iterable<? extends D> bundle, Action<? super D> configuration);
 
     /**
@@ -212,6 +215,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle);
 
     /**
@@ -222,6 +226,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     <D extends Dependency> void bundle(Provider<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**
@@ -231,6 +236,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle);
 
     /**
@@ -241,6 +247,7 @@ public interface DependencyCollector {
      *
      * @since 8.6
      */
+    @Incubating
     <D extends Dependency> void bundle(ProviderConvertible<? extends Iterable<? extends D>> bundle, Action<? super D> configuration);
 
     /**

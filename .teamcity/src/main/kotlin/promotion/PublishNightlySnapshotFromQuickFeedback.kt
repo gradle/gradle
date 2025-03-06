@@ -19,13 +19,15 @@ package promotion
 import common.VersionedSettingsBranch
 import vcsroots.gradlePromotionBranches
 
-class PublishNightlySnapshotFromQuickFeedback(branch: VersionedSettingsBranch) : PublishGradleDistributionFullBuild(
-    promotedBranch = branch.branchName,
-    prepTask = branch.prepNightlyTaskName(),
-    promoteTask = branch.promoteNightlyTaskName(),
-    triggerName = "QuickFeedback",
-    vcsRootId = gradlePromotionBranches
-) {
+class PublishNightlySnapshotFromQuickFeedback(
+    branch: VersionedSettingsBranch,
+) : PublishGradleDistributionFullBuild(
+        promotedBranch = branch.branchName,
+        prepTask = branch.prepNightlyTaskName(),
+        promoteTask = branch.promoteNightlyTaskName(),
+        triggerName = "QuickFeedback",
+        vcsRootId = gradlePromotionBranches,
+    ) {
     init {
         id("Promotion_SnapshotFromQuickFeedback")
         name = "Nightly Snapshot (from QuickFeedback)"

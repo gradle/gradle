@@ -9,8 +9,7 @@ import java.net.URI
 
 
 tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
-    jvmVersion = JavaLanguageVersion.of(17)
-    jvmVendor = "adoptium"
+    languageVersion = JavaLanguageVersion.of(17)
 }
 
 tasks.withType<UpdateReleasedVersions>().configureEach {
@@ -36,7 +35,7 @@ tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") 
 
 tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     comment = " Generated - Update by running `./gradlew updateAgpVersions`"
-    minimumSupportedMinor = "7.3"
+    minimumSupported = "7.3.0"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }

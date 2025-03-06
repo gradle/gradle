@@ -16,13 +16,14 @@
 
 package org.gradle.problems.internal.services;
 
-import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
+import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemSummaryData;
+import org.gradle.api.problems.internal.TaskIdentity;
+import org.gradle.api.problems.internal.TaskIdentityProvider;
 import org.gradle.internal.buildoption.IntegerInternalOption;
 import org.gradle.internal.buildoption.InternalOption;
 import org.gradle.internal.buildoption.InternalOptions;
@@ -30,24 +31,21 @@ import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final CurrentBuildOperationRef currentBuildOperationRef;
     private final Collection<ProblemEmitter> problemEmitters;
-    private final Integer threshold;
+    private final int threshold;
     private final ProblemReportCreator problemReportCreator;
-
-    private final ConcurrentMap<ProblemId, Integer> seenProblemsWithCounts = new ConcurrentHashMap<>();
+    private final SummarizerStrategy summarizerStrategy;
+    private final TaskIdentityProvider taskProvider;
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = new IntegerInternalOption("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -57,13 +55,16 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         CurrentBuildOperationRef currentBuildOperationRef,
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
-        ProblemReportCreator problemReportCreator
+        ProblemReportCreator problemReportCreator,
+        TaskIdentityProvider taskProvider
     ) {
         this.eventEmitter = eventEmitter;
         this.currentBuildOperationRef = currentBuildOperationRef;
         this.problemEmitters = problemEmitters;
         this.threshold = internalOptions.getOption(THRESHOLD_OPTION).get();
+        this.summarizerStrategy = new SummarizerStrategy(threshold);
         this.problemReportCreator = problemReportCreator;
+        this.taskProvider = taskProvider;
     }
 
     @Override
@@ -73,32 +74,28 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void report(File reportDir, ProblemConsumer validationFailures) {
-        List<ProblemSummaryData> cutOffProblems = getCutOffProblems();
+        List<ProblemSummaryData> cutOffProblems = summarizerStrategy.getCutOffProblems();
         problemReportCreator.createReportFile(reportDir, cutOffProblems);
         eventEmitter.emitNow(currentBuildOperationRef.getId(), new DefaultProblemsSummaryProgressDetails(cutOffProblems));
     }
 
-    private List<ProblemSummaryData> getCutOffProblems() {
-        return seenProblemsWithCounts.entrySet().stream()
-            .filter(entry -> entry.getValue() > threshold)
-            .map(entry -> new ProblemSummaryData(entry.getKey(), entry.getValue() - threshold))
-            .collect(toImmutableList());
-    }
-
     @Override
-    public void emit(Problem problem, @Nullable OperationIdentifier id) {
-        if (exceededThreshold(problem)) {
-            return;
-        }
-
-        problemReportCreator.addProblem(problem);
-        for (ProblemEmitter problemEmitter : problemEmitters) {
-            problemEmitter.emit(problem, id);
+    public void emit(InternalProblem problem, @Nullable OperationIdentifier id) {
+        if (summarizerStrategy.shouldEmit(problem)) {
+            problem = maybeAddTaskLocation(problem, id);
+            problemReportCreator.addProblem(problem);
+            for (ProblemEmitter problemEmitter : problemEmitters) {
+                problemEmitter.emit(problem, id);
+            }
         }
     }
 
-    private boolean exceededThreshold(Problem problem) {
-        int count = seenProblemsWithCounts.merge(problem.getDefinition().getId(), 1, Integer::sum);
-        return count > threshold;
+    @Nonnull
+    private InternalProblem maybeAddTaskLocation(InternalProblem problem, @Nullable OperationIdentifier id) {
+        TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
+        if (taskIdentity != null) {
+            problem = problem.toBuilder(null, null, null).taskLocation(taskIdentity.getTaskPath()).build();
+        }
+        return problem;
     }
 }

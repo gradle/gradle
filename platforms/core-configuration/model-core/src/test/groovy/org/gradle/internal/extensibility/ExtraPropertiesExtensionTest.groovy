@@ -27,7 +27,7 @@ import spock.lang.Specification
  * @param <T> The concrete implementation type
  */
 abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> extends Specification {
-    
+
     T extension
 
     def setup() {
@@ -85,7 +85,7 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
         extension.m0 = { -> "m0" }
         extension.m1 = { it }
         extension.m2 = { String a1, String a2 -> "$a1 $a2" }
-        
+
         expect:
         extension.m0() == "m0"
         extension.m1("foo") == "foo"
@@ -111,62 +111,62 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
 
         then:
         thrown(MissingMethodException)
-        
+
         when:
         extension.m2(1, "a")
-        
+
         then:
         thrown(MissingMethodException)
     }
-    
+
     def "can get properties as a detached map"() {
         given:
         extension.p1 = 1
         extension.p2 = 2
         extension.p3 = 3
-        
+
         and:
         def props = extension.properties.sort()
-        
+
         expect:
         props == [p1: 1, p2: 2, p3: 3]
-        
+
         when:
         props.p1 = 10
-        
+
         then:
         extension.p1 == old(extension.p1)
     }
-    
+
     def "can detect if has a property"() {
         given:
         extension.foo = "bar"
-        
+
         expect:
         extension.has("foo")
-        
+
         and:
         !extension.has("other")
-        
+
         when:
         extension.foo = null
-        
+
         then:
         extension.has("foo")
     }
-    
+
     def "can resolve from owning context when in extension closure"() {
         given:
         Project project = ProjectBuilder.builder().build()
-                
+
         project.configure(project) {
             extensions.add("dynamic", extension)
-            version = "1.0"            
+            version = "1.0"
             dynamic {
                 version = version // should resolve to project.version
-            }    
+            }
         }
-        
+
         expect:
         project.dynamic.version == project.version
     }
@@ -189,11 +189,11 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
         then:
         notThrown(Exception)
     }
-    
+
     def "can use [] notation to get and set"() {
         when:
         extension["foo"]
-        
+
         then:
         thrown(MissingPropertyException)
 
@@ -207,14 +207,13 @@ abstract class ExtraPropertiesExtensionTest<T extends ExtraPropertiesExtension> 
     def "cannot assign to properties"() {
         when:
         extension.properties = [:]
-        
+
         then:
         thrown(MissingPropertyException)
     }
-    
+
     def "does not have properties property"() {
         expect:
         !extension.has("properties")
     }
-
 }

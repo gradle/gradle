@@ -16,21 +16,23 @@
 
 package org.gradle.api.problems.internal
 
+import org.gradle.api.problems.AdditionalData
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.AdditionalData
 import org.gradle.api.problems.Severity
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Specification
 
 class DefaultProblemTest extends Specification {
     def "unbound builder result is equal to original"() {
         def additionalData = Mock(AdditionalData)
         def problem = createTestProblem(severity, additionalData)
+        def newProblem = toBuilder(problem).build()
 
-        def newProblem = problem.toBuilder().build()
         expect:
         newProblem.definition.id.name == problem.definition.id.name
         newProblem.definition.id.displayName == problem.definition.id.displayName
@@ -47,12 +49,16 @@ class DefaultProblemTest extends Specification {
         severity << [Severity.WARNING, Severity.ERROR]
     }
 
+    def InternalProblemBuilder toBuilder(DefaultProblem problem) {
+        problem.toBuilder(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer))
+    }
+
     def "unbound builder result with modified #changedAspect is not equal"() {
         def problem = createTestProblem()
 
 
         when:
-        def builder = problem.toBuilder()
+        def builder = toBuilder(problem)
         changeClosure.curry(builder).run()
         def newProblem = builder.build()
 
@@ -71,9 +77,9 @@ class DefaultProblemTest extends Specification {
     def "unbound builder result with a change and check report"() {
         given:
         def emitter = Mock(ProblemSummarizer)
-        def problemReporter = new DefaultProblemReporter(emitter, null, CurrentBuildOperationRef.instance(), new AdditionalDataBuilderFactory(), new ExceptionProblemRegistry(), null)
+        def problemReporter = new DefaultProblemReporter(emitter, null, CurrentBuildOperationRef.instance(), new AdditionalDataBuilderFactory(), new ExceptionProblemRegistry(), null, Mock(Instantiator), Mock(PayloadSerializer))
         def problem = createTestProblem(Severity.WARNING)
-        def builder = problem.toBuilder()
+        def builder = toBuilder(problem)
         def newProblem = builder
             .solution("solution")
             .build()
@@ -111,6 +117,7 @@ class DefaultProblemTest extends Specification {
             'description',
             new RuntimeException('cause'),
             additionalData
+
         )
     }
 
@@ -129,10 +136,12 @@ class DefaultProblemTest extends Specification {
             'description',
             new RuntimeException('cause'),
             null
+
+
         )
 
         when:
-        def newProblem = problem.toBuilder().build()
+        def newProblem = toBuilder(problem).build()
 
         then:
         newProblem.class == DefaultProblem
