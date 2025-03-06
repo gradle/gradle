@@ -47,16 +47,4 @@ public final class CollectionPropertyExtensions {
     public static <T> void leftShift(HasMultipleValues<T> self, Provider<? extends T> provider) {
         self.add(provider);
     }
-
-    /**
-     * Adds elements to the property value.
-     *
-     * <p>Extension method to support the {@code << } operator in Groovy.</p>
-     *
-     * @param self the {@link org.gradle.api.provider.ListProperty} or the {@link org.gradle.api.provider.SetProperty}
-     * @param elements the elements
-     */
-    public static <T> void leftShift(HasMultipleValues<T> self, Iterable<? extends T> elements) {
-        self.addAll(elements);
-    }
 }
