@@ -25,6 +25,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.util.Arrays;
@@ -131,7 +132,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the plugin source set
      */
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because="this property will be made non-configurable")
     public SourceSet getPluginSourceSet() {
         return pluginSourceSet;
     }
@@ -141,7 +142,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the test source sets
      */
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because="this property will be replaced by another API")
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
     }
