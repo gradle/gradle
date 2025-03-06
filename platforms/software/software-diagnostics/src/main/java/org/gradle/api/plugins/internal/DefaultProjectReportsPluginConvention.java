@@ -62,7 +62,7 @@ public abstract class DefaultProjectReportsPluginConvention extends org.gradle.a
     @Override
     public File getProjectReportDir() {
         logDeprecation();
-        return project.getExtensions().getByType(ReportingExtension.class).file(projectReportDirName);
+        return project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(projectReportDirName).get().getAsFile();
     }
 
     @Override

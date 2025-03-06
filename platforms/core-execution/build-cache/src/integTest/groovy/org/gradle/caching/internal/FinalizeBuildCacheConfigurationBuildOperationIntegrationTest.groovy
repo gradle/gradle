@@ -30,7 +30,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                     removeUnusedEntriesAfterDays = 3
                 }
@@ -74,7 +74,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                 }
             }
@@ -116,7 +116,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                 }
             }
@@ -152,7 +152,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                 @Override void store(BuildCacheKey key, BuildCacheEntryWriter writer) throws BuildCacheException {}
                 @Override void close() throws IOException {}
             }
-            class CustomBuildCache extends AbstractBuildCache {}
+            abstract class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
                 @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
                     describer.type('$type').config('directory', '$directory')
@@ -199,7 +199,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
                 void close() {}
             }
 
-            class CustomBuildCache extends AbstractBuildCache {
+            abstract class CustomBuildCache extends AbstractBuildCache {
                 private URI url
                 URI getUrl() {}
                 void setUrl(String url) { this.url = URI.create(url) }
@@ -216,7 +216,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
 
                 local {
                     enabled = true
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                 }
                 remote(CustomBuildCache) {
                     enabled = true
@@ -244,7 +244,7 @@ class FinalizeBuildCacheConfigurationBuildOperationIntegrationTest extends Abstr
             buildCache {
                 local {
                     enabled = false
-                    directory = '${cacheDir.absoluteFile.toURI().toString()}'
+                    directory = file('${cacheDir.absoluteFile.toURI().toString()}')
                     push = true
                 }
             }

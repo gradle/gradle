@@ -93,7 +93,7 @@ class WorkerExecutorJdkVersionsIntegrationTest extends AbstractWorkerExecutorInt
             task runInDaemon(type: WorkerTask) {
                 isolationMode = 'processIsolation'
                 additionalForkOptions = {
-                    it.executable = launcher.executablePath.asFile
+                    it.executable = launcher.executablePath.asFile.absolutePath
                 }
             }
         """

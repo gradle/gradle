@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.initialization.definition.InjectedPluginDependencies;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.vcs.VcsMapping;
 import org.gradle.vcs.VersionControlRepository;
@@ -40,7 +41,7 @@ public class DefaultVersionControlRepository implements VersionControlRepository
     public DefaultVersionControlRepository(URI url, NotationParser<String, ModuleIdentifier> notationParser, GitVersionControlSpec spec) {
         this.notationParser = notationParser;
         this.spec = spec;
-        spec.setUrl(url);
+        spec.getUrl().value(url).finalizeValue();
     }
 
     @Override
@@ -49,13 +50,8 @@ public class DefaultVersionControlRepository implements VersionControlRepository
     }
 
     @Override
-    public String getRootDir() {
+    public Property<String> getRootDir() {
         return spec.getRootDir();
-    }
-
-    @Override
-    public void setRootDir(String rootDir) {
-        spec.setRootDir(rootDir);
     }
 
     @Override

@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile
 
-
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.tasks.compile.BaseForkOptions
 import spock.lang.Specification
 
-class BaseForkOptionsConverterTest extends Specification {
-    BaseForkOptionsConverter converter = new BaseForkOptionsConverter(TestFiles.execFactory())
+class MinimalCompilerDaemonForkOptionsConverterTest extends Specification {
+    MinimalCompilerDaemonForkOptionsConverter converter = new MinimalCompilerDaemonForkOptionsConverter(TestFiles.execFactory())
 
-    def "converts a base fork options to a java fork options"() {
-        BaseForkOptions baseForkOptions = new BaseForkOptions()
+    def "converts a minimal compiler daemon fork options to a java fork options"() {
+        MinimalCompilerDaemonForkOptions baseForkOptions = new MinimalCompilerDaemonForkOptions()
         baseForkOptions.memoryInitialSize = "128m"
         baseForkOptions.memoryMaximumSize = "1g"
         baseForkOptions.jvmArgs = ["-foo", "-bar"]
@@ -34,21 +32,21 @@ class BaseForkOptionsConverterTest extends Specification {
         def javaForkOptions = converter.transform(baseForkOptions)
 
         then:
-        javaForkOptions.minHeapSize == "128m"
-        javaForkOptions.maxHeapSize == "1g"
-        javaForkOptions.jvmArgs == ["-foo", "-bar"]
+        javaForkOptions.minHeapSize.get() == "128m"
+        javaForkOptions.maxHeapSize.get() == "1g"
+        javaForkOptions.jvmArgs.get() == ["-foo", "-bar"]
     }
 
     def "can convert a partially configured base fork options"() {
-        BaseForkOptions baseForkOptions = new BaseForkOptions()
+        MinimalCompilerDaemonForkOptions baseForkOptions = new MinimalCompilerDaemonForkOptions()
         baseForkOptions.memoryInitialSize = "128m"
 
         when:
         def javaForkOptions = converter.transform(baseForkOptions)
 
         then:
-        javaForkOptions.minHeapSize == "128m"
-        javaForkOptions.maxHeapSize == null
-        javaForkOptions.jvmArgs == []
+        javaForkOptions.minHeapSize.get() == "128m"
+        javaForkOptions.maxHeapSize.getOrNull() == null
+        javaForkOptions.jvmArgs.get()  == []
     }
 }

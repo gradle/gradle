@@ -16,23 +16,29 @@
 
 package org.gradle.external.javadoc;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.internal.provider.ProviderApiDeprecationLogger;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.external.javadoc.internal.JavadocOptionFile;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternal;
 import org.gradle.external.javadoc.internal.JavadocOptionFileOptionInternalAdapter;
+import org.gradle.external.javadoc.internal.options.ConfigurableFileCollectionKnownOption;
+import org.gradle.external.javadoc.internal.options.KnownOption;
+import org.gradle.external.javadoc.internal.options.PropertyKnownOption;
 import org.gradle.internal.Cast;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.ExecSpec;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.GUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -41,95 +47,34 @@ import java.util.stream.Collectors;
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
-    private static final String OPTION_OVERVIEW = "overview";
-    private static final String OPTION_MEMBERLEVEL = "memberLevel";
-    private static final String OPTION_DOCLET = "doclet";
-    private static final String OPTION_DOCLETPATH = "docletpath";
-    private static final String OPTION_SOURCE = "source";
-    private static final String OPTION_CLASSPATH = "classpath";
-    private static final String OPTION_MODULE_PATH = "-module-path";
-    private static final String OPTION_BOOTCLASSPATH = "bootclasspath";
-    private static final String OPTION_EXTDIRS = "extdirs";
-    private static final String OPTION_OUTPUTLEVEL = "outputLevel";
-    private static final String OPTION_BREAKITERATOR = "breakiterator";
-    private static final String OPTION_LOCALE = "locale";
-    private static final String OPTION_ENCODING = "encoding";
 
-    protected final JavadocOptionFile optionFile;
+    private static final List<KnownOption<CoreJavadocOptions>> KNOWN_OPTIONS = ImmutableList.<KnownOption<CoreJavadocOptions>>builder()
+        .add(new PropertyKnownOption<>("overview", CoreJavadocOptions::getOverview))
+        .add(new PropertyKnownOption<>("memberLevel", CoreJavadocOptions::getMemberLevel))
+        .add(new PropertyKnownOption<>("doclet", CoreJavadocOptions::getDoclet))
+        .add(new PropertyKnownOption<>("source", CoreJavadocOptions::getSource))
+        .add(new PropertyKnownOption<>("outputLevel", CoreJavadocOptions::getOutputLevel))
+        .add(new PropertyKnownOption<>("breakiterator", CoreJavadocOptions::getBreakIterator))
+        .add(new PropertyKnownOption<>("locale", CoreJavadocOptions::getLocale))
+        .add(new PropertyKnownOption<>("encoding", CoreJavadocOptions::getEncoding))
+        .add(new ConfigurableFileCollectionKnownOption<>("docletpath", CoreJavadocOptions::getDocletpath))
+        .add(new ConfigurableFileCollectionKnownOption<>("classpath", CoreJavadocOptions::getClasspath))
+        .add(new ConfigurableFileCollectionKnownOption<>("-module-path", CoreJavadocOptions::getModulePath))
+        .add(new ConfigurableFileCollectionKnownOption<>("bootclasspath", CoreJavadocOptions::getBootClasspath))
+        .add(new ConfigurableFileCollectionKnownOption<>("extdirs", CoreJavadocOptions::getExtDirs))
+        .build();
 
-    private final JavadocOptionFileOption<String> overview;
-    private final JavadocOptionFileOption<JavadocMemberLevel> memberLevel;
-    private final JavadocOptionFileOption<String> doclet;
-    private final JavadocOptionFileOption<List<File>> docletpath;
-    private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
-    private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
-    private final JavadocOptionFileOption<List<File>> modulePath;
-    private final JavadocOptionFileOption<List<File>> bootClasspath;
-    private final JavadocOptionFileOption<List<File>> extDirs;
-    private final JavadocOptionFileOption<JavadocOutputLevel> outputLevel;
-    private final JavadocOptionFileOption<Boolean> breakIterator;
-    private final JavadocOptionFileOption<String> locale;
-    private final JavadocOptionFileOption<String> encoding;
-    private final OptionLessJavadocOptionFileOption<List<String>> sourceNames;
-    private List<String> jFlags = new ArrayList<>();
-    private List<File> optionFiles = new ArrayList<>();
+    private static final Set<String> KNOWN_OPTION_NAMES = KNOWN_OPTIONS.stream()
+        .map(KnownOption::getOption)
+        .collect(ImmutableSet.toImmutableSet());
 
-    /**
-     * Core options which are known, and have corresponding fields in this class.
-     *
-     * @since 7.5
-     */
-    @Incubating
-    protected final Set<String> knownCoreOptionNames;
-
-    public CoreJavadocOptions() {
-        this(new JavadocOptionFile());
-    }
+    protected JavadocOptionFile optionFile;
 
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
-
-        overview = addStringOption(OPTION_OVERVIEW);
-        memberLevel = addEnumOption(OPTION_MEMBERLEVEL);
-        doclet = addStringOption(OPTION_DOCLET);
-        docletpath = addPathOption(OPTION_DOCLETPATH);
-        source = addStringOption(OPTION_SOURCE);
-        classpath = addPathOption(OPTION_CLASSPATH);
-        modulePath = addPathOption(OPTION_MODULE_PATH);
-        bootClasspath = addPathOption(OPTION_BOOTCLASSPATH);
-        extDirs = addPathOption(OPTION_EXTDIRS);
-        outputLevel = addEnumOption(OPTION_OUTPUTLEVEL, JavadocOutputLevel.QUIET);
-        breakIterator = addBooleanOption(OPTION_BREAKITERATOR);
-        locale = addStringOption(OPTION_LOCALE);
-        encoding = addStringOption(OPTION_ENCODING);
-
-        sourceNames = optionFile.getSourceNames();
-
-        knownCoreOptionNames = Collections.unmodifiableSet(new HashSet<>(optionFile.getOptions().keySet()));
-    }
-
-    protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
-        this.optionFile = optionFile;
-
-        overview = optionFile.getOption(OPTION_OVERVIEW);
-        memberLevel = optionFile.getOption(OPTION_MEMBERLEVEL);
-        doclet = optionFile.getOption(OPTION_DOCLET);
-        docletpath = optionFile.getOption(OPTION_DOCLETPATH);
-        source = optionFile.getOption(OPTION_SOURCE);
-        classpath = optionFile.getOption(OPTION_CLASSPATH);
-        modulePath = optionFile.getOption(OPTION_MODULE_PATH);
-        bootClasspath = optionFile.getOption(OPTION_BOOTCLASSPATH);
-        extDirs = optionFile.getOption(OPTION_EXTDIRS);
-        outputLevel = optionFile.getOption(OPTION_OUTPUTLEVEL);
-        breakIterator = optionFile.getOption(OPTION_BREAKITERATOR);
-        locale = optionFile.getOption(OPTION_LOCALE);
-        encoding = optionFile.getOption(OPTION_ENCODING);
-
-        sourceNames = optionFile.getSourceNames();
-        jFlags = original.jFlags;
-        optionFiles = original.optionFiles;
-
-        knownCoreOptionNames = original.knownCoreOptionNames;
+        addKnownOptionsToOptionFile();
+        getOutputLevel().convention(JavadocOutputLevel.QUIET);
+        getBreakIterator().convention(false);
     }
 
     /**
@@ -140,7 +85,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Incubating
     public Set<String> knownOptionNames() {
-        return knownCoreOptionNames;
+        return KNOWN_OPTION_NAMES;
     }
 
     /**
@@ -164,15 +109,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * The title on the overview page is set by -doctitle.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getOverview() {
-        return overview.getValue();
-    }
-
-    @Override
-    public void setOverview(String overview) {
-        this.overview.setValue(overview);
-    }
+    public abstract Property<String> getOverview();
 
     /**
      * Fluent setter for the overview option.
@@ -181,7 +118,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      */
     @Override
     public MinimalJavadocOptions overview(String overview) {
-        setOverview(overview);
+        getOverview().set(overview);
         return this;
     }
 
@@ -189,37 +126,29 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Switch to set the members that should be included in the Javadoc. (-public, -protected, -package, -private)
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public JavadocMemberLevel getMemberLevel() {
-        return memberLevel.getValue();
-    }
-
-    @Override
-    public void setMemberLevel(JavadocMemberLevel memberLevel) {
-        this.memberLevel.setValue(memberLevel);
-    }
+    public abstract Property<JavadocMemberLevel> getMemberLevel();
 
     @Override
     public MinimalJavadocOptions showFromPublic() {
-        setMemberLevel(JavadocMemberLevel.PUBLIC);
+        getMemberLevel().set(JavadocMemberLevel.PUBLIC);
         return this;
     }
 
     @Override
     public MinimalJavadocOptions showFromProtected() {
-        setMemberLevel(JavadocMemberLevel.PROTECTED);
+        getMemberLevel().set(JavadocMemberLevel.PROTECTED);
         return this;
     }
 
     @Override
     public MinimalJavadocOptions showFromPackage() {
-        setMemberLevel(JavadocMemberLevel.PACKAGE);
+        getMemberLevel().set(JavadocMemberLevel.PACKAGE);
         return this;
     }
 
     @Override
     public MinimalJavadocOptions showFromPrivate() {
-        setMemberLevel(JavadocMemberLevel.PRIVATE);
+        getMemberLevel().set(JavadocMemberLevel.PRIVATE);
         return this;
     }
 
@@ -244,19 +173,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getDoclet() {
-        return doclet.getValue();
-    }
-
-    @Override
-    public void setDoclet(String doclet) {
-        this.doclet.setValue(doclet);
-    }
+    public abstract Property<String> getDoclet();
 
     @Override
     public MinimalJavadocOptions doclet(String doclet) {
-        setDoclet(doclet);
+        getDoclet().set(doclet);
         return this;
     }
 
@@ -280,19 +201,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<File> getDocletpath() {
-        return docletpath.getValue();
-    }
-
-    @Override
-    public void setDocletpath(List<File> docletpath) {
-        this.docletpath.setValue(docletpath);
-    }
+    public abstract ConfigurableFileCollection getDocletpath();
 
     @Override
     public MinimalJavadocOptions docletpath(File... docletpath) {
-        this.docletpath.getValue().addAll(Arrays.asList(docletpath));
+        getDocletpath().from((Object[]) docletpath);
         return this;
     }
 
@@ -309,19 +222,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Use the value of release corresponding to that used when compiling the code with javac.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getSource() {
-        return source.getValue();
-    }
-
-    @Override
-    public void setSource(String source) {
-        this.source.setValue(source);
-    }
+    public abstract Property<String> getSource();
 
     @Override
     public MinimalJavadocOptions source(String source) {
-        setSource(source);
+        getSource().set(source);
         return this;
     }
 
@@ -350,42 +255,26 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * bootstrap classes, see How Classes Are Found.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<File> getClasspath() {
-        return classpath.getValue();
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     @Override
-    public void setClasspath(List<File> classpath) {
-        this.classpath.setValue(classpath);
-    }
-
-    @Override
-    @ToBeReplacedByLazyProperty
-    public List<File> getModulePath() {
-        return modulePath.getValue();
-    }
-
-    @Override
-    public void setModulePath(List<File> modulePath) {
-        this.modulePath.setValue(modulePath);
-    }
+    public abstract ConfigurableFileCollection getModulePath();
 
     @Override
     public MinimalJavadocOptions modulePath(List<File> modulePath) {
-        this.modulePath.getValue().addAll(modulePath);
+        getModulePath().from(modulePath);
         return this;
     }
 
     @Override
     public MinimalJavadocOptions classpath(List<File> classpath) {
-        this.classpath.getValue().addAll(classpath);
+        getClasspath().from(classpath);
         return this;
     }
 
     @Override
     public MinimalJavadocOptions classpath(File... classpath) {
-        this.classpath.getValue().addAll(Arrays.asList(classpath));
+        getClasspath().from((Object[]) classpath);
         return this;
     }
 
@@ -396,19 +285,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * See How Classes Are Found. for more details. Separate directories in classpathlist with semicolons (;).
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<File> getBootClasspath() {
-        return bootClasspath.getValue();
-    }
-
-    @Override
-    public void setBootClasspath(List<File> bootClasspath) {
-        this.bootClasspath.setValue(bootClasspath);
-    }
+    public abstract ConfigurableFileCollection getBootClasspath();
 
     @Override
     public MinimalJavadocOptions bootClasspath(File... bootClasspath) {
-        this.bootClasspath.getValue().addAll(Arrays.asList(bootClasspath));
+        getBootClasspath().from((Object[]) bootClasspath);
         return this;
     }
 
@@ -421,19 +302,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * See -classpath (above) for more details. Separate directories in dirlist with semicolons (;).
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<File> getExtDirs() {
-        return extDirs.getValue();
-    }
-
-    @Override
-    public void setExtDirs(List<File> extDirs) {
-        this.extDirs.setValue(extDirs);
-    }
+    public abstract ConfigurableFileCollection getExtDirs();
 
     @Override
     public MinimalJavadocOptions extDirs(File... extDirs) {
-        this.extDirs.getValue().addAll(Arrays.asList(extDirs));
+        getExtDirs().from((Object[]) extDirs);
         return this;
     }
 
@@ -441,31 +314,29 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Control the Javadoc output level (-verbose or -quiet).
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public JavadocOutputLevel getOutputLevel() {
-        return outputLevel.getValue();
-    }
-
-    @Override
-    public void setOutputLevel(JavadocOutputLevel outputLevel) {
-        this.outputLevel.setValue(outputLevel);
-    }
+    public abstract Property<JavadocOutputLevel> getOutputLevel();
 
     @Override
     public MinimalJavadocOptions verbose() {
-        setOutputLevel(JavadocOutputLevel.VERBOSE);
+        getOutputLevel().set(JavadocOutputLevel.VERBOSE);
         return this;
     }
 
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isVerbose() {
-        return outputLevel.getValue() == JavadocOutputLevel.VERBOSE;
+    public Provider<Boolean> getVerbose() {
+        return getOutputLevel().map(outputLevel -> outputLevel == JavadocOutputLevel.VERBOSE);
+    }
+
+    @Override
+    @Deprecated
+    public Provider<Boolean> getIsVerbose() {
+        ProviderApiDeprecationLogger.logDeprecation(CoreJavadocOptions.class, "getIsVerbose()", "getVerbose()");
+        return getVerbose();
     }
 
     @Override
     public MinimalJavadocOptions quiet() {
-        setOutputLevel(JavadocOutputLevel.QUIET);
+        getOutputLevel().set(JavadocOutputLevel.QUIET);
         return this;
     }
 
@@ -499,25 +370,24 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *           We regret any extra work and confusion this has caused.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public boolean isBreakIterator() {
-        return breakIterator.getValue();
-    }
+    public abstract Property<Boolean> getBreakIterator();
 
     @Override
-    public void setBreakIterator(boolean breakIterator) {
-        this.breakIterator.setValue(breakIterator);
+    @Deprecated
+    public Property<Boolean> getIsBreakIterator() {
+        ProviderApiDeprecationLogger.logDeprecation(CoreJavadocOptions.class, "getIsBreakIterator()", "getBreakIterator()");
+        return getBreakIterator();
     }
 
     @Override
     public MinimalJavadocOptions breakIterator(boolean breakIterator) {
-        setBreakIterator(breakIterator);
+        getBreakIterator().set(breakIterator);
         return this;
     }
 
     @Override
     public MinimalJavadocOptions breakIterator() {
-        setBreakIterator(true);
+        breakIterator(true);
         return this;
     }
 
@@ -540,19 +410,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * It does not determine the locale of the doc comment text specified in the source files of the documented classes.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getLocale() {
-        return locale.getValue();
-    }
-
-    @Override
-    public void setLocale(String locale) {
-        this.locale.setValue(locale);
-    }
+    public abstract Property<String> getLocale();
 
     @Override
     public MinimalJavadocOptions locale(String locale) {
-        setLocale(locale);
+        getLocale().set(locale);
         return this;
     }
 
@@ -564,36 +426,20 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * Also see -docencoding and -charset.
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public String getEncoding() {
-        return encoding.getValue();
-    }
-
-    @Override
-    public void setEncoding(String encoding) {
-        this.encoding.setValue(encoding);
-    }
+    public abstract Property<String> getEncoding();
 
     @Override
     public MinimalJavadocOptions encoding(String encoding) {
-        setEncoding(encoding);
+        getEncoding().set(encoding);
         return this;
     }
 
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<String> getSourceNames() {
-        return sourceNames.getValue();
-    }
-
-    @Override
-    public void setSourceNames(List<String> sourceNames) {
-        this.sourceNames.setValue(sourceNames);
-    }
+    public abstract ListProperty<String> getSourceNames();
 
     @Override
     public MinimalJavadocOptions sourceNames(String... sourceNames) {
-        this.sourceNames.getValue().addAll(Arrays.asList(sourceNames));
+        getSourceNames().addAll(Arrays.asList(sourceNames));
         return this;
     }
 
@@ -617,49 +463,33 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * (The version number of the standard doclet appears in its output stream.)
      */
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<String> getJFlags() {
-        return jFlags;
-    }
-
-    @Override
-    public void setJFlags(List<String> jFlags) {
-        this.jFlags = jFlags;
-    }
+    public abstract ListProperty<String> getJFlags();
 
     @Override
     public MinimalJavadocOptions jFlags(String... jFlags) {
-        this.jFlags.addAll(Arrays.asList(jFlags));
+        getJFlags().addAll(jFlags);
         return this;
     }
 
     @Override
     public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
         execHandleBuilder
-            .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
-            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
+            .args(GUtil.prefix("-J", getJFlags().get())) // J flags can not be set in the option file
+            .args(GUtil.prefix("@", GFileUtils.toPaths(getOptionFiles().getFiles()))); // add additional option files
     }
 
     @Override
-    @ToBeReplacedByLazyProperty
-    public List<File> getOptionFiles() {
-        return optionFiles;
-    }
-
-    @Override
-    public void setOptionFiles(List<File> optionFiles) {
-        this.optionFiles = optionFiles;
-    }
+    public abstract ConfigurableFileCollection getOptionFiles();
 
     @Override
     public MinimalJavadocOptions optionFiles(File... argumentFiles) {
-        this.optionFiles.addAll(Arrays.asList(argumentFiles));
+        getOptionFiles().from((Object[]) argumentFiles);
         return this;
     }
 
     @Override
     public final void write(File outputFile) throws IOException {
-        optionFile.write(outputFile);
+        optionFile.write(outputFile, getSourceNames());
     }
 
     public <T> JavadocOptionFileOption<T> addOption(final JavadocOptionFileOption<T> option) {
@@ -775,5 +605,33 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         return optionFile.stringifyExtraOptionsToMap(knownOptionNames()).entrySet().stream()
                 .map(e -> e.getKey() + ":" + e.getValue())
                 .collect(Collectors.joining(", "));
+    }
+
+    /**
+     * Copy the values from the given {@link CoreJavadocOptions} to this instance.
+     *
+     * @since 9.0
+     */
+    @Incubating
+    protected CoreJavadocOptions copy(CoreJavadocOptions original) {
+        this.optionFile = new JavadocOptionFile(original.optionFile);
+        copyKnownOptions();
+        addKnownOptionsToOptionFile();
+        getJFlags().set(original.getJFlags());
+        getOptionFiles().setFrom(original.getOptionFiles());
+        getSourceNames().set(original.getSourceNames());
+        return this;
+    }
+
+    private void copyKnownOptions() {
+        for (KnownOption<CoreJavadocOptions> knownOption : KNOWN_OPTIONS) {
+            knownOption.copyValueFromOptionFile(this, optionFile);
+        }
+    }
+
+    private void addKnownOptionsToOptionFile() {
+        for (KnownOption<CoreJavadocOptions> knownOption : KNOWN_OPTIONS) {
+            knownOption.addToOptionFile(this, optionFile);
+        }
     }
 }

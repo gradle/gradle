@@ -329,8 +329,6 @@ FeaturePreviews.Feature.values().forEach { feature ->
     }
 }
 
-fun remoteBuildCacheEnabled(settings: Settings) = settings.buildCache.remote?.isEnabled == true
-
 fun getBuildJavaHome() = System.getProperty("java.home")
 
 gradle.settingsEvaluated {
