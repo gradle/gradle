@@ -16,11 +16,16 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.problems.Severity
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
-class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
+class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements ValidationMessageChecker {
     // AspectJ does not support JDK17 yet
     @Requires(UnitTestPreconditions.Jdk16OrEarlier)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
@@ -72,7 +77,33 @@ class FreefairAspectJPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         expect:
-        runner('check').build()
+        runner('check')
+            .expectLegacyDeprecationWarning("In plugin 'io.freefair.gradle.plugins.aspectj.AspectJBasePlugin' type 'io.freefair.gradle.plugins.aspectj.AspectjCompile' method 'getClasspath' overrides an accessor of a property annotated with @ToBeReplacedByLazyProperty. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Execution optimizations are disabled to ensure correctness. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#property_accessor_must_not_be_overridden in the Gradle documentation.")
+            .expectLegacyDeprecationWarning("In plugin 'io.freefair.gradle.plugins.aspectj.AspectJBasePlugin' type 'io.freefair.gradle.plugins.aspectj.AspectjCompile' method 'getDestinationDirectory' overrides an accessor of a property annotated with @ReplacesEagerProperty. This behavior has been deprecated. This behavior is scheduled to be removed in Gradle 9.0. Execution optimizations are disabled to ensure correctness. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/validation_problems.html#property_accessor_must_not_be_overridden in the Gradle documentation.")
+            .build()
+    }
+
+    @Override
+    void configureValidation(String testedPluginId, String version) {
+        validatePlugins {
+            onPlugins([testedPluginId,
+                       "io.freefair.gradle.plugins.aspectj.AspectJBasePlugin"]) {
+                failsWith(
+                    (propertyAccessorMustNotBeOverridden {
+                        type('io.freefair.gradle.plugins.aspectj.AspectjCompile')
+                            .method('getClasspath')
+                            .annotation(ToBeReplacedByLazyProperty)
+                            .includeLink()
+                    }): Severity.WARNING,
+                    (propertyAccessorMustNotBeOverridden {
+                        type('io.freefair.gradle.plugins.aspectj.AspectjCompile')
+                            .method('getDestinationDirectory')
+                            .annotation(ReplacesEagerProperty)
+                            .includeLink()
+                    }): Severity.WARNING,
+                )
+            }
+        }
     }
 
     @Override
