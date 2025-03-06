@@ -273,13 +273,6 @@
     "crossVersionTests": false
   },
   {
-    "name": "core-platform",
-    "path": "subprojects/core-platform",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
     "unitTests": false,
@@ -394,20 +387,6 @@
   {
     "name": "distributions-core",
     "path": "platforms/core-runtime/distributions-core",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "distributions-dependencies",
-    "path": "subprojects/distributions-dependencies",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "distributions-full",
-    "path": "subprojects/distributions-full",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -681,13 +660,6 @@
   {
     "name": "internal-architecture-testing",
     "path": "testing/internal-architecture-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "internal-build-reports",
-    "path": "subprojects/internal-build-reports",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1066,13 +1038,6 @@
   {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
-  },
-  {
-    "name": "public-api",
-    "path": "subprojects/public-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
