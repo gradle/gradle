@@ -2,6 +2,8 @@ package org.gradle.internal.declarativedsl.parsing
 
 import org.gradle.internal.declarativedsl.language.AccessChain
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentationOperatorKind
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Element
@@ -79,6 +81,7 @@ import org.jetbrains.kotlin.com.intellij.lang.impl.PsiBuilderImpl
 import org.jetbrains.kotlin.com.intellij.psi.TokenType.ERROR_ELEMENT
 import org.jetbrains.kotlin.com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.lexer.KtTokens.ARROW
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.COLON
@@ -674,14 +677,22 @@ class GrammarToTree(
                     elementIfNoFailures {
                         val operationToken = operation!!.asText.getOperationSymbol()
                         when (operationToken) {
-                            EQ -> {
+                            EQ, KtTokens.PLUSEQ -> {
                                 val lhs = checkForFailure(
                                     propertyAccessStatement(tree, leftArg!!)
                                         .flatMap { if (it is NamedReference) Element(it) else tree.unsupported(node, UnsupportedAssignmentLeftHandSide) }
                                 )
                                 val expr = checkForFailure(expression(tree, rightArg!!))
                                 elementIfNoFailures {
-                                    Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+                                    if (operationToken == EQ) {
+                                        Element(Assignment(checked(lhs), checked(expr), tree.sourceData(node)))
+                                    } else {
+                                        val assignmentAugmentationKind = when (operationToken) {
+                                            KtTokens.PLUSEQ -> AugmentationOperatorKind.PlusAssign
+                                            else -> error("unexpected operation token $operationToken")
+                                        }
+                                        Element(AugmentingAssignment(checked(lhs), checked(expr), assignmentAugmentationKind, tree.sourceData(node)))
+                                    }
                                 }
                             }
 

@@ -25,7 +25,6 @@ import org.gradle.internal.declarativedsl.analysis.ResolutionResult
 import org.gradle.internal.declarativedsl.analysis.ResolutionTrace
 import org.gradle.internal.declarativedsl.defaults.softwareTypeRegistryBasedModelDefaultsRepository
 import org.gradle.internal.declarativedsl.evaluationSchema.InterpretationSchemaBuilder
-import org.gradle.internal.declarativedsl.interpreter.DeclarativeDslNotEvaluatedException
 import org.gradle.internal.declarativedsl.evaluator.conversion.AnalysisAndConversionStepRunner
 import org.gradle.internal.declarativedsl.evaluator.conversion.ConversionStepContext
 import org.gradle.internal.declarativedsl.evaluator.defaults.ApplyModelDefaultsHandler
@@ -38,6 +37,7 @@ import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotE
 import org.gradle.internal.declarativedsl.evaluator.runner.ParseAndResolveResult
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaBuildingResult
+import org.gradle.internal.declarativedsl.interpreter.DeclarativeDslNotEvaluatedException
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.Expr

@@ -31,6 +31,7 @@ import org.gradle.internal.declarativedsl.dom.UnsupportedSyntaxCause
 import org.gradle.internal.declarativedsl.dom.data.NodeDataContainer
 import org.gradle.internal.declarativedsl.dom.data.ValueData
 import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AugmentingAssignment
 import org.gradle.internal.declarativedsl.language.Block
 import org.gradle.internal.declarativedsl.language.BlockElement
 import org.gradle.internal.declarativedsl.language.ErroneousStatement
@@ -91,6 +92,7 @@ class LanguageTreeToDomContext {
                 }
             }
         }
+        is AugmentingAssignment -> TODO()
 
         is FunctionCall -> {
             val errors = mutableListOf<DocumentError>()
