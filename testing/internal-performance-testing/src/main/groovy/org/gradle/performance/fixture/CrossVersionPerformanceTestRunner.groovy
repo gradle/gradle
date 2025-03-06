@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.service.scopes.ExecutionBuildServices
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.Time
 import org.gradle.performance.results.CrossVersionPerformanceResults
@@ -211,6 +212,11 @@ class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 } else {
                     args((this.args + ['--stacktrace']) as String[])
                 }
+
+                // Ignore work validation to avoid overhead of running tasks that fail validation
+                // with optimizations disabled, and with dropping VFS
+                args("-D${ExecutionBuildServices.INTERNAL_DISABLE_WORK_VALIDATION.systemPropertyName}=true")
+
                 jvmArgs(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
                 useToolingApi(this.useToolingApi)

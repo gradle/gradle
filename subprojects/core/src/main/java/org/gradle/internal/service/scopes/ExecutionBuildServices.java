@@ -24,6 +24,8 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.scopes.BuildScopedCacheBuilderFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.buildoption.InternalFlag;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionEngine;
@@ -96,6 +98,8 @@ import java.util.function.Supplier;
 import static org.gradle.internal.execution.steps.AfterExecutionOutputFilter.NO_FILTER;
 
 public class ExecutionBuildServices implements ServiceRegistrationProvider {
+    public static final InternalFlag INTERNAL_DISABLE_WORK_VALIDATION = new InternalFlag("org.gradle.unsafe.disable-work-validation");
+
     @Provides
     ExecutionHistoryCacheAccess createCacheAccess(BuildScopedCacheBuilderFactory cacheBuilderFactory) {
         return new DefaultExecutionHistoryCacheAccess(cacheBuilderFactory);
@@ -146,6 +150,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
         ExecutionStateChangeDetector changeDetector,
         FileSystemAccess fileSystemAccess,
         ImmutableWorkspaceMetadataStore immutableWorkspaceMetadataStore,
+        InternalOptions internalOptions,
         OutputChangeListener outputChangeListener,
         WorkInputListeners workInputListeners, OutputFilesRepository outputFilesRepository,
         OutputSnapshotter outputSnapshotter,
@@ -168,11 +173,13 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new ExecuteStep<>(buildOperationRunner
         ))));
 
+        boolean skipValidation = internalOptions.getOption(INTERNAL_DISABLE_WORK_VALIDATION).get();
+
         Step<IdentityContext,WorkspaceResult> immutablePipeline =
             new AssignImmutableWorkspaceStep<>(deleter, fileSystemAccess, immutableWorkspaceMetadataStore, outputSnapshotter,
             new MarkSnapshottingInputsStartedStep<>(
             new CaptureNonIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, skipValidation,
             new ResolveNonIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(
             new NeverUpToDateStep<>(
@@ -190,7 +197,7 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyIncrementalWorkStep(outputChangeListener, workInputListeners, skipEmptyWorkOutputsCleanerSupplier,
             new CaptureIncrementalStateBeforeExecutionStep<>(buildOperationRunner, classLoaderHierarchyHasher, outputSnapshotter, overlappingOutputDetector,
-            new ValidateStep<>(virtualFileSystem, validationWarningRecorder,
+            new ValidateStep<>(virtualFileSystem, validationWarningRecorder, skipValidation,
             new ResolveChangesStep<>(changeDetector,
             new ResolveIncrementalCachingStateStep<>(buildCacheController, emitBuildCacheDebugLogging,
             new MarkSnapshottingInputsFinishedStep<>(

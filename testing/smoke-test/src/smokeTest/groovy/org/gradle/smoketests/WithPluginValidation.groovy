@@ -167,7 +167,7 @@ trait WithPluginValidation {
             if (skipped) {
                 return
             }
-            assert reportFile.exists()
+            assert reportFile.exists(), "Cannot find report file for plugin '$pluginId' at ${reportFile}"
             def report = new TaskValidationReportFixture(reportFile)
             report.verify(messages)
         }
