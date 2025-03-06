@@ -69,10 +69,7 @@ public abstract class GradlePluginDevelopmentExtension {
     private SourceSet pluginSourceSet;
     private boolean automatedPublishing = true;
 
-    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
-
     public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
-        this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
         this.website = project.getObjects().property(String.class);
@@ -88,7 +85,6 @@ public abstract class GradlePluginDevelopmentExtension {
             .withUpgradeGuideSection(8, "deprecated_plugin_development_methods")
             .nagUser();
 
-        this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
         this.website = project.getObjects().property(String.class);
@@ -182,9 +178,7 @@ public abstract class GradlePluginDevelopmentExtension {
      *
      * @return the declared plugins, never null
      */
-    public NamedDomainObjectContainer<PluginDeclaration> getPlugins() {
-        return plugins;
-    }
+    public abstract NamedDomainObjectContainer<PluginDeclaration> getPlugins();
 
     /**
      * Configures the declared plugins.
@@ -192,7 +186,7 @@ public abstract class GradlePluginDevelopmentExtension {
      * @param action the configuration action to invoke on the plugins
      */
     public void plugins(Action<? super NamedDomainObjectContainer<PluginDeclaration>> action) {
-        action.execute(plugins);
+        action.execute(getPlugins());
     }
 
     /**
