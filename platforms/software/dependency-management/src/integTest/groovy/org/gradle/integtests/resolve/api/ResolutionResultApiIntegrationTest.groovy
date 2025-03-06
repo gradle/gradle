@@ -1102,9 +1102,8 @@ testRuntimeClasspath
 
                 doLast {
                     def usage = root.get().attributes.getAttribute(Usage.USAGE_ATTRIBUTE)
-                    println usage
-                    println root.get().attributes.keySet()
-                    assert usage == "java-runtime"
+                    assert Usage.class.isAssignableFrom(usage.class)
+                    assert usage.name == "java-runtime"
                 }
             }
         """
