@@ -13,119 +13,79 @@
 // limitations under the License.
 
 [[how_to_prevent_accidental_dependency_upgrades]]
-= How to Prevent Accidental Dependency Upgrades in Gradle
+= How to Prevent Accidental or Eager Dependency Upgrades in Gradle
 
-This guide explains how to **prevent accidental dependency versions** from your project.
-This guide explains how to prevent such upgrades and maintain strict control over dependency versions.
+This guide explains how to **prevent accidental dependency versions** due to Gradle's eager dependency resolution.
 
-== Why Prevent Dependency Upgrades?
+== Why Prevent Accidental Dependency Upgrades?
 
 When managing dependencies in Gradle, you may encounter situations where transitive dependencies cause **unexpected upgrades** to newer versions.
 This can lead to unintended behavior or compatibility issues.
 Gradle, by default, performs _optimistic upgrades_, meaning it resolves to the highest available version when multiple versions of a dependency are found in the dependency graph.
 
-For example, if both `1.1` and `1.3` versions of `commons-lang3` are present, Gradle will select `1.3`, even if your build script explicitly declares `1.1`.
-If your build uses a feature available in version `1.1` but not `1.3`, or if you haven't updated your build to be compatible with version `1.3`, you may not want this eager upgrade from Gradle's dependency resolution process.
+For example, if both `3.1` and `3.2` versions of `commons-lang3` are present, Gradle will select `3.2`, even if your build script explicitly declares `3.1`.
+If your build uses a feature available in version `3.1` but not `3.2`, or if you haven't updated your build to be compatible with version `3.2`, you may not want this eager upgrade from Gradle's dependency resolution process.
 
-== Enforce Strict Dependency Resolution
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/accidental-upgrades/groovy",files="build.gradle[tags=dependency-full]"]
+====
+
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/tests",files="dependencies.out"]
+====
+
+== Option 1: Enforce Strict Dependency Resolution
 
 Gradle provides an option to **fail the build when a version conflict occurs**, ensuring that no unintended upgrades happen.
 
 To enable this, configure your build to **fail on version conflicts**:
 
-[source,kotlin]
-----
-configurations.all {
-    resolutionStrategy.failOnVersionConflict()
-}
-----
-
-[source,groovy]
-----
-configurations.all {
-    resolutionStrategy.failOnVersionConflict()
-}
-----
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/kotlin",files="build.gradle.kts[tags=dependency-full-fail]"]
+include::sample[dir="snippets/how-to/accidental-upgrades/groovy",files="build.gradle[tags=dependency-full-fail]"]
+====
 
 When this setting is enabled, Gradle will stop execution and report an error if multiple versions of a dependency conflict, instead of automatically upgrading to the highest version.
 
-== Declaring Explicit Versions
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the failure:
 
-Another way to prevent accidental upgrades is by **explicitly declaring dependency versions** in your build script.
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/tests",files="dependencies-fail.out"]
+====
 
-Example:
+== Option 2: Using Dependency Constraints
 
-[source,kotlin]
-----
-dependencies {
-    implementation("org.apache.commons:commons-lang3:1.1")
-}
-----
+If you have multiple dependencies that use a shared library, you can enforce a consistent version across all modules using <<dependency_constraints.adoc#dependency-constraints,**dependency constraints**>>:
 
-[source,groovy]
-----
-dependencies {
-    implementation 'org.apache.commons:commons-lang3:1.1'
-}
-----
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/kotlin",files="build.gradle.kts[tags=dependency-const]"]
+include::sample[dir="snippets/how-to/accidental-upgrades/groovy",files="build.gradle[tags=dependency-const]"]
+====
 
-By specifying the version explicitly, you ensure that Gradle does not resolve to a newer transitive version unless explicitly updated.
+With `strictly("3.1")`, Gradle ensures that no other version can override the specified dependency.
 
-== Using Dependency Constraints
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
-If you have multiple dependencies that use a shared library, you can enforce a consistent version across all modules using **dependency constraints**:
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/tests",files="dependencies-const.out"]
+====
 
-[source,kotlin]
-----
-dependencies {
-    implementation("org.apache.commons:commons-lang3")
-    constraints {
-        implementation("org.apache.commons:commons-lang3") {
-            version {
-                strictly("1.1")
-            }
-        }
-    }
-}
-----
+== Option 3: Locking Dependencies to Specific Versions
 
-[source,groovy]
-----
-dependencies {
-    implementation 'org.apache.commons:commons-lang3'
-    constraints {
-        implementation('org.apache.commons:commons-lang3') {
-            version {
-                strictly '1.1'
-            }
-        }
-    }
-}
-----
-
-With `strictly("1.1")`, Gradle ensures that no other version can override the specified dependency.
-
-== Step 5: Locking Dependencies to Specific Versions
-
-For a more robust solution, you can use **dependency locking** to ensure Gradle resolves the same dependency versions consistently across builds.
+For a more robust solution, you can use <<dependency_locking.adoc#locking-versions,**dependency locking**>> to ensure Gradle resolves the same dependency versions consistently across builds.
 
 To enable dependency locking:
 
-[source,kotlin]
-----
-configurations.all {
-    resolutionStrategy.activateDependencyLocking()
-}
-----
-
-[source,groovy]
-----
-configurations.all {
-    resolutionStrategy.activateDependencyLocking()
-}
-----
+====
+include::sample[dir="snippets/how-to/accidental-upgrades/kotlin",files="build.gradle.kts[tags=dependency-lock]"]
+include::sample[dir="snippets/how-to/accidental-upgrades/groovy",files="build.gradle[tags=dependency-lock]"]
+====
 
 Then, generate a lock file:
+
 [source,bash]
 ----
 ./gradlew dependencies --write-locks
@@ -135,7 +95,10 @@ This creates a `gradle.lockfile` that stores the exact dependency versions, prev
 
 == Summary
 
-By following these steps, you can ensure that your Gradle builds remain predictable and **free from accidental dependency upgrades**.
-Using `failOnVersionConflict()`, explicit version declarations, constraints, and dependency locking gives you complete control over the dependency resolution process.
+Gradle's optimistic dependency resolution may inadvertently upgrade dependencies, causing compatibility issues.
 
-For further reading, refer to Gradle's documentation on <<dependency_locking.adoc#sec:dependency-locking,Dependency Locking>>.
+To prevent unexpected upgrades, you can:
+
+- *Enforce strict resolution* (`failOnVersionConflict`)
+- *Explicitly constrain dependencies* using the `strictly` keyword
+- *Use dependency locking* (`activateDependencyLocking`) to maintain consistent versions across builds.

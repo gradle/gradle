@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[how_to_exclude_transitive_dependencies]]
-= How to Exclude Dependencies in Gradle
+= How to Exclude Transitive Dependencies in Gradle
 
 This guide explains how to **exclude transitive dependencies** from your project when they are not needed or cause conflicts.
 
@@ -34,16 +34,17 @@ Exclusions are useful when:
 
 == Step 1: Excluding a Transitive Dependency using `exclude()`
 
-First you must find the dependency that is causing the unwanted transitive.
+First you must find the dependency that is causing the unwanted transitive to be used.
 You can use the `dependencies` task for this.
-In this example, we want to remove the `commons-collections:commons-collections` dependency brought by:
+
+In this example, we want to remove the `commons-collections` dependency:
 
 ====
 include::sample[dir="snippets/how-to/exclude-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
 include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gradle[tags=dependency-full]"]
 ====
 
-Running `./gradlew dependencies --configuration runtimeClasspath` showcases how `commons-collections:commons-collections` is brought in:
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases how `commons-collections` is brought in by `commons-beanutils`:
 
 ====
 include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependencies.out"]
@@ -57,7 +58,7 @@ include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gr
 ====
 
 - This removes `commons-collections` from the transitive dependencies of `commons-beanutils`.
-- The exclusion only applies to **this specific dependency**.
+- The exclusion only applies to **this specific dependency** (i.e., `commons-beanutils`).
 
 Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
 
@@ -96,9 +97,9 @@ include::sample[dir="snippets/how-to/exclude-transitives/kotlin",files="build.gr
 include::sample[dir="snippets/how-to/exclude-transitives/groovy",files="build.gradle[tags=dependency-extra-ex]"]
 ====
 
-This example actually goes a step further as `com.opencsv:opencsv` brings in `commons-collections4`.
+This example actually goes a step further as `com.opencsv:opencsv` actually brings in `commons-collections4`.
 
-Now `commons-collections` AND `commons-collections4` are **fully excluded** from all dependencies that reference it.
+Now `commons-collections` AND `commons-collections4` are **fully excluded** from all dependencies that reference it:
 
 ====
 include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependencies-extra-excluded.out"]

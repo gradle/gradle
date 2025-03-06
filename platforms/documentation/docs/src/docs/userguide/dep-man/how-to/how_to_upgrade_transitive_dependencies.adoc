@@ -13,11 +13,11 @@
 // limitations under the License.
 
 [[how_to_upgrade_transitive_dependencies]]
-= How to Upgrade Dependencies in Gradle
+= How to Upgrade Transitive Dependencies in Gradle
 
 This guide explains how to manage and upgrade versions of **transitive dependencies** in Gradle using **dependency constraints**.
 
-== Why Upgrade a Dependency?
+== Why Upgrade a Transitive Dependency?
 
 There are many reasons to upgrade a version of a dependency:
 
@@ -26,40 +26,33 @@ There are many reasons to upgrade a version of a dependency:
 * *Performance improvements* make builds faster and more efficient.
 * *New features* provide additional functionality and better compatibility.
 
-== Adding Constraints on Transitive Dependencies
+== Step 1: Setting Dependency Constraints on Transitive Dependencies
 
-Dependency constraints allow you to define the **version** or **version range** of both direct dependencies and transitive dependencies.
+<<dependency_constraints.adoc#dependency-constraints,Dependency constraints>> allow you to define the **version** or **version range** of both direct dependencies and transitive dependencies.
 
-Dependency constraints can also **override transitive dependencies** and enforce strict versions, even <<how_to_downgrade_dependencies.adoc#how_to_downgrade_dependencies,**downgrading**>> if necessary.
+Dependency constraints can also **override transitive dependencies** and enforce strict versions, even <<how_to_downgrade_transitive_dependencies.adoc#how_to_downgrade_dependencies,**downgrading**>> if necessary.
 
-=== Setting Dependency Constraints
+To enforce specific versions of transitive dependencies, use the link:{javadocPath}/org/gradle/api/artifacts/DependencyConstraint.html[`constraints`] block inside link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`dependencies {}`]:
 
-To enforce specific versions of transitive dependencies, use the `constraints` block inside `dependencies {}`:
-
-[source,groovy]
-.build.gradle
-----
-dependencies {
-    implementation 'org.apache.httpcomponents:httpclient' // No version specified
-    constraints {
-        implementation('org.apache.httpcomponents:httpclient:4.5.3') {
-            because 'previous versions have a bug impacting this application'
-        }
-        implementation('commons-codec:commons-codec:1.11') {
-            because 'version 1.9 pulled from httpclient has bugs affecting this application'
-        }
-    }
-}
-----
+====
+include::sample[dir="snippets/how-to/upgrade-transitives/kotlin",files="build.gradle.kts[tags=dependency-full]"]
+include::sample[dir="snippets/how-to/upgrade-transitives/groovy",files="build.gradle[tags=dependency-full]"]
+====
 
 - The `implementation` dependency **omits the version**.
 - The `constraints` block **enforces specific versions** for `httpclient` and `commons-codec`.
 - The constraint for `commons-codec` **only applies if it is pulled transitively**.
 
+Running `./gradlew dependencies --configuration runtimeClasspath` showcases the results:
+
+====
+include::sample[dir="snippets/how-to/upgrade-transitives/tests",files="dependencies.out"]
+====
+
 == Summary
 
 Use dependency constraints when:
 
-- ✅ You want to **override transitive dependencies** with a specific version.
-- ✅ You need to enforce **a strict version or range** across multiple dependencies.
-- ✅ You want to **prevent dependency conflicts** without manually adding transitive dependencies.
+- You want to **override transitive dependencies** with a specific version.
+- You need to enforce **a strict version or range** across multiple dependencies.
+- You want to **prevent dependency conflicts** without manually adding transitive dependencies.
