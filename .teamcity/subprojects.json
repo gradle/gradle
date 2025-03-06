@@ -386,14 +386,14 @@
   },
   {
     "name": "distributions-basics",
-    "path": "platforms/core-runtime/distributions-basics",
+    "path": "testing/distributions-basics",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "distributions-core",
-    "path": "platforms/core-runtime/distributions-core",
+    "path": "testing/distributions-core",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
