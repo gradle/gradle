@@ -20,7 +20,9 @@ import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
 
 @SuppressWarnings("unused") // registered as Groovy extension in ExtensionModule
-public class CollectionPropertyExtensions {
+public final class CollectionPropertyExtensions {
+
+    private CollectionPropertyExtensions() {}
 
     /**
      * Adds an element to the property value

@@ -22,7 +22,9 @@ import org.gradle.api.provider.Provider;
 import java.util.Map;
 
 @SuppressWarnings("unused") // registered as Groovy extension in ExtensionModule
-public class MapPropertyExtensions {
+public final class MapPropertyExtensions {
+
+    private MapPropertyExtensions() {}
 
     /**
      * Returns a provider that resolves to the value of the mapping of the given key. It will have no value
