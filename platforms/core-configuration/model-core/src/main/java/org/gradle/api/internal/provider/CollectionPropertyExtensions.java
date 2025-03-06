@@ -25,9 +25,9 @@ public final class CollectionPropertyExtensions {
     private CollectionPropertyExtensions() {}
 
     /**
-     * Adds an element to the property value
+     * Adds an element to the property value.
      *
-     * <p>Extension method to support the left shift operator in Groovy.</p>
+     * <p>Extension method to support the {@code << } operator in Groovy.</p>
      *
      * @param self the {@link org.gradle.api.provider.ListProperty} or the {@link org.gradle.api.provider.SetProperty}
      * @param element the element
@@ -37,9 +37,9 @@ public final class CollectionPropertyExtensions {
     }
 
     /**
-     * Adds a provider of the element to the property value
+     * Adds a provider of the element to the property value.
      *
-     * <p>Extension method to support the left shift operator in Groovy.</p>
+     * <p>Extension method to support the {@code << } operator in Groovy.</p>
      *
      * @param self the {@link org.gradle.api.provider.ListProperty} or the {@link org.gradle.api.provider.SetProperty}
      * @param provider the provider of the element
@@ -49,9 +49,9 @@ public final class CollectionPropertyExtensions {
     }
 
     /**
-     * Adds elements to the property value
+     * Adds elements to the property value.
      *
-     * <p>Extension method to support the left shift operator in Groovy.</p>
+     * <p>Extension method to support the {@code << } operator in Groovy.</p>
      *
      * @param self the {@link org.gradle.api.provider.ListProperty} or the {@link org.gradle.api.provider.SetProperty}
      * @param elements the elements
