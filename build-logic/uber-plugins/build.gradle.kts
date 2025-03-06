@@ -6,6 +6,7 @@ description = "Provides plugins that combine and configure other plugins for dif
 
 dependencies {
     implementation("gradlebuild:basics")
+    implementation("gradlebuild:module-identity")
     implementation("gradlebuild:publishing")
 
     implementation(projects.buildquality)
