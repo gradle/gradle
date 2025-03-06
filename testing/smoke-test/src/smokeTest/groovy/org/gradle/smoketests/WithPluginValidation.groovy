@@ -81,6 +81,7 @@ trait WithPluginValidation {
         protected void performValidation(List<String> extraParameters = []) {
             owner.file("validate-external-gradle-plugin.gradle.kts") << getClass().getResource("validate-external-gradle-plugin.gradle.kts").text
 
+            def skipped = validations.any { it.skipped }
             def failsValidation = validations.any { !it.messages.isEmpty() }
             def validation = owner.runner([
                 "--init-script", "validate-external-gradle-plugin.gradle.kts",
@@ -91,7 +92,9 @@ trait WithPluginValidation {
             validation.withJdkWarningChecksDisabled()
 
             def result
-            if (failsValidation) {
+            if (skipped) {
+                result = validation.run()
+            } else if (failsValidation) {
                 result = validation.buildAndFail()
             } else {
                 result = validation.build()
