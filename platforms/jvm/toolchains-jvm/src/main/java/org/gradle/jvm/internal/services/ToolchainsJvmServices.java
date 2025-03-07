@@ -36,6 +36,7 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 import org.gradle.jvm.toolchain.JavaToolchainResolverRegistry;
+import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JvmToolchainManagement;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
@@ -50,6 +51,7 @@ import org.gradle.jvm.toolchain.internal.IntellijInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JabbaInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.JavaToolchainQueryService;
 import org.gradle.jvm.toolchain.internal.JavaToolchainResolverRegistryInternal;
+import org.gradle.jvm.toolchain.internal.JavaToolchainResolverService;
 import org.gradle.jvm.toolchain.internal.JdkCacheDirectory;
 import org.gradle.jvm.toolchain.internal.LinuxInstallationSupplier;
 import org.gradle.jvm.toolchain.internal.MavenToolchainsInstallationSupplier;
@@ -145,7 +147,7 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultJavaToolchainResolverService.class);
-        registration.add(DefaultJavaToolchainService.class);
+        registration.add(JavaToolchainResolverService.class, DefaultJavaToolchainResolverService.class);
+        registration.add(JavaToolchainService.class, DefaultJavaToolchainService.class);
     }
 }
