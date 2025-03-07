@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.test.fixtures.VersionCoverage
+
+import static org.hamcrest.Matchers.is
+import static org.hamcrest.Matchers.notNullValue
+import static org.junit.Assume.assumeThat
 
 class ScalaCoverage {
 
@@ -39,13 +43,25 @@ class ScalaCoverage {
         it == SCALA_2.last() || it == SCALA_3.last()
     }
 
+    static String getLatestSupportedScala2Version() {
+        def latestScala2Version = SCALA_2.reverse().find { SUPPORTED_BY_JDK.contains(it) }
+        assumeThat("No supported Scala 2 version found", latestScala2Version, is(notNullValue()))
+        return latestScala2Version
+    }
+
+    static String getLatestSupportedScala3Version() {
+        def latestScala3Version = SCALA_3.reverse().find { SUPPORTED_BY_JDK.contains(it) }
+        assumeThat("No supported Scala 3 version found", latestScala3Version, is(notNullValue()))
+        return latestScala3Version
+    }
+
     static Set<String> scalaVersionsSupportedByJdk(JavaVersion javaVersion) {
         return scala2VersionsSupportedByJdk(javaVersion) + scala3VersionsSupportedByJdk(javaVersion)
     }
 
     private static Set<String> scala2VersionsSupportedByJdk(JavaVersion javaVersion) {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.17") // Tentative, not released yet
+            return VersionCoverage.versionsAtLeast(SCALA_2, "2.13.17") // Tentative, not released yet. The version here also needs to not trigger the Unsafe warnings (https://openjdk.org/jeps/498).
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_1_9)) {
             // All latest patches of 2.13 work on Java 9+
@@ -65,7 +81,7 @@ class ScalaCoverage {
 
     private static Set<String> scala3VersionsSupportedByJdk(JavaVersion javaVersion) {
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_24)) {
-            return VersionCoverage.versionsAtLeast(SCALA_3, "3.3.6") // Tentative, not released yet
+            return VersionCoverage.versionsAtLeast(SCALA_3, "3.6.4") // Tentative, not released yet. The version here also needs to not trigger the Unsafe warnings (https://openjdk.org/jeps/498).
         }
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_20)) {
             // Latest patches of 3.3.x work on Java 20+
