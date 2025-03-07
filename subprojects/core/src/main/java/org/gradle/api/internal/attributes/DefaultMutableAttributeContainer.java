@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 
-final class DefaultMutableAttributeContainer extends AbstractAttributeContainer implements AttributeContainerInternal {
+public final class DefaultMutableAttributeContainer extends AbstractAttributeContainer {
     private final Map<Attribute<?>, Isolatable<?>> attributes = new LinkedHashMap<>(); // Need to maintain insertion order here, this is indirectly tested
     private Map<Attribute<?>, Provider<?>> lazyAttributes = Cast.uncheckedCast(Collections.EMPTY_MAP);
     private boolean realizingAttributes = false;
@@ -138,8 +138,13 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     }
 
     @Override
+    @Nullable
     public <T> T getAttribute(Attribute<T> key) {
+        if (!isValidAttributeRequest(key)) {
+            return null;
+        }
         maybeEmitRecursiveQueryDeprecation();
+
         Isolatable<?> value = attributes.get(key);
         if (value == null) {
             if (lazyAttributes.containsKey(key)) {
@@ -172,7 +177,7 @@ final class DefaultMutableAttributeContainer extends AbstractAttributeContainer 
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
