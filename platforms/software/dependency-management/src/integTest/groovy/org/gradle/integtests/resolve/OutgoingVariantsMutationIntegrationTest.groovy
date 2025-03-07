@@ -110,7 +110,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("resolve")
 
         then:
-        failure.assertHasCause("Cannot declare capability 'foo' on configuration ':elements' after it has been consumed as a variant.")
+        failure.assertHasCause("Cannot declare capability 'foo' on configuration ':elements' after the configuration was consumed as a variant.")
     }
 
     def "cannot add outgoing variants after configuration is observed"() {
@@ -157,7 +157,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("resolve")
 
         then:
-        failure.assertHasCause("Cannot add secondary artifact set to configuration ':elements' after it has been consumed as a variant.")
+        failure.assertHasCause("Cannot add secondary artifact set to configuration ':elements' after the configuration was consumed as a variant.")
 
         where:
         createVariantBefore << [true, false]

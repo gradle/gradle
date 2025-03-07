@@ -165,7 +165,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             variants = domainObjectCollectionFactory.newNamedDomainObjectContainer(ConfigurationVariant.class, this::createVariant);
             ((DomainObjectCollectionInternal<?>) variants).beforeCollectionChanges(variantName -> {
                 if (isObserved()) {
-                    throw new IllegalStateException("Cannot add secondary artifact set to " + displayName + " after " + observationReason.get() + ".");
+                    throw new InvalidUserCodeException("Cannot add secondary artifact set to " + displayName + " after " + observationReason.get() + ".");
                 }
             });
         }
