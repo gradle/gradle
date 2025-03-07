@@ -18,7 +18,6 @@ package org.gradle.buildinit.plugins.internal.modifiers;
 
 import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.List;
 
 public enum ComponentType {
