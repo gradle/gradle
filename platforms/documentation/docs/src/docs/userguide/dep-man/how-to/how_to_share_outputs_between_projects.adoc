@@ -30,7 +30,41 @@ Unlike simple project dependencies, _variant-aware sharing_ provides:
 [[sec:setup-producer]]
 == Step 1: Configuring the Producer Project
 
+To get started, you should check the existing variants of the producer project by running the `outgoingVariants` task:
+
+[source,bash]
+----
+$ ./gradlew :producer:outgoingVariants --variant runtimeElements
+
+> Task :producer:outgoingVariants
+--------------------------------------------------
+Variant runtimeElements
+--------------------------------------------------
+Runtime elements for the 'main' feature.
+
+Capabilities
+- variant-sharing-example:producer:unspecified (default capability)
+Attributes
+- org.gradle.category            = library
+- org.gradle.dependency.bundling = external
+- org.gradle.jvm.version         = 17
+- org.gradle.libraryelements     = jar
+- org.gradle.usage               = java-runtime
+Artifacts
+- build/libs/producer.jar (artifactType = jar)
+----
+
+What it tells us is that this Java Library plugin produces variants with 5 attributes:
+
+1. `org.gradle.category` - this variant represents a library
+2. `org.gradle.dependency.bundling` - the dependencies of this variant are found as jars (they are not, for example, repackaged inside the jar)
+3. `org.gradle.jvm.version` - the minimum Java version this library supports is Java 11
+4. `org.gradle.libraryelements` - this variant contains all elements found in a jar (classes and resources)
+5. `org.gradle.usage` - this variant is a Java runtime, therefore suitable for a Java compiler but also at runtime
+
 The producer project defines an artifact (e.g., an instrumented JAR) that other projects can consume based on attributes.
+If we want the instrumented classes to be used in place of the existing variant when executing tests, we need to attach similar attributes to this variant.
+In fact, the attribute we care about is `org.gradle.libraryelements` which explains what the variant contains.
 
 First, the following task defines a custom JAR artifact with an instrumented classifier (e.g., `producer-instrumented.jar)`:
 
@@ -42,7 +76,7 @@ include::sample[dir="snippets/how-to/share-outputs/groovy",files="producer/build
 Second, a configuration  is created which:
 
 - Provides an artifact variant for consumption.
-- This variant is a runtime-library artifact with the element type instrumented-jar.
+- This variant is a `runtime-library` artifact with the element type `instrumented-jar`.
 
 This allows other projects (consumers) to discover and request this specific artifact based on attributes:
 
@@ -81,6 +115,22 @@ include::sample[dir="snippets/how-to/share-outputs/groovy",files="consumer/build
 ====
 
 This setup ensures that the consumer resolves the correct variant without requiring knowledge of the producer’s implementation details.
+
+A great way to check everything is working is by running the `resolvableConfigurations` task on the consumer side:
+
+[source,bash]
+----
+$ ./gradlew consumer:resolvableConfigurations --configuration instrumentedRuntime
+
+> Task :consumer:resolvableConfigurations
+--------------------------------------------------
+Configuration instrumentedRuntime
+--------------------------------------------------
+
+Attributes
+    - org.gradle.libraryelements = instrumented-jar
+    - org.gradle.usage           = java-runtime
+----
 
 [[sec:troubleshooting]]
 == Step 3: Troubleshooting

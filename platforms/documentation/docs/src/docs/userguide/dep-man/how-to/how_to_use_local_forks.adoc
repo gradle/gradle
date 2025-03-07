@@ -29,6 +29,66 @@ Using a **local fork** allows you to:
 * You must have a **local copy** of the module's source code.
 * The local module should be set up as a **Gradle build**.
 
+Gradle composite builds automatically substitute external dependencies with local forks.
+
+=== Step 1: Include Your Local Fork
+
+Let's imagine our app depends on `com.squareup.okhttp:okhttp:2.7.5` and we want to use a local fork of it.
+
+In your project's `settings.gradle.kts` file, add an `includeBuild` statement:
+
+[source,kotlin]
+----
+includeBuild("../local-fork") // Adjust path to your local fork
+----
+
+This tells Gradle to substitute the external dependency coordinates automatically with your local build.
+
+=== Step 2: Declare the Dependency Normally
+
+In your project's `build.gradle.kts`, declare the dependency using the same external coordinates as the original library:
+
+[source,kotlin]
+----
+dependencies {
+    implementation("com.squareup.okhttp:okhttp:2.7.5")
+}
+----
+
+You don't need special substitution statements in the `build.gradle.kts` file; Gradle handles substitution automatically.
+
+== Running the Build
+
+With the setup complete, Gradle automatically uses your local fork instead of downloading from remote repositories.
+
+To build and run your project:
+
+[source,shell]
+----
+./gradlew build
+----
+
+== Troubleshooting
+
+If Gradle is still attempting to resolve your dependency externally, verify that:
+
+* The local fork (`build.gradle.kts`) specifies exactly the same coordinates (`group`, `name`, and `version`) as your external dependency.
+* Your `settings.gradle.kts` correctly references your local fork with `includeBuild`.
+
+== Summary
+
+Gradle composite builds provide a straightforward and efficient method to substitute external module dependencies with local forks. This workflow simplifies testing and iterating on library changes without the overhead of publishing artifacts to external repositories.
+
+For further details, refer to Gradle's documentation on <<composite_builds.adoc#defining_composite_builds, composite builds>>.
+
+
+
+
+
+
+
+
+
 == Use Composite Builds
 
 Gradle’s **composite builds** provide a seamless way to substitute a module dependency with a local fork.
