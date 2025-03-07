@@ -251,7 +251,7 @@ private Image getImage(URL url) {
 
 IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
 
-```java
+```text
 /**
  * A
  *
@@ -259,7 +259,7 @@ IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
  */
  ```
 
-```java
+```text
 /**
  * A
  * <p>
@@ -279,7 +279,7 @@ If you want to stop IntelliJ IDEA from auto closing HTML tags:
 
 ### 1.5.2 Android Studio
 
-Android studio will not display javadoc following a `<p>` so make sure your summary fragment is well detailed:
+Android studio will not display Javadoc following a `<p>` so make sure your summary fragment is well detailed:
 
 ```java
 /**
