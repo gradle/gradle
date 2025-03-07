@@ -27,9 +27,7 @@ description = "Operations on files, such as archiving, copying, deleting"
 
 errorprone {
     disabledChecks.addAll(
-        "ImmutableEnumChecker", // 2 occurrences
         "InlineMeSuggester", // 1 occurrences
-        "InconsistentCapitalization", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
     )
 }

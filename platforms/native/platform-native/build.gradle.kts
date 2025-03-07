@@ -10,7 +10,7 @@ errorprone {
         "EqualsUnsafeCast", // 1 occurrences
         "GetClassOnClass", // 1 occurrences
         "HidingField", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
+//        "ImmutableEnumChecker", // 2 occurrences
         "ReferenceEquality", // 2 occurrences
         "StaticAssignmentInConstructor", // 1 occurrences
         "StringCharset", // 2 occurrences

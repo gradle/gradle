@@ -39,7 +39,6 @@ errorprone {
         "Finally", // 1 occurrences
         "HidingField", // 1 occurrences
         "IdentityHashMapUsage", // 1 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 2 occurrences
         "InlineMeSuggester", // 1 occurrences

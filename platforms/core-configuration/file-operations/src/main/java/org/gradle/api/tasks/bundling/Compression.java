@@ -15,8 +15,7 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 /**
@@ -28,12 +27,18 @@ public enum Compression {
     BZIP2("tbz2", "bz2");
 
     private final String defaultExtension;
-    private final List<String> supportedExtensions = new ArrayList<String>(2);
+    private final ImmutableList<String> supportedExtensions;
 
     private Compression(String defaultExtension, String... additionalSupportedExtensions) {
         this.defaultExtension = defaultExtension;
-        this.supportedExtensions.addAll(Arrays.asList(additionalSupportedExtensions));
-        this.supportedExtensions.add(defaultExtension);
+
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        for(String extension : additionalSupportedExtensions){
+            builder.add(extension);
+        }
+        builder.add(defaultExtension);
+
+        this.supportedExtensions = builder.build();
     }
 
     public String getDefaultExtension(){
