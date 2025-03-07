@@ -28,6 +28,8 @@ import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.declarative.dsl.model.annotations.Adding;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 
@@ -35,6 +37,7 @@ import java.util.Map;
  * A {@code RepositoryHandler} manages a set of repositories, allowing repositories to be defined and queried.
  */
 @HasInternalProtocol
+@ServiceScope(Scope.Project.class)
 public interface RepositoryHandler extends ArtifactRepositoryContainer {
 
     /**
