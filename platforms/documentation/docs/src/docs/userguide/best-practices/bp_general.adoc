@@ -15,4 +15,36 @@
 [[best_practices_general]]
 = General Gradle Best Practices
 
-Add content here.
+== Do Not Use Internal APIs
+
+Do not use APIs that are inside an `internal` Java package or contain `Internal` or `Impl`
+in the name of the type.
+
+=== Explanation
+
+Using internal APIs is inherently risky and can cause significant problems during upgrades.
+Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat internal
+APIs, such as those within internal packages, as subject to breaking changes, even during minor
+releases.
+
+If you require a specific functionality that is missing, it’s best to submit a feature request.
+As a temporary workaround consider copying the necessary code into your own codebase.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
+====
+
+=== Tags
+`#upgrades`
