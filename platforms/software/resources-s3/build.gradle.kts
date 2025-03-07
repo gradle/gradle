@@ -4,12 +4,6 @@ plugins {
 
 description = "Implementation for interacting with S3 repositories"
 
-errorprone {
-    disabledChecks.addAll(
-        "NotJavadoc", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.serviceProvider)
     api(projects.core)
