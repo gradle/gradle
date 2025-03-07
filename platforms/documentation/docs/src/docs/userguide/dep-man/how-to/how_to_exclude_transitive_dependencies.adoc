@@ -110,7 +110,7 @@ include::sample[dir="snippets/how-to/exclude-transitives/tests",files="dependenc
 - **Use exclusions only when necessary** to avoid runtime errors.
 - **Ensure all dependencies agree** on an exclusion for it to be effective.
 - **Consider alternative Gradle features** like dependency constraints or metadata rules before excluding.
-** **Use Dependency Constraints** - If a dependency version conflict occurs, **adjust the version using a <<dependency_constraits.adoc#dependency-constraints,constraint>>** rather than excluding the dependency entirely.
+** **Use Dependency Constraints** - If a dependency version conflict occurs, **adjust the version using a <<dependency_constraints.adoc#dependency-constraints,constraint>>** rather than excluding the dependency entirely.
 ** **Apply Component Metadata Rules** - If a dependency is **incorrectly declared** in metadata (e.g., includes an unnecessary compile-time dependency), you can **remove the dependency in a <<component_metadata_rules.adoc#component-metadata-rules,component metadata rule>>** instead of excluding it.
 ** **Resolve Mutually Exclusive Dependency Conflicts** - If multiple dependencies **conflict** because they represent different implementations of the same feature
 (e.g., `log4j` vs. `log4j-over-slf4j`), it is better to **define <<component_capabilities.adoc#capabilities,component capabilities>>** than to exclude one implementation.

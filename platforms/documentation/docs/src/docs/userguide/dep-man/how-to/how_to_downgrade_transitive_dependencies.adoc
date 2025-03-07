@@ -28,7 +28,7 @@ However, there are cases where an earlier version is required:
 
 Before downgrading, consider **updating your source code** to support the latest version instead.
 
-Additionally, you should make sure there aren't existing <<dependency_constraits.adoc#dependency-constraints,dependency constraint>>, <<platforms.adoc#platforms,platforms>>, or <<version_catalog.adoc#version-catalog,version catalogs>>, that are setting the dependency to an undesired version in your project.
+Additionally, you should make sure there aren't existing <<dependency_constraints.adoc#dependency-constraints,dependency constraint>>, <<platforms.adoc#platforms,platforms>>, or <<version_catalog.adoc#version-catalog,version catalogs>>, that are setting the dependency to an undesired version in your project.
 
 If downgrading is necessary, use **strict dependencies** or **forced dependencies**.
 

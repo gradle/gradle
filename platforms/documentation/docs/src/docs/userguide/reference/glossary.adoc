@@ -180,7 +180,7 @@ This phase has multiple levels of parallelism.
 Feature Variant::
 A feature variant is a <<#sub:terminology_variant, variant>> representing a feature of a component that can be individually selected or not.
 A feature variant is identified by one or more <<#sub:terminology_capability, capabilities>>.
-For more information, see the sections on <<feature_variants.adoc#feature_variants, modeling feature variants, and optional dependencies>>.
+For more information, see the sections on <<how_to_create_feature_variants_of_a_library#feature_variants, modeling feature variants, and optional dependencies>>.
 
 == G
 

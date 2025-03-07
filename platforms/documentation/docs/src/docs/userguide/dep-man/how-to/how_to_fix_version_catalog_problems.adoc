@@ -15,13 +15,27 @@
 [[version-catalog-problems]]
 = How to Troubleshoot Version Catalog Problems in Gradle
 
-Version catalogs help manage dependencies efficiently, but sometimes errors occur. This guide outlines common problems and how to fix them.
+Version catalogs help manage dependencies efficiently, but sometimes errors occur.
+
+This guide provides quick solutions to common version catalog issues in Gradle.
 
 == 1. Fixing Accessor Name Clashes
 
 **Error:** Two aliases in your version catalog map to the same accessor.
 
+[source,toml]
+----
+someAlias = { module="org.sample:lib", version="1.0" }
+some-alias = { module="org.sample:other-lib", version="2.0" }
+----
+
 **Solution:** Choose distinct alias names to avoid conflicts.
+
+[source,toml]
+----
+firstAlias = { module="org.sample:lib", version="1.0" }
+secondAlias = { module="org.sample:other-lib", version="2.0" }
+----
 
 == 2. Handling Too Many Entries in a Catalog
 
@@ -33,19 +47,56 @@ Version catalogs help manage dependencies efficiently, but sometimes errors occu
 
 **Error:** An alias uses a reserved name like `versions`, `bundles`, `plugins`, `extensions`, or `class`.
 
+[source,toml]
+----
+versions = { module="org.sample:lib", version="1.0" }
+----
+
 **Solution:** Choose a different alias name.
+
+[source,toml]
+----
+sampleLib = { module="org.sample:lib", version="1.0" }
+----
 
 == 4. Fixing Undefined Version References
 
 **Error:** A library references a non-existent version in the catalog.
 
+[source,toml]
+----
+[libraries]
+myLib = { module="org.sample:lib", version.ref="undefinedVersion" }
+----
+
 **Solution:** Either correct the reference or declare the missing version in the catalog.
+
+[source,toml]
+----
+[versions]
+definedVersion = "1.0"
+
+[libraries]
+myLib = { module="org.sample:lib", version.ref="definedVersion" }
+----
 
 == 5. Fixing Undefined Alias References
 
 **Error:** A bundle references a library that does not exist in the catalog.
 
+[source,toml]
+----
+[bundles]
+myBundle = ["existingLib", "undefinedLib"]
+----
+
 **Solution:** Ensure the library is defined in the catalog or remove it from the bundle.
+
+[source,toml]
+----
+[bundles]
+myBundle = ["existingLib"]
+----
 
 == 6. Correcting Invalid Dependency Notation
 
@@ -53,16 +104,16 @@ Version catalogs help manage dependencies efficiently, but sometimes errors occu
 
 **Solution:** Use the correct syntax:
 
-**Groovy DSL:**
-```groovy
+[source,groovy]
+----
 library("some-alias", "com.mycompany:some-lib:1.1").withoutVersion()
-```
+----
 
-**TOML format:**
-```toml
+[source,toml]
+----
 [libraries]
 some-alias = { module="com.mycompany:some-lib", version="1.1" }
-```
+----
 
 == 7. Fixing Unsupported Catalog File Formats
 
@@ -80,26 +131,40 @@ some-alias = { module="com.mycompany:some-lib", version="1.1" }
 
 **Error:** The alias name does not match the required format (`[a-z]([a-zA-Z0-9_.\-])`).
 
+[source,toml]
+----
+Alias! = { module="org.sample:lib", version="1.0" }
+----
+
 **Solution:** Use a valid alias name such as `some-alias`.
+
+[source,toml]
+----
+valid-alias = { module="org.sample:lib", version="1.0" }
+----
 
 == 10. Fixing Invalid Module Notation in TOML
 
 **Error:** Incorrect `module` notation in the version catalog.
 
 **Solution:** Use the correct format:
-```toml
+
+[source,toml]
+----
 [libraries]
 groovy = { module="org.codehaus.groovy:groovy", version="3.0.5" }
-```
+----
 
 == 11. Resolving Invalid TOML Syntax
 
 **Error:** Syntax or grammar issues in the TOML file.
 
 **Solution:** Ensure correct keys and structure:
-```toml
-some-alias = { group="my-lib", name="1.0" } # Correct format
-```
+
+[source,toml]
+----
+some-alias = { group="my-lib", name="1.0" }
+----
 
 == 12. Handling Unsupported TOML File Versions
 
@@ -113,11 +178,22 @@ some-alias = { group="my-lib", name="1.0" } # Correct format
 
 **Solution:** Use the correct format: `plugin.id:version`.
 
+[source,toml]
+----
+[plugins]
+spring-boot = { id="org.springframework.boot", version="2.5.2" }
+----
+
 == 14. Resolving Unfinished Aliases
 
 **Error:** An alias was created but not registered in the catalog.
 
 **Solution:** Call `.version()` or `.withoutVersion()` to complete the alias.
+
+[source,groovy]
+----
+library("some-alias", "org.sample:lib").version("1.0")
+----
 
 == 15. Fixing Multiple Import Invocations
 
@@ -136,6 +212,3 @@ some-alias = { group="my-lib", name="1.0" } # Correct format
 **Error:** The import statement references multiple files.
 
 **Solution:** Ensure only a single file is specified for import.
-
-This guide provides quick solutions to common version catalog issues in Gradle. Following these best practices will ensure smoother dependency management in your projects.
-
