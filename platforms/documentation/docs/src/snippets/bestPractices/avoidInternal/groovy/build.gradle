@@ -1,0 +1,21 @@
+// tag::avoid-this[]
+abstract class BadTask extends org.gradle.api.internal.AbstractTask { // <1>
+    @TaskAction
+    void run() {
+        logger.lifecycle("Hello!")
+    }
+}
+
+tasks.register("badTask", BadTask)
+// end::avoid-this[]
+
+// tag::do-this[]
+abstract class GoodTask extends org.gradle.api.DefaultTask { // <2>
+    @TaskAction
+    void run() {
+        logger.lifecycle("Hello!")
+    }
+}
+
+tasks.register("goodTask", GoodTask)
+// end::do-this[]
