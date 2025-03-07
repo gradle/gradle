@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.result.ResolvedComponentResultInternal;
+import org.gradle.api.internal.attributes.AbstractAttributeContainer;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -93,7 +94,7 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
 
     // This does almost the same thing as passing through DesugaredAttributeContainerSerializer / DesugaringAttributeContainerSerializer.
     // Those make some assumptions about allowed attribute value types that we can't - we serialize everything else to a string instead.
-    private static final class LazyDesugaringAttributeContainer implements ImmutableAttributes {
+    private static final class LazyDesugaringAttributeContainer extends AbstractAttributeContainer implements ImmutableAttributes {
 
         private final AttributeContainer source;
         private final AttributesFactory attributesFactory;
@@ -124,6 +125,9 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         @Nullable
         @Override
         public <T> T getAttribute(Attribute<T> key) {
+            if (!isValidAttributeRequest(key)) {
+                return null;
+            }
             return getDesugared().getAttribute(key);
         }
 
@@ -160,6 +164,12 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         @Override
         public AttributeValue<?> findEntry(String name) {
             return getDesugared().findEntry(name);
+        }
+
+        @Nullable
+        @Override
+        public Attribute<?> findAttribute(String name) {
+            return getDesugared().findAttribute(name);
         }
 
         @Override
