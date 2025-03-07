@@ -329,7 +329,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    def "Can apply a script plugin to the buildscript block"() {
+    def "can apply a script plugin to the buildscript block"() {
         given:
         def jar = file("plugin.jar")
         pluginBuilder.addPlugin("project.task('hello')")

@@ -312,7 +312,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failureCauseContains("Boom")
     }
 
-    def "Can specify repo in init script."() {
+    def "can specify repo in init script."() {
         given:
         publishTestPlugin()
         buildFile """
@@ -343,7 +343,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains('from plugin')
     }
 
-    def "Can't modify rules after projects have been loaded"() {
+    def "can't modify rules after projects have been loaded"() {
         given:
         def initScript = file('definePluginRepo.gradle')
         initScript << """
@@ -412,7 +412,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("Hello World!")
     }
 
-    def "Able to specify ivy resolution patterns"() {
+    def "able to specify ivy resolution patterns"() {
         given:
         def repo = new IvyFileRepository(file("ivy-repo"), true, '[organisation]/[module]/[revision]', '[module]-[revision].ivy', '[artifact]-[revision](-[classifier]).[ext]')
         publishTestPlugin(repo)

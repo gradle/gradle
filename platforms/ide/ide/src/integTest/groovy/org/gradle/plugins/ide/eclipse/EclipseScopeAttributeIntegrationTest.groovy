@@ -164,7 +164,7 @@ class EclipseScopeAttributeIntegrationTest extends AbstractEclipseIntegrationSpe
     }
 
     @ToBeFixedForConfigurationCache
-    def "Overlapping default and source folder output paths are deduplicated"() {
+    def "overlapping default and source folder output paths are deduplicated"() {
         setup:
         buildFile << """
             apply plugin: 'java'

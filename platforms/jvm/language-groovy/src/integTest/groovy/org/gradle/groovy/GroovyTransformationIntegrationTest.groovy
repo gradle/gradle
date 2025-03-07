@@ -42,7 +42,7 @@ class GroovyTransformationIntegrationTest extends MultiVersionIntegrationSpec {
         """
     }
 
-    def "Can configure disabled AST transformations"() {
+    def "can configure disabled AST transformations"() {
         setup:
         buildFile << """
             compileGroovy {

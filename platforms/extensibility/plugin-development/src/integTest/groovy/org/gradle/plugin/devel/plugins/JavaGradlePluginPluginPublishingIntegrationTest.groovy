@@ -34,7 +34,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         """
     }
 
-    def "Publishes main plugin artifact to Ivy"() {
+    def "publishes main plugin artifact to Ivy"() {
         given:
         plugin('foo', 'com.example.foo')
         publishToIvy()
@@ -47,7 +47,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
-    def "Publishes main plugin artifact to Maven"() {
+    def "publishes main plugin artifact to Maven"() {
         given:
         plugin('foo', 'com.example.foo')
         publishToMaven()
@@ -60,7 +60,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         mavenRepo.module('com.example', 'plugins', '1.0').assertPublished()
     }
 
-    def "Publishes one Ivy marker for every plugin"() {
+    def "publishes one Ivy marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
         plugin('bar', 'com.example.bar', 'The Bar Plugin', 'The greatest Bar plugin of all time.')
@@ -80,7 +80,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         barMarker.parsedIvy.description.text() == 'The greatest Bar plugin of all time.'
     }
 
-    def "Publishes one Maven marker for every plugin"() {
+    def "publishes one Maven marker for every plugin"() {
         given:
         plugin('foo', 'com.example.foo', 'The Foo Plugin', 'The greatest Foo plugin of all time.')
         plugin('bar', 'com.example.bar', 'The Bar Plugin', 'The greatest Bar plugin of all time.')
@@ -106,7 +106,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         }
     }
 
-    def "Can publish to Maven and Ivy at the same time"() {
+    def "can publish to Maven and Ivy at the same time"() {
         given:
         plugin('foo', 'com.example.foo')
         publishToMaven()
@@ -124,7 +124,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         ivyRepo.module('com.example.foo', 'com.example.foo' + PLUGIN_MARKER_SUFFIX, '1.0').assertPublished()
     }
 
-    def "Can publish supplementary artifacts to both Maven and Ivy"() {
+    def "can publish supplementary artifacts to both Maven and Ivy"() {
 
         given:
         plugin('foo', 'com.example.foo')
@@ -167,7 +167,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23551")
-    def "Can publish maven with changed artifactId"() {
+    def "can publish maven with changed artifactId"() {
 
         given:
         plugin('foo', 'com.example.foo')
@@ -204,7 +204,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         module.getPomFile().text.contains('1.2.3')
     }
 
-    def "Can publish ivy with changed artifactId"() {
+    def "can publish ivy with changed artifactId"() {
 
         given:
         plugin('foo', 'com.example.foo')
@@ -239,7 +239,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         module.parsedIvy.dependencies["com.example.foo.new:foo-new:1.2.3"] != null
     }
 
-    def "Can handle unspecified version"() {
+    def "can handle unspecified version"() {
         given:
         buildFile << """
             version = null

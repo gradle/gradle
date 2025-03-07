@@ -31,7 +31,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         sftpClientFactory.sftpClientCreator = sftpClientCreator
     }
 
-    def "Can acquire and release single client"() {
+    def "can acquire and release single client"() {
         def mockSftpClient = Mock(LockableSftpClient)
 
         given:
@@ -82,7 +82,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         initialClient != newClient
     }
 
-    def "Can acquire, release and reuse single client"() {
+    def "can acquire, release and reuse single client"() {
         def mockSftpClient = Mock(LockableSftpClient)
 
         given:
@@ -115,7 +115,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         initialClient == reusedClient
     }
 
-    def "Can acquire and release multiple clients"() {
+    def "can acquire and release multiple clients"() {
         def mockSftpClient1 = Mock(LockableSftpClient)
         def mockSftpClient2 = Mock(LockableSftpClient)
 
@@ -151,7 +151,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         clientsByHost2.get(0) == client2
     }
 
-    def "Can stop a single, released client"() {
+    def "can stop a single, released client"() {
         def mockSftpClient = Mock(LockableSftpClient)
 
         given:
@@ -173,7 +173,7 @@ class SftpClientFactoryTest extends ConcurrentSpec {
         1 * mockSftpClient.stop()
     }
 
-    def "Can stop multiple, released clients"() {
+    def "can stop multiple, released clients"() {
         def mockSftpClient1 = Mock(LockableSftpClient)
         def mockSftpClient2 = Mock(LockableSftpClient)
 
