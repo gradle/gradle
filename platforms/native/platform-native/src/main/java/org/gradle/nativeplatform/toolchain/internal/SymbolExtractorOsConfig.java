@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.toolchain.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.os.OperatingSystem;
 
-import java.util.Collections;
 import java.util.List;
 
 public enum SymbolExtractorOsConfig {
