@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.ZincCoverage
 
@@ -32,7 +33,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
                 zincVersion = "${version}"
             }
             dependencies {
-                implementation "org.scala-lang:scala-library:2.10.7"
+                implementation "org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}"
             }
             task assertZincVersion {
                 dependsOn configurations.zinc
