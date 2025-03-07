@@ -637,7 +637,6 @@ Class <org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec> is not ann
 Class <org.gradle.api.internal.tasks.scala.TimeCheckingClassLoaderCache$TimestampedFile> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TimeCheckingClassLoaderCache.java:0)
 Class <org.gradle.api.internal.tasks.scala.TimeCheckingClassLoaderCache> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (TimeCheckingClassLoaderCache.java:0)
 Class <org.gradle.api.internal.tasks.scala.ZincScalaCompiler$AnalysisBakedDefineClass> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ZincScalaCompiler.java:0)
-Class <org.gradle.api.internal.tasks.scala.ZincScalaCompiler$ClearableMapBackedCache> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ZincScalaCompiler.java:0)
 Class <org.gradle.api.internal.tasks.scala.ZincScalaCompiler$EntryLookup> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ZincScalaCompiler.java:0)
 Class <org.gradle.api.internal.tasks.scala.ZincScalaCompiler> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ZincScalaCompiler.java:0)
 Class <org.gradle.api.internal.tasks.scala.ZincScalaCompilerArgumentsGenerator> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi in (ZincScalaCompilerArgumentsGenerator.java:0)

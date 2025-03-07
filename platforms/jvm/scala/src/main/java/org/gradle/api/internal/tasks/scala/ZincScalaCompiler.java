@@ -73,7 +73,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
     private final AnalysisStoreProvider analysisStoreProvider;
     private final static PlainVirtualFileConverter CONVERTER = PlainVirtualFileConverter.converter();
 
-    private final ClearableMapBackedCache<VirtualFile, DefinesClass> definesClassCache = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
+    private final MapBackedCache<VirtualFile, DefinesClass> definesClassCache = new MapBackedCache<>(new ConcurrentHashMap<>());
 
     @Inject
     public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
@@ -209,20 +209,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         @Override
         public boolean apply(String className) {
             return analysis.relations().productClassName().reverse(className).nonEmpty();
-        }
-    }
-
-    private static class ClearableMapBackedCache<K, V> extends MapBackedCache<K, V> {
-
-        private final Map<K, V> map;
-
-        public ClearableMapBackedCache(Map<K, V> map) {
-            super(map);
-            this.map = map;
-        }
-
-        public void clear() {
-            map.clear();
         }
     }
 }

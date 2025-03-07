@@ -182,9 +182,4 @@ public abstract class ScalaDocOptions extends org.gradle.api.tasks.compile.Abstr
     public void setAdditionalParameters(@Nullable List<String> additionalParameters) {
         this.additionalParameters = additionalParameters;
     }
-
-    private String toOnOffString(boolean value) {
-        return value ? "on" : "off";
-    }
-
 }
