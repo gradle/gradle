@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
+import org.gradle.api.internal.file.DefaultFileSystemLocation;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
@@ -50,6 +50,12 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
         this.version = version;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
+    }
+
+    @Override
+    public Provider<FileSystemLocation> getFileProvider() {
+        return provider.map(this::unpack)
+            .flatMap(PublishArtifactInternal::getFileProvider);
     }
 
     @Override
@@ -84,26 +90,28 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
 
     private PublishArtifactInternal getDelegate() {
         if (delegate == null) {
-            Object value = provider.get();
-            if (value instanceof FileSystemLocation) {
-                FileSystemLocation location = (FileSystemLocation) value;
-                delegate = fromFile(location.getAsFile());
-            } else if (value instanceof File) {
-                delegate = fromFile((File) value);
-            } else if (value instanceof AbstractArchiveTask) {
-                delegate = new ArchivePublishArtifact(taskDependencyFactory, (AbstractArchiveTask) value);
-            } else if (value instanceof Task) {
-                delegate = fromFile(((Task) value).getOutputs().getFiles().getSingleFile());
-            } else {
-                delegate = fromFile(fileResolver.resolve(value));
-            }
+            delegate = unpack(provider.get());
         }
         return delegate;
     }
 
-    private PublishArtifactInternal fromFile(File file) {
-        ArtifactFile artifactFile = new ArtifactFile(file, version);
-        return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
+    private PublishArtifactInternal unpack(Object value) {
+        if (value instanceof FileSystemLocation) {
+            return fromFile((FileSystemLocation) value);
+        } else if (value instanceof File) {
+            return fromFile(new DefaultFileSystemLocation((File) value));
+        } else if (value instanceof AbstractArchiveTask) {
+            return new ArchivePublishArtifact(taskDependencyFactory, (AbstractArchiveTask) value);
+        } else if (value instanceof Task) {
+            // TODO: Do not eagerly resolve the output file collection.
+            return fromFile(new DefaultFileSystemLocation(((Task) value).getOutputs().getFiles().getSingleFile()));
+        } else {
+            return fromFile(new DefaultFileSystemLocation(fileResolver.resolve(value)));
+        }
+    }
+
+    private PublishArtifactInternal fromFile(FileSystemLocation fileSystemLocation) {
+        return new FileSystemPublishArtifact(fileSystemLocation, version);
     }
 
     @Override

@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -37,9 +38,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.publish.VersionMappingStrategy;
@@ -131,9 +134,9 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         this.componentArtifacts.convention(getComponent().map(mavenComponentParser::parseArtifacts));
         this.componentArtifacts.finalizeValueOnRead();
 
-        this.mainArtifacts = objectFactory.newInstance(DefaultMavenArtifactSet.class, name, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.mainArtifacts = objectFactory.newInstance(DefaultMavenArtifactSet.class, mavenArtifactParser, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.metadataArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, fileCollectionFactory, collectionCallbackActionDecorator);
+        this.derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, fileCollectionFactory, collectionCallbackActionDecorator);
         this.publishableArtifacts = new CompositePublicationArtifactSet<>(taskDependencyFactory, MavenArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
 
         this.pom = objectFactory.newInstance(DefaultMavenPom.class, objectFactory);
@@ -564,14 +567,14 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
 
     private static class SerializableMavenArtifact implements MavenArtifact, PublicationArtifactInternal {
 
-        private final File file;
+        private final FileSystemLocation file;
         private final String extension;
         private final String classifier;
         private final boolean shouldBePublished;
 
         public SerializableMavenArtifact(MavenArtifact artifact) {
             PublicationArtifactInternal artifactInternal = (PublicationArtifactInternal) artifact;
-            this.file = artifact.getFile();
+            this.file = artifactInternal.getFileProvider().get();
             this.extension = artifact.getExtension();
             this.classifier = artifact.getClassifier();
             this.shouldBePublished = artifactInternal.shouldBePublished();
@@ -599,8 +602,13 @@ public abstract class DefaultMavenPublication implements MavenPublicationInterna
         }
 
         @Override
+        public Provider<? extends FileSystemLocation> getFileProvider() {
+            return Providers.of(file);
+        }
+
+        @Override
         public File getFile() {
-            return file;
+            return file.getAsFile();
         }
 
         @Override

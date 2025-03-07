@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.publish;
 
-import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -24,27 +23,26 @@ import org.gradle.util.internal.GUtil;
 import java.io.File;
 import java.util.Date;
 
-public class DecoratingPublishArtifact extends AbstractPublishArtifact implements ConfigurablePublishArtifact {
+/**
+ * Wraps a {@link PublishArtifactInternal} to provide mutability, by implementing the
+ * {@link org.gradle.api.artifacts.ConfigurablePublishArtifact} interface.
+ */
+public class DecoratingPublishArtifact extends AbstractConfigurablePublishArtifact {
+
     private String name;
     private String extension;
     private String type;
     private String classifier;
-    private final PublishArtifact publishArtifact;
+    private final PublishArtifactInternal publishArtifact;
     private boolean classifierSet;
 
-    public DecoratingPublishArtifact(TaskDependencyFactory taskDependencyFactory, PublishArtifact publishArtifact) {
+    public DecoratingPublishArtifact(TaskDependencyFactory taskDependencyFactory, PublishArtifactInternal publishArtifact) {
         super(taskDependencyFactory, publishArtifact.getBuildDependencies());
         this.publishArtifact = publishArtifact;
     }
 
     public PublishArtifact getPublishArtifact() {
         return publishArtifact;
-    }
-
-    @Override
-    public DecoratingPublishArtifact builtBy(Object... tasks) {
-        super.builtBy(tasks);
-        return this;
     }
 
     @Override
