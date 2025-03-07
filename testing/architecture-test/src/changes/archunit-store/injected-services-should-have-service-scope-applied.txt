@@ -1,8 +1,5 @@
 Class <org.gradle.api.Project> is not annotated with @ServiceScope in (Project.java:0)
 Class <org.gradle.api.artifacts.dsl.DependencyFactory> is not annotated with @ServiceScope in (DependencyFactory.java:0)
-Class <org.gradle.api.artifacts.dsl.DependencyHandler> is not annotated with @ServiceScope in (DependencyHandler.java:0)
-Class <org.gradle.api.artifacts.dsl.DependencyLockingHandler> is not annotated with @ServiceScope in (DependencyLockingHandler.java:0)
-Class <org.gradle.api.artifacts.dsl.RepositoryHandler> is not annotated with @ServiceScope in (RepositoryHandler.java:0)
 Class <org.gradle.api.artifacts.transform.TransformParameters> is not annotated with @ServiceScope in (TransformParameters.java:0)
 Class <org.gradle.api.cache.CacheConfigurations> is not annotated with @ServiceScope in (CacheConfigurations.java:0)
 Class <org.gradle.api.component.SoftwareComponentContainer> is not annotated with @ServiceScope in (SoftwareComponentContainer.java:0)
