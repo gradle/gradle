@@ -19,10 +19,13 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Factory for {@link org.gradle.api.artifacts.repositories.ArtifactRepository} implementations.
  */
+@ServiceScope(Scope.Project.class)
 public interface BaseRepositoryFactory {
 
     String PLUGIN_PORTAL_DEFAULT_URL = "https://plugins.gradle.org/m2";
