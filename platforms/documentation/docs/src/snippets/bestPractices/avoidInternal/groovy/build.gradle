@@ -1,0 +1,26 @@
+// tag::avoid-this[]
+import org.gradle.api.internal.attributes.AttributeContainerInternal
+
+configurations.create("bad") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
+    def badMap = (attributes as AttributeContainerInternal).asMap() // <1>
+    badMap.each {
+        logger.warn("${it.key} -> ${it.value}")
+    }
+}
+
+// tag::do-this[]
+configurations.create("good") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
+    def goodMap = attributes.keySet().collectEntries {
+        [Attribute.of(it.name, it.type), attributes.getAttribute(it as Attribute<Object>)]
+    }
+    goodMap.each {
+        logger.warn("$it.key -> $it.value")
+    }
+}
+// end::do-this[]

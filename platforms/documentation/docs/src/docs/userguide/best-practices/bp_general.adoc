@@ -57,3 +57,35 @@ include::sample[dir="snippets/bestPractices/usePluginsBlock/groovy/do-this",file
 
 === Tags
 `#structuring-builds`
+
+== Do Not Use Internal APIs
+
+Do not use APIs from a package where any segment of the package is `internal`, or types that have `Internal` or `Impl` as a suffix in the name.
+
+=== Explanation
+
+Using internal APIs is inherently risky and can cause significant problems during upgrades.
+Gradle and many plugins (such as Android Gradle Plugin and Kotlin Gradle Plugin) treat internal APIs, such as those within `internal` packages, as subject to unannounced breaking changes during any new Gradle release, even during minor releases.
+There have been numerous cases where even highly experienced plugin developers have been bitten by usage of such APIs leading to breakages for their users.
+
+If you require a specific functionality that is missing, it’s best to submit a feature request.
+As a temporary workaround consider copying the necessary code into your own codebase and extending a Gradle public type with your own custom implementation using the copied code.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+==== Do This Instead
+
+====
+include::sample[dir="snippets/bestPractices/avoidInternal/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/bestPractices/avoidInternal/groovy",files="build.gradle[tags=do-this]"]
+====
+
+=== Tags
+`#upgrades`
