@@ -62,6 +62,7 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.model.InMemoryCacheFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
@@ -179,6 +180,7 @@ class TestUtil {
         def services = new DefaultServiceRegistry()
         services.register {
             registrations.execute(it)
+            it.add(InstantiatorFactory, instantiatorFactory())
             it.add(ProviderFactory, new TestProviderFactory())
             it.add(TestCrossBuildInMemoryCacheFactory)
             it.add(NamedObjectInstantiator)
@@ -192,8 +194,8 @@ class TestUtil {
             it.add(DefaultPropertyFactory)
             it.addProvider(new ServiceRegistrationProvider() {
                 @Provides
-                InstantiatorFactory createInstantiatorFactory() {
-                    TestUtil.instantiatorFactory()
+                ManagedObjectRegistry createManagedObjectRegistry() {
+                    new ManagedObjectRegistry(null)
                 }
 
                 @Provides

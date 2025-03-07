@@ -21,6 +21,7 @@ dependencies {
     api(projects.messaging)
     api(projects.modelReflect)
     api(projects.persistentCache)
+    api(projects.serviceProvider)
     api(projects.snapshots)
     api(libs.asm)
     api(libs.jsr305)
@@ -33,7 +34,6 @@ dependencies {
     implementation(projects.classloaders)
     implementation(projects.logging)
     implementation(projects.problemsApi)
-    implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 
     implementation(libs.kotlinStdlib)
