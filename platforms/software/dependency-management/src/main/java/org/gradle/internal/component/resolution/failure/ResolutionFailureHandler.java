@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.artifacts.transform.AttributeMatchingArtifactVariantSelector;
 import org.gradle.api.internal.artifacts.transform.TransformedVariant;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
@@ -119,7 +118,7 @@ public class ResolutionFailureHandler {
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         VariantGraphResolveState targetConfiguration,
-        AttributeContainerInternal requestedAttributes,
+        ImmutableAttributes requestedAttributes,
         ImmutableCapabilities targetConfigurationCapabilities
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
@@ -139,7 +138,7 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException ambiguousVariantsFailure(
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes,
+        ImmutableAttributes requestedAttributes,
         Set<CapabilitySelector> requestedCapabilities,
         List<? extends VariantGraphResolveState> matchingVariants
     ) {
@@ -153,18 +152,17 @@ public class ResolutionFailureHandler {
     // separate describers, with separate failures, for these different types.
     public AbstractResolutionFailureException noVariantsFailure(
         ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes
+        ImmutableAttributes requestedAttributes
     ) {
-        List<AssessedCandidate> assessedCandidates = Collections.emptyList();
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableAttributes.EMPTY, ImmutableSet.of(), assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableAttributes.EMPTY, ImmutableSet.of(), Collections.emptyList());
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException noCompatibleVariantsFailure(
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes,
-        AttributeContainerInternal completelyIncompatibleAttributes,
+        ImmutableAttributes requestedAttributes,
+        ImmutableAttributes completelyIncompatibleAttributes,
         Set<CapabilitySelector> requestedCapabilities,
         GraphSelectionCandidates candidates
     ) {
@@ -177,7 +175,7 @@ public class ResolutionFailureHandler {
     public AbstractResolutionFailureException noVariantsWithMatchingCapabilitiesFailure(
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
-        AttributeContainerInternal requestedAttributes,
+        ImmutableAttributes requestedAttributes,
         Set<CapabilitySelector> requestedCapabilities,
         List<? extends VariantGraphResolveState> candidates
     ) {
