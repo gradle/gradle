@@ -21,7 +21,7 @@ class CompileAll(
         applyDefaults(
             model,
             this,
-            "compileAllBuild -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true",
+            "intentionalFailure -PignoreIncomingBuildReceipt=true -DdisableLocalCache=true",
             extraParameters =
                 listOf(
                     stage.getBuildScanCustomValueParam(),
