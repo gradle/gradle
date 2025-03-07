@@ -34,7 +34,7 @@ Publication of Gradle Module Metadata will enable better dependency management f
 
 - early discovery of problems by detecting <<component_capabilities.adoc#sec:declaring-component-capabilities,incompatible modules>>
 - consistent selection of <<variant_attributes.adoc#sec:jvm-default-attributes,platform-specific dependencies>>
-- native <<dependency_version_alignment.adoc#version_alignment, dependency version alignment>>
+- native <<how_to_align_dependency_versions.adoc#sec:native_alignment, dependency version alignment>>
 - automatically getting dependencies for specific <<how_to_create_feature_variants_of_a_library#feature_variants,features of your library>>
 
 Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#publishing_maven,Maven Publish plugin>> or the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish plugin>>.

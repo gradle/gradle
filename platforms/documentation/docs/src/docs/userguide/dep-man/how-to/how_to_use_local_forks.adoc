@@ -15,7 +15,7 @@
 [[how_to_use_local_forks]]
 = How to Use a Local Fork of a Module Dependency with Gradle
 
-This guide explains how to replace a module dependency with a **local fork** of the module’s sources, assuming the module itself is built with Gradle.
+This guide explains how to replace a module dependency with a *local fork* of the module’s sources, assuming the module itself is built with Gradle.
 
 Using a **local fork** allows you to:
 
@@ -31,44 +31,108 @@ Using a **local fork** allows you to:
 
 Gradle composite builds automatically substitute external dependencies with local forks.
 
-=== Step 1: Include Your Local Fork
+== Step 1: Create a Composite Build
 
-Let's imagine our app depends on `com.squareup.okhttp:okhttp:2.7.5` and we want to use a local fork of it.
+Assume your initial project structure looks like this:
 
-In your project's `settings.gradle.kts` file, add an `includeBuild` statement:
-
-[source,kotlin]
+[source,text]
 ----
-includeBuild("../local-fork") // Adjust path to your local fork
+project
+├── settings.gradle(.kts)               // <1>
+└── my-app
+    ├── build.gradle(.kts)              // <2>
+    └── src                             // <3>
 ----
+<1> Existing settings file
+<2> Existing build file
+<3> Existing app project that uses the external dependency
 
-This tells Gradle to substitute the external dependency coordinates automatically with your local build.
+In this example, our app depends on `com.squareup.okhttp:okhttp:2.7.5`, and we want to use a local fork of it:
 
-=== Step 2: Declare the Dependency Normally
+====
+include::sample[dir="snippets/how-to/local-fork/kotlin",files="my-app/build.gradle.kts[tags=dependency]"]
+include::sample[dir="snippets/how-to/local-fork/groovy",files="my-app/build.gradle[tags=dependency]"]
+====
 
-In your project's `build.gradle.kts`, declare the dependency using the same external coordinates as the original library:
+First, create a new folder for your local fork of the dependency:
 
-[source,kotlin]
+[source,text]
 ----
-dependencies {
-    implementation("com.squareup.okhttp:okhttp:2.7.5")
-}
+project
+├── settings.gradle(.kts)
+├── my-app
+│   ├── build.gradle(.kts)
+│   └── src
+└── my-fork     // <1>
 ----
+<1> New directory for the composite build containing the local fork
 
-You don't need special substitution statements in the `build.gradle.kts` file; Gradle handles substitution automatically.
+In your root project's `settings.gradle(.kts)` file, add an `includeBuild` statement pointing to `my-fork`:
 
-== Running the Build
+====
+include::sample[dir="snippets/how-to/local-fork/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/how-to/local-fork/groovy",files="settings.gradle[]"]
+====
 
-With the setup complete, Gradle automatically uses your local fork instead of downloading from remote repositories.
+This instructs Gradle to automatically substitute the external dependency coordinates with your local build.
 
-To build and run your project:
+== Step 2: Include The Local Fork
 
-[source,shell]
+Composite builds allow us to use a local version of `okhttp` with minimal configuration changes.
+
+Assuming the local fork is already a Gradle build, copy or move it into the `my-fork` directory.
+The forked module will have its own settings and build files.
+
+The updated project structure will look like this:
+
+[source,text]
 ----
-./gradlew build
+project
+├── settings.gradle(.kts)
+├── my-app
+│   ├── build.gradle(.kts)
+│   └── src
+└── my-fork                             // <1>
+    ├── settings.gradle(.kts)           // <2>
+    └── okhttp
+        ├── build.gradle(.kts)          // <3>
+        └── src                         // <4>
 ----
+<1> New included build for fork of `okhttp`
+<2> Settings file for the forked module
+<3> Build file for the forked module
+<4> Source code of the forked module
 
-== Troubleshooting
+The source code of `com.squareup.okhttp:okhttp:2.7.5` is in the `okhttp/src` folder.
+
+The settings file should look like this:
+
+====
+include::sample[dir="snippets/how-to/local-fork/kotlin",files="my-fork/settings.gradle.kts[]"]
+include::sample[dir="snippets/how-to/local-fork/groovy",files="my-fork/settings.gradle[]"]
+====
+
+The build file must have the same GAV coordinates as required by `my-app`:
+
+====
+include::sample[dir="snippets/how-to/local-fork/kotlin",files="my-fork/okhttp/build.gradle.kts[]"]
+include::sample[dir="snippets/how-to/local-fork/groovy",files="my-fork/okhttp/build.gradle[]"]
+====
+
+== Step 3: Declare the Dependency Normally
+
+In your project's `build.gradle(.kts)`, continue declaring the dependency using the same external coordinates as originally:
+
+====
+include::sample[dir="snippets/how-to/local-fork/kotlin",files="my-app/build.gradle.kts[tags=dependency-tip]"]
+include::sample[dir="snippets/how-to/local-fork/groovy",files="my-app/build.gradle[tags=dependency-tip]"]
+====
+
+You don't need explicit substitution statements in the `build.gradle(.kts)` file; Gradle handles substitution automatically.
+
+With this setup, Gradle will automatically use your local fork instead of downloading the dependency from remote repositories.
+
+== Step 4: Troubleshooting
 
 If Gradle is still attempting to resolve your dependency externally, verify that:
 
@@ -77,95 +141,4 @@ If Gradle is still attempting to resolve your dependency externally, verify that
 
 == Summary
 
-Gradle composite builds provide a straightforward and efficient method to substitute external module dependencies with local forks. This workflow simplifies testing and iterating on library changes without the overhead of publishing artifacts to external repositories.
-
-For further details, refer to Gradle's documentation on <<composite_builds.adoc#defining_composite_builds, composite builds>>.
-
-
-
-
-
-
-
-
-
-== Use Composite Builds
-
-Gradle’s **composite builds** provide a seamless way to substitute a module dependency with a local fork.
-
-=== Step 1: Remove the dependency from your project
-
-[source,kotlin]
-----
-// https://mvnrepository.com/artifact/com.squareup.okhttp/okhttp
-implementation("com.squareup.okhttp:okhttp:2.7.5")
-----
-
-=== Step 1: Include the Local Fork in `settings.gradle`
-
-Modify your project's `settings.gradle` file to include the local module as an **included build**:
-
-[source,groovy]
-----
-includeBuild('../local-fork') // Adjust path to your local fork
-----
-
-Alternatively, for Kotlin DSL:
-
-[source,kotlin]
-----
-includeBuild("../local-fork") // Adjust path to your local fork
-----
-
-=== Step 2: Replace the Published Dependency
-
-In your `build.gradle` file, declare the dependency substitution:
-
-[source,groovy]
-----
-dependencies {
-    implementation("org.example:library:1.0")
-}
-
-dependencyResolutionManagement {
-    versionCatalogs {
-        libs {
-            substitute module("org.example:library") using project(":library")
-        }
-    }
-}
-----
-
-For Kotlin DSL:
-
-[source,kotlin]
-----
-dependencies {
-    implementation("org.example:library:1.0")
-}
-
-dependencyResolutionManagement {
-    versionCatalogs {
-        create("libs") {
-            substitute(module("org.example:library")).using(project(":library"))
-        }
-    }
-}
-----
-
-== Running the Build
-
-Once the local fork is included as an **included build**, Gradle will automatically use the local source instead of fetching the dependency from a repository.
-
-To verify, run:
-
-[source,shell]
-----
-./gradlew build
-----
-
-== Summary
-
-By using **composite builds**, you can seamlessly replace a module dependency with a local fork, enabling fast iteration on library changes without modifying external repositories.
-
-For more details, see the section on <<composite_builds.adoc#defining_composite_builds,composite builds>>.
+Gradle <<composite_builds.adoc#composite_builds,composite builds>> provide a straightforward and efficient method to substitute external module dependencies with local forks.

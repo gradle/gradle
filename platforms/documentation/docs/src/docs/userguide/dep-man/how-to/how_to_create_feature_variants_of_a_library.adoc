@@ -18,8 +18,48 @@
 [[feature_variants]]
 = How to Create Feature Variants for a Library in Gradle
 
-Gradle supports the concept of *feature variants*, allowing a single library to be split into multiple related but distinct modules.
+Gradle supports the concept of *feature <<variant_attributes.adoc#variant-attributes,variants>>*, allowing a single library to be split into multiple related but distinct modules.
 Each *feature variant* can declare its own set of dependencies and can be consumed individually alongside the main library.
+
+For example:
+
+[source,kotlin]
+.producer/build.gradle.kts
+----
+plugins {
+    id("java-library")
+}
+
+java {
+    registerFeature("jsonSupport") {
+        usingSourceSet(sourceSets.create("jsonSupport"))
+    }
+}
+
+dependencies {
+    "jsonSupportApi"("com.fasterxml.jackson.core:jackson-databind:2.16.0")
+}
+----
+
+[source,kotlin]
+.consumer/build.gradle.kts
+----
+plugins {
+    id("application")
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.example:library:1.0") {
+        capabilities {
+            requireCapability("org.example:library-json-support")
+        }
+    }
+}
+----
 
 == Why Use Feature Variants?
 

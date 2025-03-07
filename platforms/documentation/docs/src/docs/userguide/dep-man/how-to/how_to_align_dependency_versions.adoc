@@ -47,6 +47,7 @@ This mismatch can lead to **incompatibility issues** and unexpected failures.
 
 Gradle provides **dependency version alignment** through <<platforms.adoc#platforms,**platforms**>>, ensuring related modules use **consistent versions**.
 
+[[sec:align_bom_platform]]
 == Option 1: Using a Published Platform
 
 If a public platform (also known as a BOM) is available, import it as a platform:
@@ -62,8 +63,10 @@ Running `./gradlew dependencies --configuration runtimeClasspath` showcases the 
 include::sample[dir="snippets/how-to/aligning-versions/tests",files="dependencies-bom.out"]
 ====
 
+[[sec:align-versions-unpublished]]
 === Option 2: Creating a Virtual Platform
 
+[[sec:virtual_platform]]
 If no public BOM exists, you can create a **virtual platform**.
 
 In this case, Gradle builds the platform **dynamically** based on the modules being used.
@@ -82,6 +85,7 @@ Running `./gradlew dependencies --configuration runtimeClasspath` showcases the 
 include::sample[dir="snippets/how-to/aligning-versions/tests",files="dependencies-platform.out"]
 ====
 
+[[sec:native_alignment]]
 === Option 3: Using the Java Plugin
 
 Gradle **natively supports version alignment** using the <<java_platform_plugin.adoc#java_platform_plugin, Java Platform Plugin>>.

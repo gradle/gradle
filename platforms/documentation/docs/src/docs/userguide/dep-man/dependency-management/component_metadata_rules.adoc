@@ -343,7 +343,7 @@ While all the examples above made modifications to variants of a component, ther
 This information can influence the <<graph_resolution.adoc#sec:conflict-resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
-It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
+It is explained in detail in the section on <<how_to_align_dependency_versions.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
 
 [[sec:custom-status-scheme]]
 == Modifying metadata on the component level for version selection based on status

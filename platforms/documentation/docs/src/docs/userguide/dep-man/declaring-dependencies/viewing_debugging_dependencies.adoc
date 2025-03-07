@@ -237,6 +237,6 @@ For example:
 * Project configurations are resolved in the settings file.
 
 In most cases, this issue can be resolved by creating a cross-project dependency on the other project.
-See the documentation for <<cross_project_publications.adoc#cross_project_publications, sharing outputs between projects>> for more information.
+See the how-to guide for <<how_to_share_outputs_between_projects.adoc#variant-aware-sharing, sharing outputs between projects>> for more information.
 
 If you find a use case that can't be resolved using these techniques, please let us know by filing a https://github.com/gradle/gradle/issues[GitHub Issue] adhering to our issue guidelines.

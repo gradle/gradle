@@ -132,8 +132,28 @@ Attributes
     - org.gradle.usage           = java-runtime
 ----
 
+== Step 3: Setting up Defaults
+
+To ensure that Gradle doesn't fail when resolving dependencies without an instrumented variant, we need to define a fallback.
+Without this fallback, Gradle would complain about missing variants for dependencies that do not provide instrumented classes.
+The fallback explicitly tells Gradle that it's acceptable to use the regular JAR when an instrumented variant isn't available.
+
+This is done using a <<variant_attributes.adoc#sec:abm-compatibility-rules,_compatibility rule_>>:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule]"]
+====
+
+Which we declare on the attributes schema:
+
+====
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/kotlin",files="consumer/build.gradle.kts[tags=compatibility-rule-use]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures-crossProjectPublications-advanced/groovy",files="consumer/build.gradle[tags=compatibility-rule-use]"]
+====
+
 [[sec:troubleshooting]]
-== Step 3: Troubleshooting
+== Step 4: Troubleshooting
 
 If the consumer fails to resolve the artifact, check:
 
