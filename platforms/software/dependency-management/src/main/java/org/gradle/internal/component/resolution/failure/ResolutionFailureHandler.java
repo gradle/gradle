@@ -156,7 +156,7 @@ public class ResolutionFailureHandler {
         AttributeContainerInternal requestedAttributes
     ) {
         List<AssessedCandidate> assessedCandidates = Collections.emptyList();
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.of(), assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableAttributes.EMPTY, ImmutableSet.of(), assessedCandidates);
         return describeFailure(failure);
     }
 
@@ -164,19 +164,20 @@ public class ResolutionFailureHandler {
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
         AttributeContainerInternal requestedAttributes,
+        AttributeContainerInternal completelyIncompatibleAttributes,
         Set<CapabilitySelector> requestedCapabilities,
         GraphSelectionCandidates candidates
     ) {
         ResolutionCandidateAssessor resolutionCandidateAssessor = new ResolutionCandidateAssessor(requestedAttributes, matcher);
         List<AssessedCandidate> assessedCandidates = resolutionCandidateAssessor.assessGraphSelectionCandidates(candidates);
-        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
+        NoCompatibleVariantsFailure failure = new NoCompatibleVariantsFailure(targetComponent.getId(), requestedAttributes, completelyIncompatibleAttributes, ImmutableSet.copyOf(requestedCapabilities), assessedCandidates);
         return describeFailure(failure);
     }
 
     public AbstractResolutionFailureException noVariantsWithMatchingCapabilitiesFailure(
         AttributeMatcher matcher,
         ComponentGraphResolveState targetComponent,
-        ImmutableAttributes requestedAttributes,
+        AttributeContainerInternal requestedAttributes,
         Set<CapabilitySelector> requestedCapabilities,
         List<? extends VariantGraphResolveState> candidates
     ) {

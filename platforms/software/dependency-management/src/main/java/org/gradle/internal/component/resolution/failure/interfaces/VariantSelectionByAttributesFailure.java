@@ -37,6 +37,14 @@ public interface VariantSelectionByAttributesFailure extends VariantSelectionFai
     ImmutableAttributes getRequestedAttributes();
 
     /**
+     * Provides any attributes that were incompatible <strong>with every variant</strong> in the target
+     * component when attempting to select a variant.
+     *
+     * @return any such incompatible requested attributes
+     */
+    ImmutableAttributes getCompletelyIncompatibleAttributes();
+
+    /**
      * Gets the capabilities requested on the dependency that selected the {@link #getTargetComponent()}
      * represented by this edge in the graph.
      *

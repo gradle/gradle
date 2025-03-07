@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.ResolutionCandidateAssessor;
 import org.gradle.internal.component.resolution.failure.interfaces.VariantSelectionByAttributesFailure;
@@ -35,7 +36,7 @@ public final class AmbiguousVariantsFailure extends AbstractVariantSelectionByAt
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
     public AmbiguousVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(ResolutionFailureProblemId.AMBIGUOUS_VARIANTS, targetComponent, requestedAttributes, capabilitySelectors);
+        super(ResolutionFailureProblemId.AMBIGUOUS_VARIANTS, targetComponent, requestedAttributes, ImmutableAttributes.EMPTY, capabilitySelectors);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 

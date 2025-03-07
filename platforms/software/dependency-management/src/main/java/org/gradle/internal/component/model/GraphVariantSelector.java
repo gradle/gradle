@@ -20,10 +20,13 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorInternal;
 import org.gradle.api.internal.artifacts.transform.ArtifactVariantSelector;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.matching.AttributeMatcher;
@@ -39,6 +42,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -53,13 +57,16 @@ import java.util.Set;
 public class GraphVariantSelector {
 
     private final AttributeSchemaServices attributeSchemaServices;
+    private final AttributesFactory attributesFactory;
     private final ResolutionFailureHandler failureHandler;
 
     public GraphVariantSelector(
         AttributeSchemaServices attributeSchemaServices,
+        AttributesFactory attributesFactory,
         ResolutionFailureHandler failureHandler
     ) {
         this.attributeSchemaServices = attributeSchemaServices;
+        this.attributesFactory = attributesFactory;
         this.failureHandler = failureHandler;
     }
 
@@ -91,7 +98,8 @@ public class GraphVariantSelector {
             ComponentGraphResolveMetadata targetComponent = targetComponentState.getMetadata();
             AttributeMatcher attributeMatcher = attributeSchemaServices.getMatcher(consumerSchema, targetComponent.getAttributesSchema());
             GraphSelectionCandidates candidates = targetComponentState.getCandidatesForGraphVariantSelection();
-            throw failureHandler.noCompatibleVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, capabilitySelectors, candidates);
+            ImmutableAttributes completelyIncompatibleAttributes = determineCompletelyIncompatibleAttributes(attributeMatcher, consumerAttributes, Collections.emptyList());
+            throw failureHandler.noCompatibleVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, completelyIncompatibleAttributes, capabilitySelectors, candidates);
         }
 
         return result;
@@ -153,6 +161,42 @@ public class GraphVariantSelector {
         }
 
         throw failureHandler.ambiguousVariantsFailure(attributeMatcher, targetComponentState, consumerAttributes, capabilitySelectors, matches);
+    }
+
+    /**
+     * Determines the attributes that are incompatible with the requested attributes on <strong>every</strong> considered variant.
+     *
+     * @param attributeMatcher The attribute matcher to use
+     * @param requestedAttributes The requested attributes
+     * @param variants The variants to consider
+     * @return The attributes from the request that are incompatible with the requested attributes on every considered variant
+     */
+    @SuppressWarnings("unchecked")
+    private ImmutableAttributes determineCompletelyIncompatibleAttributes(AttributeMatcher attributeMatcher, ImmutableAttributes requestedAttributes, List<VariantGraphResolveState> variants) {
+        AttributeContainerInternal result = attributesFactory.mutable();
+        requestedAttributes.keySet().forEach(attribute -> {
+            Object requestedValue = Objects.requireNonNull(requestedAttributes.getAttribute(attribute));
+            boolean allVariantsIncompatible = isAllVariantsIncompatible(attributeMatcher, variants, (Attribute<? super Object>) attribute, requestedValue);
+            if (allVariantsIncompatible) {
+                result.attribute((Attribute<? super Object>) attribute, requestedValue);
+            }
+        });
+        return result.asImmutable();
+    }
+
+    /**
+     * Determines if all variants are incompatible with the requested value for the given attribute.
+     *
+     * @param attributeMatcher The attribute matcher to use
+     * @param variants The variants to consider
+     * @param attribute The attribute to check
+     * @param requestedValue The requested value of the attribute to check
+     * @return True if all variants are incompatible with the requested value for the given attribute
+     */
+    private <T> boolean isAllVariantsIncompatible(AttributeMatcher attributeMatcher, List<VariantGraphResolveState> variants, Attribute<T> attribute, T requestedValue) {
+        return variants.stream()
+            .map(variant -> variant.getAttributes().getAttribute(attribute))
+            .allMatch(variantValue -> variantValue != null && !attributeMatcher.isMatchingValue(attribute, requestedValue, variantValue));
     }
 
     /**

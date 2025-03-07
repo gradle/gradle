@@ -58,10 +58,7 @@ public abstract class NewerGradleNeededByPluginFailureDescriber extends Abstract
 
     private boolean allCandidatesIncompatibleDueToGradleVersionTooLow(NoCompatibleVariantsFailure failure) {
         boolean requestingPluginApi = failure.getRequestedAttributes().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
-        boolean allIncompatibleDueToGradleVersion = failure.getCandidates().stream()
-            .allMatch(candidate -> candidate.getIncompatibleAttributes().stream()
-                .anyMatch(this::isGradlePluginApiAttribute));
-        return requestingPluginApi && allIncompatibleDueToGradleVersion;
+        return requestingPluginApi && failure.getCompletelyIncompatibleAttributes().keySet().contains(GradlePluginApiVersion.GRADLE_PLUGIN_API_VERSION_ATTRIBUTE);
     }
 
     private GradleVersion findMinGradleVersionSupportedByPlugin(List<AssessedCandidate> candidates) {

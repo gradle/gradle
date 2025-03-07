@@ -33,12 +33,14 @@ import java.util.Set;
 public abstract class AbstractVariantSelectionByAttributesFailure extends AbstractResolutionFailure implements VariantSelectionByAttributesFailure {
     private final ComponentIdentifier targetComponent;
     private final ImmutableAttributes requestedAttributes;
+    private final ImmutableAttributes completelyIncompatibleAttributes;
     private final ImmutableSet<CapabilitySelector> capabilitySelectors;
 
-    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
+    public AbstractVariantSelectionByAttributesFailure(ResolutionFailureProblemId problemId, ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, AttributeContainerInternal completelyIncompatibleAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors) {
         super(problemId);
         this.targetComponent = targetComponent;
         this.requestedAttributes = requestedAttributes.asImmutable();
+        this.completelyIncompatibleAttributes = completelyIncompatibleAttributes.asImmutable();
         this.capabilitySelectors = capabilitySelectors;
     }
 
@@ -55,6 +57,11 @@ public abstract class AbstractVariantSelectionByAttributesFailure extends Abstra
     @Override
     public ImmutableAttributes getRequestedAttributes() {
         return requestedAttributes;
+    }
+
+    @Override
+    public ImmutableAttributes getCompletelyIncompatibleAttributes() {
+        return completelyIncompatibleAttributes;
     }
 
     @Override
