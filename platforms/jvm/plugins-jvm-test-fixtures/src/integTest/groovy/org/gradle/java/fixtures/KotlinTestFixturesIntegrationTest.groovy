@@ -17,11 +17,7 @@
 package org.gradle.java.fixtures
 
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
-import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
-
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_1_9_20
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.KOTLIN_2_1_20
 
 /**
  * Integration tests for the `java-test-fixtures` plugin that involve `kotlin` projects.
@@ -32,7 +28,6 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
      * configuration usage activation - this combination of plugins should not warn.
      */
     @Issue("https://github.com/gradle/gradle/pull/24271")
-    @Issue("https://youtrack.jetbrains.com/issue/KT-75262")
     def "test kotlin + java-test-fixtures"() {
         given:
         settingsFile << """
@@ -52,7 +47,7 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
         buildFile.text = """
             plugins {
                 id("org.gradle.java-test-fixtures")
-                id("org.jetbrains.kotlin.jvm").version("$kotlinVersion")
+                id("org.jetbrains.kotlin.jvm").version("${new KotlinGradlePluginVersions().latest}")
             }
 
             ${mavenCentralRepository()}
@@ -67,16 +62,10 @@ class KotlinTestFixturesIntegrationTest extends AbstractTestFixturesIntegrationT
         // which demonstrates that the test fixtures are exposed
         addPersonTestUsingTestFixtures()
 
-        expect:
-        if (VersionNumber.parse(kotlinVersion).baseVersion >= KOTLIN_2_1_20) {
-            fails ':build'
-            failureCauseContains "KotlinWithJavaCompilation with name 'main' not found."
-        } else {
-            succeeds ':build'
-            executedAndNotSkipped ':test', ':sub:compileTestFixturesJava'
-        }
+        when:
+        succeeds ':build'
 
-        where:
-        kotlinVersion << new KotlinGradlePluginVersions().latestsStableOrRCGreaterOrEqualTo(KOTLIN_1_9_20)
+        then:
+        executedAndNotSkipped ':test', ':sub:compileTestFixturesJava'
     }
 }
