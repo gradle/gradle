@@ -97,11 +97,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private final BuildProjectRegistry projectRegistry;
     private final ProjectModelResolver projectModelResolver;
-    private final Cache<String, State> stateCache = CacheBuilder.<String, State>newBuilder()
+    private final Cache<String, State> stateCache = CacheBuilder.newBuilder()
         .maximumSize(1)
         .expireAfterAccess(10, TimeUnit.SECONDS)
         .build();
-    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = CacheBuilder.<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>>newBuilder()
+    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = CacheBuilder.newBuilder()
         .maximumSize(3000)
         .expireAfterAccess(10, TimeUnit.SECONDS)
         .build();
