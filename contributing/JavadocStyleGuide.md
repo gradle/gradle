@@ -256,6 +256,7 @@ IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
  * A
  *
  * B
+ */
  ```
 
 ```java
@@ -263,6 +264,7 @@ IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
  * A
  * <p>
  * B
+ */
  ```
 
 Render as:
@@ -284,4 +286,5 @@ Android studio will not display javadoc following a `<p>` so make sure your summ
  * A // Displayed
  * <p>
  * B // Not displayed
+ */
  ```
