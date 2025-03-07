@@ -233,13 +233,13 @@ At the minimum, Javadoc is present for every public type (including public inner
 
 ```java
 /**
- * Method that needs Javadoc
+ * Public Method that requires Javadoc
  */
 public Image getImage(URL url, String name) {
     // Method implementation
 }
 
-// Method that doesn't need Javadoc
+// Private Method that doesn't require Javadoc
 private Image getImage(URL url) {
     // Method implementation
 }
