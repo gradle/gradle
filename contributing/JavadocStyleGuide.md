@@ -232,7 +232,17 @@ Your project must have a test class that extends [`AbstractAutoTestedSamplesTest
 At the minimum, Javadoc is present for every public type (including public inner types), and every public or protected member of such a type, with a few exceptions such as overrides and self-explanatory members:
 
 ```java
-public Image getImage(URL url, String name) {}
+/**
+ * Method that needs Javadoc
+ */
+public Image getImage(URL url, String name) {
+    // Method implementation
+}
+
+// Method that doesn't need Javadoc
+private Image getImage(URL url) {
+    // Method implementation
+}
 ```
 
 ## 1.5 A note on IDEs
