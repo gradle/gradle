@@ -68,7 +68,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
      */
     CalculatedValueContainer(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
         this.displayName = displayName;
-        this.calculationState = new CalculationState<>(displayName, supplier, projectLeaseRegistry, defaultContext);
+        this.calculationState = new CalculationState<>(supplier, projectLeaseRegistry, defaultContext);
     }
 
     /**
@@ -197,14 +197,12 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
 
     private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
         final ReentrantLock lock = new ReentrantLock();
-        final DisplayName displayName;
         final S supplier;
         final ProjectLeaseRegistry projectLeaseRegistry;
         final NodeExecutionContext defaultContext;
         boolean done;
 
-        public CalculationState(DisplayName displayName, S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
-            this.displayName = displayName;
+        public CalculationState(S supplier, ProjectLeaseRegistry projectLeaseRegistry, NodeExecutionContext defaultContext) {
             this.supplier = supplier;
             this.projectLeaseRegistry = projectLeaseRegistry;
             this.defaultContext = defaultContext;
