@@ -88,6 +88,7 @@ class JUnitTestClassProcessorTest extends Specification {
         then:
         1 * processor.started({it.id == 1}, {it.parentId == null})
         1 * processor.started({ it.id == 2 && it.name == "assumed" && it.className == ATestClassWithFailedTestAssumption.name }, { it.parentId == 1 })
+        1 * processor.failure(2, ATestClassWithFailedTestAssumption.failure)
         1 * processor.completed(2, { it.resultType == SKIPPED })
         1 * processor.completed(1, { it.resultType == null })
         0 * processor._
