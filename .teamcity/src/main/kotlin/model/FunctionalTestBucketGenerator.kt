@@ -68,7 +68,13 @@ data class FunctionalTestBucket(
 
     fun toBuildTypeBucket(gradleSubprojectProvider: GradleSubprojectProvider): SmallSubprojectBucket =
         SmallSubprojectBucket(
-            subprojects.map { gradleSubprojectProvider.getSubprojectByName(it)!! },
+            subprojects.mapNotNull {
+                val subproject = gradleSubprojectProvider.getSubprojectByName(it)
+                if (subproject == null) {
+                    println("Subproject $it not found in the model, skipping")
+                }
+                subproject
+            },
             parallelizationMethod,
         )
 }
@@ -199,7 +205,7 @@ class FunctionalTestBucketGenerator(
             val testCoverages = model.stages.flatMap { it.functionalTests }
             val foundTestCoverage =
                 testCoverages.firstOrNull {
-                    it.testType == TestType.PLATFORM &&
+                    it.testType == TestType.QUICK &&
                         it.os == testCoverage.os &&
                         it.arch == testCoverage.arch &&
                         it.buildJvm == testCoverage.buildJvm

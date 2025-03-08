@@ -504,11 +504,6 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
     val ciGroup = "CI Lifecycle"
 
     register("quickTest") {
-        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
-        group = ciGroup
-    }
-
-    register("platformTest") {
         description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
         group = ciGroup
     }
@@ -530,6 +525,11 @@ fun TaskContainer.registerCITestDistributionLifecycleTasks() {
 
     register("parallelTest") {
         description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
+        group = ciGroup
+    }
+
+    register("embeddedTest") {
+        description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
         group = ciGroup
     }
 

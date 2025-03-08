@@ -1,6 +1,7 @@
 package configurations
 
 import common.Os
+import common.requiresNotEc2Agent
 import jetbrains.buildServer.configs.kotlin.BuildType
 import model.Stage
 
@@ -11,6 +12,9 @@ open class BaseGradleBuildType(
 ) : BuildType() {
     init {
         this.init()
+        requirements {
+            requiresNotEc2Agent() // FIXME: This is to avoid running on EC2 agents for comparison purposes
+        }
     }
 }
 
