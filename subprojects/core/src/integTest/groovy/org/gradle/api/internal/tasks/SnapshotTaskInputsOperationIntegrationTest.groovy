@@ -38,7 +38,7 @@ import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 import static com.google.common.base.CaseFormat.UPPER_CAMEL
 import static com.google.common.base.CaseFormat.UPPER_UNDERSCORE
-import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.*
+import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
 class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec implements ValidationMessageChecker {
 
@@ -69,7 +69,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
         settingsFile << """
-            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: {}, shouldSaveToConfigurationCache: { false }] as $GradleEnterprisePluginAdapter.name)
+            services.get($GradleEnterprisePluginManager.name).registerAdapter([buildFinished: { a, b -> }, shouldSaveToConfigurationCache: { false }] as $GradleEnterprisePluginAdapter.name)
         """
 
         buildFile << customTaskCode('foo', 'bar')

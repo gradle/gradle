@@ -16,6 +16,9 @@
 
 package org.gradle.internal.problems.failure;
 
+import org.gradle.api.problems.internal.InternalProblem;
+
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -37,6 +40,12 @@ public interface Failure {
      * @see Throwable#toString()
      */
     String getHeader();
+
+    /**
+     * The message of the original exception.
+     */
+    @Nullable
+    String getMessage();
 
     /**
      * Stack frames from the original exception.
@@ -61,8 +70,17 @@ public interface Failure {
     List<Failure> getCauses();
 
     /**
+     * The problems associated to the failure.
+     */
+    List<InternalProblem> getProblems();
+
+    /**
      * Returns the index of the first matching frame in the stack trace, or {@code -1} if not found.
      */
     int indexOfStackFrame(int start, StackFramePredicate predicate);
 
+    /**
+     * The original exception.
+     */
+    Throwable getOriginal();
 }
