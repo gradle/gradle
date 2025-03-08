@@ -323,7 +323,7 @@ tasks.named("updateDaemonJvm") {
         then:
         // TODO The description is different with CC on
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific} for any of the requested platforms")
+        failureHasCause("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
     }
 
     def "configuring the languageVersion will use that value for the generate properties file"() {
