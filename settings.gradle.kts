@@ -43,21 +43,6 @@ val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
-unassigned {
-    subproject("distributions-dependencies") // platform for dependency versions
-    subproject("core-platform")              // platform for Gradle distribution core
-}
-
-// Gradle Distributions - for testing and for publishing a full distribution
-unassigned {
-    subproject("distributions-full")
-}
-
-// Public API publishing
-unassigned {
-    subproject("public-api")
-}
-
 // Gradle implementation projects
 unassigned {
     subproject("core")
@@ -300,6 +285,14 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
+packaging {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+    subproject("distributions-full")
+    subproject("public-api")                 // Public API publishing
+    subproject("internal-build-reports")     // Internal utility and verification projects
+}
+
 testing {
     subproject("architecture-test")
     subproject("distributions-integ-tests")
@@ -314,11 +307,6 @@ testing {
     subproject("soak")
     subproject("smoke-ide-test") // eventually should be owned by IDEX team
     subproject("smoke-test")
-}
-
-// Internal utility and verification projects
-unassigned {
-    subproject("internal-build-reports")
 }
 
 rootProject.name = "gradle"
@@ -467,6 +455,12 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
     platform.platformConfiguration()
     return platform
 }
+
+/**
+ * Defines the packaging module, for project helping package Gradle.
+ */
+fun packaging(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("packaging").moduleConfiguration()
 
 /**
  * Defines the testing module, for project helping test Gradle.
