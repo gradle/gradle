@@ -90,6 +90,7 @@ public enum CacheLayout {
     );
 
     private final String name;
+    @SuppressWarnings("ImmutableEnumChecker")
     private final CacheVersionMapping versionMapping;
 
     CacheLayout(@Nullable CacheLayout parent, String name, CacheVersionMapping.Builder versionMappingBuilder) {

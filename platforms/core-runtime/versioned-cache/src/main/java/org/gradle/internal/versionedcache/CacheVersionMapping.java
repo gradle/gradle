@@ -20,6 +20,7 @@ import com.google.common.base.Preconditions;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.concurrent.Immutable;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;

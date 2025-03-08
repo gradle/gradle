@@ -72,7 +72,9 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         /**
          * Whenever the closure's delegate is set, we want to make sure that the call interception hooks are added to the new delegate's metaclass.
          */
-        SET_DELEGATE("setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true, (classData, mv) -> {
+        SET_DELEGATE("setDelegate", getMethodDescriptor(Type.VOID_TYPE, getType(Object.class)), true) {
+            @Override
+            MethodVisitor methodVisitorFactory(ClassData classData, MethodData mv) {
             @NonNullApi
             class MethodVisitorScopeImpl extends MethodVisitorScope {
                 public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
@@ -102,11 +104,13 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 }
             }
             return new MethodVisitorScopeImpl(classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
-        }),
+        }},
         /**
          * Renames the Closure's original `doCall` method and adds a wrapper method that invokes the original one.
          */
-        RENAME_ORIGINAL_DO_CALL("doCall", null, false, (clazz, methodData) -> {
+        RENAME_ORIGINAL_DO_CALL("doCall", null, false) {
+            @Override
+            MethodVisitor methodVisitorFactory(ClassData clazz, MethodData methodData) {
             // A Closure implementation may have an abstract doCall method. It makes no sense to rewrite that.
             boolean isValidDoCallMethod = !methodData.isAbstract() && methodData.name.equals("doCall");
             String methodNameToVisit = isValidDoCallMethod ? "doCall$original" : methodData.name;
@@ -176,9 +180,12 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 bridge.visitEnd();
             }
             return original;
-        }),
+        }},
 
-        ADD_MAKE_EFFECTIVELY_INSTRUMENTED_METHOD("makeEffectivelyInstrumented", "()V", true, (classData, methodData) -> {
+        ADD_MAKE_EFFECTIVELY_INSTRUMENTED_METHOD("makeEffectivelyInstrumented", "()V", true) {
+            @Override
+            MethodVisitor methodVisitorFactory(ClassData classData, MethodData methodData) {
+
             @NonNullApi
             class MethodVisitorScopeImpl extends MethodVisitorScope {
                 public MethodVisitorScopeImpl(MethodVisitor methodVisitor) {
@@ -204,17 +211,22 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
                 }
             }
             return new MethodVisitorScopeImpl(classData.visitor.visitMethod(Opcodes.ACC_PUBLIC, methodData.name, "()V", null, null));
-        }),
+        }},
 
         /**
          * Does not perform any transformations.
          */
-        DEFAULT(null, null, false, (classData, mv) -> classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions));
+        DEFAULT(null, null, false) {
+            @Override
+            MethodVisitor methodVisitorFactory(ClassData classData, MethodData mv) {
+                return classData.visitor.visitMethod(mv.access, mv.name, mv.descriptor, mv.signature, mv.exceptions);
+            }
+        };
 
         public final @Nullable String methodName;
         public final @Nullable String descriptor;
         public final boolean generateIfNotPresent;
-        private final BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory;
+        abstract MethodVisitor methodVisitorFactory(ClassData classData, MethodData methodData);
 
         @NonNullApi
         static final class MethodData {
@@ -253,13 +265,11 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
         MethodInstrumentationStrategy(
             @Nullable String methodName,
             @Nullable String descriptor,
-            boolean generateIfNotPresent,
-            BiFunction<ClassData, MethodData, MethodVisitor> methodVisitorFactory
+            boolean generateIfNotPresent
         ) {
             this.methodName = methodName;
             this.descriptor = descriptor;
             this.generateIfNotPresent = generateIfNotPresent;
-            this.methodVisitorFactory = methodVisitorFactory;
         }
     }
 
@@ -296,7 +306,7 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
             Arrays.stream(MethodInstrumentationStrategy.values()).filter(it -> name.equals(it.methodName) && (it.descriptor == null || descriptor.equals(it.descriptor))).findAny();
         matchingStrategy.ifPresent(usedStrategies::add);
         MethodInstrumentationStrategy strategy = matchingStrategy.orElse(MethodInstrumentationStrategy.DEFAULT);
-        return strategy.methodVisitorFactory.apply(
+        return strategy.methodVisitorFactory(
             new MethodInstrumentationStrategy.ClassData(cv, className, interceptorFilter),
             new MethodInstrumentationStrategy.MethodData(access, name, descriptor, signature, exceptions)
         );

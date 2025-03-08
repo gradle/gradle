@@ -17,6 +17,8 @@
 package org.gradle.internal.build;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.PlannedNodeInternal;
 import org.gradle.execution.plan.ToPlannedNodeConverter;
@@ -108,11 +110,11 @@ public class PlannedNodeGraph {
         LEVEL2_TRANSFORM_STEPS(2, NodeType.TASK, NodeType.TRANSFORM_STEP);
 
         private final int level;
-        private final Set<NodeType> nodeTypes;
+        private final ImmutableSet<NodeType> nodeTypes;
 
         DetailLevel(int level, NodeType... nodeTypes) {
             this.level = level;
-            this.nodeTypes = EnumSet.copyOf(Arrays.asList(nodeTypes));
+            this.nodeTypes = Sets.immutableEnumSet(Arrays.asList(nodeTypes));
         }
 
         public int getLevel() {

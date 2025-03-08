@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.io.IOUtils;
 import org.apache.ivy.core.IvyPatternHelper;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -220,13 +221,13 @@ public class PomReader implements PomParent {
         ARTIFACT_ID("project.artifactId", "pom.artifactId", "artifactId"),
         VERSION("project.version", "pom.version", "version");
 
-        private final String[] names;
+        private final ImmutableList<String> names;
 
         GavProperty(String... names) {
-            this.names = names;
+            this.names = ImmutableList.copyOf(names);
         }
 
-        public String[] getNames() {
+        public ImmutableList<String> getNames() {
             return names;
         }
     }

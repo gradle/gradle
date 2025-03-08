@@ -147,6 +147,7 @@ public enum ArchitectureDescriptorBuilder {
     private static final String DEFINE_ARMPARTITIONAVAILABLE = "_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE";
     private static final String COMPILER_FILENAME = "cl.exe";
 
+    @SuppressWarnings("ImmutableEnumChecker")
     final Architecture architecture;
     final String binPath;
     final String libPath;
