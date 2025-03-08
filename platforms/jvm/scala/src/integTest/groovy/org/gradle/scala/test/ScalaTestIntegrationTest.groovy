@@ -17,6 +17,7 @@ package org.gradle.scala.test
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
@@ -32,7 +33,7 @@ apply plugin: 'scala'
 ${mavenCentralRepository()}
 
 dependencies {
-    implementation "org.scala-lang:scala-library:2.11.12"
+    implementation "org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}"
     testImplementation "org.scalatest:scalatest_2.11:2.1.5"
     testImplementation "junit:junit:4.13"
 }
