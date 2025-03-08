@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -68,7 +69,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     @InputFiles
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "SourceTask will be deprecated")
     @PathSensitive(PathSensitivity.ABSOLUTE)
     public FileTree getSource() {
         return sourceFiles.getAsFileTree().matching(patternSet);

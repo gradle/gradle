@@ -27,7 +27,7 @@ import java.lang.annotation.Target;
  *
  * This annotation is internal even though it's attached to a public API, so it should not be referenced in third-party code.
  */
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface ToBeReplacedByLazyProperty {
 

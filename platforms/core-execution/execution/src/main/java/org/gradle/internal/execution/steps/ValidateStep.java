@@ -39,6 +39,7 @@ import org.gradle.util.internal.TextUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -58,20 +59,36 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
 
     private final VirtualFileSystem virtualFileSystem;
     private final ValidationWarningRecorder warningReporter;
+    private final boolean disableValidation;
     private final Step<? super ValidationFinishedContext, ? extends R> delegate;
 
     public ValidateStep(
         VirtualFileSystem virtualFileSystem,
         ValidationWarningRecorder warningReporter,
+        boolean disableValidation,
         Step<? super ValidationFinishedContext, ? extends R> delegate
     ) {
         this.virtualFileSystem = virtualFileSystem;
         this.warningReporter = warningReporter;
+        this.disableValidation = disableValidation;
         this.delegate = delegate;
+
+        if (disableValidation) {
+            LOGGER.warn("Work validation is disabled.");
+        }
     }
 
     @Override
     public R execute(UnitOfWork work, C context) {
+        return delegate.execute(work, new ValidationFinishedContext(context, validateWork(work, context)));
+    }
+
+    @Nonnull
+    private List<InternalProblem> validateWork(UnitOfWork work, C context) {
+        if (disableValidation) {
+            return ImmutableList.of();
+        }
+
         WorkValidationContext validationContext = context.getValidationContext();
         work.validate(validationContext);
         context.getBeforeExecutionState()
@@ -103,8 +120,7 @@ public class ValidateStep<C extends BeforeExecutionContext, R extends Result> im
             LOGGER.info("Invalidating VFS because {} failed validation", work.getDisplayName());
             virtualFileSystem.invalidateAll();
         }
-
-        return delegate.execute(work, new ValidationFinishedContext(context, warnings));
+        return warnings;
     }
 
     private void validateImplementations(UnitOfWork work, BeforeExecutionState beforeExecutionState, WorkValidationContext validationContext) {

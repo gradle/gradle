@@ -41,6 +41,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm (kotlin=#version, workers=#parallelTasksInProject)'() {
+        // Ignore validation warnings by 1.6.x
+        assumeFalse(version.startsWith("1.6."))
+
         given:
         setupForKotlinVersion(version)
         useSample("kotlin-example")
@@ -131,6 +134,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin javascript (kotlin=#version, workers=#parallelTasksInProject)'() {
+        // Ignore validation warnings by 1.6.x
+        assumeFalse(version.startsWith("1.6."))
 
         setupForKotlinVersion(version)
 
@@ -155,6 +160,8 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
+        // Ignore validation warnings by 1.6.x
+        assumeFalse(kotlinVersion.startsWith("1.6."))
 
         setupForKotlinVersion(kotlinVersion)
 
@@ -203,7 +210,6 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     }
 
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
-
         setupForKotlinVersion(kotlinVersion)
 
         assumeFalse(kotlinVersion.startsWith("1.6."))

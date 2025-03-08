@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.annotations.AnnotationCategory;
 import org.gradle.work.Incremental;
 import org.gradle.work.NormalizeLineEndings;
@@ -54,7 +55,8 @@ public enum ModifierAnnotationCategory implements AnnotationCategory {
         NormalizeLineEndings.class
     ),
     REPLACES_EAGER_PROPERTY("replaces eager property",
-        ReplacesEagerProperty.class
+        ReplacesEagerProperty.class,
+        ToBeReplacedByLazyProperty.class
     );
 
     private final String displayName;
