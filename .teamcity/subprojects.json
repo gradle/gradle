@@ -273,6 +273,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "core-platform",
+    "path": "packaging/core-platform",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "core-serialization-codecs",
     "path": "platforms/core-configuration/core-serialization-codecs",
     "unitTests": false,
@@ -387,6 +394,20 @@
   {
     "name": "distributions-core",
     "path": "platforms/core-runtime/distributions-core",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "distributions-dependencies",
+    "path": "packaging/distributions-dependencies",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "distributions-full",
+    "path": "packaging/distributions-full",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -660,6 +681,13 @@
   {
     "name": "internal-architecture-testing",
     "path": "testing/internal-architecture-testing",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "internal-build-reports",
+    "path": "packaging/internal-build-reports",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1038,6 +1066,13 @@
   {
     "name": "process-services",
     "path": "platforms/core-runtime/process-services",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "public-api",
+    "path": "packaging/public-api",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
