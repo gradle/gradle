@@ -34,8 +34,8 @@ import java.util.List;
 public final class NoCompatibleVariantsFailure extends AbstractVariantSelectionByAttributesFailure {
     private final ImmutableList<ResolutionCandidateAssessor.AssessedCandidate> candidates;
 
-    public NoCompatibleVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
-        super(ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS, targetComponent, requestedAttributes, capabilitySelectors);
+    public NoCompatibleVariantsFailure(ComponentIdentifier targetComponent, AttributeContainerInternal requestedAttributes, AttributeContainerInternal completelyIncompatibleAttributes, ImmutableSet<CapabilitySelector> capabilitySelectors, List<ResolutionCandidateAssessor.AssessedCandidate> candidates) {
+        super(ResolutionFailureProblemId.NO_COMPATIBLE_VARIANTS, targetComponent, requestedAttributes, completelyIncompatibleAttributes, capabilitySelectors);
         this.candidates = ImmutableList.copyOf(candidates);
     }
 
