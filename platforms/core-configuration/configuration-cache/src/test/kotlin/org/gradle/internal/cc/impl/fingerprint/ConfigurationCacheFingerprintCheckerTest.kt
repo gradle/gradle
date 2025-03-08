@@ -357,6 +357,8 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun writeClass(type: Class<*>): Unit =
             undefined()
 
+        override val isIntegrityCheckEnabled: Boolean = false
+
         override val logger: Logger
             get() = undefined()
 
@@ -474,6 +476,8 @@ class ConfigurationCacheFingerprintCheckerTest {
 
         override fun readClass(): Class<*> =
             undefined()
+
+        override val isIntegrityCheckEnabled: Boolean = false
 
         override val logger: Logger
             get() = undefined()
