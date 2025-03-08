@@ -994,10 +994,10 @@ You can configure the inputs and outputs of a task in two main ways:
 ----
 abstract class ConfigurableTask : DefaultTask() {
 
-    @Input
+    @get:Input
     abstract val inputProperty: Property<String>
 
-    @OutputFile
+    @get:OutputFile
     abstract val outputFile: RegularFileProperty
 
     // Static Configuration: Inputs and Outputs defined in the task class
@@ -1074,7 +1074,7 @@ abstract class MyTask : DefaultTask() {
     var myEagerProperty: String = "default value"
 
     // Use Gradle managed properties instead
-    @Input
+    @get:Input
     abstract val myLazyProperty: Property<String>
 
     @TaskAction
