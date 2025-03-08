@@ -117,7 +117,7 @@ fun FileSystemOperations.removeDodgyCacheFiles(dir: Directory) {
             if (!cacheDir.name.matches(dirVersionPattern)) {
                 continue
             }
-            for (name in listOf("fileHashes", "outputFileStates", "fileSnapshots")) {
+            for (name in listOf("fileHashes", "fileHashes-1", "outputFileStates", "fileSnapshots")) {
                 val stateDir = File(cacheDir, name)
                 if (stateDir.isDirectory) {
                     logger.lifecycle("Removing old cache directory : $stateDir")

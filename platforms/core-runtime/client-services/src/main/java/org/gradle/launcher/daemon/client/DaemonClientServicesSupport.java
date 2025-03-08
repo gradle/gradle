@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCache;
@@ -106,7 +107,8 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
 
     @Provides
     JvmMetadataDetector createJvmMetadataDetector(ClientExecHandleBuilderFactory execHandleFactory, TemporaryFileProvider temporaryFileProvider, GlobalScopedCacheBuilderFactory globalScopedCacheBuilderFactory) {
-        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder("jvms"));
+        String cacheKey = JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17) ? "jvms-1" : "jvms";
+        return new PersistentJvmMetadataDetector(new DefaultJvmMetadataDetector(execHandleFactory, temporaryFileProvider), globalScopedCacheBuilderFactory.createCacheBuilder(cacheKey));
     }
 
     @Provides

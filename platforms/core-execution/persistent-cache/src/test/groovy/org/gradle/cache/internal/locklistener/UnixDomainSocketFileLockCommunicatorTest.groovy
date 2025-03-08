@@ -17,25 +17,18 @@
 
 package org.gradle.cache.internal.locklistener
 
-import org.gradle.internal.remote.internal.inet.InetAddressFactory
+
 import org.gradle.util.ConcurrentSpecification
+
+import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
 
-class FileLockCommunicatorTest extends ConcurrentSpecification {
+class UnixDomainSocketFileLockCommunicatorTest extends ConcurrentSpecification {
 
-    def addressFactory = new InetAddressFactory()
-    def communicator = new DefaultFileLockCommunicator(new InetAddressProvider() {
-        @Override
-        InetAddress getWildcardBindingAddress() {
-            return addressFactory.wildcardBindingAddress
-        }
-
-        @Override
-        InetAddress getCommunicationAddress() {
-            return addressFactory.localBindingAddress
-        }
-    })
+    String pid = UnixDomainSocketFileLockCommunicator.currentPid as String
+    def communicator = new UnixDomainSocketFileLockCommunicator()
 
     def cleanup() {
         communicator.stop()
@@ -58,8 +51,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         FileLockPacketPayload receivedPayload
 
         start {
-            def packet = communicator.receive().get()
-            receivedPayload = communicator.decode(packet)
+            def packet = communicator.receive()
+            receivedPayload = communicator.decode(packet.get())
         }
 
         poll {
@@ -67,7 +60,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        communicator.pingOwner(addressFactory.localBindingAddress, "", communicator.getPort(), 155, "lock")
+        Thread.sleep(1000)
+        communicator.pingOwner(null, pid, communicator.getPort(), 155, "lock")
 
         then:
         poll {
@@ -80,8 +74,8 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         FileLockPacketPayload receivedPayload
 
         start {
-            def packet = communicator.receive().get()
-            receivedPayload = communicator.decode(packet)
+            def packet = communicator.receive()
+            receivedPayload = communicator.decode(packet.get())
         }
 
         poll {
@@ -89,10 +83,12 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
         }
 
         when:
-        def socket = new DatagramSocket(0, addressFactory.getWildcardBindingAddress())
-        def bytes = [1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
-        def address = addressFactory.localBindingAddress
-        socket.send(new DatagramPacket(bytes, bytes.length, new InetSocketAddress(address, communicator.port)))
+        def socket = communicator.unixDomainSocketAddressOf(pid, communicator.getPort())
+        // Payload: [pid, inProcessId, <data>]
+        def bytes = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 155] as byte[]
+        try (SocketChannel clientChannel = SocketChannel.open(socket)) {
+            clientChannel.write(ByteBuffer.wrap(bytes));
+        }
 
         then:
         poll {
@@ -104,14 +100,14 @@ class FileLockCommunicatorTest extends ConcurrentSpecification {
     def "may not receive after the stop"() {
         communicator.stop()
         when:
-        def result = communicator.receive()
+        communicator.receive()
         then:
-        !result.isPresent()
+        thrown(GracefullyStoppedException)
     }
 
     def "pinging on a port that nobody listens is safe"() {
         when:
-        communicator.pingOwner(addressFactory.localBindingAddress, "", 6666, 166, "lock")
+        communicator.pingOwner(null, pid, 6666, 166, "lock")
 
         then:
         noExceptionThrown()
