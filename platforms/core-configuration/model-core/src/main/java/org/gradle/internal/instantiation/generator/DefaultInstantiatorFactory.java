@@ -17,6 +17,7 @@
 package org.gradle.internal.instantiation.generator;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.instantiation.DeserializationInstantiator;
@@ -37,6 +38,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+@NonNullApi
 public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private static final int MANAGED_FACTORY_ID = Objects.hashCode(ManagedTypeFactory.class.getName());
 

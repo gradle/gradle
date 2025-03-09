@@ -22,6 +22,7 @@ dependencies {
     api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.snapshots)
+    api(projects.snapshotsWorker)
     api(libs.asm)
     api(libs.jsr305)
     api(libs.inject)

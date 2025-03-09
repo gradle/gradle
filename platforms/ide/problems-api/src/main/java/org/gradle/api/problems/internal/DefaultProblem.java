@@ -21,8 +21,6 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
 import org.gradle.api.problems.ProblemLocation;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -106,8 +104,8 @@ public class DefaultProblem implements Serializable, InternalProblem {
     }
 
     @Override
-    public InternalProblemBuilder toBuilder(AdditionalDataBuilderFactory additionalDataBuilderFactory, Instantiator instantiator, PayloadSerializer payloadSerializer) {
-        return new DefaultProblemBuilder(this, additionalDataBuilderFactory, instantiator, payloadSerializer);
+    public InternalProblemBuilder toBuilder(ProblemsInfrastructure infrastructure) {
+        return new DefaultProblemBuilder(this, infrastructure);
     }
 
     @Override
