@@ -47,7 +47,6 @@ import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -68,8 +67,6 @@ import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
@@ -140,26 +137,13 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         }
 
         @Provides
-        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
+        IsolatableSerializerRegistry createIsolatableSerializerRegistry(ManagedFactoryRegistry managedFactoryRegistry) {
+            return new IsolatableSerializerRegistry(managedFactoryRegistry);
         }
 
         @Provides
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
-        }
-
-        @Provides
-        ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
-            // Return a dummy implementation of this as creating a real hasher drags ~20 more services
-            // along with it, and a hasher isn't actually needed on the worker process side at the moment.
-            return new ClassLoaderHierarchyHasher() {
-                @Nullable
-                @Override
-                public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
-                    throw new UnsupportedOperationException();
-                }
-            };
         }
 
         @Provides
