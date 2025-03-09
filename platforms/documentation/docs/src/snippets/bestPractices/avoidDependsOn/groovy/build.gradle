@@ -1,0 +1,45 @@
+// tag::avoid-this[]
+abstract class SimplePrintingTask extends DefaultTask {
+    @Input
+    abstract Property<String> getMessage()
+
+    @TaskAction
+    void run() {
+        logger.lifecycle(message.get())
+    }
+}
+
+tasks.register("task1", SimplePrintingTask) {
+    message = "Hello"
+}
+
+tasks.register("task2", SimplePrintingTask) {
+    dependsOn(tasks.named("task1")) // <1>
+    message = "World"
+}
+// end::avoid-this[]
+
+// tag::do-this[]
+abstract class BetterPrintingTask extends DefaultTask {
+    @Input
+    abstract Property<String> getMessage()
+
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void run() {
+        logger.lifecycle(message.get())
+        outputFile.get().asFile.write(message.get()) // <1>
+    }
+}
+
+tasks.register("task3", BetterPrintingTask) {
+    message = "Hello"
+}
+
+tasks.register("task4", BetterPrintingTask) {
+    inputs.file(tasks.named("task3", BetterPrintingTask).get().outputFile) // <2>
+    message = "World"
+}
+// end::do-this[]
