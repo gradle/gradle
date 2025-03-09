@@ -187,7 +187,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration'
+            fqid == 'deprecation-logger:creating-a-configuration-with-a-name-that-starts-with-detachedconfiguration'
             contextualLabel == 'Creating a configuration with a name that starts with \'detachedConfiguration\' has been deprecated.'
             solutions == ["Use a different name for the configuration '$name'.".toString()]
         }
