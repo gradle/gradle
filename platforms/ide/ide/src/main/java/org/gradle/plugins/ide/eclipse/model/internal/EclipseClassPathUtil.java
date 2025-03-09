@@ -21,7 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.JvmConstants;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.SourceRootInferrer;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.jvm.JavaModuleDetector;
 
@@ -36,7 +36,7 @@ public class EclipseClassPathUtil {
         if (javaCompileTask instanceof JavaCompile) {
             JavaCompile javaCompile = (JavaCompile) javaCompileTask;
             if (javaCompile.getModularity().getInferModulePath().get()) {
-                List<File> sourceRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
+                List<File> sourceRoots = SourceRootInferrer.inferSourceRoots((FileTreeInternal) javaCompile.getSource());
                 return JavaModuleDetector.isModuleSource(true, sourceRoots);
             }
         }

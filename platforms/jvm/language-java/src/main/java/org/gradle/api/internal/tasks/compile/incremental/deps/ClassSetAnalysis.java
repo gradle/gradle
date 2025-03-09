@@ -81,7 +81,7 @@ public class ClassSetAnalysis {
             difference.removeAll(getConstants(affectedClass));
             result.put(affectedClass, difference);
         }
-        return result;
+        return Collections.unmodifiableMap(result);
     }
 
     /**
