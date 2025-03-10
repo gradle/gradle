@@ -3,16 +3,14 @@
 
 Here you can find a brief explanation of all the tags used in the best practices documentation.
 
-`#dependencies`
-
 `#inputs-and-outputs`
 
-Items that are related to Gradle <<writing_tasks.html#task_input_and_outputs, task inputs and outputs>>, the annotations used to declare them, and their proper use.
+Items that are related to Gradle <<writing_tasks.adoc#task_inputs_and_outputs,task inputs and outputs>>, the annotations used to declare them, and their proper use.
 
 `#tasks`
 
-Practices that explain the proper way to <<writing_tasks.html#sec:sample_task, write tasks>> in Gradle, and common footguns involved in task authoring.
+Practices that explain the proper way to <<writing_tasks.adoc#sec:sample_task,write tasks>> in Gradle, and common footguns involved in task authoring.
 
 `#up-to-date-checking`
 
-Items that are related to Gradle's <<incremental_build.html#sec:how_does_it_work, up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.
+Items that are related to Gradle's <<incremental_build.adoc#sec:how_does_it_work,up-to-date checking>> mechanism, and how to ensure work avoidance behaves properly in your build.

@@ -32,7 +32,7 @@ It targets all levels of Gradle expertise, from beginners to advanced users.
 Not every practice here will be applicable to every build, however these are meant to be widely applicable and beneficial to many different usage scenarios.
 
 This guide is **not** meant as instructions for how to use Gradle.
-For that purpose, we provide extensive tutorials and reference materials <<getting_started_eng.html,elsewhere>> in the Gradle documentation.
+For that purpose, we provide extensive tutorials and reference materials <<getting_started_eng.adoc#introduction,elsewhere>> in the Gradle documentation.
 
 === Principles
 
