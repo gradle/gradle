@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain.internal;
 
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -32,16 +33,19 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     private final Property<JavaLanguageVersion> version;
     private final Property<JvmVendorSpec> vendor;
     private final Property<JvmImplementation> implementation;
+    private final Property<String> implementationVersion;
 
     public static class Key implements JavaToolchainSpecInternal.Key {
         private final JavaLanguageVersion languageVersion;
         private final JvmVendorSpec vendor;
         private final JvmImplementation implementation;
+        private final String implementationVersion;
 
-        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation) {
+        public Key(@Nullable JavaLanguageVersion languageVersion, @Nullable JvmVendorSpec vendor, @Nullable JvmImplementation implementation, @Nullable String implementationVersion) {
             this.languageVersion = languageVersion;
             this.vendor = vendor;
             this.implementation = implementation;
+            this.implementationVersion = implementationVersion;
         }
 
         @Override
@@ -55,12 +59,13 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
             Key that = (Key) o;
             return Objects.equals(languageVersion, that.languageVersion)
                 && Objects.equals(vendor, that.vendor)
-                && Objects.equals(implementation, that.implementation);
+                && Objects.equals(implementation, that.implementation)
+                && Objects.equals(implementationVersion, that.implementationVersion);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(languageVersion, vendor, implementation);
+            return Objects.hash(languageVersion, vendor, implementation, implementationVersion);
         }
 
         @Override
@@ -69,6 +74,7 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
                 "languageVersion=" + languageVersion +
                 ", vendor=" + vendor +
                 ", implementation=" + implementation +
+                ", implementationVersion=" + implementationVersion +
                 '}';
         }
     }
@@ -78,9 +84,12 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
         version = propertyFactory.property(JavaLanguageVersion.class);
         vendor = propertyFactory.property(JvmVendorSpec.class);
         implementation = propertyFactory.property(JvmImplementation.class);
+        implementationVersion = propertyFactory.property(String.class);
 
         getVendor().convention(getConventionVendor());
         getImplementation().convention(getConventionImplementation());
+        getLanguageVersion().convention(getImplementationVersion().map(v ->
+            JavaLanguageVersion.of(JavaVersion.toVersion(v).getMajorVersion())));
     }
 
     @Override
@@ -99,8 +108,13 @@ public class DefaultToolchainSpec implements JavaToolchainSpecInternal {
     }
 
     @Override
+    public Property<String> getImplementationVersion() {
+        return implementationVersion;
+    }
+
+    @Override
     public JavaToolchainSpecInternal.Key toKey() {
-        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull());
+        return new Key(getLanguageVersion().getOrNull(), getVendor().getOrNull(), getImplementation().getOrNull(), getImplementationVersion().getOrNull());
     }
 
     @Override
