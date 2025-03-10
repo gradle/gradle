@@ -34,7 +34,8 @@ import org.gradle.api.problems.internal.GeneralData;
 import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.PluginIdLocation;
 import org.gradle.api.problems.internal.ProblemSummaryData;
-import org.gradle.api.problems.internal.TaskPathLocation;
+import org.gradle.api.problems.internal.StackTraceLocation;
+import org.gradle.api.problems.internal.TaskLocation;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.gradle.api.problems.internal.TypedAdditionalData;
 import org.gradle.internal.build.event.types.DefaultContextualLabel;
@@ -177,26 +178,31 @@ public class ProblemsProgressEventUtils {
     }
 
     private static List<InternalLocation> toInternalLocations(List<ProblemLocation> locations) {
-        return locations.stream().map(location -> {
-            if (location instanceof LineInFileLocation) {
-                LineInFileLocation fileLocation = (LineInFileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
-            } else if (location instanceof OffsetInFileLocation) {
-                OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
-            } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
-                FileLocation fileLocation = (FileLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
-            } else if (location instanceof PluginIdLocation) {
-                PluginIdLocation pluginLocation = (PluginIdLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
-            } else if (location instanceof TaskPathLocation) {
-                TaskPathLocation taskLocation = (TaskPathLocation) location;
-                return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
-            } else {
-                throw new RuntimeException("No mapping defined for " + location.getClass().getName());
-            }
-        }).collect(toImmutableList());
+        return locations.stream()
+            .filter(location -> !(location instanceof StackTraceLocation && ((StackTraceLocation) location).getFileLocation() == null))
+            .map(location -> location instanceof StackTraceLocation
+                ? ((StackTraceLocation) location).getFileLocation()
+                : location)
+            .map(location -> {
+                if (location instanceof LineInFileLocation) {
+                    LineInFileLocation fileLocation = (LineInFileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultLineInFileLocation(fileLocation.getPath(), fileLocation.getLine(), fileLocation.getColumn(), fileLocation.getLength());
+                } else if (location instanceof OffsetInFileLocation) {
+                    OffsetInFileLocation fileLocation = (OffsetInFileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultOffsetInFileLocation(fileLocation.getPath(), fileLocation.getOffset(), fileLocation.getLength());
+                } else if (location instanceof FileLocation) { // generic class must be after the subclasses in the if-elseif chain.
+                    FileLocation fileLocation = (FileLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultFileLocation(fileLocation.getPath());
+                } else if (location instanceof PluginIdLocation) {
+                    PluginIdLocation pluginLocation = (PluginIdLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultPluginIdLocation(pluginLocation.getPluginId());
+                } else if (location instanceof TaskLocation) {
+                    TaskLocation taskLocation = (TaskLocation) location;
+                    return new org.gradle.internal.build.event.types.DefaultTaskPathLocation(taskLocation.getBuildTreePath());
+                } else {
+                    throw new RuntimeException("No mapping defined for " + location.getClass().getName());
+                }
+            }).collect(toImmutableList());
     }
 
     @Nullable

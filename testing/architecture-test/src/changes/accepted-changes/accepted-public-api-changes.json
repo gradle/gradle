@@ -1,71 +1,27 @@
 {
     "acceptedApiChanges": [
         {
-            "type": "org.gradle.api.distribution.plugins.DistributionBasePlugin",
-            "member": "Class org.gradle.api.distribution.plugins.DistributionBasePlugin",
-            "acceptation": "No need to incubate",
-            "changes": [
-                "Interface has been added"
-            ]
-        },
-        {
-            "type": "org.gradle.api.distribution.plugins.DistributionPlugin",
-            "member": "Constructor org.gradle.api.distribution.plugins.DistributionPlugin()",
-            "acceptation": "No need to incubate",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.plugins.SoftwareReportingTasksPlugin",
-            "member": "Class org.gradle.api.plugins.SoftwareReportingTasksPlugin",
-            "acceptation": "Splitting diagnostics into base- and software-",
-            "changes": [
-                "Interface has been added"
-            ]
-        },
-        {
-            "type": "org.gradle.api.plugins.SoftwareReportingTasksPlugin",
-            "member": "Constructor org.gradle.api.plugins.SoftwareReportingTasksPlugin()",
-            "acceptation": "Splitting diagnostics into base- and software-",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationExecutor()",
-            "acceptation": "Protected methods intended to be overriden by Gradle, not API",
+            "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "member": "Method org.gradle.plugin.devel.GradlePluginDevelopmentExtension.getPlugins()",
+            "acceptation": "auto-generated as managed properties",
             "changes": [
                 "Method is now abstract"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getBuildOperationRunner()",
-            "acceptation": "Protected methods intended to be overriden by Gradle, not API",
+            "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "member": "Method org.gradle.plugin.devel.GradlePluginDevelopmentExtension.getVcsUrl()",
+            "acceptation": "auto-generated as managed properties",
             "changes": [
                 "Method is now abstract"
             ]
         },
         {
-            "type": "org.gradle.api.tasks.testing.TestReport",
-            "member": "Method org.gradle.api.tasks.testing.TestReport.getObjectFactory()",
-            "acceptation": "Protected methods intended to be overriden by Gradle, not API",
+            "type": "org.gradle.plugin.devel.GradlePluginDevelopmentExtension",
+            "member": "Method org.gradle.plugin.devel.GradlePluginDevelopmentExtension.getWebsite()",
+            "acceptation": "auto-generated as managed properties",
             "changes": [
                 "Method is now abstract"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getDistribution-base(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "Generated extension",
-            "changes": [
-                "Method added to public class"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt",
-            "member": "Method org.gradle.kotlin.dsl.BuiltinPluginIdExtensionsKt.getSoftware-reporting-tasks(org.gradle.plugin.use.PluginDependenciesSpec)",
-            "acceptation": "Splitting diagnostics into base- and software-",
-            "changes": [
-                "Method added to public class"
             ]
         }
     ]

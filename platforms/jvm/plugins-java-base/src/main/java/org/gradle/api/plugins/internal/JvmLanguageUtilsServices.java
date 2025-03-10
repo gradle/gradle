@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.plugins.jvm.internal.DefaultJvmLanguageUtilities;
+import org.gradle.api.plugins.jvm.internal.JvmLanguageUtilities;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 
@@ -26,6 +27,6 @@ import org.gradle.internal.service.scopes.AbstractGradleModuleServices;
 public class JvmLanguageUtilsServices extends AbstractGradleModuleServices {
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.add(DefaultJvmLanguageUtilities.class);
+        registration.add(JvmLanguageUtilities.class, DefaultJvmLanguageUtilities.class);
     }
 }

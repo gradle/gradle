@@ -11,6 +11,7 @@ dependencies {
     api(projects.dependencyManagement)
     api(projects.fileCollections)
     api(projects.fileOperations)
+    api(projects.jvmServices)
     api(projects.stdlibJavaExtensions)
     api(projects.modelCore)
     api(projects.platformJvm)

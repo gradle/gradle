@@ -35,6 +35,48 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_8.14]]
+== Upgrading from 8.13 and earlier
+
+=== Potential breaking changes
+
+==== Changes to Settings level defaults
+
+The `Settings.getDefaults()` incubating method introduced in 8.10 has been removed.
+Use`Settings.defaults(Action<SharedModelDefaults>)` method, taking a lambda, instead.
+The change is driven by the need to interpret such default values in the scope of individual projects and not at Settings level.
+
+=== Deprecations
+
+[[null-attribute-lookup]]
+==== Looking up attributes using null keys is deprecated ====
+
+Providing a `null` argument when retrieving attributes from a container using `link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#getAttribute(org.gradle.api.attributes.Attribute)[getAttribute(Attribute)]` is now explicitly deprecated.
+
+Previously, a `null` lookup silently returned `null`. Now, it emits a deprecation warning.
+There should be no need to look up `null` values in an `AttributeContainer`.
+
+[[deprecated_string_to_enum_coercion_for_rich_properties]]
+==== Groovy String to Enum coercion for Property types is deprecated
+
+Groovy supports link:https://groovy-lang.org/semantics.html#_string_to_enum_coercion[String to enum coercion].
+Assigning a string to a property of type `Property<T>` where `T` is an enum is deprecated.
+This will become an error in Gradle 10.0.
+
+This behavior is only applicable to plugins written in Groovy and the Groovy DSL.
+
+[[antgroovydoc]]
+==== `Groovydoc.getAntGroovydoc()` and `org.gradle.api.internal.tasks.AntGroovydoc` have been deprecated
+
+This was an internal API that was inadvertently exposed. This will be removed in Gradle 9.0.
+
+[[deprecated_plugin_development_methods]]
+==== `GradlePluginDevelopmentExtension` constructor and `pluginSourceSet` method have been deprecated
+
+The extension should only be created by the Gradle Plugin Development plugin. The main source set is the only supported source set for plugin development.
+
+These methods will be removed in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
@@ -479,7 +521,7 @@ Accessing the mutable project instance of other projects should be avoided.
 
 To discover details about all projects that were included in a resolution, inspect the full link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult].
 Project dependencies are exposed in the link:{javadocPath}/org/gradle/api/artifacts/result/DependencyResult.html[DependencyResult].
-See the user guide section on <<dependency_graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
+See the user guide section on <<graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
 This is the only reliable way to find all projects that are used in a resolution.
 Inspecting only the declared `ProjectDependency`s may miss transitive or substituted project dependencies.
 

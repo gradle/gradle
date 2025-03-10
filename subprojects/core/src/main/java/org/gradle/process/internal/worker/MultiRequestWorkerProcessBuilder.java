@@ -42,7 +42,12 @@ public interface MultiRequestWorkerProcessBuilder<IN, OUT> extends WorkerProcess
     <T> void registerArgumentSerializer(Class<T> type, Serializer<T> serializer);
 
     /**
-     * Use a simpler classloader structure where everything is in the application classloader.
+     * Do not automatically detect the implementation classloader from the worker implementation class.
+     * Instead, users of this builder are expected to provide the complete classpath for the worker process,
+     * including any classes necessary to load the worker implementation.
+     * <p>
+     * By default, the classpath for the worker implementation class is inferred from the classpath
+     * of the classloader of the implementation class.
      */
-    void useApplicationClassloaderOnly();
+    void withoutAutomaticImplementationClasspath();
 }

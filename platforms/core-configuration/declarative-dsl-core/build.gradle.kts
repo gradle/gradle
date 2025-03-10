@@ -20,8 +20,8 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     api(projects.declarativeDslToolingModels)
 
-    api(libs.kotlinCompilerEmbeddable)
     api(libs.kotlinStdlib)
+    api(libs.kotlinCompilerEmbeddable)
 
     implementation(projects.declarativeDslApi)
     implementation(libs.kotlinReflect)

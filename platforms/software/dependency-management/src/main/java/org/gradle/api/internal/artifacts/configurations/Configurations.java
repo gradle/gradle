@@ -15,28 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.configurations;
 
-import com.google.common.collect.ImmutableSet;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.capabilities.Capability;
 
-import java.util.Collection;
 import java.util.Set;
 
 public class Configurations {
-    public static ImmutableSet<String> getNames(Collection<Configuration> configurations) {
-        if (configurations.isEmpty()) {
-            return ImmutableSet.of();
-        }
-        if (configurations.size() == 1) {
-            return ImmutableSet.of(configurations.iterator().next().getName());
-        }
-        ImmutableSet.Builder<String> names = new ImmutableSet.Builder<>();
-        for (Configuration configuration : configurations) {
-            names.add(configuration.getName());
-        }
-        return names.build();
-    }
 
     public static Set<Capability> collectCapabilities(Configuration configuration, Set<Capability> out, Set<Configuration> visited) {
         if (visited.add(configuration)) {
@@ -48,8 +32,4 @@ public class Configurations {
         return out;
     }
 
-    @Deprecated // TODO:Finalize Upload Removal - Issue #21439
-    public static String uploadTaskName(String configurationName) {
-        return "upload" + StringUtils.capitalize(configurationName);
-    }
 }

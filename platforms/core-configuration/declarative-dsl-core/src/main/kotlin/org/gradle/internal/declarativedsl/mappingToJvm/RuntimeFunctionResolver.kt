@@ -16,24 +16,27 @@
 
 package org.gradle.internal.declarativedsl.mappingToJvm
 
+import org.gradle.declarative.dsl.schema.DataParameter
+import org.gradle.declarative.dsl.schema.DataTopLevelFunction
 import org.gradle.declarative.dsl.schema.DataType
 import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.declarative.dsl.schema.FunctionSemantics
 import org.gradle.declarative.dsl.schema.SchemaFunction
+import org.gradle.declarative.dsl.schema.SchemaMemberFunction
+import org.gradle.internal.declarativedsl.Workarounds
 import org.gradle.internal.declarativedsl.hasDeclarativeAnnotation
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
-import kotlin.reflect.full.instanceParameter
+import kotlin.reflect.KTypeParameter
 import kotlin.reflect.full.allSuperclasses
+import kotlin.reflect.full.instanceParameter
 import kotlin.reflect.full.memberFunctions
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
-import kotlin.reflect.javaType
+import kotlin.reflect.jvm.kotlinFunction
 
 
 interface RuntimeFunctionResolver {
-    fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): Resolution
+    fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): Resolution
 
     sealed interface Resolution {
         data class Resolved(val function: DeclarativeRuntimeFunction) : Resolution
@@ -42,54 +45,105 @@ interface RuntimeFunctionResolver {
 }
 
 
-class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambdaHandler) : RuntimeFunctionResolver {
-    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution {
-        // TODO: `convertBinding` is invoked here without actual arguments or receiver instance; the actual function repeats the binding conversion afterwards; this probably needs reshaping
+interface RuntimeFunctionCandidatesProvider {
+    fun candidatesForMember(ownerKClass: KClass<*>, schemaFunction: SchemaMemberFunction): List<KFunction<*>> = emptyList()
+    fun candidatesForTopLevelFunction(schemaFunction: DataTopLevelFunction, scopeClassLoader: ClassLoader): List<KFunction<*>> = emptyList()
+}
+
+
+object DefaultRuntimeFunctionCandidatesProvider : RuntimeFunctionCandidatesProvider {
+    override fun candidatesForMember(
+        ownerKClass: KClass<*>,
+        schemaFunction: SchemaMemberFunction
+    ): List<KFunction<*>> = ownerKClass.memberFunctions.filter { it.name == schemaFunction.simpleName }
+
+    override fun candidatesForTopLevelFunction(schemaFunction: DataTopLevelFunction, scopeClassLoader: ClassLoader): List<KFunction<*>> {
+        val ownerClass = try {
+            scopeClassLoader.loadClass(schemaFunction.ownerJvmTypeName)
+        } catch (_: ClassNotFoundException) {
+            return emptyList()
+        }
+
+        return ownerClass.methods.mapNotNull {
+            if (it.name == schemaFunction.simpleName)
+                it.kotlinFunction?.takeIf { kotlinFunction -> kotlinFunction.name == schemaFunction.simpleName }
+            else null
+        }
+    }
+}
+
+
+class DefaultRuntimeFunctionResolver(
+    private val configureLambdaHandler: ConfigureLambdaHandler,
+    private val candidatesProvider: RuntimeFunctionCandidatesProvider = DefaultRuntimeFunctionCandidatesProvider
+) : RuntimeFunctionResolver {
+    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {
         val parameterBindingStub = schemaFunction.parameters.associateWith { Any() }
         val hasConfigureLambda = (schemaFunction.semantics as? FunctionSemantics.ConfigureSemantics)?.configureBlockRequirement?.allows ?: false
 
-        fun signature(function: KFunction<*>): String {
-            return function::class.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }.call(function) as String
-            // It is not very nice that we rely on this internal signature, but we don't have much of a choice...
-            // We have also tried using the "descriptor" field and the "overriddenDescriptors" and/or "overriddenFunctions" from that,
-            // but it's even uglier with a lot of weird lazy types involved and the code for doing so becomes very brittle.
+        val matchingCandidates = run {
+            val initialCandidates = when (schemaFunction) {
+                is SchemaMemberFunction -> candidatesProvider.candidatesForMember(receiverClass, schemaFunction)
+                is DataTopLevelFunction -> candidatesProvider.candidatesForTopLevelFunction(schemaFunction, scopeClassLoader)
+                else -> emptyList()
+            }
+            initialCandidates.filter { isMatchBySignature(it, parameterBindingStub, hasConfigureLambda) }
         }
 
-        fun matchesAnnotationsRecursively(function: KFunction<*>, receiverClass: KClass<*>, predicate: (Annotation) -> Boolean): Boolean =
-            if (function.annotations.any(predicate)) {
-                true
-            } else {
-                val functionSignature = signature(function)
-                receiverClass.allSuperclasses.any { parentClass ->
-                    val parentFunction = parentClass.memberFunctions.firstOrNull { signature(it) == functionSignature }
-                    parentFunction?.annotations?.any(predicate) ?: false
-                }
-            }
-
-        val resolutions = receiverClass.memberFunctions
-            .filter { function -> function.name == schemaFunction.simpleName && FunctionBinding.convertBinding(function, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null }
-            .filter { f -> matchesAnnotationsRecursively(f, receiverClass, hasDeclarativeAnnotation) }
-            .toList()
-
-        return when {
-            resolutions.isEmpty() -> RuntimeFunctionResolver.Resolution.Unresolved
-            resolutions.size == 1 -> RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(resolutions[0], configureLambdaHandler))
+        return when (matchingCandidates.size) {
+            0 -> RuntimeFunctionResolver.Resolution.Unresolved
+            1 -> RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(matchingCandidates[0], configureLambdaHandler))
             else -> {
-                val refinedResolutions = resolutions.filter { function -> parametersMatch(function, schemaFunction) }
+                val refinedResolutions = buildList {
+                    addAll(matchingCandidates)
+                    removeIf { !parametersMatch(it, schemaFunction) }
+                    if (size > 1) {
+                        removeIf { !matchesAnnotationsRecursively(it, receiverClass, hasDeclarativeAnnotation) }
+                    }
+                }
                 val finalResolution = if (refinedResolutions.size == 1) refinedResolutions[0] else
-                    error("Failed disambiguating between following functions (matches ${refinedResolutions.size}): ${resolutions.joinToString(prefix = "\n\t", separator = "\n\t") { f -> f.toString() }}")
+                    error(
+                        "Failed disambiguating between following functions (matches ${refinedResolutions.size}): ${
+                            matchingCandidates.joinToString(
+                                prefix = "\n\t",
+                                separator = "\n\t"
+                            ) { f -> f.toString() }
+                        }"
+                    )
                 return RuntimeFunctionResolver.Resolution.Resolved(ReflectionFunction(finalResolution, configureLambdaHandler))
             }
         }
 
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
+    private fun matchesAnnotationsRecursively(function: KFunction<*>, receiverClass: KClass<*>, predicate: (Annotation) -> Boolean): Boolean =
+        if (function.annotations.any(predicate)) {
+            true
+        } else {
+            val functionSignature = Workarounds.kFunctionSignature(function)
+            receiverClass.allSuperclasses.any { parentClass ->
+                val parentFunction = parentClass.memberFunctions.firstOrNull { Workarounds.kFunctionSignature(it) == functionSignature }
+                parentFunction?.annotations?.any(predicate) ?: false
+            }
+        }
+
+    private fun isMatchBySignature(
+        kFunction: KFunction<*>,
+        parameterBindingStub: Map<DataParameter, Any>,
+        hasConfigureLambda: Boolean
+    ): Boolean = FunctionBinding.convertBinding(kFunction, Any(), parameterBindingStub, hasConfigureLambda, configureLambdaHandler) != null
+
     private fun parametersMatch(function: KFunction<*>, schemaFunction: SchemaFunction): Boolean {
-        val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size)
+        val actualParameters = function.parameters.subList(if (function.instanceParameter == null) 0 else 1, function.parameters.size).filter { configureLambdaHandler.getTypeConfiguredByLambda(it.type) == null }
         return if (actualParameters.size == schemaFunction.parameters.size) {
             actualParameters.zip(schemaFunction.parameters).all { (kp, dp) ->
-                kp.type.javaType.typeName == dp.type.typeName()
+                when (val classifier = kp.type.classifier) {
+                    is KTypeParameter -> (dp.type as? DataTypeRef.Type)?.dataType is DataType.TypeVariableUsage
+                    // Just matching the classifier might be enough as overloads that only differ in generics are not allowed in Java
+                    // TODO: they are allowed in Kotlin
+                    is KClass<*> -> classifier.qualifiedName == dp.type.typeName()
+                    else -> false
+                }
             }
         } else {
             false
@@ -98,20 +152,22 @@ class MemberFunctionResolver(private val configureLambdaHandler: ConfigureLambda
 
     private fun DataTypeRef.typeName(): String = when (this) {
         is DataTypeRef.Name -> fqName.qualifiedName
+        is DataTypeRef.NameWithArgs -> fqName.qualifiedName
         is DataTypeRef.Type -> when (dataType) {
-            is DataType.ClassDataType -> (dataType as DataType.ClassDataType).javaTypeName
-            is DataType.ConstantType<*> -> (dataType as DataType.ConstantType<*>).constantType.name
+            is DataType.ClassDataType -> (dataType as DataType.ClassDataType).name.qualifiedName
+            is DataType.ConstantType<*> -> (dataType as DataType.ConstantType<*>).constantType.kotlin.qualifiedName ?: "<no name>"
             is DataType.NullType -> error("function parameter type should never be NULL")
             is DataType.UnitType -> error("function parameter type should never be UNIT")
+            is DataType.TypeVariableUsage -> TODO()
         }
     }
 }
 
 
 class CompositeFunctionResolver(private val resolvers: List<RuntimeFunctionResolver>) : RuntimeFunctionResolver {
-    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction): RuntimeFunctionResolver.Resolution {
+    override fun resolve(receiverClass: KClass<*>, schemaFunction: SchemaFunction, scopeClassLoader: ClassLoader): RuntimeFunctionResolver.Resolution {
         resolvers.forEach {
-            val resolution = it.resolve(receiverClass, schemaFunction)
+            val resolution = it.resolve(receiverClass, schemaFunction, scopeClassLoader)
             if (resolution is RuntimeFunctionResolver.Resolution.Resolved)
                 return resolution
         }

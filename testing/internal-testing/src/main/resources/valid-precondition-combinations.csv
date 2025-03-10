@@ -34,6 +34,7 @@ UnitTestPreconditions$Jdk16OrEarlier
 UnitTestPreconditions$Jdk16OrLater
 UnitTestPreconditions$Jdk17OrEarlier
 UnitTestPreconditions$Jdk17OrLater
+UnitTestPreconditions$Jdk17OrLater,IntegTestPreconditions$NotEmbeddedExecutor
 UnitTestPreconditions$Jdk21OrEarlier
 UnitTestPreconditions$Jdk22OrEarlier
 UnitTestPreconditions$Jdk21OrLater

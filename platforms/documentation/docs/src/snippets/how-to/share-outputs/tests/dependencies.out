@@ -1,0 +1,9 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_prevent_accidental_upgrades'
+------------------------------------------------------------
+
+runtimeClasspath - Compile classpath for source set 'main'.
++--- org.apache.commons:commons-lang3:3.2
+\--- org.apache.commons:commons-lang3:3.1 -> 3.2 (c)

@@ -2,7 +2,6 @@ package org.gradle.internal.declarativedsl.analysis
 
 import org.gradle.declarative.dsl.evaluation.AnalysisStatementFilter
 import org.gradle.declarative.dsl.evaluation.OperationGenerationId
-import org.gradle.declarative.dsl.schema.DataTypeRef
 import org.gradle.internal.declarativedsl.language.Assignment
 import org.gradle.internal.declarativedsl.language.DataStatement
 import org.gradle.internal.declarativedsl.language.Expr
@@ -57,7 +56,7 @@ class ResolverServicesContainer : StatementResolver, NamedReferenceResolver, Exp
     lateinit var codeAnalyzer: CodeAnalyzer
     lateinit var errorCollector: ErrorCollector
 
-    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: DataTypeRef?): ObjectOrigin? =
+    override fun doResolveExpression(context: AnalysisContext, expr: Expr, expectedType: ExpectedTypeData): TypedOrigin? =
         expressionResolver.doResolveExpression(context, expr, expectedType)
 
     override fun analyzeStatementsInProgramOrder(context: AnalysisContext, elements: List<DataStatement>) {
@@ -67,8 +66,8 @@ class ResolverServicesContainer : StatementResolver, NamedReferenceResolver, Exp
     override fun doResolveNamedReferenceToObjectOrigin(
         analysisContext: AnalysisContext,
         namedReference: NamedReference,
-        expectedType: DataTypeRef?
-    ): ObjectOrigin? =
+        expectedType: ExpectedTypeData
+    ): TypedOrigin? =
         namedReferenceResolver.doResolveNamedReferenceToObjectOrigin(analysisContext, namedReference, expectedType)
 
     override fun doResolveNamedReferenceToAssignable(

@@ -26,7 +26,8 @@ dependencies {
     api(projects.messaging)
 
     implementation(libs.guava)
-    implementation(projects.baseServices)
+
+    implementation(projects.classloaders)
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.stdlibJavaExtensions)

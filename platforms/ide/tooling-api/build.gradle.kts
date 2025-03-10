@@ -43,6 +43,7 @@ dependencies {
 
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.enterpriseLogging)
     api(projects.logging)

@@ -23,15 +23,17 @@ import org.gradle.internal.declarativedsl.demo.assignmentTrace
 import org.gradle.internal.declarativedsl.objectGraph.ReflectionContext
 import org.gradle.internal.declarativedsl.objectGraph.reflect
 import org.gradle.internal.declarativedsl.schemaBuilder.ConfigureLambdaHandler
+import org.gradle.internal.declarativedsl.schemaBuilder.kotlinFunctionAsConfigureLambda
 
 
 internal
 fun <T : Any> runtimeInstanceFromResult(
     schema: AnalysisSchema,
     resolution: ResolutionResult,
-    configureLambdas: ConfigureLambdaHandler,
-    customAccessors: RuntimeCustomAccessors,
-    createInstance: () -> T
+    configureLambdas: ConfigureLambdaHandler = kotlinFunctionAsConfigureLambda,
+    customAccessors: RuntimeCustomAccessors = RuntimeCustomAccessors.none,
+    createInstance: () -> T,
+    runtimeFunctionResolver: RuntimeFunctionResolver = DefaultRuntimeFunctionResolver(configureLambdas, DefaultRuntimeFunctionCandidatesProvider),
 ): T {
     val trace = assignmentTrace(resolution)
     val context = ReflectionContext(SchemaTypeRefContext(schema), resolution, trace)
@@ -39,7 +41,7 @@ fun <T : Any> runtimeInstanceFromResult(
 
     return createInstance().also {
         DeclarativeReflectionToObjectConverter(
-            emptyMap(), it, MemberFunctionResolver(configureLambdas), ReflectionRuntimePropertyResolver, customAccessors
+            emptyMap(), it, runtimeFunctionResolver, ReflectionRuntimePropertyResolver, customAccessors
         ) { object {}.javaClass.classLoader }.apply(topLevel)
     }
 }

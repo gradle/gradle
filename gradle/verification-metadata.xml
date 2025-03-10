@@ -66,6 +66,7 @@
          <trust file=".*-sources[.]jar" regex="true"/>
       </trusted-artifacts>
       <ignored-keys>
+         <ignored-key id="164779204E106A76" reason="Key couldn't be downloaded from any key server"/>
          <ignored-key id="74DAFDFD6DAE2441" reason="Key couldn't be downloaded from any key server"/>
       </ignored-keys>
       <trusted-keys>
@@ -1430,6 +1431,11 @@
       <component group="org.iq80.snappy" name="snappy" version="0.5">
          <artifact name="snappy-0.5.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
+         </artifact>
+      </component>
+      <component group="org.javassist" name="javassist" version="3.30.2-GA">
+         <artifact name="javassist-3.30.2-GA.jar">
+            <sha256 value="eba37290994b5e4868f3af98ff113f6244a6b099385d9ad46881307d3cb01aaf" reason="A key couldn't be downloaded"/>
          </artifact>
       </component>
       <component group="org.jcommander" name="jcommander" version="1.85">

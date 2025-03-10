@@ -41,7 +41,7 @@ dependencies {
     smokeTestImplementation(testFixtures(projects.core))
     smokeTestImplementation(testFixtures(projects.pluginDevelopment))
     smokeTestImplementation(testFixtures(projects.versionControl))
-    smokeTestImplementation(testFixtures(projects.modelCore))
+    smokeTestImplementation(testFixtures(projects.modelReflect))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
 }

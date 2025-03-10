@@ -1,0 +1,29 @@
+// tag::instrumentedjar-task[]
+plugins {
+    id("java-library")
+}
+
+def instrumentedJar = tasks.register("instrumentedJar", Jar) {
+    archiveClassifier.set("instrumented")
+    from(sourceSets.main.output)
+    // Additional instrumentation processing could go here
+}
+// end::instrumentedjar-task[]
+
+// tag::custom-config[]
+configurations {
+    create("instrumentedJars") {
+        canBeConsumed = true
+        canBeResolved = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, "instrumented-jar"))
+        }
+    }
+}
+
+artifacts {
+    add("instrumentedJars", instrumentedJar)
+}
+// end::custom-config[]

@@ -1,0 +1,3 @@
+++++
+<meta http-equiv="refresh" content="0;URL=how_to_align_dependency_versions.html#version_alignment">
+++++

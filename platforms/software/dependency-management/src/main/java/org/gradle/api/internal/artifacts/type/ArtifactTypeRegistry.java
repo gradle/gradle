@@ -24,9 +24,12 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.inject.Inject;
 
+@ServiceScope(Scope.Project.class)
 public class ArtifactTypeRegistry {
 
     private final Instantiator instantiator;

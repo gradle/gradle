@@ -25,19 +25,21 @@ import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
+import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ModuleConflictResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictException;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -60,6 +62,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +79,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+@ServiceScope(Scope.Project.class)
 public class DependencyGraphBuilder {
 
     static final Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
@@ -133,6 +138,7 @@ public class DependencyGraphBuilder {
         ConflictResolution conflictResolution,
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
+        ResolutionParameters.FailureResolutions failureResolutions,
         DependencyGraphVisitor modelVisitor
     ) {
         ModuleConflictHandler moduleConflictHandler = new DefaultConflictHandler(moduleConflictResolver, moduleReplacements);
@@ -163,7 +169,7 @@ public class DependencyGraphBuilder {
 
         traverseGraph(resolveState);
 
-        validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions);
+        validateGraph(resolveState, failingOnDynamicVersions, failingOnChangingVersions, conflictResolution, failureResolutions);
 
         assembleResult(resolveState, modelVisitor);
     }
@@ -392,7 +398,13 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private static void validateGraph(ResolveState resolveState, boolean denyDynamicSelectors, boolean denyChangingModules) {
+    private static void validateGraph(
+        ResolveState resolveState,
+        boolean denyDynamicSelectors,
+        boolean denyChangingModules,
+        ConflictResolution conflictResolution,
+        ResolutionParameters.FailureResolutions failureResolutions
+    ) {
         ImmutableAttributesSchema consumerSchema = resolveState.getConsumerSchema();
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
@@ -415,6 +427,9 @@ public class DependencyGraphBuilder {
                     }
                     if (denyChangingModules) {
                         validateChangingVersions(selected);
+                    }
+                    if (conflictResolution == ConflictResolution.strict) {
+                        validateVersionConflicts(selected, failureResolutions);
                     }
                 }
             } else if (module.isVirtualPlatform()) {
@@ -506,6 +521,41 @@ public class DependencyGraphBuilder {
                     incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
                         String.format("Could not resolve %s: Resolution strategy disallows usage of changing versions", selector)));
                 }
+            }
+        }
+    }
+
+    /**
+     * Verify the given component was not selected via version conflict resolution.
+     * In other words, ensure only one version of this component was requested.
+     */
+    private static void validateVersionConflicts(
+        ComponentState selected,
+        ResolutionParameters.FailureResolutions failureResolutions
+    ) {
+        if (!selected.getSelectionReason().isConflictResolution()) {
+            return;
+        }
+
+        // This component was selected due to version conflict resolution.
+        // Fail all incoming edges.
+
+        ImmutableList<Conflict.Participant> participants = selected.getModule().getAllVersions().stream()
+            .map(component -> new Conflict.Participant(component.getId().getVersion(), component.getComponentId()))
+            .collect(ImmutableList.toImmutableList());
+
+        Conflict conflict = new Conflict(
+            participants,
+            selected.getModuleVersion().getModule(),
+            selected.getSelectionReason()
+        );
+
+        List<String> resolutions = failureResolutions.forVersionConflict(conflict);
+        VersionConflictException failure = new VersionConflictException(conflict, resolutions);
+
+        for (NodeState node : selected.getNodes()) {
+            for (EdgeState incomingEdge : node.getIncomingEdges()) {
+                incomingEdge.failWith(failure);
             }
         }
     }
@@ -610,11 +660,6 @@ public class DependencyGraphBuilder {
      */
     private static void assembleResult(ResolveState resolveState, DependencyGraphVisitor visitor) {
         visitor.start(resolveState.getRoot());
-
-        // Visit the selectors
-        for (DependencyGraphSelector selector : resolveState.getSelectors()) {
-            visitor.visitSelector(selector);
-        }
 
         // Visit the nodes prior to visiting the edges
         for (NodeState nodeState : resolveState.getNodes()) {

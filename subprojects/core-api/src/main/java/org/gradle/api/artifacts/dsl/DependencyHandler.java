@@ -30,6 +30,8 @@ import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -276,6 +278,7 @@ import java.util.Map;
  * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
  *
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyHandler extends ExtensionAware {
     /**
      * Adds a dependency to the given configuration.

@@ -18,19 +18,20 @@ package org.gradle.internal.cc.impl.fixtures
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 class DefaultExcludesFixture {
 
     static List<Spec> specs() {
         [
-            ScriptLanguage.values(),
+            [GradleDsl.GROOVY, GradleDsl.KOTLIN],
             [
                 [new RootBuildLocation()],
                 [new RootBuildLocation(), new BuildSrcLocation()],
                 [new RootBuildLocation(), new IncludedBuildLocation()],
                 [new RootBuildLocation(), new BuildSrcLocation(), new IncludedBuildLocation()],
-            ]
+            ] as List<RootBuildLocation>
         ].combinations().collect { language, locations ->
             new Spec(locations, language)
         }
@@ -42,7 +43,7 @@ class DefaultExcludesFixture {
 
         private final List<DefaultExcludesLocation> locations
 
-        private final ScriptLanguage scriptLanguage
+        private final GradleDsl dsl
 
         private final List<TestFile> excludedFiles = new ArrayList<>()
 
@@ -52,16 +53,16 @@ class DefaultExcludesFixture {
 
         private final List<TestFile> includedFilesCopies = new ArrayList<>()
 
-        Spec(List<DefaultExcludesLocation> locations, ScriptLanguage scriptLanguage) {
+        Spec(List<DefaultExcludesLocation> locations, GradleDsl dsl) {
             this.locations = locations
-            this.scriptLanguage = scriptLanguage
+            this.dsl = dsl
         }
 
         void setup(AbstractIntegrationSpec spec) {
             configureCopyTask(spec)
 
             locations.forEach {
-                it.applyDefaultExcludes(spec, scriptLanguage)
+                it.applyDefaultExcludes(spec, dsl)
 
                 def includedFile = spec.file("input/${it.includedFileName()}")
                 includedFile.text = "input"
@@ -89,7 +90,7 @@ class DefaultExcludesFixture {
         }
 
         private String configureCopyTask(AbstractIntegrationSpec spec) {
-            if (scriptLanguage == ScriptLanguage.KOTLIN) {
+            if (dsl == GradleDsl.KOTLIN) {
                 spec.buildKotlinFile << """
                     tasks.register<Copy>("$copyTask") {
                         from("input")
@@ -108,24 +109,7 @@ class DefaultExcludesFixture {
 
         @Override
         String toString() {
-            return "${locations.join(" and ")} settings${scriptLanguage}"
-        }
-    }
-
-    static enum ScriptLanguage {
-
-        GROOVY(".gradle"),
-        KOTLIN(".gradle.kts")
-
-        private final String extension
-
-        ScriptLanguage(String extension) {
-            this.extension = extension
-        }
-
-        @Override
-        String toString() {
-            return extension
+            return "${locations.join(" and ")} ${dsl.fileNameFor("settings")}"
         }
     }
 
@@ -135,10 +119,10 @@ class DefaultExcludesFixture {
 
         abstract String excludedFileName()
 
-        abstract void applyDefaultExcludes(AbstractIntegrationSpec spec, ScriptLanguage scriptLanguage)
+        abstract void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl)
 
-        private static TestFile settingsFile(TestFile dir, ScriptLanguage scriptLanguage) {
-            dir.file("settings${scriptLanguage}")
+        private static TestFile settingsFile(TestFile dir, GradleDsl dsl) {
+            dir.file(dsl.fileNameFor("settings"))
         }
 
         static String addDefaultExclude(String excludedFileName) {
@@ -161,8 +145,8 @@ class DefaultExcludesFixture {
         }
 
         @Override
-        void applyDefaultExcludes(AbstractIntegrationSpec spec, ScriptLanguage scriptLanguage) {
-            settingsFile(spec.testDirectory, scriptLanguage) << addDefaultExclude(excludedFileName())
+        void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl) {
+            settingsFile(spec.testDirectory, dsl) << addDefaultExclude(excludedFileName())
         }
 
         @Override
@@ -184,10 +168,10 @@ class DefaultExcludesFixture {
         }
 
         @Override
-        void applyDefaultExcludes(AbstractIntegrationSpec spec, ScriptLanguage scriptLanguage) {
+        void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl) {
             TestFile includedBuildDir = spec.testDirectory.file("build-logic")
-            settingsFile(spec.testDirectory, scriptLanguage) << 'includeBuild("build-logic")'
-            settingsFile(includedBuildDir, scriptLanguage) << addDefaultExclude(excludedFileName())
+            settingsFile(spec.testDirectory, dsl) << 'includeBuild("build-logic")'
+            settingsFile(includedBuildDir, dsl) << addDefaultExclude(excludedFileName())
         }
 
         @Override
@@ -209,9 +193,9 @@ class DefaultExcludesFixture {
         }
 
         @Override
-        void applyDefaultExcludes(AbstractIntegrationSpec spec, ScriptLanguage scriptLanguage) {
+        void applyDefaultExcludes(AbstractIntegrationSpec spec, GradleDsl dsl) {
             TestFile buildSrcDir = spec.testDirectory.file("buildSrc")
-            settingsFile(buildSrcDir, scriptLanguage) << addDefaultExclude(excludedFileName())
+            settingsFile(buildSrcDir, dsl) << addDefaultExclude(excludedFileName())
         }
 
         @Override

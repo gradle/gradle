@@ -16,6 +16,9 @@
 
 package org.gradle.api.provider
 
+import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.ToBeImplemented
+
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
 class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIntegrationTest {
@@ -48,17 +51,32 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
 
         where:
         description                                     | inputType            | inputValue                               | expectedResult
-        "T = null" | "Property<MyObject>" | 'null' | "undefined"
+        "T = null"                                      | "Property<MyObject>" | 'null'                                   | "undefined"
         "T = T"                                         | "Property<MyObject>" | 'new MyObject("hello")'                  | "hello"
         "T = provider { null }"                         | "Property<MyObject>" | 'provider { null }'                      | "undefined"
         "T = Provider<T>"                               | "Property<MyObject>" | 'provider { new MyObject("hello") }'     | "hello"
         "String = Object"                               | "Property<String>"   | 'new MyObject("hello")'                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
-        "Enum = String"                                 | "Property<MyEnum>"   | '"YES"'                                  | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
         "File = T extends FileSystemLocation"           | "DirectoryProperty"  | 'layout.buildDirectory.dir("out").get()' | "out"
         "File = Provider<T extends FileSystemLocation>" | "DirectoryProperty"  | 'layout.buildDirectory.dir("out")'       | "out"
         "File = File"                                   | "DirectoryProperty"  | 'file("out")'                            | "out"
         "File = Provider<File>"                         | "DirectoryProperty"  | 'provider { file("out") }'               | unsupportedWithCause("Cannot get the value of task ':myTask' property 'input'")
         "File = Object"                                 | "DirectoryProperty"  | 'new MyObject("out")'                    | unsupportedWithCause("Cannot set the value of task ':myTask' property 'input'")
+    }
+
+    def "lazy object properties assignment for deprecated string to enum coercion"() {
+        def inputDeclaration = "abstract $inputType getInput()"
+        groovyBuildFile(inputDeclaration, inputValue, "=")
+
+        expect:
+        deprecationValues.forEach {
+            executer.expectDocumentedDeprecationWarning("Assigning String value '$it' to property of enum type 'MyEnum'. This behavior has been deprecated. This will fail with an error in Gradle 10.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_string_to_enum_coercion_for_rich_properties")
+        }
+        runAndAssert("myTask", expectedResult)
+
+        where:
+        description                 | inputType              | inputValue      | expectedResult | deprecationValues
+        "Enum = String"             | "Property<MyEnum>"     | '"yes"'         | "YES"          | ["yes"]
+        "List<Enum> = List<String>" | "ListProperty<MyEnum>" | '["yes", "NO"]' | "[YES, NO]"    | ["yes", "NO"]
     }
 
     def "eager collection properties assignment for #description"() {
@@ -202,6 +220,19 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         "FileCollection += File"           | "+="      | "ConfigurableFileCollection" | 'file("a.txt")'         | unsupportedWithCause("Failed to cast object")
         "FileCollection += Iterable<?>"    | "+="      | "ConfigurableFileCollection" | '["a.txt"]'             | unsupportedWithCause("Failed to cast object")
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
+    }
+
+    @ToBeImplemented("Needs a fix for -= cycle detection")
+    @ToBeFixedForConfigurationCache(because = "With cc it throws 'Could not load the value of field `left` of `org.gradle.internal.serialize.codecs.core.SubtractingFileCollectionSpec`'")
+    def "lazy ConfigurableFileCollection -= throws meaningful error"() {
+        def inputDeclaration = "abstract ConfigurableFileCollection getInput()"
+        def inputValue = 'files("a.txt")'
+        def operation = "-="
+        groovyBuildFile(inputDeclaration, inputValue, operation)
+
+        expect:
+        // Fix: It should have a more meaningful error message than StackOverflowError
+        runAndAssert("myTask", unsupportedWithCause("java.lang.StackOverflowError"))
     }
 
     def "lazy FileCollection variables assignment for #description"() {

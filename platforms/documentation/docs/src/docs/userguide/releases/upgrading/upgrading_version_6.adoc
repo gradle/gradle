@@ -752,7 +752,7 @@ Gradle will continue building projects on 32-bit systems but will no longer show
 ==== Using default and archives configurations
 
 Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
-These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#sec:understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
+These configurations are no longer used in modern Gradle builds that use <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant aware dependency management>> and the <<publishing_setup.adoc#publishing_components,new publishing plugins>>.
 
 While the configurations will stay in Gradle for backwards compatibility for now, using them to declare dependencies or to resolve dependencies is now deprecated.
 

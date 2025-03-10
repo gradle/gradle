@@ -44,6 +44,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildProcessServices)
+    api(projects.classloaders)
     api(projects.concurrent)
     api(projects.core)
     api(projects.coreApi)
@@ -58,6 +59,7 @@ dependencies {
     api(projects.logging)
     api(projects.messaging)
     api(projects.modelCore)
+    api(projects.modelReflect)
     api(projects.persistentCache)
     api(projects.problemsApi)
     api(projects.resources)
@@ -125,7 +127,7 @@ dependencies {
     }
     integTestImplementation(testFixtures(projects.core))
     integTestImplementation(testFixtures(projects.signing))
-    integTestImplementation(testFixtures(projects.modelCore))
+    integTestImplementation(testFixtures(projects.modelReflect))
 
     testFixturesApi(projects.baseServices) {
         because("Test fixtures export the Action class")

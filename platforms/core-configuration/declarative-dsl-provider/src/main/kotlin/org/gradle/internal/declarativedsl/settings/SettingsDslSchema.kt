@@ -26,6 +26,7 @@ import org.gradle.internal.declarativedsl.analysis.AnalysisStatementFilterUtils.
 import org.gradle.internal.declarativedsl.analysis.and
 import org.gradle.internal.declarativedsl.analysis.implies
 import org.gradle.internal.declarativedsl.analysis.not
+import org.gradle.internal.declarativedsl.common.RunsBeforeClassScopeIsReady
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
 import org.gradle.internal.declarativedsl.common.gradleDslGeneralSchema
 import org.gradle.internal.declarativedsl.defaults.defineModelDefaultsInterpretationSequenceStep
@@ -34,6 +35,7 @@ import org.gradle.internal.declarativedsl.evaluationSchema.DefaultInterpretation
 import org.gradle.internal.declarativedsl.evaluationSchema.EvaluationSchemaBuilder
 import org.gradle.internal.declarativedsl.evaluationSchema.SimpleInterpretationSequenceStepWithConversion
 import org.gradle.internal.declarativedsl.evaluationSchema.buildEvaluationAndConversionSchema
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.declarativedsl.evaluator.conversion.EvaluationAndConversionSchema
 import org.gradle.internal.declarativedsl.project.thirdPartyExtensions
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -48,12 +50,19 @@ fun settingsInterpretationSequence(
         listOf(
             SimpleInterpretationSequenceStepWithConversion(
                 "settingsPluginManagement",
-                features = setOf(SettingsBlocksCheck.feature, UnsupportedSyntaxFeatureCheck.feature)
+                features = setOf(
+                    SettingsBlocksCheck.feature,
+                    AccessOnCurrentReceiverCheck.feature,
+                    RunsBeforeClassScopeIsReady()
+                )
             ) { pluginManagementEvaluationSchema() },
 
             settingsPluginsInterpretationSequenceStep("settingsPlugins"),
             defineModelDefaultsInterpretationSequenceStep(softwareTypeRegistry),
-            SimpleInterpretationSequenceStepWithConversion("settings", features = setOf(UnsupportedSyntaxFeatureCheck.feature)) { settingsEvaluationSchema(settings) }
+            SimpleInterpretationSequenceStepWithConversion(
+                "settings",
+                features = setOf(UnsupportedSyntaxFeatureCheck.feature, AccessOnCurrentReceiverCheck.feature)
+            ) { settingsEvaluationSchema(settings) }
         )
     )
 

@@ -43,21 +43,6 @@ val architectureElements = mutableListOf<ArchitectureElementBuilder>()
 
 // If you include a new subproject here, consult internal documentation "Adding a new Build Tool subproject" page
 
-unassigned {
-    subproject("distributions-dependencies") // platform for dependency versions
-    subproject("core-platform")              // platform for Gradle distribution core
-}
-
-// Gradle Distributions - for testing and for publishing a full distribution
-unassigned {
-    subproject("distributions-full")
-}
-
-// Public API publishing
-unassigned {
-    subproject("public-api")
-}
-
 // Gradle implementation projects
 unassigned {
     subproject("core")
@@ -80,6 +65,7 @@ val core = platform("core") {
         subproject("build-process-services")
         subproject("build-profile")
         subproject("build-state")
+        subproject("classloaders")
         subproject("cli")
         subproject("client-services")
         subproject("concurrent")
@@ -158,6 +144,7 @@ val core = platform("core") {
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
+        subproject("model-reflect")
         subproject("model-groovy")
     }
 
@@ -166,15 +153,17 @@ val core = platform("core") {
         subproject("build-cache")
         subproject("build-cache-base")
         subproject("build-cache-example-client")
-        subproject("build-cache-local")
         subproject("build-cache-http")
+        subproject("build-cache-local")
         subproject("build-cache-packaging")
         subproject("build-cache-spi")
+        subproject("daemon-server-worker")
+        subproject("execution")
         subproject("execution-e2e-tests")
         subproject("file-watching")
-        subproject("execution")
         subproject("hashing")
         subproject("persistent-cache")
+        subproject("request-handler-worker")
         subproject("snapshots")
         subproject("worker-main")
         subproject("workers")
@@ -296,6 +285,14 @@ module("enterprise") {
     subproject("enterprise-workers")
 }
 
+packaging {
+    subproject("distributions-dependencies") // platform for dependency versions
+    subproject("core-platform")              // platform for Gradle distribution core
+    subproject("distributions-full")
+    subproject("public-api")                 // Public API publishing
+    subproject("internal-build-reports")     // Internal utility and verification projects
+}
+
 testing {
     subproject("architecture-test")
     subproject("distributions-integ-tests")
@@ -310,11 +307,6 @@ testing {
     subproject("soak")
     subproject("smoke-ide-test") // eventually should be owned by IDEX team
     subproject("smoke-test")
-}
-
-// Internal utility and verification projects
-unassigned {
-    subproject("internal-build-reports")
 }
 
 rootProject.name = "gradle"
@@ -463,6 +455,12 @@ fun platform(platformName: String, platformConfiguration: PlatformBuilder.() -> 
     platform.platformConfiguration()
     return platform
 }
+
+/**
+ * Defines the packaging module, for project helping package Gradle.
+ */
+fun packaging(moduleConfiguration: ProjectScope.() -> Unit) =
+    ProjectScope("packaging").moduleConfiguration()
 
 /**
  * Defines the testing module, for project helping test Gradle.

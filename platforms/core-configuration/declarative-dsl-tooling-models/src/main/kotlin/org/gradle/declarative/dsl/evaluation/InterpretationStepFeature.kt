@@ -16,19 +16,29 @@
 
 package org.gradle.declarative.dsl.evaluation
 
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.DocumentChecks
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.ResolutionResultPostprocessing
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.ResolutionResultPostprocessing.ApplyModelDefaults
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults
+import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature.RunsBeforeClassScopeIsReady
 import org.gradle.tooling.ToolingModelContract
+import java.io.Serializable
 
 
 @ToolingModelContract(subTypes = [
-    InterpretationStepFeature.DocumentChecks::class,
-    InterpretationStepFeature.ResolutionResultPostprocessing::class,
-    InterpretationStepFeature.ResolutionResultPostprocessing.DefineModelDefaults::class,
-    InterpretationStepFeature.ResolutionResultPostprocessing.ApplyModelDefaults::class
+    DocumentChecks::class,
+    RunsBeforeClassScopeIsReady::class,
+    ResolutionResultPostprocessing::class,
+        DefineModelDefaults::class,
+        ApplyModelDefaults::class
 ])
-sealed interface InterpretationStepFeature {
+sealed interface InterpretationStepFeature : Serializable {
     interface DocumentChecks : InterpretationStepFeature {
         val checkKeys: Iterable<String>
     }
+
+    interface RunsBeforeClassScopeIsReady : InterpretationStepFeature
+
     sealed interface ResolutionResultPostprocessing : InterpretationStepFeature {
         interface DefineModelDefaults : ResolutionResultPostprocessing
         interface ApplyModelDefaults : ResolutionResultPostprocessing

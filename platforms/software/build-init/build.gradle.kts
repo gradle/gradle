@@ -28,6 +28,7 @@ dependencies {
     api(projects.buildInitSpecs)
     api(projects.core)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.daemonServices)
     api(projects.dependencyManagement)
     api(projects.fileCollections)

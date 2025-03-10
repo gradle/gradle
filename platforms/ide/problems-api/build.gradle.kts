@@ -33,6 +33,7 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.enterpriseOperations)
 
     api(libs.guava)
     api(libs.inject)

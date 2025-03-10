@@ -11,6 +11,7 @@ dependencies {
     api(projects.buildOperations)
     api(projects.buildOption)
     api(projects.buildState)
+    api(projects.classloaders)
     api(projects.cli)
     api(projects.concurrent)
     api(projects.core)

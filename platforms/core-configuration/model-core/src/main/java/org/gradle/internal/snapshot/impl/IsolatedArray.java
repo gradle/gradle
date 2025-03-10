@@ -54,10 +54,24 @@ public class IsolatedArray extends AbstractArraySnapshot<Isolatable<?>> implemen
         return toReturn;
     }
 
+    @SuppressWarnings("unchecked")
     @Nullable
     @Override
     public <S> S coerce(Class<S> type) {
-        return null;
+        S result = null;
+        if (type.isArray()) {
+            try {
+                result = (S) Array.newInstance(type.getComponentType(), elements.size());
+                Object[] isolated = isolate();
+                for (int i = 0; i < isolated.length; i++) {
+                    Array.set(result, i, isolated[i]);
+                }
+            } catch (Exception e) {
+                // This method's contract is a "best-effort" so if given a non-array type or a different component type that fails to populate, that's fine
+                result = null;
+            }
+        }
+        return result;
     }
 
     public Class<?> getArrayType() {

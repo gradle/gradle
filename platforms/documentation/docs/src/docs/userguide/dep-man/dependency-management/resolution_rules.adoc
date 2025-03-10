@@ -47,7 +47,7 @@ Here are the key resolution strategies in Gradle:
 |Control which versions of a module are allowed. Reject specific versions that are known to be broken or undesirable.
 
 |<<sec:configuration-defaults,5>>
-|Default Dependencies
+|Setting Default Dependencies
 |Automatically add dependencies to a configuration when no dependencies are explicitly declared.
 
 |<<sec:exclude-trans-deps,6>>
@@ -182,7 +182,7 @@ include::sample[dir="snippets/dependencyManagement/customizingResolution-conditi
 [[sec:variant-aware-substitutions]]
 === Substituting a dependency with another variant
 
-You can substitute a dependency with another <<variant_model.adoc#sec:understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
+You can substitute a dependency with another <<variant_aware_resolution.adoc#sec:understanding-variant-selection,variant>>, such as switching between a platform dependency and a regular library dependency.
 
 This is useful when your build process needs to change the type of dependency based on specific conditions:
 
@@ -511,7 +511,6 @@ Below are two examples illustrating these use cases.
 
 This example demonstrates how to add a dependency to a configuration based on some condition, evaluated lazily:
 
-.Example 1: Conditionally Adding a Dependency
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=configuration-lazy-add-dependency]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=configuration-lazy-add-dependency]"]
@@ -521,7 +520,6 @@ In this case, `addLater` is used to defer the evaluation of the dependency, allo
 
 In this example, the build script sets a preferred version of a dependency, which will be used if no version is explicitly specified:
 
-Example 2: Preferring a Default Version of a Dependency
 ====
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/kotlin",files="build.gradle.kts[tags=preferred-version-constraints]"]
 include::sample[dir="snippets/dependencyManagement/customizingResolution-lazyDependencies/groovy",files="build.gradle[tags=preferred-version-constraints]"]

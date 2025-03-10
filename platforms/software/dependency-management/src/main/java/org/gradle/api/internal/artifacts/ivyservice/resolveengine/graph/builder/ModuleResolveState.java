@@ -154,6 +154,10 @@ public class ModuleResolveState implements CandidateModule {
         return versions;
     }
 
+    /**
+     * Get all versions of this module that have been seen during graph resolution,
+     * even those which are no longer candidates for selection.
+     */
     public Collection<ComponentState> getAllVersions() {
         return this.versions.values();
     }
