@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.InvalidUserCodeException;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -38,5 +39,8 @@ public interface GraphSelectionCandidates {
      * Returns the variant that is identified by the given configuration name.
      */
     @Nullable
-    VariantGraphResolveState getVariantByConfigurationName(String name);
+    default VariantGraphResolveState getVariantByConfigurationName(String name)  {
+        throw new InvalidUserCodeException("Cannot select a variant by configuration name from this component.");
+    }
+
 }
