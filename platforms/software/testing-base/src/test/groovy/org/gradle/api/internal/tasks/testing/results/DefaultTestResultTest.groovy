@@ -20,7 +20,9 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult.ResultType
+import org.junit.AssumptionViolatedException
 import spock.lang.Specification
 
 public class DefaultTestResultTest extends Specification {
@@ -31,6 +33,8 @@ public class DefaultTestResultTest extends Specification {
         state.completed(new TestCompleteEvent(200L, ResultType.SKIPPED))
 
         when:
+        def assumptionFailureException = new AssumptionViolatedException("")
+        state.assumptionFailure = TestFailure.fromAssumptionFailure(assumptionFailureException)
         def result = new DefaultTestResult(state)
 
         then:
@@ -41,5 +45,18 @@ public class DefaultTestResultTest extends Specification {
         result.testCount == state.testCount
         result.successfulTestCount == state.successfulCount
         result.failedTestCount == state.failedCount
+        result.assumptionFailureException == state.assumptionFailure.getRawFailure()
+    }
+
+    def "return null for unset assumption failure"() {
+        expect:
+        def state = new TestState(new DefaultTestDescriptor("12", "FooTest", "shouldWork"), new TestStartEvent(100L), new HashMap());
+        state.completed(new TestCompleteEvent(200L, ResultType.SKIPPED))
+
+        when:
+        def result = new DefaultTestResult(state)
+
+        then:
+        result.assumptionFailureException == null
     }
 }

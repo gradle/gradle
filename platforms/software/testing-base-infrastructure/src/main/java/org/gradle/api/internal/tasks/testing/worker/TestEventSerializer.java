@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.NonNullApi;
+import org.gradle.api.internal.tasks.testing.AssumptionTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultNestedTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultParameterizedTestDescriptor;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor;
@@ -64,6 +65,7 @@ public class TestEventSerializer {
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
         registry.register(DefaultTestFailure.class, new DefaultTestFailureSerializer(throwableSerializer));
+        registry.register(AssumptionTestFailure.class, new AssumptionTestFailureSerializer(throwableSerializer));
         return registry;
     }
 
@@ -166,6 +168,38 @@ public class TestEventSerializer {
             encoder.writeLong(value.getLogTime());
             destinationSerializer.write(encoder, value.getDestination());
             encoder.writeString(value.getMessage());
+        }
+    }
+
+    @NonNullApi
+    private static class AssumptionTestFailureSerializer implements Serializer<AssumptionTestFailure> {
+        private final Serializer<Throwable> throwableSerializer;
+
+        public AssumptionTestFailureSerializer(Serializer<Throwable> throwableSerializer) {
+            this.throwableSerializer = throwableSerializer;
+        }
+
+        @Override
+        public AssumptionTestFailure read(Decoder decoder) throws Exception {
+            Throwable rawFailure = readThrowableCatchingFailure(decoder);
+            return new AssumptionTestFailure(rawFailure);
+        }
+
+        private Throwable readThrowableCatchingFailure(Decoder decoder) throws IOException {
+            String rawFailureName = decoder.readString();
+            Throwable rawFailure;
+            try {
+                rawFailure = throwableSerializer.read(decoder);
+            } catch(Exception e) {
+                rawFailure = new TestFailureSerializationException("An exception of type " + rawFailureName + " was thrown by the test, but Gradle was unable to recreate the exception in the build process", e);
+            }
+            return rawFailure;
+        }
+
+        @Override
+        public void write(Encoder encoder, AssumptionTestFailure value) throws Exception {
+            encoder.writeString(value.getRawFailure().getClass().getName());
+            throwableSerializer.write(encoder, value.getRawFailure());
         }
     }
 
