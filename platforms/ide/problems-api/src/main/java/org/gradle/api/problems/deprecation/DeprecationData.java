@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.problems.internal.deprecation;
+package org.gradle.api.problems.deprecation;
 
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.AdditionalData;
-import org.gradle.api.problems.deprecation.ReportSource;
 
 import javax.annotation.Nullable;
 
