@@ -405,11 +405,11 @@ include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/kotlin
 include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/groovy",files="buildSrc/build.gradle[]"]
 ====
 
-In **precompiled script plugins** inside `buildSrc`, the version catalog can be accessed using `extensions.getByType(VersionCatalogsExtension).named("libs")`:
+In **precompiled script plugins** inside `buildSrc`, the version catalog can be accessed using `extensions.getByType(VersionCatalogsExtension)` as demonstrated in the dependencies block of this convention plugin:
 
 ====
 include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/kotlin",files="buildSrc/src/main/kotlin/java-commons-convention.gradle.kts[]"]
 include::sample[dir="snippets/dependencyManagement/catalogs-toml-buildSrc/groovy",files="buildSrc/src/main/groovy/java-commons-convention.gradle[]"]
 ====
 
-However, the plugins block in the **precompiled script plugins** does not allow access to the version catalog.
+However, the plugins block in the **precompiled script plugin** cannot access the version catalog.
