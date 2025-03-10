@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.SubtractingFileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -203,14 +204,39 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void setFromAnyValue(Object object) {
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
+        checkNoSelfReferences(fileCollection);
 
-        // Don't allow a += b or a = (a + b), this is not support
-        fileCollection.visitStructure(new FileCollectionStructureVisitor() {
+        setFrom(Cast.castNullable(FileCollection.class, object));
+    }
+
+    /**
+     * Verifies there is no self-referencing on value assignment.
+     * <p>
+     * Cover cases like: a += b, a = (a + b), a -= b, a = (a - b)
+     */
+    private void checkNoSelfReferences(FileCollectionInternal value) {
+        value.visitStructure(new FileCollectionStructureVisitor() {
+            private boolean isSubtracting = false;
+
             @Override
-            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
+            public boolean startVisit(Source source, FileCollectionInternal fileCollection) {
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
-                    throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
+                    if (isSubtracting) {
+                        throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Avoid usage of the minus() or minus-assign operators.");
+                    } else {
+                        throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
+                    }
                 }
+
+                if (fileCollection instanceof SubtractingFileCollection) {
+                    isSubtracting = true;
+                    SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
+                    subtraction.getLeft().visitStructure(this);
+                    if (subtraction.getRight() instanceof FileCollectionInternal) {
+                        ((FileCollectionInternal) subtraction.getRight()).visitStructure(this);
+                    }
+                }
+
                 // Only visit the children of a CompositeFileCollection but not other types of FileCollections,
                 // since we might accidentally resolve them, for example we don't want to resolve Configurations
                 return fileCollection instanceof CompositeFileCollection;
@@ -233,8 +259,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             }
         });
-
-        setFrom(Cast.castNullable(FileCollection.class, object));
     }
 
     @Override
