@@ -38,20 +38,16 @@ public interface BaseDeprecationSpec<T extends BaseDeprecationSpec<?>> {
 
     /**
      * Declares in which version the deprecated item will be removed.
-     * <p>
-     * <b>Note:</b> use this only when other version patterns are not fitting.
-     * When an opaque version is used, we cannot provide additional intelligence in the reports.
      *
      * @param version the version from which the deprecated behavior will be removed. E.g. "version-1.2.3"
      * @return the fluent builder used to call this
      * @since 8.14
-     * @see OpaqueDeprecatedVersion
      */
     T removedInVersion(String version);
 
     /**
-     * Declares longer - possibly multi-line - description of the deprecation. an optional reasoning why the deprecation is happening.
-     * Will be reported as a problem details
+     * Declares longer, potentially multi-line description of the deprecation.
+     * Will be reported as a problem details.
      *
      * @return the fluent builder used to call this
      * @since 8.14
