@@ -71,7 +71,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
     }
 
     protected FileCollection createDirView(final ConfigurableFileCollection dirs, final String conventionLocation) {
-        return getProjectLayout().files(new Callable<Object>() {
+        return getObjects().fileCollection().from(new Callable<Object>() {
             @Override
             public Object call() {
                 if (dirs.getFrom().isEmpty()) {
@@ -79,7 +79,7 @@ public abstract class DefaultCppComponent extends DefaultNativeComponent impleme
                 }
                 return dirs;
             }
-        });
+        }).builtBy(dirs);
     }
 
     @Override
