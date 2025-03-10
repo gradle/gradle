@@ -28,7 +28,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
         settingsFile << 'rootProject.name = "root"'
     }
 
-    def "Non-Java project has default output location"() {
+    def "non-Java project has default output location"() {
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
         EclipseOutputLocation output = project.getOutputLocation()

@@ -63,7 +63,7 @@ class InetAddressFactoryTest extends Specification {
         factory.localBindingAddress == new InetSocketAddress(0).address
     }
 
-    def "Always returns some communication address"() {
+    def "always returns some communication address"() {
         expect:
         new InetAddressFactory().localBindingAddress
     }

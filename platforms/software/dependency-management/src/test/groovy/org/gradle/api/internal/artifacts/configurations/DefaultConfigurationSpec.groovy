@@ -836,7 +836,7 @@ class DefaultConfigurationSpec extends Specification {
     }
 
     @Issue("gradle/gradle#1567")
-    def "A copy of a configuration that has no resolution listeners also has no resolution listeners"() {
+    def "a copy of a configuration that has no resolution listeners also has no resolution listeners"() {
         given:
         def config = conf("conf")
 

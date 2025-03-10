@@ -117,7 +117,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         buildType.sources.@creator[0] == 'Rules#buildType(BuildType)'
     }
 
-    def "An LSS can be an element of managed collections"() {
+    def "an LSS can be an element of managed collections"() {
         buildFile << """
         ${registerCustomLanguage()}
 

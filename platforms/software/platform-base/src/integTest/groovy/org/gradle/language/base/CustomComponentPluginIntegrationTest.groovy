@@ -216,7 +216,7 @@ BUILD SUCCESSFUL"""
         succeeds "checkModel"
     }
 
-    def "Can define and create multiple component types in the same plugin"(){
+    def "can define and create multiple component types in the same plugin"(){
         when:
         buildFile << '''
             interface SampleLibrary extends LibrarySpec {}

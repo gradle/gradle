@@ -78,7 +78,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         metadata.id == componentId('group-one', 'artifact-one', 'my-version-SNAPSHOT')
     }
 
-    def "Retrieves variables from parent"() {
+    def "retrieves variables from parent"() {
         given:
         def parent = tmpDir.file("parent.xlm") << """
 <project>
