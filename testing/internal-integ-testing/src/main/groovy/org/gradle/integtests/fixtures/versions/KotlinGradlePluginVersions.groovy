@@ -87,10 +87,6 @@ class KotlinGradlePluginVersions {
         }
     }
 
-    List<String> latestsStableOrRCGreaterOrEqualTo(VersionNumber version) {
-        return latestsStableOrRC.findAll { VersionNumber.parse(it).baseVersion >= version }
-    }
-
     String getLatestStableOrRC() {
         return latestsStableOrRC.last()
     }

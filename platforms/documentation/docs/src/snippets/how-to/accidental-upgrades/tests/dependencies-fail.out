@@ -1,0 +1,15 @@
+> Task :dependencies FAILED
+
+------------------------------------------------------------
+Root project 'how_to_prevent_accidental_upgrades'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':dependencies'.
+> Could not resolve all dependencies for configuration ':runtimeClasspath'.
+   > Conflict found for the following module:
+       - org.apache.commons:commons-lang3 between versions 3.2 and 3.1

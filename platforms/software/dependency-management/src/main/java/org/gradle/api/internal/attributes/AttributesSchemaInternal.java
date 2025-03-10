@@ -18,10 +18,13 @@ package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.Map;
 import java.util.Set;
 
+@ServiceScope(Scope.Project.class)
 public interface AttributesSchemaInternal extends AttributesSchema {
 
     /**

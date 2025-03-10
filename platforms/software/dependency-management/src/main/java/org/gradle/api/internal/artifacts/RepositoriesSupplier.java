@@ -16,9 +16,12 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.List;
 import java.util.function.Supplier;
 
+@ServiceScope(Scope.Project.class)
 public interface RepositoriesSupplier extends Supplier<List<ResolutionAwareRepository>> {
 }

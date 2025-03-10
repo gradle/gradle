@@ -144,7 +144,7 @@ In the `withDependencies` block, you have access to the full list of dependencie
 Similarly, you can inspect and modify dependency constraints within the `withDependencyConstraints` block.
 
 In Jaxen version `1.1.4`, the `dom4j`, `jdom`, and `xerces` dependencies are still present but marked as **optional**.
-Optional dependencies are not processed automatically by Gradle or Maven, as they indicate <<feature_variants.adoc#feature_variants,feature variants>> that require additional dependencies.
+Optional dependencies are not processed automatically by Gradle or Maven, as they indicate <<how_to_create_feature_variants_of_a_library#feature_variants,feature variants>> that require additional dependencies.
 However, the `pom` file lacks information about these features and their corresponding dependencies.
 This can be represented in Gradle Module Metadata through variants and <<component_capabilities.adoc#sec:declaring-component-capabilities,capabilities>>, which we can add via a component metadata rule.
 
@@ -279,7 +279,7 @@ Gradle fails to select a variant because a machine architecture needs to be chos
 [[sec:making-library-flavors]]
 == Making different flavors of a library available through capabilities
 
-Because it is difficult to model <<feature_variants.adoc#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
+Because it is difficult to model <<how_to_create_feature_variants_of_a_library#feature_variants,optional feature variants>> as separate jars with pom metadata, libraries sometimes comprise different jars with different feature sets.
 That is, instead of composing your flavor of the library from different feature variants, you select one of the pre-composed variants (offering everything in one jar).
 One such library is the well-known dependency injection framework Guice, published on link:https://repo1.maven.org/maven2/com/google/inject/guice/4.2.2[Maven central], which offers a complete flavor (the main jar) and a reduced variant without aspect-oriented programming support (`guice-4.2.2-no_aop.jar`).
 That second variant with a classifier is not mentioned in the pom metadata.
@@ -343,7 +343,7 @@ While all the examples above made modifications to variants of a component, ther
 This information can influence the <<graph_resolution.adoc#sec:conflict-resolution,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
-It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
+It is explained in detail in the section on <<how_to_align_dependency_versions.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
 
 [[sec:custom-status-scheme]]
 == Modifying metadata on the component level for version selection based on status

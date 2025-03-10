@@ -380,3 +380,18 @@ include::sample[dir="snippets/dependencyManagement/declaringDependencies-changin
 
 Gradle is flexible enough to treat any version as a changing version.
 All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
+
+[[sec:versioning_file_dependencies]]
+== Versioning file dependencies
+
+It is recommended to clearly express the intention and specify a concrete version when using <<declaring_dependencies_basics.adoc#sec:file-dependencies,file dependencies>>.
+
+File dependencies are not considered by Gradle's <<graph_resolution.adoc#sec:how-gradle-downloads-deps,version conflict resolution>>.
+Therefore, assigning a version to the file name is crucial to indicate the distinct set of changes included in each release.
+
+For example, using `commons-beanutils-1.3.jar` allows tracking changes in the library through its release notes.
+
+By following this practice:
+
+* Project dependencies become easier to maintain and organize.
+* Potential API incompatibilities are easier to identify through the assigned version.
