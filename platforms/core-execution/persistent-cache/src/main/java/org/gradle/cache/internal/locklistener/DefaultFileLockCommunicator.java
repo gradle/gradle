@@ -49,7 +49,7 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
     }
 
     @Override
-    public boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName) {
+    public boolean pingOwner(InetAddress address, String pid, int ownerPort, long lockId, String displayName) {
         boolean pingSentSuccessfully = false;
         byte[] bytesToSend = FileLockPacketPayload.encode(lockId, UNLOCK_REQUEST);
         try {
@@ -62,12 +62,12 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
     }
 
     @Override
-    public Optional<DatagramPacket> receive() throws IOException {
+    public Optional<FileLockPacket> receive() throws IOException {
         try {
             byte[] bytes = new byte[FileLockPacketPayload.MAX_BYTES];
             DatagramPacket packet = new DatagramPacket(bytes, bytes.length);
             socket.receive(packet);
-            return Optional.of(packet);
+            return Optional.of(FileLockPacket.of(packet));
         } catch (IOException e) {
             // Socket was shutdown while waiting to receive message
             if (socket.isClosed()) {
@@ -78,7 +78,7 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
     }
 
     @Override
-    public FileLockPacketPayload decode(DatagramPacket receivedPacket) {
+    public FileLockPacketPayload decode(FileLockPacket receivedPacket) {
         return FileLockPacketPayload.decode(receivedPacket.getData(), receivedPacket.getLength());
     }
 
@@ -118,5 +118,11 @@ public class DefaultFileLockCommunicator implements FileLockCommunicator {
     @Override
     public int getPort() {
         return socket.getLocalPort();
+    }
+
+    @Override
+    public String createFileLockOwnerId(String pid, int port) {
+        // Port is unique for inet sockets
+        return Integer.toString(port);
     }
 }

@@ -19,7 +19,6 @@ package org.gradle.cache.internal.locklistener;
 import org.gradle.api.NonNullApi;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.util.Optional;
@@ -27,11 +26,11 @@ import java.util.Set;
 
 @NonNullApi
 public interface FileLockCommunicator {
-    boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName);
+    boolean pingOwner(InetAddress address, String pid, int ownerPort, long lockId, String displayName);
 
-    Optional<DatagramPacket> receive() throws IOException;
+    Optional<FileLockPacket> receive() throws IOException;
 
-    FileLockPacketPayload decode(DatagramPacket receivedPacket);
+    FileLockPacketPayload decode(FileLockPacket receivedPacket);
 
     void confirmUnlockRequest(SocketAddress requesterAddress, long lockId);
 
@@ -40,4 +39,6 @@ public interface FileLockCommunicator {
     void stop();
 
     int getPort();
+
+    String createFileLockOwnerId(String pid, int port);
 }
