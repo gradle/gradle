@@ -16,12 +16,14 @@
 
 package org.gradle.api.problems.internal.deprecation;
 
+import org.gradle.api.problems.deprecation.DeprecationData;
 import org.gradle.api.problems.deprecation.ReportSource;
+import org.gradle.api.problems.internal.AdditionalDataBuilder;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 
-class DefaultDeprecationData implements DeprecationData, Serializable {
+public class DefaultDeprecationData implements DeprecationData, Serializable {
 
     private final ReportSource reportSource;
     private final String removedIn;
@@ -58,14 +60,20 @@ class DefaultDeprecationData implements DeprecationData, Serializable {
         return reason;
     }
 
-    static class Builder implements DeprecationDataSpec {
-        private final ReportSource reportSource;
+    static class Builder implements DeprecationDataSpec, AdditionalDataBuilder<DeprecationData> {
+        private ReportSource reportSource;
         private String removedIn;
         private String replacedBy;
         private String reason;
 
         public Builder(ReportSource reportSource) {
             this.reportSource = reportSource;
+        }
+
+        @Override
+        public DeprecationDataSpec source(ReportSource source) {
+            this.reportSource = source;
+            return this;
         }
 
         @Override
@@ -86,6 +94,7 @@ class DefaultDeprecationData implements DeprecationData, Serializable {
             return this;
         }
 
+        @Override
         public DeprecationData build() {
             return new DefaultDeprecationData(reportSource, removedIn, replacedBy, reason);
         }
