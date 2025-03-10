@@ -53,7 +53,6 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
     def sourceZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
-        // TODO Need to update src distribution to include "packaging"
 
         expect:
         !contentsDir.file(".git").exists()
