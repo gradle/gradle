@@ -43,7 +43,7 @@ class S3ClientTest extends Specification {
         _ * s3ConnectionProperties.getMultipartThreshold() >> 1024
     }
 
-    def "Should upload to s3"() {
+    def "should upload to s3"() {
         given:
         AmazonS3Client amazonS3Client = Mock()
         S3Client client = new S3Client(amazonS3Client, s3ConnectionProperties)
@@ -61,7 +61,7 @@ class S3ClientTest extends Specification {
         }
     }
 
-    def "Should upload large files to s3 using the multi-part API"() {
+    def "should upload large files to s3 using the multi-part API"() {
         given:
         AmazonS3Client amazonS3Client = Mock()
         S3ConnectionProperties s3Properties = Stub()

@@ -101,7 +101,7 @@ class TestLauncherTestSpecCrossVersionSpec extends TestLauncherSpec {
 
     @TargetGradleVersion(">=8.4")
     @Issue("https://github.com/gradle/gradle/issues/26056")
-    def "Can execute same tests within different tests types with configuration cache enabled"() {
+    def "can execute same tests within different tests types with configuration cache enabled"() {
         when:
         launchTests { TestLauncher launcher ->
             launcher.withArguments("--configuration-cache")

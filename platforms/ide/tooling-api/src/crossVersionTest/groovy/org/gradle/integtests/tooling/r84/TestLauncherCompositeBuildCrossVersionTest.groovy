@@ -38,7 +38,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         BUILD_LAUNCHER
     }
 
-    def "Can run tasks from included builds"() {
+    def "can run tasks from included builds"() {
         given:
         def runTestClass = withIncludedBuildTest(api)
 
@@ -66,7 +66,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
 
     @Issue('https://github.com/gradle/gradle/issues/26206')
     @Issue('https://github.com/gradle/gradle/issues/24550')
-    def "Can run tasks from included builds when configuration cache is enabled"() {
+    def "can run tasks from included builds when configuration cache is enabled"() {
         given:
         def runTestClass = withIncludedBuildTest(api)
 
@@ -103,7 +103,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         api << LauncherApi.values()
     }
 
-    def "Can run tasks from included build subproject"() {
+    def "can run tasks from included build subproject"() {
         given:
         def runTestClass = withIncludedBuildSubprojectTest(api)
 
@@ -131,7 +131,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
 
     @Issue('https://github.com/gradle/gradle/issues/26206')
     @Issue('https://github.com/gradle/gradle/issues/24550')
-    def "Can run tasks from included build subproject when configuration cache is enabled"() {
+    def "can run tasks from included build subproject when configuration cache is enabled"() {
         given:
         def runTestClass = withIncludedBuildSubprojectTest(api)
 
@@ -168,7 +168,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
         api << LauncherApi.values()
     }
 
-    def "Can run tasks from nested included build buildSrc"() {
+    def "can run tasks from nested included build buildSrc"() {
         given:
         def runTestClass = withIncludedBuildBuildSrcTest(api)
 
@@ -195,7 +195,7 @@ class TestLauncherCompositeBuildCrossVersionTest extends ToolingApiSpecification
     }
 
     @Issue('https://github.com/gradle/gradle/issues/26206')
-    def "Can run tasks from nested included build buildSrc when configuration cache is enabled"() {
+    def "can run tasks from nested included build buildSrc when configuration cache is enabled"() {
         given:
         def runTestClass = withIncludedBuildBuildSrcTest(api)
 

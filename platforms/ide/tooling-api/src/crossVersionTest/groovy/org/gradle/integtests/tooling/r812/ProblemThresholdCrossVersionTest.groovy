@@ -63,7 +63,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
         summaries.get(0).count == exceedingCount
     }
 
-    def "No summaries if no events exceeded the threshold"() {
+    def "no summaries if no events exceeded the threshold"() {
         def totalSentEventsCount = THRESHOLD + exceedingCount
         given:
         buildFile getProblemReportingScript("${getProblemReportingBody(totalSentEventsCount)}")
@@ -91,7 +91,7 @@ class ProblemThresholdCrossVersionTest extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=8.10.2 <8.11")
-    def "No summaries received from Gradle versions before 8.12"() {
+    def "no summaries received from Gradle versions before 8.12"() {
         given:
         def exceedingCount = 2
         buildFile getBuildScriptSampleContent(false, false, targetVersion, THRESHOLD + exceedingCount)

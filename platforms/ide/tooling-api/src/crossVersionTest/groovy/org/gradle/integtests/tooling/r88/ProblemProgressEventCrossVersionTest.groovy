@@ -155,7 +155,7 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         problems.size() == 0
     }
 
-    def "Can serialize groovy compilation error"() {
+    def "can serialize groovy compilation error"() {
         buildFile """
             tasks.register("foo) {
         """
