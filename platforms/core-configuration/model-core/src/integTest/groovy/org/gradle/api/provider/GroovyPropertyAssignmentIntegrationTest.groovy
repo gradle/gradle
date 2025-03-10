@@ -16,8 +16,7 @@
 
 package org.gradle.api.provider
 
-import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
-import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.executer.GradleContextualExecuter.configCache
 
@@ -222,17 +221,21 @@ class GroovyPropertyAssignmentIntegrationTest extends AbstractProviderOperatorIn
         "FileCollection += Iterable<File>" | "+="      | "ConfigurableFileCollection" | '[file("a.txt")]'       | unsupportedWithCause("Failed to cast object")
     }
 
-    @ToBeImplemented("Needs a fix for -= cycle detection")
-    @ToBeFixedForConfigurationCache(because = "With cc it throws 'Could not load the value of field `left` of `org.gradle.internal.serialize.codecs.core.SubtractingFileCollectionSpec`'")
-    def "lazy ConfigurableFileCollection -= throws meaningful error"() {
+    @Issue("https://github.com/gradle/gradle/issues/32177")
+    def "lazy ConfigurableFileCollection self-referencing assignment with subtraction '#description' throws meaningful error"() {
         def inputDeclaration = "abstract ConfigurableFileCollection getInput()"
-        def inputValue = 'files("a.txt")'
-        def operation = "-="
         groovyBuildFile(inputDeclaration, inputValue, operation)
 
         expect:
-        // Fix: It should have a more meaningful error message than StackOverflowError
-        runAndAssert("myTask", unsupportedWithCause("java.lang.StackOverflowError"))
+        runAndAssert("myTask", unsupportedWithCause("Self-referencing ConfigurableFileCollections are not supported. Avoid usage of the minus() or minus-assign operators."))
+
+        where:
+        description         | operation | inputValue
+        "a -= b"            | "-="      | 'files("b.txt")'
+        "a = (a - b)"       | "="       | '(input - files("b.txt"))'
+        "a = (b - a)"       | "="       | '(files("b.txt") - input)'
+        "a = (b + (a - c))" | "="       | '(files("b.txt") + (input - files("c.txt")))'
+        "a = (b + (c - a))" | "="       | '(files("b.txt") + (files("c.txt") - input))'
     }
 
     def "lazy FileCollection variables assignment for #description"() {
