@@ -31,9 +31,15 @@ import static org.gradle.internal.execution.UnitOfWork.OverlappingOutputHandling
 
 abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExecutionContext> extends StepSpec<C> {
 
-    def classloaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
+    interface MyWorkClass extends UnitOfWork {
+    }
+
+    def classloaderHierarchyHasher = Stub(ClassLoaderHierarchyHasher) {
+        getClassLoaderHash(_ as ClassLoader) >> TestHashCodes.hashCodeFrom(1234)
+    }
     def inputFingerprinter = Mock(InputFingerprinter)
-    def implementationSnapshot = ImplementationSnapshot.of("MyWorkClass", TestHashCodes.hashCodeFrom(1234))
+    def implementationType = MyWorkClass
+    def implementationSnapshot = ImplementationSnapshot.of(implementationType.name, TestHashCodes.hashCodeFrom(1234))
 
     abstract AbstractCaptureStateBeforeExecutionStep<PreviousExecutionContext, CachingResult> getStep()
 
@@ -64,9 +70,9 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
 
         then:
         _ * work.visitImplementations(_) >> { UnitOfWork.ImplementationVisitor visitor ->
-            visitor.visitImplementation(implementationSnapshot)
+            visitor.visitImplementation(implementationType)
             additionalImplementations.each {
-                visitor.visitImplementation(it)
+                visitor.visitAdditionalImplementation(it)
             }
         }
         interaction { snapshotState() }
@@ -100,6 +106,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             ImmutableSortedMap.of(),
             knownInputProperties,
             knownInputFileProperties,
+            _,
             _
         ) >> new DefaultInputFingerprinter.InputFingerprints(
             knownInputProperties,
@@ -135,6 +142,7 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
+            _,
             _
         ) >> { throw failure }
         interaction { snapshotState() }
@@ -147,9 +155,9 @@ abstract class AbstractCaptureStateBeforeExecutionStepTest<C extends PreviousExe
         _ * context.shouldCaptureBeforeExecutionState() >> true
         _ * context.previousExecutionState >> Optional.empty()
         _ * work.visitImplementations(_ as UnitOfWork.ImplementationVisitor) >> { UnitOfWork.ImplementationVisitor visitor ->
-            visitor.visitImplementation(implementationSnapshot)
+            visitor.visitImplementation(implementationType)
         }
-        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
+        _ * inputFingerprinter.fingerprintInputProperties(_, _, _, _, _, _) >> new DefaultInputFingerprinter.InputFingerprints(ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSortedMap.of(), ImmutableSet.of())
         _ * work.overlappingOutputHandling >> IGNORE_OVERLAPS
     }
 
