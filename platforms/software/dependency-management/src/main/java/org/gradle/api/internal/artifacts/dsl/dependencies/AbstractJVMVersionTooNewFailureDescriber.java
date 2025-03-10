@@ -61,7 +61,7 @@ public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractR
             .collect(Collectors.toList());
         if (!libraryCandidates.isEmpty()) {
             boolean requestingJDKVersion = failure.getRequestedAttributes().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
-            boolean allIncompatibleDueToJDKVersion = libraryCandidates.stream().allMatch(this::isJVMVersionAttributeIncompatible);
+            boolean allIncompatibleDueToJDKVersion = failure.getCompletelyIncompatibleAttributes().keySet().contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
             return requestingJDKVersion && allIncompatibleDueToJDKVersion;
         } else {
             return false;
@@ -93,10 +93,6 @@ public abstract class AbstractJVMVersionTooNewFailureDescriber extends AbstractR
             }
         }
         return false;
-    }
-
-    private boolean isJVMVersionAttributeIncompatible(ResolutionCandidateAssessor.AssessedCandidate candidate) {
-        return candidate.getIncompatibleAttributes().stream().anyMatch(this::isJVMVersionAttribute);
     }
 
     private boolean isJVMVersionAttribute(ResolutionCandidateAssessor.AssessedAttribute<?> attribute) {
