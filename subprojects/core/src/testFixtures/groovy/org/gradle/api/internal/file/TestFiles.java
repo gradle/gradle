@@ -171,6 +171,7 @@ public class TestFiles {
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
             propertyFactory(),
+            filePropertyFactory(basedDir),
             fileSystem,
             getPatternSetFactory(),
             deleter(),

@@ -102,7 +102,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         startScriptsTask.applicationName.get() == 'SuperApp'
 
         def installTest = project.tasks[DistributionPlugin.TASK_INSTALL_NAME]
-        installTest.destinationDir == project.file("build/install/SuperApp")
+        installTest.destinationDir.get().getAsFile() == project.file("build/install/SuperApp")
 
         def distZipTask = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         distZipTask.archiveFileName.get() == "SuperApp.zip"

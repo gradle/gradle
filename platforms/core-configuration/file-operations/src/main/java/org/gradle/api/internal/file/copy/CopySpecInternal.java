@@ -16,12 +16,13 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.SyncSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternFilterable;
 
 import javax.annotation.Nullable;
-import java.io.File;
 
 public interface CopySpecInternal extends SyncSpec {
 
@@ -56,8 +57,7 @@ public interface CopySpecInternal extends SyncSpec {
     @Override
     CopySpecInternal preserve(Action<? super PatternFilterable> action);
 
-    @Nullable
-    File getDestinationDir();
+    Provider<Directory> getDestinationDir();
 
     /**
      * Listener triggered when a spec is added to the hierarchy.

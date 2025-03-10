@@ -95,6 +95,10 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
 
         given:
         AGP_VERSIONS.assumeCurrentJavaVersionIsSupportedBy(agpVersion)
+        // Only AGP > 7 && AGP != 8.10.0-dev works with Copy/Sync.destinationDir upgrade
+        // TODO: Gradle 9: remove 8.10.0-dev case when 8.10.0-dev version is updated
+        assumeTrue(VersionNumber.parse(agpVersion).major >= 8)
+        assumeTrue(agpVersion != "8.10.0-dev")
 
         and:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)
