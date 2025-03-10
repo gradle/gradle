@@ -106,14 +106,4 @@ object BuildEnvironment {
     val isIntel: Boolean = architecture == "x86_64" || architecture == "x86"
     val isSlowInternetConnection
         get() = System.getProperty("slow.internet.connection", "false")!!.toBoolean()
-    val agentNum: Int
-        get() {
-            if (System.getenv().containsKey("USERNAME")) {
-                val agentNumEnv = System.getenv("USERNAME").replaceFirst("tcagent", "")
-                if (Regex("""\d+""").containsMatchIn(agentNumEnv)) {
-                    return agentNumEnv.toInt()
-                }
-            }
-            return 1
-        }
 }
