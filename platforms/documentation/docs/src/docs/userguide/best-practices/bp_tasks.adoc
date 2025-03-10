@@ -21,7 +21,8 @@ The task link:{javadocPath}/org/gradle/api/DefaultTask.html#setDependsOn(java.la
 
 === Explanation
 Tasks with actions should declare their inputs and outputs so that Gradle’s up-to-date checking can automatically determine when these tasks need to be run or rerun.
-Using `dependsOn` to link tasks is a much coarser-grained mechanism that does **not** allow Gradle to understand why a task requires a prerequisite task to run.
+Using `dependsOn` to link tasks is a much coarser-grained mechanism that does **not** allow Gradle to understand why a task requires a prerequisite task to run or which specific files from a prerequisite task are needed; it forces the assumption that _every_ file produced by the prerequisite task is needed by this task.
+This can lead to unnecessary task execution and decreased build performance.
 
 === Example
 
