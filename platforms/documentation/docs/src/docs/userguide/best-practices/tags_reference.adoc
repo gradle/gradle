@@ -1,3 +1,4 @@
+[[tags_reference]]
 # Tags Used in Best Practices
 
 Here you can find a brief explanation of all the tags used in the best practices documentation.

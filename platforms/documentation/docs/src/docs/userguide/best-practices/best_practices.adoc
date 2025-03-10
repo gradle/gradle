@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[best_practices]]
 = Best Practices for Authoring Gradle Builds
 
 == Introduction
@@ -49,4 +50,4 @@ The items in this guide are meant to be _brief_, _understandable_, and _actionab
 
 == Further Reference
 
-- <<tags_reference.adoc,Tags Used in Best Practices>>
+- <<tags_reference.adoc#tags_reference,Tags Used in Best Practices>>
