@@ -51,6 +51,7 @@ class DependencyManagementProjectScopeServices implements ServiceRegistrationPro
         registration.add(DefaultExternalResourceFileStore.Factory.class);
         registration.add(DefaultArtifactIdentifierFileStore.Factory.class);
         registration.add(TransformStepNodeDependencyResolver.class);
+        registration.add(DependencyManagementMangedTypesFactory.class);
     }
 
     /** This is needed in order to get the {@code taskDependencyFactory} from the current project. */
