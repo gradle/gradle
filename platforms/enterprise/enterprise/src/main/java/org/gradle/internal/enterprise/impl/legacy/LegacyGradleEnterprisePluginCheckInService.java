@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginAdapter;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
+import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.scan.config.BuildScanConfig;
 import org.gradle.internal.scan.config.BuildScanConfigProvider;
 import org.gradle.internal.scan.config.BuildScanPluginMetadata;
@@ -32,6 +33,7 @@ import org.gradle.util.internal.VersionNumber;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.util.List;
 
 @ServiceScope(Scope.Build.class)
 public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConfigProvider, BuildScanEndOfBuildNotifier {
@@ -206,7 +208,7 @@ public class LegacyGradleEnterprisePluginCheckInService implements BuildScanConf
         }
 
         @Override
-        public void buildFinished(@Nullable Throwable buildFailure) {
+        public void buildFinished(@Nullable Throwable buildFailure, @Nullable List<Failure> richBuildFailures) {
             if (listener != null) {
                 listener.execute(new BuildResult() {
                     @Nullable
