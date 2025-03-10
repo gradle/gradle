@@ -40,6 +40,7 @@ dependencies {
     api(libs.jsr305)
 
     implementation(projects.baseServices)
+    implementation(projects.baseServicesGroovy)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)
     implementation(projects.fileCollections)
