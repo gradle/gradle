@@ -257,7 +257,7 @@ IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
  *
  * B
  */
- ```
+```
 
 ```text
 /**
@@ -265,7 +265,7 @@ IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
  * <p>
  * B
  */
- ```
+```
 
 Render as:
 
@@ -281,10 +281,10 @@ If you want to stop IntelliJ IDEA from auto closing HTML tags:
 
 Android studio will not display Javadoc following a `<p>` so make sure your summary fragment is well detailed:
 
-```java
+```text
 /**
  * A // Displayed
  * <p>
  * B // Not displayed
  */
- ```
+```
