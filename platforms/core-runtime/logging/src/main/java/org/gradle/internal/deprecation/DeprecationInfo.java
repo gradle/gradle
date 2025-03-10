@@ -95,7 +95,7 @@ public class DeprecationInfo {
         }
 
         public void replaceWith(String replaceWith) {
-            this.replaceWith = replaceWith;;
+            this.replaceWith = replaceWith;
         }
     }
 }
