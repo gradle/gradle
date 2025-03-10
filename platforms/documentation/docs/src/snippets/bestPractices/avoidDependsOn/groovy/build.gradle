@@ -1,0 +1,54 @@
+// tag::depended-upon-task-setup[]
+abstract class SimplePrintingTask extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getMessageFile()
+
+    @OutputFile
+    abstract RegularFileProperty getAudienceFile()
+
+    @TaskAction // <1>
+    void run() {
+        messageFile.get().asFile.write("Hello")
+        audienceFile.get().asFile.write("World")
+    }
+}
+
+tasks.register("helloWorld", SimplePrintingTask) { // <2>
+    messageFile = layout.buildDirectory.file("message.txt")
+    audienceFile = layout.buildDirectory.file("audience.txt")
+}
+// end::depended-upon-task-setup[]
+
+// tag::avoid-this[]
+abstract class SimpleTranslationTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getMessageFile()
+
+    @OutputFile
+    abstract RegularFileProperty getTranslatedFile()
+
+    SimpleTranslationTask() {
+        messageFile.convention(project.layout.buildDirectory.file("message.txt"))
+        translatedFile.convention(project.layout.buildDirectory.file("translated.txt"))
+    }
+
+    @TaskAction // <1>
+    void run() {
+        def message = messageFile.get().asFile.text
+        def translatedMessage = message == "Hello" ? "Bonjour" : "Unknown"
+
+        logger.lifecycle("Translation: " + translatedMessage)
+        translatedFile.get().asFile.write(translatedMessage)
+    }
+}
+
+tasks.register("translateBad", SimpleTranslationTask) {
+    dependsOn(tasks.named("helloWorld")) // <2>
+}
+// end::avoid-this[]
+
+// tag::do-this[]
+tasks.register("translateGood", SimpleTranslationTask) {
+    inputs.file(tasks.named("helloWorld", SimplePrintingTask).get().messageFile) // <1>
+}
+// end::do-this[]
