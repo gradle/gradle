@@ -274,7 +274,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Simply remove the call. " +
                     "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#for_use_at_configuration_time_deprecation"
+                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation"
             )
         }
 
