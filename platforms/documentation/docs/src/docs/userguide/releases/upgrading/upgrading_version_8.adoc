@@ -46,6 +46,12 @@ The `Settings.getDefaults()` incubating method introduced in 8.10 has been remov
 Use`Settings.defaults(Action<SharedModelDefaults>)` method, taking a lambda, instead.
 The change is driven by the need to interpret such default values in the scope of individual projects and not at Settings level.
 
+==== Upgrade to Groovy 3.0.24
+
+Groovy has been updated to https://groovy-lang.org/changelogs/changelog-3.0.24.html[Groovy 3.0.24].
+
+Since the previous version was 3.0.22, this includes changes for https://groovy-lang.org/changelogs/changelog-3.0.23.html[Groovy 3.0.23] as well.
+
 === Deprecations
 
 [[null-attribute-lookup]]
