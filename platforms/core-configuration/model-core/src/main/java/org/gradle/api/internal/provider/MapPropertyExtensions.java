@@ -92,9 +92,11 @@ public final class MapPropertyExtensions {
      *
      * @param self the {@link MapProperty}
      * @param entries the entries
+     * @return self
      */
-    public static <K, V> void leftShift(MapProperty<K, V> self, Map<? extends K, ? extends V> entries) {
+    public static <K, V> MapProperty<K, V> leftShift(MapProperty<K, V> self, Map<? extends K, ? extends V> entries) {
         self.putAll(entries);
+        return self;
     }
 
     /**
@@ -104,8 +106,10 @@ public final class MapPropertyExtensions {
      *
      * @param self the {@link MapProperty}
      * @param provider the entries
+     * @return self
      */
-    public static <K, V> void leftShift(MapProperty<K, V> self, Provider<? extends Map<? extends K, ? extends V>> provider) {
+    public static <K, V> MapProperty<K, V> leftShift(MapProperty<K, V> self, Provider<? extends Map<? extends K, ? extends V>> provider) {
         self.putAll(provider);
+        return self;
     }
 }

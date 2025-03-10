@@ -31,9 +31,11 @@ public final class CollectionPropertyExtensions {
      *
      * @param self the {@link org.gradle.api.provider.ListProperty} or the {@link org.gradle.api.provider.SetProperty}
      * @param element the element
+     * @return self
      */
-    public static <T> void leftShift(HasMultipleValues<T> self, T element) {
+    public static <T> HasMultipleValues<T> leftShift(HasMultipleValues<T> self, T element) {
         self.add(element);
+        return self;
     }
 
     /**
@@ -43,8 +45,10 @@ public final class CollectionPropertyExtensions {
      *
      * @param self the {@link org.gradle.api.provider.ListProperty} or the {@link org.gradle.api.provider.SetProperty}
      * @param provider the provider of the element
+     * @return self
      */
-    public static <T> void leftShift(HasMultipleValues<T> self, Provider<? extends T> provider) {
+    public static <T> HasMultipleValues<T> leftShift(HasMultipleValues<T> self, Provider<? extends T> provider) {
         self.add(provider);
+        return self;
     }
 }
