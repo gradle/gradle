@@ -187,7 +187,6 @@ Required by:
                 assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
                 assert selectors[2].displayName == 'project :${buildName}:a'
                 assert selectors[2].buildPath == ':${buildName}'
-                assert selectors[2].buildName == '${buildName}'
                 assert selectors[2].projectPath == ':a'
             }
         """
@@ -196,7 +195,6 @@ Required by:
             executer.expectDocumentedDeprecationWarning("The BuildIdentifier.getName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
             executer.expectDocumentedDeprecationWarning("The BuildIdentifier.isCurrentBuild() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
         }
-        executer.expectDocumentedDeprecationWarning("The ProjectComponentSelector.getBuildName() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use getBuildPath() to get a unique identifier for the build. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#build_identifier_name_and_current_deprecation")
 
         expect:
         succeeds(":assemble")
