@@ -1016,7 +1016,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private static AdditionalData toAdditionalData(InternalAdditionalData additionalData) {
         if (additionalData instanceof InternalProxiedAdditionalData) {
-            return new DefaultCustomAdditionalData(additionalData.getAsMap(), ((InternalProxiedAdditionalData) additionalData).getProxy());
+            Object proxy = ((InternalProxiedAdditionalData) additionalData).getProxy();
+            return new DefaultCustomAdditionalData(additionalData.getAsMap(), proxy);
         }
         if (additionalData == null) {
             return new DefaultAdditionalData(Collections.<String, Object>emptyMap());

@@ -29,7 +29,7 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.requestHandlerWorker)
     implementation(projects.serialization)
-    implementation(projects.snapshots)
+    implementation(projects.snapshotsWorker)
     implementation(projects.time)
 
     implementation(libs.slf4jApi)

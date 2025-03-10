@@ -21,14 +21,13 @@ import org.gradle.tooling.internal.protocol.problem.InternalProxiedAdditionalDat
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
 
 import java.io.Serializable;
-import java.util.Map;
 
 @NonNullApi
 public class DefaultInternalProxiedAdditionalData extends DefaultInternalPayloadSerializedAdditionalData implements InternalProxiedAdditionalData, Serializable {
     private final Object proxy;
 
-    public DefaultInternalProxiedAdditionalData(Map<String, Object> additionalData, Object proxy, SerializedPayload payload) {
-        super(additionalData, payload);
+    public DefaultInternalProxiedAdditionalData(Object proxy, SerializedPayload payload) {
+        super(null, payload);
         this.proxy = proxy;
     }
 
