@@ -10,5 +10,5 @@
     --gradle-version="8.13" \
     --gradle-version="9.0-branch-provider_api_migration_public_api_changes-20250304171043+0000" \
     --project-dir="/Users/asodja/workspace/gradle-performance" \
-    --scenario-file "/Users/asodja/workspace/gradle-performance/scenario.config" "runSync"
+    --scenario-file "/Users/asodja/workspace/gradle-performance/scenario.config" "runSanityCheck"
 

@@ -16,6 +16,7 @@ test-splits/
 gradle-user-home/
 profile-out/
 profile-out-*/
+results/
 
 # Kotlin
 # ------
