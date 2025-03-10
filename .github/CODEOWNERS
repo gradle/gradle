@@ -30,9 +30,9 @@ testing/internal-performance-testing/       @gradle/bt-developer-productivity
 testing/internal-testing/                   @gradle/bt-developer-productivity
 
 # Release coordination
-packaging/core-platform/              @gradle/bt-product-operations
-packaging/distributions-dependencies/ @gradle/bt-product-operations
-packaging/distributions-full/         @gradle/bt-product-operations
+packaging/core-platform/                @gradle/bt-product-operations
+packaging/distributions-dependencies/   @gradle/bt-product-operations
+packaging/distributions-full/           @gradle/bt-product-operations
 testing/performance/                    @gradle/bt-product-operations
 testing/smoke-test/                     @gradle/bt-product-operations
 testing/soak/                           @gradle/bt-product-operations
