@@ -18,19 +18,20 @@ package org.gradle.language.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.language.ComponentDependencies;
 
 import javax.inject.Inject;
 
 public class DefaultComponentDependencies implements ComponentDependencies {
+
     private final Configuration implementation;
 
     @Inject
-    public DefaultComponentDependencies(RoleBasedConfigurationContainerInternal configurations, String implementationName) {
-        implementation = configurations.dependencyScopeUnlocked(implementationName);
+    public DefaultComponentDependencies(ConfigurationContainer configurations, String implementationName) {
+        this.implementation = configurations.dependencyScope(implementationName).get();
     }
 
     public Configuration getImplementationDependencies() {
@@ -53,4 +54,5 @@ public class DefaultComponentDependencies implements ComponentDependencies {
         action.execute(dependency);
         implementation.getDependencies().add(dependency);
     }
+
 }

@@ -55,7 +55,6 @@ dependencies {
     implementation(projects.serviceLookup)
 
     implementation(libs.commonsLang)
-    implementation(libs.guava)
 
     testImplementation(testFixtures(projects.core))
 

@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.provider.Provider
+import org.gradle.internal.Actions
 import org.gradle.internal.artifacts.configurations.NoContextRoleBasedConfigurationCreationRequest
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
@@ -210,15 +211,6 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.RESOLVABLE, "b") {
             resolvable("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "c") {
-            resolvableUnlocked("c")
-        }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "d") {
-            resolvableUnlocked("d", {})
-        }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE, "e") {
-            maybeCreateResolvableUnlocked("e")
-        }
     }
 
     def "creates consumable configurations"() {
@@ -228,15 +220,6 @@ class DefaultConfigurationContainerTest extends Specification {
         }
         verifyRole(ConfigurationRoles.CONSUMABLE, "b") {
             consumable("b", {})
-        }
-        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "c") {
-            consumableUnlocked("c")
-        }
-        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "d") {
-            consumableUnlocked("d", {})
-        }
-        verifyUnlocked(ConfigurationRoles.CONSUMABLE, "e") {
-            maybeCreateConsumableUnlocked("e")
         }
     }
 
@@ -248,43 +231,25 @@ class DefaultConfigurationContainerTest extends Specification {
         verifyRole(ConfigurationRoles.DEPENDENCY_SCOPE, "b") {
             dependencyScope("b", {})
         }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "c") {
-            dependencyScopeUnlocked("c")
-        }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "d") {
-            dependencyScopeUnlocked("d", {})
-        }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "e") {
-            maybeCreateDependencyScopeUnlocked("e")
-        }
-        verifyUnlocked(ConfigurationRoles.DEPENDENCY_SCOPE, "f") {
-            maybeCreateDependencyScopeUnlocked("f", false)
-        }
     }
 
     def "creates resolvable dependency scope configuration"() {
         expect:
         verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "a") {
-            resolvableDependencyScopeUnlocked("a")
+            resolvableDependencyScope("a")
         }
         verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "b") {
-            resolvableDependencyScopeUnlocked("b", {})
-        }
-        verifyUnlocked(ConfigurationRoles.RESOLVABLE_DEPENDENCY_SCOPE, "c") {
-            maybeCreateResolvableDependencyScopeUnlocked("c")
+            resolvableDependencyScope("b", {})
         }
     }
 
     def "can create migrating configurations"() {
         expect:
         verifyUnlocked(role, "a") {
-            migratingUnlocked("a", role)
+            migrating("a", role)
         }
         verifyUnlocked(role, "b") {
-            migratingUnlocked("b", role) {}
-        }
-        verifyUnlocked(role, "c") {
-            maybeCreateMigratingUnlocked("c", role)
+            migrating("b", role) {}
         }
 
         where:
@@ -298,19 +263,13 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def "cannot create arbitrary roles with migrating factory methods"() {
         when:
-        configurationContainer.migratingUnlocked("foo", role)
+        configurationContainer.migrating("foo", role)
 
         then:
         thrown(InvalidUserDataException)
 
         when:
-        configurationContainer.migratingUnlocked("bar", role) {}
-
-        then:
-        thrown(InvalidUserDataException)
-
-        when:
-        configurationContainer.maybeCreateMigratingUnlocked("baz", role)
+        configurationContainer.migrating("bar", role) {}
 
         then:
         thrown(InvalidUserDataException)
@@ -346,28 +305,6 @@ class DefaultConfigurationContainerTest extends Specification {
         "dependencyScope(String, Action)" | { dependencyScope("foo", it) }
     }
 
-    def "#name calls configure action with new configuration for eager methods"() {
-        when:
-        action.delegate = configurationContainer
-        def arg = null
-        def del = null
-        def value = action({
-            arg = it
-            del = delegate
-        })
-
-        then:
-        arg == value
-        del == value
-
-        where:
-        name                                                | action
-        "consumableUnlocked(String, Action)"                | { consumableUnlocked("foo", it) }
-        "resolvableUnlocked(String, Action)"                | { resolvableUnlocked("foo", it) }
-        "dependencyScopeUnlocked(String, Action)"           | { dependencyScopeUnlocked("foo", it) }
-        "resolvableDependencyScopeUnlocked(String, Action)" | { resolvableDependencyScopeUnlocked("foo", it) }
-    }
-
     def "role locked configurations default to non-visible"() {
         expect:
         !configurationContainer.consumable("a").get().visible
@@ -380,7 +317,7 @@ class DefaultConfigurationContainerTest extends Specification {
 
     def "cannot maybeCreate invalid role (#role)"() {
         when:
-        configurationContainer.maybeCreate(new NoContextRoleBasedConfigurationCreationRequest("foo", role));
+        configurationContainer.registerWithContext("foo", role, new NoContextRoleBasedConfigurationCreationRequest(), Actions.doNothing());
 
         then:
         def e = thrown(GradleException)

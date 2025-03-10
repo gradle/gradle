@@ -16,21 +16,26 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConfigurationPublications;
+import org.gradle.api.artifacts.ConsumableConfiguration;
+import org.gradle.api.artifacts.DependencyScopeConfiguration;
+import org.gradle.api.artifacts.ResolvableConfiguration;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -41,6 +46,7 @@ import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 import org.gradle.internal.component.external.model.ShadowedImmutableCapability;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -94,60 +100,70 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
         configurePublishing(project);
     }
 
-    private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
+    private void createSoftwareComponent(Project project, Provider<ConsumableConfiguration> apiElements, Provider<ConsumableConfiguration> runtimeElements) {
         AdhocComponentWithVariants component = softwareComponentFactory.adhoc("javaPlatform");
         project.getComponents().add(component);
-        component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
-        component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
+        component.addVariantsFromConfiguration(apiElements.get(), new JavaConfigurationVariantMapping("compile", false));
+        component.addVariantsFromConfiguration(runtimeElements.get(), new JavaConfigurationVariantMapping("runtime", false));
     }
 
     private void createConfigurations(ProjectInternal project) {
-        RoleBasedConfigurationContainerInternal configurations = project.getConfigurations();
+        ConfigurationContainer configurations = project.getConfigurations();
         Capability enforcedCapability = new ShadowedImmutableCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
-        Configuration api = configurations.dependencyScopeUnlocked(API_CONFIGURATION_NAME);
-        Configuration apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
-        Configuration enforcedApiElements = createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
-        enforcedApiElements.getOutgoing().capability(enforcedCapability);
+        // API
+        Provider<DependencyScopeConfiguration> api = configurations.dependencyScope(API_CONFIGURATION_NAME);
+        Provider<ConsumableConfiguration> apiElements = createConsumableApi(project, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
+        createConsumableApi(project, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singleton(enforcedCapability));
 
-        Configuration runtime = project.getConfigurations().dependencyScopeUnlocked(RUNTIME_CONFIGURATION_NAME);
-        runtime.extendsFrom(api);
+        // Runtime
+        Provider<DependencyScopeConfiguration> runtime = project.getConfigurations().dependencyScope(RUNTIME_CONFIGURATION_NAME, conf -> {
+            conf.extendsFrom(api.get());
+        });
+        Provider<ConsumableConfiguration> runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM, Collections.emptySet());
+        createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM, Collections.singleton(enforcedCapability));
 
-        Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
-        Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
-        enforcedRuntimeElements.getOutgoing().capability(enforcedCapability);
+        // Resolvable configuration used for publishing resolved versions.
+        configurations.resolvable(CLASSPATH_CONFIGURATION_NAME, conf -> {
+            conf.extendsFrom(runtime.get());
 
-        Configuration classpath = configurations.migratingUnlocked(CLASSPATH_CONFIGURATION_NAME, ConfigurationRolesForMigration.RESOLVABLE_DEPENDENCY_SCOPE_TO_RESOLVABLE);
-        classpath.extendsFrom(runtimeElements);
-        declareConfigurationUsage(project.getObjects(), classpath, Usage.JAVA_RUNTIME, LibraryElements.JAR);
+            ObjectFactory objectFactory = project.getObjects();
+            declareConfigurationUsage(objectFactory, conf, Usage.JAVA_RUNTIME);
+            declareConfigurationLibraryElements(conf, objectFactory, LibraryElements.JAR);
+        });
 
         createSoftwareComponent(project, apiElements, runtimeElements);
     }
 
-    private Configuration createConsumableRuntime(ProjectInternal project, Configuration apiElements, String name, String platformKind) {
-        Configuration runtimeElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
-        runtimeElements.setVisible(false);
-        runtimeElements.extendsFrom(apiElements);
-        declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
-        declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
-        return runtimeElements;
+    private NamedDomainObjectProvider<ConsumableConfiguration> createConsumableRuntime(ProjectInternal project, Provider<DependencyScopeConfiguration> runtime, String name, String platformKind, Set<Capability> capabilities) {
+        return project.getConfigurations().consumable(name, runtimeElements -> {
+            runtimeElements.extendsFrom(runtime.get());
+
+            declareConfigurationUsage(project.getObjects(), runtimeElements, Usage.JAVA_RUNTIME);
+            declareConfigurationCategory(project.getObjects(), runtimeElements, platformKind);
+
+            ConfigurationPublications outgoing = runtimeElements.getOutgoing();
+            capabilities.forEach(outgoing::capability);
+        });
     }
 
-    private Configuration createConsumableApi(ProjectInternal project, Configuration api, String name, String platformKind) {
-        Configuration apiElements = project.getConfigurations().migratingUnlocked(name, ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
-        apiElements.setVisible(false);
-        apiElements.extendsFrom(api);
-        declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
-        declareConfigurationCategory(project.getObjects(), apiElements, platformKind);
-        return apiElements;
+    private NamedDomainObjectProvider<ConsumableConfiguration> createConsumableApi(ProjectInternal project, Provider<DependencyScopeConfiguration> api, String name, String platformKind, Set<Capability> capabilities) {
+        return project.getConfigurations().consumable(name, apiElements -> {
+            apiElements.extendsFrom(api.get());
+
+            declareConfigurationUsage(project.getObjects(), apiElements, Usage.JAVA_API);
+            declareConfigurationCategory(project.getObjects(), apiElements, platformKind);
+
+            ConfigurationPublications outgoing = apiElements.getOutgoing();
+            capabilities.forEach(outgoing::capability);
+        });
     }
 
     private void declareConfigurationCategory(ObjectFactory objectFactory, Configuration configuration, String value) {
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, value));
     }
 
-    private void declareConfigurationUsage(ObjectFactory objectFactory, Configuration configuration, String usage, String libraryContents) {
-        declareConfigurationUsage(objectFactory, configuration, usage);
+    private void declareConfigurationLibraryElements(ResolvableConfiguration configuration, ObjectFactory objectFactory, String libraryContents) {
         configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryContents));
     }
 

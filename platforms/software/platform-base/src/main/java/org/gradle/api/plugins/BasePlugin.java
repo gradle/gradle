@@ -16,11 +16,12 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.plugins.BuildConfigurationRule;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.plugins.NaggingBasePluginConvention;
@@ -83,14 +84,16 @@ public abstract class BasePlugin implements Plugin<Project> {
     }
 
     private void configureConfigurations(final Project project) {
-        RoleBasedConfigurationContainerInternal configurations = (RoleBasedConfigurationContainerInternal) project.getConfigurations();
+        ConfigurationContainer configurations = project.getConfigurations();
         ((ProjectInternal) project).getInternalStatus().convention("integration");
 
-        final Configuration archivesConfiguration = configurations.maybeCreateConsumableUnlocked(Dependency.ARCHIVES_CONFIGURATION)
-            .setDescription("Configuration for archive artifacts.");
+        NamedDomainObjectProvider<ConsumableConfiguration> archivesConfiguration = configurations.consumable(Dependency.ARCHIVES_CONFIGURATION, conf -> {
+            conf.setDescription("Configuration for archive artifacts.");
+        });
 
-        configurations.maybeCreateConsumableUnlocked(Dependency.DEFAULT_CONFIGURATION)
-            .setDescription("Configuration for default artifacts.");
+        configurations.consumable(Dependency.DEFAULT_CONFIGURATION, conf -> {
+            conf.setDescription("Configuration for default artifacts.");
+        });
 
         // TODO #15639: Deprecate DefaultArtifactPublicationSet and the `archives` configuration
         project.getExtensions().create(
@@ -101,7 +104,7 @@ public abstract class BasePlugin implements Plugin<Project> {
         );
 
         project.getTasks().named(ASSEMBLE_TASK_NAME, task ->
-            task.dependsOn(archivesConfiguration.getAllArtifacts().getBuildDependencies())
+            task.dependsOn(archivesConfiguration.map(it -> it.getAllArtifacts().getBuildDependencies()))
         );
     }
 

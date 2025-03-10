@@ -21,7 +21,6 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRole;
 
 import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 
@@ -52,7 +51,7 @@ public final class ConfigurationCreationTest {
                     .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "create", String.class.getName(), Action.class.getName())
                     .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName())
                     .orShould().callMethod("org.gradle.api.artifacts.ConfigurationContainer", "register", String.class.getName(), Action.class.getName())
-                    .because("Configurations should be created with the role-based API in org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal");
+                    .because("Configurations should be created with the role-based API in org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal or public methods on org.gradle.api.artifacts.ConfigurationContainer");
 
     /**
      * Ensures no new usages of resolvable + dependency scope Configurations are added and ensures usages of "maybe" methods are avoided.
@@ -60,14 +59,10 @@ public final class ConfigurationCreationTest {
     @ArchTest
     public static final ArchRule maybe_create_and_resolvable_dependency_scope_factory_methods_are_avoided = freeze(
         ArchRuleDefinition.noClasses()
-            .should().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScopeUnlocked", String.class.getName(), Action.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateConsumableUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeUnlocked", String.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateDependencyScopeUnlocked", String.class.getName(), boolean.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateMigratingUnlocked", String.class.getName(), ConfigurationRole.class.getName())
-            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "maybeCreateResolvableDependencyScopeUnlocked", String.class.getName())
+            .should().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "migrating", String.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "migrating", String.class.getName(), Action.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScope", String.class.getName())
+            .orShould().callMethod("org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal", "resolvableDependencyScope", String.class.getName(), Action.class.getName())
             .because("Resolvable + dependency scope configurations should be avoided and we are migrating away from maybeCreate methods")
     );
 }
