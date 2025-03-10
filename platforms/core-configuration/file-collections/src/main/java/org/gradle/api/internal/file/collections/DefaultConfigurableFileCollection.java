@@ -203,11 +203,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     public void setFromAnyValue(Object object) {
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
+        checkNoSelfReferences(fileCollection);
 
+        setFrom(Cast.castNullable(FileCollection.class, object));
+    }
+
+    private void checkNoSelfReferences(FileCollectionInternal fileCollection) {
         // Don't allow a += b or a = (a + b), this is not support
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
-            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
+            public boolean startVisit(Source source, FileCollectionInternal fileCollection) {
                 if (DefaultConfigurableFileCollection.this == fileCollection) {
                     throw new UnsupportedOperationException("Self-referencing ConfigurableFileCollections are not supported. Use the from() method to add to a ConfigurableFileCollection.");
                 }
@@ -233,8 +238,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             }
         });
-
-        setFrom(Cast.castNullable(FileCollection.class, object));
     }
 
     @Override
