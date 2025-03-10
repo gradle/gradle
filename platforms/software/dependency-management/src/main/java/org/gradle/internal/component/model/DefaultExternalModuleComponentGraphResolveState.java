@@ -29,9 +29,8 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.ExternalComponentResolveMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveMetadata;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
-import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.lazy.Lazy;
 
 import javax.annotation.Nullable;
@@ -248,29 +247,13 @@ public class DefaultExternalModuleComponentGraphResolveState<G extends ExternalM
         @Nullable
         @Override
         public VariantGraphResolveState getLegacyVariant() {
-            return doGetVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
-        }
-
-        @Nullable
-        @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name) {
-
-            DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-Ivy external component.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "selecting_variant_by_configuration_name")
-                .nagUser();
-
-            return doGetVariantByConfigurationName(name);
-        }
-
-        @Nullable
-        private VariantGraphResolveState doGetVariantByConfigurationName(String name) {
-            ModuleConfigurationMetadata configuration = (ModuleConfigurationMetadata) component.getMetadata().getConfiguration(name);
-            if (configuration == null) {
+            ConfigurationGraphResolveMetadata defaultVariant = component.getMetadata().getConfiguration(Dependency.DEFAULT_CONFIGURATION);
+            if (defaultVariant == null) {
                 return null;
             }
 
-            return component.resolveStateFor(configuration).asVariant();
+            return component.resolveStateFor((ModuleConfigurationMetadata) defaultVariant).asVariant();
         }
+
     }
 }
