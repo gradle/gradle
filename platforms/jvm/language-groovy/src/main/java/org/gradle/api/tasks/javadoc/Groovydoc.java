@@ -166,7 +166,7 @@ public abstract class Groovydoc extends SourceTask {
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @Override
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "SourceTask will be deprecated")
     public FileTree getSource() {
         return super.getSource();
     }

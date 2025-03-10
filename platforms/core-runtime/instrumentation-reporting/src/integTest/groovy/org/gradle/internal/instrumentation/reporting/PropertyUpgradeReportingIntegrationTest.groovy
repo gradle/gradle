@@ -36,8 +36,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Project project) {
                     project.getTasks().register("myJavaCompile", JavaCompile.class, task -> {
-                        task.getSource();
-                        task.setSource(project.files());
+                        task.getClasspath();
+                        task.setClasspath(project.files());
                     });
                 }
             }
@@ -48,8 +48,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         postBuildOutputContains("Intercepted methods:")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getClasspath(): at test.MyPlugin(MyPlugin.java:12)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setClasspath(): at test.MyPlugin(MyPlugin.java:13)")
     }
 
     def "usage of upgraded properties in Kotlin scripts should be reported"() {
@@ -61,8 +61,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register<JavaCompile>("myJavaCompile") {
-                source
-                source = project.files().asFileTree
+                classpath
+                classpath = project.files()
             }
         """
 
@@ -71,8 +71,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         postBuildOutputContains("Intercepted methods:")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getClasspath(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setClasspath(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }
 
     def "usage of upgraded properties is reported even when report comes from cache"() {
@@ -88,8 +88,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Project project) {
                     project.getTasks().register("myJavaCompile", JavaCompile.class, task -> {
-                        task.getSource();
-                        task.setSource(project.files());
+                        task.getClasspath();
+                        task.setClasspath(project.files());
                     });
                 }
             }
@@ -100,8 +100,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register<JavaCompile>("myJavaCompile") {
-                source
-                source = project.files().asFileTree
+                classpath
+                classpath = project.files()
             }
         """
 
@@ -112,10 +112,10 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         postBuildOutputContains("Intercepted methods:")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at test.MyPlugin(MyPlugin.java:12)")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at test.MyPlugin(MyPlugin.java:13)")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
-        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setSource(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getClasspath(): at test.MyPlugin(MyPlugin.java:12)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setClasspath(): at test.MyPlugin(MyPlugin.java:13)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.getClasspath(): at build.gradle(file://${buildKotlinFile.absolutePath}:7)")
+        postBuildOutputContains("org.gradle.api.tasks.compile.JavaCompile.setClasspath(): at build.gradle(file://${buildKotlinFile.absolutePath}:8)")
     }
 
     def "should not report upgraded properties if --property-upgrade-report flag is not used"() {
@@ -132,8 +132,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Project project) {
                     project.getTasks().register("myJavaCompile", JavaCompile.class, task -> {
-                        task.getSource();
-                        task.setSource(project.files());
+                        task.getClasspath();
+                        task.setClasspath(project.files());
                     });
                 }
             }
@@ -144,8 +144,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
             }
 
             tasks.register<JavaCompile>("myJavaCompile") {
-                source
-                source = project.files().asFileTree
+                classpath
+                classpath = project.files()
             }
         """
 
@@ -177,8 +177,8 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
                 @Override
                 public void apply(Project project) {
                     project.getTasks().register("myJavaCompile", MyJavaCompile.class, task -> {
-                        task.getSource();
-                        task.setSource(project.files());
+                        task.getClasspath();
+                        task.setClasspath(project.files());
                     });
                 }
             }
@@ -191,6 +191,6 @@ class PropertyUpgradeReportingIntegrationTest extends AbstractIntegrationSpec {
         run("help", "--property-upgrade-report")
 
         then:
-        postBuildOutputContains("Intercepted method: MyPlugin.class: org/gradle/api/tasks/compile/JavaCompile#getSource()Lorg/gradle/api/file/FileTree;")
+        postBuildOutputContains("Intercepted method: MyPlugin.class: org/gradle/api/tasks/compile/JavaCompile#getClasspath()Lorg/gradle/api/file/FileCollection;")
     }
 }

@@ -43,10 +43,7 @@ import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification implements ValidationMessageChecker {
     private static final COLOR = new AnnotationCategory() {
-        @Override
-        String getDisplayName() {
-            return "color"
-        }
+        final String displayName = "color"
 
         @Override
         String toString() {
@@ -55,10 +52,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
     }
 
     private static final BAZ = new AnnotationCategory() {
+        final String displayName = "baz"
+
         @Override
-        String getDisplayName() {
-            return "baz"
+        String toString() {
+            return displayName
         }
+    }
+
+    private static final NO_OVERRIDE = new AnnotationCategory() {
+        final String displayName = "no-override"
 
         @Override
         String toString() {
@@ -68,8 +71,9 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
-        [(Large): TYPE, (Small): TYPE, (Color): COLOR],
+        [(Large): TYPE, (Small): TYPE, (Color): COLOR, (NoOverride): NO_OVERRIDE],
         [(Foo): TYPE, (Bar): TYPE, (Baz): BAZ],
+        [NoOverride],
         ["java", "groovy"],
         [Object],
         [Object, GroovyObject],
@@ -580,6 +584,79 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         ]
     }
 
+    def "warns about overriding property accessor methods for must-not override properties"() {
+        expect:
+        assertFunctions TypeWithForbiddenProperty, [:], [
+        ]
+        assertFunctions TypeWithOverriddenForbiddenProperty, [:], [
+            propertyAccessorMustNotBeOverridden { method("getForbiddenProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("setForbiddenProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("isForbiddenBoolProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("setForbiddenBoolProperty").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("getForbiddenBoolProperty2").annotation(NoOverride).includeLink() },
+            propertyAccessorMustNotBeOverridden { method("setForbiddenBoolProperty2").annotation(NoOverride).includeLink() },
+        ]
+    }
+
+    @SuppressWarnings("unused")
+    interface InterfaceWithForbiddenProperty {
+        @Large
+        @NoOverride
+        String getForbiddenProperty()
+
+        void setForbiddenProperty(String value)
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithForbiddenProperty implements InterfaceWithForbiddenProperty {
+        @Override
+        String getForbiddenProperty() { "test" }
+
+        @Override
+        void setForbiddenProperty(String value) {}
+
+        @Large
+        @NoOverride
+        boolean isForbiddenBoolProperty() { true }
+
+        void setForbiddenBoolProperty(boolean value) {}
+
+        @Small
+        @NoOverride
+        boolean getForbiddenBoolProperty2() { true }
+
+        void setForbiddenBoolProperty2(boolean value) {}
+    }
+
+    @SuppressWarnings("unused")
+    class TypeWithOverriddenForbiddenProperty extends TypeWithForbiddenProperty {
+        @Override
+        String getForbiddenProperty() { "override" }
+
+        @Override
+        void setForbiddenProperty(String value) {}
+
+        @Override
+        void setForbiddenBoolProperty(boolean value) {
+            super.setForbiddenBoolProperty(value)
+        }
+
+        @Override
+        boolean isForbiddenBoolProperty() {
+            return super.isForbiddenBoolProperty()
+        }
+
+        @Override
+        boolean getForbiddenBoolProperty2() {
+            return super.getForbiddenBoolProperty2()
+        }
+
+        @Override
+        void setForbiddenBoolProperty2(boolean value) {
+            super.setForbiddenBoolProperty2(value)
+        }
+    }
+
     @SuppressWarnings("unused")
     class TypeOverridingPropertyFromConflictingInterfaces
         implements FirstInterfaceWithInheritedProperty, SecondInterfaceWithInheritedProperty {
@@ -1009,6 +1086,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         def expectedPropertyNames = expectedProperties.keySet().sort()
         assert actualPropertyNames == expectedPropertyNames
 
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+        metadata.visitValidationFailures(validationContext)
+        List<String> actualErrors = validationContext.problems
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+        actualErrors.sort()
+        println actualErrors.join("\n--- 8< -------------------------\n")
+
         metadata.propertiesAnnotationMetadata.forEach { actualProperty ->
             def expectedAnnotations = expectedProperties[actualProperty.propertyName]
 
@@ -1029,11 +1113,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
-        metadata.visitValidationFailures(validationContext)
-        List<String> actualErrors = validationContext.problems
-            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
-        actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
     }
@@ -1043,6 +1122,13 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
         def actualMethodNames = metadata.functionAnnotationMetadata*.method.name.sort()
         def expectedMethodNames = expectedFunctions.keySet().sort()
         assert actualMethodNames == expectedMethodNames
+
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+        metadata.visitValidationFailures(validationContext)
+        List<String> actualErrors = validationContext.problems
+            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
+        actualErrors.sort()
+        println actualErrors.join("\n--- 8< -------------------------\n")
 
         metadata.functionAnnotationMetadata.forEach { actualMethod ->
             def expectedAnnotations = expectedFunctions[actualMethod.method.name]
@@ -1064,11 +1150,6 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
-        metadata.visitValidationFailures(validationContext)
-        List<String> actualErrors = validationContext.problems
-            .collect({ (normaliseLineSeparators(TypeValidationProblemRenderer.renderMinimalInformationAbout(it)) + (it.definition.severity == Severity.ERROR ? " [STRICT]" : "") as String) })
-        actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
     }
@@ -1098,6 +1179,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification implements Va
 @Target([ElementType.METHOD, ElementType.FIELD])
 @interface Color {
     String declaredBy() default ""
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target([ElementType.METHOD, ElementType.FIELD])
+@interface NoOverride {
 }
 
 @Retention(RetentionPolicy.RUNTIME)

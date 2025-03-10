@@ -92,6 +92,7 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
         [CustomCacheable],
         ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Set<Class<? extends Annotation>>),
         (PROCESSED_METHOD_TYPE_ANNOTATIONS + [SearchMethod]).stream().collect(Collectors.toMap({ it }, { AnnotationCategory.TYPE })),
+        [],
         ["java", "groovy"],
         [DefaultTask],
         [Object, GroovyObject],

@@ -40,6 +40,7 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.MultiRequestClient;
@@ -331,7 +332,7 @@ public abstract class AntlrTask extends SourceTask {
      */
     @Override
     @Internal("tracked via stableSources")
-    @ToBeReplacedByLazyProperty
+    @NotToBeReplacedByLazyProperty(because = "SourceTask will be deprecated")
     public FileTree getSource() {
         return super.getSource();
     }
