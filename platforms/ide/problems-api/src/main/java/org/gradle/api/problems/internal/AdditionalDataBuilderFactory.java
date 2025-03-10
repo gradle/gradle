@@ -40,6 +40,7 @@ public final class AdditionalDataBuilderFactory {
                     return DefaultGeneralData.builder((GeneralData) instance);
                 }
             }));
+        // DeprecationLogger-based deprecation problems
         additionalDataProviders.put(DeprecationDataSpec.class, new DataTypeAndProvider(
             DeprecationData.class,
             new Function<AdditionalData, AdditionalDataBuilder<? extends AdditionalData>>() {
