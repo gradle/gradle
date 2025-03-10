@@ -24,11 +24,9 @@ import java.io.File;
 
 @ServiceScope(Scope.BuildSession.class)
 public class VcsDirectoryLayout {
-    private final File checkoutDir;
     private final File metadataDir;
 
     public VcsDirectoryLayout(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory) {
-        this.checkoutDir = cacheBuilderFactory.baseDirForCrossVersionCache("vcs-1");
         this.metadataDir = cacheBuilderFactory.baseDirForCache("vcsMetadata");
     }
 

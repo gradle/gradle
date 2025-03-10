@@ -98,7 +98,7 @@ public class DefaultTaskSelector implements TaskSelector {
         if (context.getOriginalPath().getPath().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
             throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
-                configureProblem(spec, matcher, context);
+                configureProblem(spec, context);
                 spec.contextualLabel(message);
             });
         }
@@ -106,12 +106,12 @@ public class DefaultTaskSelector implements TaskSelector {
             matcher.formatErrorMessage("task", searchContext));
 
         throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
-            configureProblem(spec, matcher, context)
+            configureProblem(spec, context)
               .contextualLabel(message)
         );
     }
 
-    private static ProblemSpec configureProblem(ProblemSpec spec, NameMatcher matcher, SelectionContext context) {
+    private static ProblemSpec configureProblem(ProblemSpec spec, SelectionContext context) {
         ((InternalProblemSpec) spec).additionalDataInternal(GeneralDataSpec.class, data -> data.put("requestedPath", Objects.requireNonNull(context.getOriginalPath().getPath())));
         spec.severity(Severity.ERROR);
         return spec;

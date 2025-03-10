@@ -685,10 +685,8 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     }
 
     private static class CollectingWorkerStats implements WorkerStats {
-        final long startTime;
         private final CollectingExecutorStats owner;
         private final WorkerState delegate;
-        long finishTime;
         long startCurrentOperation;
         long totalSelectTime;
         long totalExecuteTime;
@@ -697,12 +695,10 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         public CollectingWorkerStats(CollectingExecutorStats owner, WorkerState delegate) {
             this.owner = owner;
             this.delegate = delegate;
-            startTime = System.nanoTime();
         }
 
         @Override
         public void finish() {
-            finishTime = System.nanoTime();
             owner.workerFinished(this);
         }
 

@@ -25,6 +25,7 @@ public enum TestKitFeature {
     PLUGIN_CLASSPATH_INJECTION(GradleVersion.version("2.8")),
     CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG(GradleVersion.version("2.9"));
 
+    @SuppressWarnings("ImmutableEnumChecker")
     private final GradleVersion since;
 
     TestKitFeature(GradleVersion since) {

@@ -16,7 +16,6 @@ errorprone {
         "DefaultCharset", // 3 occurrences
         "Finally", // 4 occurrences
         "IdentityHashMapUsage", // 2 occurrences
-        "ImmutableEnumChecker", // 2 occurrences
         "InconsistentCapitalization", // 2 occurrences
         "InlineFormatString", // 5 occurrences
         "InlineMeSuggester", // 2 occurrences
