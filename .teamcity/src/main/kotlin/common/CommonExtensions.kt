@@ -159,7 +159,7 @@ fun BuildType.applyDefaultSettings(
         if (this@applyDefaultSettings.type != BuildTypeSettings.Type.COMPOSITE) {
             executionTimeoutMin = timeout
         }
-        testFailure = false
+        testFailure = true
         supportTestRetry = true
         add {
             failOnText {
