@@ -9,6 +9,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAntGroovydoc()",
+            "acceptation": "these methods were deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.javadoc.Groovydoc",
+            "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.setAntGroovydoc(org.gradle.api.internal.tasks.AntGroovydoc)",
+            "acceptation": "these methods were deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.testing.Test",
             "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(java.lang.Long)",
             "acceptation": "Remove deprecated method",
