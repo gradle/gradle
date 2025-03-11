@@ -21,10 +21,13 @@ import org.gradle.api.Plugin;
 import org.gradle.api.plugins.AppliedPlugin;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.plugins.PluginManager;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
 
 import java.util.Optional;
 
+@ServiceScope({Scope.Gradle.class, Scope.Settings.class, Scope.Project.class})
 public interface PluginManagerInternal extends PluginManager {
     void apply(PluginImplementation<?> plugin);
 
