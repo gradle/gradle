@@ -33,7 +33,6 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer;
-import org.gradle.integtests.fixtures.validation.ValidationServicesFixture;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.UncheckedException;
@@ -116,8 +115,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         AgentStatus.of(isAgentInstrumentationEnabled()),
         ClassPath.EMPTY,
         newCommandLineProcessLogging(),
-        NativeServicesTestFixture.getInstance(),
-        ValidationServicesFixture.getServices()
+        NativeServicesTestFixture.getInstance()
     ).getServices();
 
     private static final JvmVersionDetector JVM_VERSION_DETECTOR = new DefaultJvmVersionDetector(new CachingJvmMetadataDetector(new DefaultJvmMetadataDetector(GLOBAL_SERVICES.get(ClientExecHandleBuilderFactory.class), GLOBAL_SERVICES.get(TemporaryFileProvider.class))));

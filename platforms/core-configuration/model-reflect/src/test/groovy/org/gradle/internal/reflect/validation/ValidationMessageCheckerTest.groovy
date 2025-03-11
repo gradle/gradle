@@ -807,7 +807,12 @@ ${validationMessage("implementation_unknown")}"""
 
     def "tests output of dummyValidationProblem"() {
         when:
-        render dummyValidationProblem('Foo', 'Bar', 'with some description', 'some reason')
+        render dummyValidationProblem {
+            type('Foo')
+            property('Bar')
+            description('with some description')
+            reason('some reason')
+        }
 
         then:
         outputEquals """

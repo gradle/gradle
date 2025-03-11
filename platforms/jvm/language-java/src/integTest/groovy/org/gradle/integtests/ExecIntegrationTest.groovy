@@ -36,6 +36,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import java.util.concurrent.TimeUnit
@@ -821,6 +822,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/32213")
     @UnsupportedWithConfigurationCache(because = "Uses script or project at execution time")
+    @Ignore("FIXME: timeout on windows")
     def "project.#method process is stopped when build is cancelled"() {
         settingsFile << "include 'a'"
         file("a/build.gradle") << """

@@ -72,13 +72,11 @@ class FlakyTestQuarantine(
                         listOf(
                             "-PflakyTests=only",
                             "-x",
-                            ":docs:platformTest",
+                            ":docs:quickTest",
                             "-x",
                             ":docs:configCacheTest",
                             "-x",
                             ":distributions-integ-tests:quickTest",
-                            "-x",
-                            ":distributions-integ-tests:platformTest",
                             "-x",
                             ":distributions-integ-tests:configCacheTest",
                         ) +

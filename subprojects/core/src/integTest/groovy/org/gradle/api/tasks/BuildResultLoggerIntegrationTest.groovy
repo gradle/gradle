@@ -22,8 +22,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.IntegTestPreconditions
 
 import static org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache.Skip.INVESTIGATE
 
@@ -209,27 +207,13 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         result.assertHasPostBuildOutput "5 actionable tasks: 1 executed, 4 up-to-date"
     }
 
-    @Requires(IntegTestPreconditions.IsEmbeddedExecutor)
-    // this test only works in embedded mode because of the use of validation test fixtures
     def "work validation warnings are mentioned in summary"() {
-        buildFile << """
-            import org.gradle.integtests.fixtures.validation.ValidationProblem
+        buildFile << DummyInvalidTask.source()
 
-            class InvalidTask extends DefaultTask {
-                @ValidationProblem String dummy
-
-                @TaskAction void execute() {
-                    // Do nothing
-                }
-            }
-
-            tasks.register("invalid", InvalidTask)
-        """
-
-        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem(), 'id', 'section')
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, dummyValidationProblem())
 
         when:
-        run "invalid"
+        run DummyInvalidTask.name
 
         then:
         outputContains "Execution optimizations have been disabled for 1 invalid unit(s) of work during this build to ensure correctness."
