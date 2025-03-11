@@ -28,7 +28,8 @@ import org.gradle.api.provider.Provider;
  * <p>
  * Some flags disable features.
  * For instance, {@code --export-keys} flag always disables {@link BuildFeatures#getConfigurationCache() Configuration Cache}.
- * If {@code --configuration-cache} is provided at the same time, then {@code requested == true}, but {@code active == false}.
+ * If {@code --configuration-cache} is provided at the same time, then {@code configurationCache.requested == true},
+ * but {@code configurationCache.active == false}.
  * <p>
  * Some features automatically enable other features.
  * For instance, enabling {@link BuildFeatures#getIsolatedProjects() Isolated Projects} enables Configuration Cache.
@@ -55,6 +56,7 @@ public interface BuildFeature {
      * <p>
      * Use {@link #getActive()} to get the effective status of the feature.
      *
+     * @return The provider that <b>can be undefined</b> and its value denotes the requested status of a feature
      * @since 8.5
      */
     Provider<Boolean> getRequested();
@@ -73,6 +75,7 @@ public interface BuildFeature {
      * Note that a feature can get activated even if not explicitly enabled.
      * See {@link BuildFeature} for more details.
      *
+     * @return The provider that is always defined and its value denotes the effective status of a feature
      * @since 8.5
      */
     Provider<Boolean> getActive();

@@ -35,7 +35,7 @@ public interface BuildFeatures {
     /**
      * Status of the <a href="https://docs.gradle.org/current/userguide/configuration_cache.html">Configuration Cache</a> feature configuration in the build.
      * <p>
-     * Note that the status only describes whether the feature is enabled or disabled.
+     * Note that the status only describes the status of the feature.
      * It does not provide information on whether there was a cache hit or a miss.
      *
      * @since 8.5
