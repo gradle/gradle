@@ -5,7 +5,10 @@ plugins {
 description = "A Java agent implementation that instruments loaded classes"
 
 // Agent's premain is invoked before main(), so it should not cause the startup to fail because of the too new class file format.
-gradlebuildJava.usedForStartup()
+gradlebuildJava {
+    usedForStartup()
+    usesIncompatibleDependencies = true // For test dependencies
+}
 
 tasks.named<Jar>("jar") {
     manifest {
