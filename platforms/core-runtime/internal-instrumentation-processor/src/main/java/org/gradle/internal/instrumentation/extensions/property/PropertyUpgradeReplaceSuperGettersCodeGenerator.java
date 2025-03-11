@@ -25,6 +25,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
 import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
+import org.gradle.internal.instrumentation.api.jvmbytecode.SuperReplacementMethodBuilder;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
 import org.gradle.internal.instrumentation.model.CallableOwnerInfo;
@@ -129,7 +130,13 @@ public class PropertyUpgradeReplaceSuperGettersCodeGenerator extends JvmIntercep
             .addParameter(ParameterizedTypeName.get(Supplier.class, MethodNode.class), "readMethodNode");
     }
 
-    private static void generateReplacementMethod(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder code) {
-        code.addStatement("return null");
+    private static void generateReplacementMethod(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder method) {
+        PropertyUpgradeGetterOverrideRequestExtra extra = request.getRequestExtras().getByType(PropertyUpgradeGetterOverrideRequestExtra.class)
+            .orElseThrow(() -> new IllegalStateException("PropertyUpgradeGetterOverrideRequestExtra should be present at this stage!"));
+        method.addStatement(
+            "return new $1T(owner, name, \"$2N\")",
+            SuperReplacementMethodBuilder.class,
+            extra.getMethodDescriptor()
+        );
     }
 }

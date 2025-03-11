@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.extensions.property;
+package org.gradle.internal.instrumentation.api.jvmbytecode;
 
-import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -32,14 +31,14 @@ import static org.objectweb.asm.Opcodes.ARETURN;
 import static org.objectweb.asm.Opcodes.ASM9;
 import static org.objectweb.asm.Opcodes.INVOKESPECIAL;
 
-public class PropertyUpgradeSuperGetterReplacementMethodBuilder implements ReplacementMethodBuilder {
+public class SuperReplacementMethodBuilder implements ReplacementMethodBuilder {
 
     private final String name;
     private final String superclassName;
     private final String replacementDescriptor;
     private final List<AnnotationData> annotations = new ArrayList<>();
 
-    public PropertyUpgradeSuperGetterReplacementMethodBuilder(String name, String superclassName, String replacementDescriptor) {
+    public SuperReplacementMethodBuilder(String superclassName, String name, String replacementDescriptor) {
         this.name = name;
         this.superclassName = superclassName;
         this.replacementDescriptor = replacementDescriptor;

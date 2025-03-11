@@ -652,7 +652,8 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
         if (accessor.accessorType == AccessorType.GETTER) {
             // TODO Use a better class name here
             extras.add(new PropertyUpgradeGetterOverrideRequestExtra(
-               interceptorsClassName + "_GetterOverride"
+                interceptorsClassName + "_GetterOverride",
+                methodDescriptor
             ));
         }
         return extras;

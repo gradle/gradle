@@ -20,14 +20,20 @@ import org.gradle.internal.instrumentation.model.RequestExtra;
 
 class PropertyUpgradeGetterOverrideRequestExtra implements RequestExtra {
     private final String implementationClassName;
+    private final String methodDescriptor;
 
     public PropertyUpgradeGetterOverrideRequestExtra(
-        String implementationClassName
+        String implementationClassName, String methodDescriptor
     ) {
         this.implementationClassName = implementationClassName;
+        this.methodDescriptor = methodDescriptor;
     }
 
     public String getImplementationClassName() {
         return implementationClassName;
+    }
+
+    public String getMethodDescriptor() {
+        return methodDescriptor;
     }
 }
