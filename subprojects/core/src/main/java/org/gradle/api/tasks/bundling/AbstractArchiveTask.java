@@ -120,7 +120,6 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * @since 5.1
      */
     @OutputFile
-    @SuppressWarnings("DanglingJavadoc")
     public Provider<RegularFile> getArchiveFile() {
         // TODO: Turn this into an `@implSpec` annotation on the comment above:
         // https://github.com/gradle/gradle/issues/7486

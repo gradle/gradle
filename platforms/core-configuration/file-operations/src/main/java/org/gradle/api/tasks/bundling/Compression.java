@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.bundling;
 
 import com.google.common.collect.ImmutableList;
+
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -33,9 +35,7 @@ public enum Compression {
         this.defaultExtension = defaultExtension;
 
         ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for(String extension : additionalSupportedExtensions){
-            builder.add(extension);
-        }
+        builder.addAll(Arrays.asList(additionalSupportedExtensions));
         builder.add(defaultExtension);
 
         this.supportedExtensions = builder.build();
