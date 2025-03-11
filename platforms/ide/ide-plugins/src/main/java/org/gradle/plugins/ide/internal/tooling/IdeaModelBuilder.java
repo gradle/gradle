@@ -70,6 +70,7 @@ public class IdeaModelBuilder implements IdeaModelBuilderInternal {
     @Override
     public DefaultIdeaProject buildForRoot(Project project, boolean offlineDependencyResolution) {
         Project root = project.getRootProject();
+        ToolingModelDeprecations.nagOnNonRootTarget(project, root);
         applyIdeaPluginToBuildTree((ProjectInternal) root, new ArrayList<>());
         DefaultGradleProject rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         return build(root, rootGradleProject, offlineDependencyResolution);
