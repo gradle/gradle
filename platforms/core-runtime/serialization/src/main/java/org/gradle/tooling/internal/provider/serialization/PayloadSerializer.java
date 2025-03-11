@@ -80,5 +80,4 @@ public class PayloadSerializer {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
-
 }

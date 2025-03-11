@@ -87,38 +87,38 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
 
     @Provides
     protected FileOperations createFileOperations(
-            FileResolver fileResolver,
-            Instantiator instantiator,
-            DirectoryFileTreeFactory directoryFileTreeFactory,
-            FileHasher fileHasher,
-            DefaultResourceHandler.Factory resourceHandlerFactory,
-            FileCollectionFactory fileCollectionFactory,
-            PropertyFactory propertyFactory,
-            FileSystem fileSystem,
-            Factory<PatternSet> patternSetFactory,
-            Deleter deleter,
-            DocumentationRegistry documentationRegistry,
-            ProviderFactory providers,
-            TaskDependencyFactory taskDependencyFactory,
-            DecompressionCoordinator decompressionCoordinator,
-            TemporaryFileProvider temporaryFileProvider
+        FileResolver fileResolver,
+        Instantiator instantiator,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        FileHasher fileHasher,
+        DefaultResourceHandler.Factory resourceHandlerFactory,
+        FileCollectionFactory fileCollectionFactory,
+        PropertyFactory propertyFactory,
+        FileSystem fileSystem,
+        Factory<PatternSet> patternSetFactory,
+        Deleter deleter,
+        DocumentationRegistry documentationRegistry,
+        ProviderFactory providers,
+        TaskDependencyFactory taskDependencyFactory,
+        DecompressionCoordinator decompressionCoordinator,
+        TemporaryFileProvider temporaryFileProvider
     ) {
         return new DefaultFileOperations(
-                fileResolver,
-                instantiator,
-                directoryFileTreeFactory,
-                fileHasher,
-                resourceHandlerFactory,
-                fileCollectionFactory,
-                propertyFactory,
-                fileSystem,
-                patternSetFactory,
-                deleter,
-                documentationRegistry,
-                taskDependencyFactory,
-                providers,
-                decompressionCoordinator,
-                temporaryFileProvider
+            fileResolver,
+            instantiator,
+            directoryFileTreeFactory,
+            fileHasher,
+            resourceHandlerFactory,
+            fileCollectionFactory,
+            propertyFactory,
+            fileSystem,
+            patternSetFactory,
+            deleter,
+            documentationRegistry,
+            taskDependencyFactory,
+            providers,
+            decompressionCoordinator,
+            temporaryFileProvider
         );
     }
 
@@ -138,18 +138,20 @@ public class WorkerSharedProjectScopeServices implements ServiceRegistrationProv
     }
 
     @Provides
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
-                                      DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
+    ObjectFactory createObjectFactory(
+        InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
+        PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, TaskDependencyFactory taskDependencyFactory, FileCollectionFactory fileCollectionFactory,
+        DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator
+    ) {
         return new DefaultObjectFactory(
-                instantiatorFactory.decorate(services),
-                namedObjectInstantiator,
-                directoryFileTreeFactory,
-                patternSetFactory,
-                propertyFactory,
-                filePropertyFactory,
-                taskDependencyFactory,
-                fileCollectionFactory,
-                domainObjectCollectionFactory);
+            instantiatorFactory.decorate(services),
+            namedObjectInstantiator,
+            directoryFileTreeFactory,
+            patternSetFactory,
+            propertyFactory,
+            filePropertyFactory,
+            taskDependencyFactory,
+            fileCollectionFactory,
+            domainObjectCollectionFactory);
     }
 }

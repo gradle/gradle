@@ -13,23 +13,25 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.concurrent)
-    api(projects.messaging)
-    api(projects.serialization)
-    api(projects.workerMain)
-
-    implementation(projects.classloaders)
-    implementation(projects.persistentCache)
-    implementation(projects.problemsApi)
-    implementation(projects.serviceLookup)
-    implementation(projects.serviceProvider)
-    implementation(projects.serviceRegistryBuilder)
-    implementation(projects.stdlibJavaExtensions)
-
+    api(projects.hashing)
     // TODO: Ideally, we would not depend on model-core in a worker.
     // All we really want is the instantiation infrastructure, but this
     // brings in core-api, which should be avoided in workers.
-    implementation(projects.modelCore)
+    api(projects.modelCore)
+    api(projects.messaging)
+    api(projects.problemsApi)
+    api(projects.serialization)
+    api(projects.snapshotsWorker)
+    api(projects.stdlibJavaExtensions)
+    api(projects.workerMain)
+
+    implementation(projects.classloaders)
+    implementation(projects.coreApi)
+    implementation(projects.persistentCache)
+    implementation(projects.serviceLookup)
+    implementation(projects.serviceProvider)
+    implementation(projects.serviceRegistryBuilder)
+    implementation(projects.snapshots)
 
     implementation(libs.guava)
-    implementation(libs.jsr305)
 }
