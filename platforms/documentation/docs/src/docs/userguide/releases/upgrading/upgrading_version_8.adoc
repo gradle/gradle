@@ -35,6 +35,31 @@ The previous step will help you identify potential problems by issuing deprecati
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_9.0]]
+== Upgrading from 8.14 and earlier
+
+=== Potential breaking changes
+
+==== Gradle API now uses JSpecify Nullability Annotations
+
+The initial introduction of null safety in the Gradle API dates back to 2018 in Gradle 5.0.
+The compilation of Kotlin build scripts or plugin source code written in Java or Kotlin reports nullability mistakes early.
+In Gradle 9.0 we are evolving the Gradle API to bring more added value for Gradle users and plugin authors.
+
+Since Gradle 5.0 we've been using annotations from the dormant link:https://jcp.org/en/jsr/detail?id=305[JSR-305] to make the nullness of type usages explicit for the Gradle API.
+It was far from perfect, but it was the best choice available at that point.
+
+Starting with Gradle 9.0, the Gradle API is annotated using link:https://jspecify.dev/[JSpecify] instead.
+JSpecify is a set of annotations, specifications and documentation designed to ensure the null safety of Java APIs in the IDE or during compilation.
+
+The semantics differ slightly between JSR-305 and JSpecify so you might see warnings or errors during the compilation of your Kotlin build files or plugin source code written in Java or Kotlin.
+Fixing these should be a matter of handling nullability properly in your build files or plugin source code.
+The Java or Kotlin compiler messages should be helpful enough.
+We don't expect too many occurrences given the similar nullability semantics.
+
+Note that plugins using JSR-305 annotations on their types will continue to work as they did with previous Gradle versions.
+In other words, it is still supported to use `javax.annotations` for nullability on your plugin types such as tasks or extensions.
+
 [[changes_8.14]]
 == Upgrading from 8.13 and earlier
 

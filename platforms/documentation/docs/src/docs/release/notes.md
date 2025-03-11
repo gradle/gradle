@@ -73,6 +73,12 @@ For Wistia, contact Gradle's Video Team.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+=== Gradle API now uses JSpecify Nullability Annotations
+
+Since Gradle 5.0 we've been using annotations from the dormant and unfinished JSR-305 to make the nullness of type usages explicit for the Gradle API.
+Starting with Gradle 9.0, the Gradle API is annotated using JSpecify instead.
+
+For more details and potential breakages, see the dedicated [upgrading guide section](userguide/upgrading_version_8.html).
 
 
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
