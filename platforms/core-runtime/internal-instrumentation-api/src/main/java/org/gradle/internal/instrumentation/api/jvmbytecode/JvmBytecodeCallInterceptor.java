@@ -32,7 +32,7 @@ public interface JvmBytecodeCallInterceptor extends FilterableBytecodeIntercepto
      * Potentially replace the whole method with a new one.
      */
     @Nullable
-    MethodVisitorScope visitReplacementMethod(MethodVisitorScope mv, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode);
+    ReplacementMethodBuilder findReplacementMethod(String className, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode);
 
     boolean visitMethodInsn(
             MethodVisitorScope mv,

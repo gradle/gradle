@@ -21,6 +21,7 @@ import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.Opcodes;
@@ -133,7 +134,7 @@ public class AdhocInterceptors implements JvmBytecodeCallInterceptor {
 
     @Nullable
     @Override
-    public MethodVisitorScope visitReplacementMethod(MethodVisitorScope mv, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode) {
+    public ReplacementMethodBuilder findReplacementMethod(String className, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode) {
         return null;
     }
 

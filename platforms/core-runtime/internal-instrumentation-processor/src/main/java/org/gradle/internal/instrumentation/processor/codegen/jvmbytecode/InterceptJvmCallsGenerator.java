@@ -29,6 +29,7 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
@@ -166,6 +167,17 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         Consumer<? super FailureInfo> onFailure
     ) {
         CodeBlock.Builder code = CodeBlock.builder();
+        requestsByOwner.forEach((owner, requests) -> generateCodeForOwner(
+            owner,
+            typeFieldByOwner,
+            requests,
+            code,
+            // TODO Avoid adding '&& true'
+            callable -> CodeBlock.of("true"),
+            InterceptJvmCallsGenerator::generateReplacementMethod,
+            null,
+            onProcessedRequest,
+            onFailure));
         code.addStatement("return null");
         method.addCode(code.build());
     }
@@ -276,11 +288,11 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
     private static final ParameterSpec METHOD_VISITOR_PARAM = ParameterSpec.builder(MethodVisitorScope.class, "mv").build();
 
     private static MethodSpec.Builder getVisitReplacementMethodBuilder() {
-        return MethodSpec.methodBuilder("visitReplacementMethod")
+        return MethodSpec.methodBuilder("findReplacementMethod")
             .addAnnotation(Override.class)
             .addModifiers(Modifier.PUBLIC)
-            .returns(MethodVisitorScope.class)
-            .addParameter(METHOD_VISITOR_PARAM)
+            .returns(ReplacementMethodBuilder.class)
+            .addParameter(String.class, "owner")
             .addParameter(int.class, "access")
             .addParameter(String.class, "name")
             .addParameter(String.class, "descriptor")
@@ -550,6 +562,11 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         maybeGenerateGetStaticInjectVisitorContext(method, interceptedCallable);
         method.addStatement("$N._INVOKESTATIC($N, $S, $S)", METHOD_VISITOR_PARAM, ownerTypeField, implementationName, implementationDescriptor);
         method.addStatement("return true");
+    }
+
+    @SuppressWarnings("unused")
+    private static void generateReplacementMethod(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder code) {
+        code.addStatement("return null");
     }
 
     private static void validateSignature(CallableInfo callable) {

@@ -208,7 +208,6 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
             }
-            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
                 Optional<MethodNode> methodNode = classData.readClassAsNode().methods.stream().filter(method ->
                     Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
@@ -217,10 +216,14 @@ public class InstrumentingClassTransform implements ClassTransform {
             });
 
             return interceptors.stream()
-                .map(interceptor -> interceptor.visitReplacementMethod(new MethodVisitorScope(methodVisitor), access, name, descriptor, signature, exceptions, asMethodNode))
+                .map(interceptor -> interceptor.findReplacementMethod(className, access, name, descriptor, signature, exceptions, asMethodNode))
                 .filter(Objects::nonNull)
                 .findFirst()
-                .orElseGet(() -> new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode));
+                .map(builder -> builder.buildReplacementMethod(this))
+                .orElseGet(() -> {
+                    MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
+                    return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+                });
         }
 
         @Override
