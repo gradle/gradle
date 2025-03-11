@@ -43,7 +43,9 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
@@ -55,6 +57,7 @@ import java.util.Map;
 import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
+@ServiceScope(Scope.Project.class)
 public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
