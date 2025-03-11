@@ -114,6 +114,7 @@ object EvaluationFailureMessageGenerator {
         ErrorReason.UnitAssignment -> "assignment of a Unit value"
         ErrorReason.UnresolvedAssignmentLhs -> "unresolved assignment target"
         ErrorReason.UnresolvedAssignmentRhs -> "unresolved assigned value"
+        is ErrorReason.AugmentingAssignmentNotResolved -> "augmenting assignment operation not resolved for '${errorReason.propertyType}'"
         is ErrorReason.UnresolvedReference -> "unresolved reference '${errorReason.reference.sourceData.text()}'"
         ErrorReason.UnusedConfigureLambda -> "a configuring block is not expected"
         is ErrorReason.ValReassignment -> "assignment to a local 'val ${errorReason.localVal.name}'"

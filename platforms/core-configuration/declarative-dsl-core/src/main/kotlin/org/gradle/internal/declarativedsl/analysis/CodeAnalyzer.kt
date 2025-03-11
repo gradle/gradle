@@ -36,7 +36,7 @@ class CodeAnalyzerImpl(
     fun doResolveStatement(context: AnalysisContext, statement: DataStatement) {
         when (statement) {
             is Assignment -> statementResolver.doResolveAssignment(context, statement)
-            is AugmentingAssignment -> TODO()
+            is AugmentingAssignment -> statementResolver.doResolveAugmentingAssignment(context, statement)
             is LocalValue -> statementResolver.doResolveLocalValue(context, statement)
             is Expr -> statementResolver.doResolveExpressionStatement(context, statement)
         }

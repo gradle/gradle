@@ -180,6 +180,16 @@ class AnalysisContext(
         return result
     }
 
+    fun recordAugmentingAssignment(
+        resolvedTarget: PropertyReferenceResolution,
+        resolvedResult: ObjectOrigin.AugmentationOrigin,
+        originElement: LanguageTreeElement
+    ): AssignmentRecord {
+        val result = AssignmentRecord(resolvedTarget, resolvedResult, nextCallId(), AssignmentMethod.Augmentation, originElement)
+        mutableAssignments.add(result)
+        return result
+    }
+
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
         mutableAdditions += DataAdditionRecord(container, dataObject)
     }

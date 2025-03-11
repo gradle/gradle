@@ -47,6 +47,7 @@ import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolu
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.NamedReferenceResolution
 import org.gradle.internal.declarativedsl.dom.DocumentResolution.ValueNodeResolution.ValueFactoryResolution
 import org.gradle.internal.declarativedsl.dom.ElementNotResolvedReason
+import org.gradle.internal.declarativedsl.dom.IllegalAugmentedAssignment
 import org.gradle.internal.declarativedsl.dom.NamedReferenceNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.NonEnumValueNamedReference
 import org.gradle.internal.declarativedsl.dom.NotAssignable
@@ -269,6 +270,7 @@ class DocumentResolver(
             is ErrorReason.AssignmentTypeMismatch -> ValueTypeMismatch
             is ErrorReason.ReadOnlyPropertyAssignment -> NotAssignable
             ErrorReason.UnresolvedAssignmentRhs -> UnresolvedValueUsed
+            is ErrorReason.AugmentingAssignmentNotResolved -> IllegalAugmentedAssignment
 
             ErrorReason.MissingConfigureLambda,
             ErrorReason.UnusedConfigureLambda,
@@ -284,6 +286,7 @@ class DocumentResolver(
             is ErrorReason.OpaqueArgumentForIdentityParameter,
             ErrorReason.UnitAssignment, // TODO: should we still check for this?
             ErrorReason.AccessOnCurrentReceiverOnlyViolation -> unexpectedErrorInErrorMapping(it)
+
         }
     }.distinct()
 
@@ -315,7 +318,9 @@ class DocumentResolver(
             is ErrorReason.ValReassignment,
             ErrorReason.AccessOnCurrentReceiverOnlyViolation,
             is ErrorReason.NonReadableProperty,
+            is ErrorReason.AugmentingAssignmentNotResolved,
             is ErrorReason.AmbiguousImport -> unexpectedErrorInErrorMapping(it)
+
         }
     }.distinct()
 
