@@ -209,7 +209,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir1 = buildDirectory.get()
         dir1.getAsFile() == projectDir.file("build")
 
-        layout.setBuildDirectory("other")
+        layout.buildDirectory.set(projectDir.file("other"))
         buildDirectory.present
         fileProvider.present
         fileProvider.get() == projectDir.file("other")
@@ -217,7 +217,7 @@ class DefaultProjectLayoutTest extends Specification {
         def dir2 = buildDirectory.get()
         dir2.getAsFile() == projectDir.file("other")
 
-        layout.setBuildDirectory("../target")
+        layout.buildDirectory.set(projectDir.file("../target"))
         buildDirectory.present
         fileProvider.present
         fileProvider.get() == tmpDir.file("target")

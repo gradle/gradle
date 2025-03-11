@@ -54,7 +54,6 @@ import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
@@ -883,7 +882,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Override
     @Deprecated
     public void setBuildDir(Object path) {
-        getLayout().setBuildDirectory(path);
+        getLayout().getBuildDirectory().set(getFileResolver().resolve(path));
     }
 
     @Override
@@ -998,7 +997,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     @Inject
     @Override
     // onMutableStateAccess() triggered by #getServices()
-    public abstract DefaultProjectLayout getLayout();
+    public abstract ProjectLayout getLayout();
 
     @Override
     public File file(Object path) {
@@ -1612,7 +1611,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     /**
      * Assert that the current thread is not running a lazy action on a domain object within this project.
-     *  This method should be called by methods that must not be called in lazy actions.
+     * This method should be called by methods that must not be called in lazy actions.
      */
     private void assertEagerContext(String methodName) {
         getProjectConfigurator().getLazyBehaviorGuard().assertEagerContext(methodName, this, Project.class);
