@@ -32,9 +32,11 @@ public interface JvmBytecodeCallInterceptor extends FilterableBytecodeIntercepto
      * Potentially replace the whole method with a new one.
      */
     @Nullable
-    ReplacementMethodBuilder findReplacementMethod(String className, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode);
+    default ReplacementMethodBuilder findReplacementMethod(String className, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode) {
+        return null;
+    }
 
-    boolean visitMethodInsn(
+    default boolean visitMethodInsn(
             MethodVisitorScope mv,
             String className,
             int opcode,
@@ -43,10 +45,14 @@ public interface JvmBytecodeCallInterceptor extends FilterableBytecodeIntercepto
             String descriptor,
             boolean isInterface,
             Supplier<MethodNode> readMethodNode
-    );
+    ) {
+        return false;
+    }
 
     @Nullable
-    BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor);
+    default BridgeMethodBuilder findBridgeMethodBuilder(String className, int tag, String owner, String name, String descriptor) {
+        return null;
+    }
 
     interface Factory extends FilterableBytecodeInterceptorFactory {
         JvmBytecodeCallInterceptor create(InstrumentationMetadata metadata, BytecodeInterceptorFilter interceptorFilter);

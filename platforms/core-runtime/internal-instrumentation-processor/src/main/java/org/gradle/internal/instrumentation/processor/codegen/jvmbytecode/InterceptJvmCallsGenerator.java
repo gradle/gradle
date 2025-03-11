@@ -16,7 +16,6 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode;
 
-import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -29,8 +28,6 @@ import org.gradle.internal.instrumentation.api.annotations.ParameterKind;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.DefaultBridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
-import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
-import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorType;
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
@@ -41,52 +38,26 @@ import org.gradle.internal.instrumentation.model.ParameterInfo;
 import org.gradle.internal.instrumentation.model.ParameterKindInfo;
 import org.gradle.internal.instrumentation.model.RequestExtra;
 import org.gradle.internal.instrumentation.processor.codegen.HasFailures.FailureInfo;
-import org.gradle.internal.instrumentation.processor.codegen.JavadocUtils;
-import org.gradle.internal.instrumentation.processor.codegen.RequestGroupingInstrumentationClassSourceGenerator;
-import org.gradle.internal.instrumentation.util.NameUtil;
 import org.gradle.model.internal.asm.MethodVisitorScope;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.MethodNode;
 
-import javax.annotation.Nullable;
 import javax.lang.model.element.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.instrumentation.processor.codegen.GradleReferencedType.GENERATED_ANNOTATION;
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
 
 /**
- * Generates a single bytecode rewriter class.
+ * Generates a single bytecode rewriter class for capturing JVM calls.
  */
-public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationClassSourceGenerator {
-    /**
-     * Emits the code that generates interceptor method invocation.
-     */
-    @FunctionalInterface
-    private interface InvocationGenerator {
-        void generate(CallInterceptionRequest request, FieldSpec implTypeField, CodeBlock.Builder code);
-    }
-
-    /**
-     * Creates the code block that checks if the invocation operation should be intercepted.
-     */
-    @FunctionalInterface
-    private interface InvocationMatcher {
-        CodeBlock generate(CallableInfo info);
-    }
-
+public class InterceptJvmCallsGenerator extends JvmInterceptorGenerator {
     @Override
     protected String classNameForRequest(CallInterceptionRequest request) {
         return request.getRequestExtras().getByType(RequestExtra.InterceptJvmCalls.class)
@@ -110,9 +81,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList())
         );
 
-        MethodSpec.Builder visitReplacementMethodBuilder = getVisitReplacementMethodBuilder();
-        generateVisitReplacementMethodCode(visitReplacementMethodBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
-
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(visitMethodInsnBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
 
@@ -134,52 +102,10 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addField(METADATA_FIELD)
                 .addField(CONTEXT_FIELD)
                 // actual content:
-                .addMethod(visitReplacementMethodBuilder.build())
                 .addMethod(visitMethodInsnBuilder.build())
                 .addMethod(findBridgeMethodBuilder.build())
                 .addFields(typeFieldByOwner.values())
                 .addType(factoryClass);
-    }
-
-    private static TypeSpec generateFactoryClass(String className, BytecodeInterceptorType interceptorType) {
-        MethodSpec method = MethodSpec.methodBuilder("create")
-            .addModifiers(Modifier.PUBLIC)
-            .returns(JvmBytecodeCallInterceptor.class)
-            .addParameter(InstrumentationMetadata.class, "metadata")
-            .addParameter(BytecodeInterceptorFilter.class, "context")
-            .addStatement("return new $L($N, $N)", className, "metadata", "context")
-            .addAnnotation(Override.class)
-            .build();
-        return TypeSpec.classBuilder("Factory")
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addSuperinterface(ClassName.get(JvmBytecodeCallInterceptor.Factory.class))
-            .addSuperinterface(ClassName.get(interceptorType.getInterceptorFactoryMarkerInterface()))
-            .addMethod(method)
-            .build();
-    }
-
-    @SuppressWarnings("unused")
-    private static void generateVisitReplacementMethodCode(
-        MethodSpec.Builder method,
-        Map<Type, FieldSpec> typeFieldByOwner,
-        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super FailureInfo> onFailure
-    ) {
-        CodeBlock.Builder code = CodeBlock.builder();
-        requestsByOwner.forEach((owner, requests) -> generateCodeForOwner(
-            owner,
-            typeFieldByOwner,
-            requests,
-            code,
-            // TODO Avoid adding '&& true'
-            callable -> CodeBlock.of("true"),
-            InterceptJvmCallsGenerator::generateReplacementMethod,
-            null,
-            onProcessedRequest,
-            onFailure));
-        code.addStatement("return null");
-        method.addCode(code.build());
     }
 
     private static void generateVisitMethodInsnCode(
@@ -262,44 +188,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         }
     }
 
-
-    private static Map<Type, FieldSpec> generateFieldsForImplementationOwners(Collection<CallInterceptionRequest> interceptionRequests) {
-        Set<String> knownSimpleNames = new HashSet<>();
-        return interceptionRequests.stream().map(it -> it.getImplementationInfo().getOwner()).distinct()
-            .collect(Collectors.toMap(Function.identity(), implementationType -> {
-                ClassName implementationClassName = NameUtil.getClassName(implementationType.getClassName());
-                String fieldTypeName = knownSimpleNames.add(implementationClassName.simpleName()) ?
-                    implementationClassName.simpleName() :
-                    implementationClassName.reflectionName();
-                String fullFieldName = NameUtil.camelToUpperUnderscoreCase(fieldTypeName) + "_TYPE";
-                return FieldSpec.builder(String.class, fullFieldName, Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                    .initializer("$S", implementationClassName.reflectionName().replace(".", "/"))
-                    .build();
-            }, (u, v) -> u, LinkedHashMap::new));
-    }
-
-    MethodSpec constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE)
-        .addParameter(InstrumentationMetadata.class, "metadata")
-        .addParameter(BytecodeInterceptorFilter.class, "context")
-        .addStatement("this.$N = metadata", METADATA_FIELD)
-        .addStatement("this.$N = context", CONTEXT_FIELD)
-        .build();
-
     private static final ParameterSpec METHOD_VISITOR_PARAM = ParameterSpec.builder(MethodVisitorScope.class, "mv").build();
-
-    private static MethodSpec.Builder getVisitReplacementMethodBuilder() {
-        return MethodSpec.methodBuilder("findReplacementMethod")
-            .addAnnotation(Override.class)
-            .addModifiers(Modifier.PUBLIC)
-            .returns(ReplacementMethodBuilder.class)
-            .addParameter(String.class, "owner")
-            .addParameter(int.class, "access")
-            .addParameter(String.class, "name")
-            .addParameter(String.class, "descriptor")
-            .addParameter(String.class, "signature")
-            .addParameter(ArrayTypeName.of(String.class), "exceptions")
-            .addParameter(ParameterizedTypeName.get(Supplier.class, MethodNode.class), "readMethodNode");
-    }
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
         return MethodSpec.methodBuilder("visitMethodInsn")
@@ -348,123 +237,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         .addParameter(String.class, "className")
         .addStatement("$1N._LDC($2N(className))", METHOD_VISITOR_PARAM, BINARY_CLASS_NAME_OF)
         .build();
-
-    private static final FieldSpec METADATA_FIELD =
-        FieldSpec.builder(InstrumentationMetadata.class, "metadata", Modifier.PRIVATE, Modifier.FINAL).build();
-
-    private static final FieldSpec CONTEXT_FIELD =
-        FieldSpec.builder(BytecodeInterceptorFilter.class, "context", Modifier.PRIVATE, Modifier.FINAL).build();
-
-    private static void generateCodeForOwner(
-        CallableOwnerInfo owner,
-        Map<Type, FieldSpec> implTypeFields,
-        List<CallInterceptionRequest> requestsForOwner,
-        CodeBlock.Builder code,
-        InvocationMatcher invocationMatcher,
-        InvocationGenerator interceptStandard,
-        @Nullable InvocationGenerator interceptKotlinDefault,
-        Consumer<? super CallInterceptionRequest> onProcessedRequest,
-        Consumer<? super FailureInfo> onFailure
-    ) {
-        if (owner.isInterceptSubtypes()) {
-            code.beginControlFlow("if ($N.isInstanceOf(owner, $S))", METADATA_FIELD, owner.getType().getInternalName());
-        } else {
-            code.beginControlFlow("if (owner.equals($S))", owner.getType().getInternalName());
-        }
-        for (CallInterceptionRequest request : requestsForOwner) {
-            CodeBlock.Builder nested = CodeBlock.builder();
-            try {
-                generateCodeForRequest(
-                    request,
-                    implTypeFields.get(request.getImplementationInfo().getOwner()),
-                    nested,
-                    invocationMatcher,
-                    interceptStandard,
-                    interceptKotlinDefault
-                );
-            } catch (Failure failure) {
-                onFailure.accept(new FailureInfo(request, failure.reason));
-            }
-            onProcessedRequest.accept(request);
-            code.add(nested.build());
-        }
-        code.endControlFlow();
-    }
-
-    private static void generateCodeForRequest(
-        CallInterceptionRequest request,
-        FieldSpec implTypeField,
-        CodeBlock.Builder code,
-        InvocationMatcher invocationMatcher,
-        InvocationGenerator interceptStandard,
-        @Nullable InvocationGenerator interceptKotlinDefault
-    ) {
-        String callableName = request.getInterceptedCallable().getCallableName();
-        CallableInfo interceptedCallable = request.getInterceptedCallable();
-        String interceptedCallableDescriptor = standardCallableDescriptor(interceptedCallable);
-        validateSignature(interceptedCallable);
-
-        CodeBlock matchInvocationOperation = invocationMatcher.generate(interceptedCallable);
-
-        documentInterceptorGeneratedCode(request, code);
-        matchAndInterceptStandardCallableSignature(
-            request,
-            implTypeField,
-            code,
-            callableName,
-            interceptedCallableDescriptor,
-            matchInvocationOperation,
-            interceptStandard
-        );
-
-        if (interceptKotlinDefault != null && interceptedCallable.hasKotlinDefaultMaskParam()) {
-            matchAndInterceptKotlinDefaultSignature(
-                request,
-                implTypeField,
-                code,
-                callableName,
-                interceptedCallable,
-                matchInvocationOperation,
-                interceptKotlinDefault
-            );
-        }
-    }
-
-    private static void matchAndInterceptStandardCallableSignature(
-        CallInterceptionRequest request,
-        FieldSpec implTypeField,
-        CodeBlock.Builder code,
-        String callableName,
-        String callableDescriptor,
-        CodeBlock matchOpcodeExpression,
-        InvocationGenerator invocationGenerator
-    ) {
-        code.beginControlFlow("if (name.equals($S) && descriptor.equals($S) && $L)", callableName, callableDescriptor, matchOpcodeExpression);
-        invocationGenerator.generate(request, implTypeField, code);
-        code.endControlFlow();
-    }
-
-    private static void matchAndInterceptKotlinDefaultSignature(
-        CallInterceptionRequest request,
-        FieldSpec ownerTypeField,
-        CodeBlock.Builder code,
-        String callableName,
-        CallableInfo interceptedCallable,
-        CodeBlock matchOpcodeExpression,
-        InvocationGenerator invocationGenerator
-    ) {
-        code.add("// Additionally intercept the signature with the Kotlin default mask and marker:\n");
-        String callableDescriptorKotlinDefault = kotlinDefaultFunctionDescriptor(interceptedCallable);
-        String defaultMethodName = callableName + "$default";
-        code.beginControlFlow("if (name.equals($S) && descriptor.equals($S) && $L)", defaultMethodName, callableDescriptorKotlinDefault, matchOpcodeExpression);
-        invocationGenerator.generate(request, ownerTypeField, code);
-        code.endControlFlow();
-    }
-
-    private static void documentInterceptorGeneratedCode(CallInterceptionRequest request, CodeBlock.Builder code) {
-        code.add("/** \n * Intercepting $L: $L\n", JavadocUtils.callableKindForJavadoc(request), JavadocUtils.interceptedCallableLink(request));
-        code.add(" * Intercepted by $L\n*/\n", JavadocUtils.interceptorImplementationLink(request));
-    }
 
     private static CodeBlock matchOpcodeExpression(CallableInfo interceptedCallable) {
         switch (interceptedCallable.getKind()) {
@@ -564,62 +336,6 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         method.addStatement("return true");
     }
 
-    @SuppressWarnings("unused")
-    private static void generateReplacementMethod(CallInterceptionRequest request, FieldSpec ownerTypeField, CodeBlock.Builder code) {
-        code.addStatement("return null");
-    }
-
-    private static void validateSignature(CallableInfo callable) {
-        if (callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_GETTER || callable.getKind() == CallableKindInfo.GROOVY_PROPERTY_SETTER) {
-            throw new Failure("Groovy property access cannot be intercepted in JVM calls");
-        }
-
-        boolean hasInjectVisitorContext = callable.hasInjectVisitorContextParam();
-        if (hasInjectVisitorContext) {
-            ParameterInfo lastParameter = callable.getParameters().get(callable.getParameters().size() - 1);
-            if (lastParameter.getKind() != ParameterKindInfo.INJECT_VISITOR_CONTEXT) {
-                throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be last parameter");
-            }
-            if (!lastParameter.getParameterType().getClassName().equals(BytecodeInterceptorFilter.class.getName())) {
-                throw new Failure("The interceptor's @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter should be of type " + BytecodeInterceptorFilter.class.getName() + " but was " + lastParameter.getParameterType().getClassName());
-            }
-            if (callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.INJECT_VISITOR_CONTEXT).count() > 1) {
-                throw new Failure("An interceptor may not have more than one @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " parameter");
-            }
-        }
-
-        boolean hasCallerClassName = callable.hasCallerClassNameParam();
-        if (hasCallerClassName) {
-            int expectedIndex = hasInjectVisitorContext ? callable.getParameters().size() - 2 : callable.getParameters().size() - 1;
-            if (callable.getParameters().get(expectedIndex).getKind() != ParameterKindInfo.CALLER_CLASS_NAME) {
-                throw new Failure("The interceptor's @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter should be last or just before @" + ParameterKind.InjectVisitorContext.class.getSimpleName() + " if that parameter is present");
-            }
-            if (callable.getParameters().stream().filter(it -> it.getKind() == ParameterKindInfo.CALLER_CLASS_NAME).count() > 1) {
-                throw new Failure("An interceptor may not have more than one @" + ParameterKind.CallerClassName.class.getSimpleName() + " parameter");
-            }
-        }
-
-        if (callable.hasKotlinDefaultMaskParam()) {
-            // TODO support @AfterConstructor with Kotlin default mask? Kotlin constructors have a special DefaultConstructorMarker as the last argument
-            if (callable.getKind() != CallableKindInfo.STATIC_METHOD && callable.getKind() != CallableKindInfo.INSTANCE_METHOD) {
-                throw new Failure(
-                    "Only @" + CallableKind.StaticMethod.class.getSimpleName() + " or @" + CallableKind.InstanceMethod.class.getSimpleName() + " can use Kotlin default parameters"
-                );
-            }
-
-            int expectedKotlinDefaultMaskIndex = callable.getParameters().size() - (hasCallerClassName ? 2 : 1);
-            if (callable.getParameters().get(expectedKotlinDefaultMaskIndex).getKind() != ParameterKindInfo.KOTLIN_DEFAULT_MASK) {
-                throw new Failure(
-                    "@" + ParameterKind.KotlinDefaultMask.class.getSimpleName() + " should be the last parameter of may be followed only by @" + ParameterKind.CallerClassName.class.getSimpleName()
-                );
-            }
-        }
-
-        if (callable.getOwner().isInterceptSubtypes() && !callable.getOwner().getType().getInternalName().startsWith("org/gradle")) {
-            throw new Failure("Intercepting inherited methods is supported only for Gradle types for now, but type was: " + callable.getOwner().getType().getInternalName());
-        }
-    }
-
     private static void maybeGenerateLoadBinaryClassNameCall(CodeBlock.Builder code, CallableInfo callableInfo) {
         if (callableInfo.hasCallerClassNameParam()) {
             code.addStatement("$N($N, className)", LOAD_BINARY_CLASS_NAME, METHOD_VISITOR_PARAM);
@@ -638,28 +354,5 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .map(ParameterInfo::getParameterType).toArray(Type[]::new);
         Type returnType = callableInfo.getReturnType().getType();
         return Type.getMethodDescriptor(returnType, parameterTypes);
-    }
-
-    private static String kotlinDefaultFunctionDescriptor(CallableInfo callableInfo) {
-        if (callableInfo.getKind() != CallableKindInfo.INSTANCE_METHOD && callableInfo.getKind() != CallableKindInfo.STATIC_METHOD) {
-            throw new UnsupportedOperationException("Kotlin default parameters are not yet supported for " + callableInfo.getKind());
-        }
-
-        String standardDescriptor = standardCallableDescriptor(callableInfo);
-        Type returnType = Type.getReturnType(standardDescriptor);
-        Type[] argumentTypes = Type.getArgumentTypes(standardDescriptor);
-        Type[] argumentTypesWithDefault = Stream.concat(
-            Arrays.stream(argumentTypes),
-            Stream.of(Type.getType(int.class), Type.getType(Object.class))
-        ).toArray(Type[]::new);
-        return Type.getMethodDescriptor(returnType, argumentTypesWithDefault);
-    }
-
-    private static class Failure extends RuntimeException {
-        final String reason;
-
-        private Failure(String reason) {
-            this.reason = reason;
-        }
     }
 }

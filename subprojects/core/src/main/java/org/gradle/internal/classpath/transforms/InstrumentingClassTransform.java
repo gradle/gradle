@@ -32,6 +32,7 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
@@ -50,6 +51,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -168,6 +170,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final BytecodeInterceptorFilter interceptorFilter;
 
         private final Map<Handle, BridgeMethod> bridgeMethods = new LinkedHashMap<>();
+        private final List<ReplacementMethodBuilder> replacementMethods = new ArrayList<>();
         private final MethodInterceptionListener methodInterceptionListener;
         private int nextBridgeMethodIndex;
 
@@ -219,7 +222,10 @@ public class InstrumentingClassTransform implements ClassTransform {
                 .map(interceptor -> interceptor.findReplacementMethod(className, access, name, descriptor, signature, exceptions, asMethodNode))
                 .filter(Objects::nonNull)
                 .findFirst()
-                .map(builder -> builder.buildReplacementMethod(this))
+                .map(builder -> {
+                    replacementMethods.add(builder);
+                    return builder.createCapturingVisitor();
+                })
                 .orElseGet(() -> {
                     MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
                     return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
@@ -232,6 +238,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 generateCallSiteFactoryMethod();
             }
             bridgeMethods.values().forEach(this::generateBridgeMethod);
+            replacementMethods.forEach(this::generateReplacementMethod);
             super.visitEnd();
         }
 
@@ -350,6 +357,10 @@ public class InstrumentingClassTransform implements ClassTransform {
 
         private Handle makeBridgeMethodHandle(String name, String desc) {
             return new Handle(H_INVOKESTATIC, className, name, desc, isInterface);
+        }
+
+        private void generateReplacementMethod(ReplacementMethodBuilder replacement) {
+            replacement.generateReplacementMethod(this);
         }
     }
 

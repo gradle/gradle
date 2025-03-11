@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.instrumentation.api.jvmbytecode;
+package org.gradle.internal.instrumentation.extensions.property;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
+import org.gradle.internal.instrumentation.model.RequestExtra;
 
-/**
- * A generator for a replacement method.
- */
-public interface ReplacementMethodBuilder {
-    MethodVisitor createCapturingVisitor();
-    void generateReplacementMethod(ClassVisitor cv);
+class PropertyUpgradeGetterOverrideRequestExtra implements RequestExtra {
+    private final String implementationClassName;
+
+    public PropertyUpgradeGetterOverrideRequestExtra(
+        String implementationClassName
+    ) {
+        this.implementationClassName = implementationClassName;
+    }
+
+    public String getImplementationClassName() {
+        return implementationClassName;
+    }
 }

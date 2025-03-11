@@ -649,6 +649,12 @@ public class PropertyUpgradeAnnotatedMethodReader implements AnnotatedMethodRead
             binaryCompatibility,
             accessor.bridgedMethod
         ));
+        if (accessor.accessorType == AccessorType.GETTER) {
+            // TODO Use a better class name here
+            extras.add(new PropertyUpgradeGetterOverrideRequestExtra(
+               interceptorsClassName + "_GetterOverride"
+            ));
+        }
         return extras;
     }
 
