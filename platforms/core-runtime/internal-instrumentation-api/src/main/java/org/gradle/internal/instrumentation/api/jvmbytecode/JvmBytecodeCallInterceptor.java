@@ -27,6 +27,13 @@ import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public interface JvmBytecodeCallInterceptor extends FilterableBytecodeInterceptor {
+
+    /**
+     * Potentially replace the whole method with a new one.
+     */
+    @Nullable
+    MethodVisitorScope visitReplacementMethod(MethodVisitorScope mv, int access, String name, String descriptor, String signature, String[] exceptions, Supplier<MethodNode> asNode);
+
     boolean visitMethodInsn(
             MethodVisitorScope mv,
             String className,

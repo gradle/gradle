@@ -215,7 +215,12 @@ public class InstrumentingClassTransform implements ClassTransform {
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+
+            return interceptors.stream()
+                .map(interceptor -> interceptor.visitReplacementMethod(new MethodVisitorScope(methodVisitor), access, name, descriptor, signature, exceptions, asMethodNode))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseGet(() -> new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode));
         }
 
         @Override
@@ -292,6 +297,7 @@ public class InstrumentingClassTransform implements ClassTransform {
 
         /**
          * Prepares the bridge method for the {@code interceptedHandle} with proper argument types.
+         *
          * @param targetOwner the owner type to be used by the bridge method
          * @param interceptedHandle the method reference to potentially intercept
          * @return the bridge method data or null if the method shouldn't be intercepted

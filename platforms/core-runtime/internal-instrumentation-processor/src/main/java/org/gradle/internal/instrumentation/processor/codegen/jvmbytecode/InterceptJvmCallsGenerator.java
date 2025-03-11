@@ -16,6 +16,7 @@
 
 package org.gradle.internal.instrumentation.processor.codegen.jvmbytecode;
 
+import com.squareup.javapoet.ArrayTypeName;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
@@ -108,6 +109,9 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             Collectors.groupingBy(it -> it.getInterceptedCallable().getOwner(), LinkedHashMap::new, Collectors.toList())
         );
 
+        MethodSpec.Builder visitReplacementMethodBuilder = getVisitReplacementMethodBuilder();
+        generateVisitReplacementMethodCode(visitReplacementMethodBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
+
         MethodSpec.Builder visitMethodInsnBuilder = getVisitMethodInsnBuilder();
         generateVisitMethodInsnCode(visitMethodInsnBuilder, typeFieldByOwner, requestsByOwner, onProcessedRequest, onFailure);
 
@@ -129,6 +133,7 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
                 .addField(METADATA_FIELD)
                 .addField(CONTEXT_FIELD)
                 // actual content:
+                .addMethod(visitReplacementMethodBuilder.build())
                 .addMethod(visitMethodInsnBuilder.build())
                 .addMethod(findBridgeMethodBuilder.build())
                 .addFields(typeFieldByOwner.values())
@@ -152,6 +157,18 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
             .build();
     }
 
+    @SuppressWarnings("unused")
+    private static void generateVisitReplacementMethodCode(
+        MethodSpec.Builder method,
+        Map<Type, FieldSpec> typeFieldByOwner,
+        Map<CallableOwnerInfo, List<CallInterceptionRequest>> requestsByOwner,
+        Consumer<? super CallInterceptionRequest> onProcessedRequest,
+        Consumer<? super FailureInfo> onFailure
+    ) {
+        CodeBlock.Builder code = CodeBlock.builder();
+        code.addStatement("return null");
+        method.addCode(code.build());
+    }
 
     private static void generateVisitMethodInsnCode(
         MethodSpec.Builder method,
@@ -257,6 +274,20 @@ public class InterceptJvmCallsGenerator extends RequestGroupingInstrumentationCl
         .build();
 
     private static final ParameterSpec METHOD_VISITOR_PARAM = ParameterSpec.builder(MethodVisitorScope.class, "mv").build();
+
+    private static MethodSpec.Builder getVisitReplacementMethodBuilder() {
+        return MethodSpec.methodBuilder("visitReplacementMethod")
+            .addAnnotation(Override.class)
+            .addModifiers(Modifier.PUBLIC)
+            .returns(MethodVisitorScope.class)
+            .addParameter(METHOD_VISITOR_PARAM)
+            .addParameter(int.class, "access")
+            .addParameter(String.class, "name")
+            .addParameter(String.class, "descriptor")
+            .addParameter(String.class, "signature")
+            .addParameter(ArrayTypeName.of(String.class), "exceptions")
+            .addParameter(ParameterizedTypeName.get(Supplier.class, MethodNode.class), "readMethodNode");
+    }
 
     private static MethodSpec.Builder getVisitMethodInsnBuilder() {
         return MethodSpec.methodBuilder("visitMethodInsn")
