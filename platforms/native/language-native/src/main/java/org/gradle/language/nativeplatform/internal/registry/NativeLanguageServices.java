@@ -28,6 +28,8 @@ import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CSou
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.CachingCSourceParser;
 import org.gradle.language.nativeplatform.internal.toolchains.DefaultToolChainSelector;
 import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
+import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry;
+import org.gradle.nativeplatform.toolchain.internal.DefaultNativeToolChainRegistry;
 
 public class NativeLanguageServices extends AbstractGradleModuleServices {
 
@@ -43,5 +45,6 @@ public class NativeLanguageServices extends AbstractGradleModuleServices {
         registration.add(IncrementalCompilerBuilder.class, DefaultIncrementalCompilerBuilder.class);
         registration.add(ToolChainSelector.class, DefaultToolChainSelector.class);
         registration.add(NativeComponentFactory.class, DefaultNativeComponentFactory.class);
+        registration.add(NativeToolChainRegistry.class, DefaultNativeToolChainRegistry.class);
     }
 }

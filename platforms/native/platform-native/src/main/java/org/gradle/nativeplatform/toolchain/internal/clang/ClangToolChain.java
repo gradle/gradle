@@ -30,10 +30,13 @@ import org.gradle.nativeplatform.toolchain.internal.gcc.metadata.SystemLibraryDi
 import org.gradle.nativeplatform.toolchain.internal.metadata.CompilerMetaDataProviderFactory;
 import org.gradle.process.internal.ExecActionFactory;
 
+import javax.inject.Inject;
+
 @NonNullApi
 public class ClangToolChain extends AbstractGccCompatibleToolChain implements Clang {
     public static final String DEFAULT_NAME = "clang";
 
+    @Inject
     public ClangToolChain(String name, BuildOperationExecutor buildOperationExecutor, OperatingSystem operatingSystem, FileResolver fileResolver, ExecActionFactory execActionFactory, CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory, CompilerMetaDataProviderFactory metaDataProviderFactory, SystemLibraryDiscovery standardLibraryDiscovery, Instantiator instantiator, WorkerLeaseService workerLeaseService) {
         super(name, buildOperationExecutor, operatingSystem, fileResolver, execActionFactory, compilerOutputFileNamingSchemeFactory, metaDataProviderFactory.clang(), standardLibraryDiscovery, instantiator, workerLeaseService);
     }

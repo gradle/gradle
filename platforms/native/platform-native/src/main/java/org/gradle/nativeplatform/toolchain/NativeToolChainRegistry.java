@@ -18,6 +18,8 @@ package org.gradle.nativeplatform.toolchain;
 import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.platform.base.ToolChainRegistry;
 
@@ -26,5 +28,6 @@ import org.gradle.platform.base.ToolChainRegistry;
  */
 @Incubating
 @HasInternalProtocol
+@ServiceScope(Scope.Project.class)
 public interface NativeToolChainRegistry extends ExtensiblePolymorphicDomainObjectContainer<NativeToolChain>, ToolChainRegistry<NativePlatform, NativeToolChain> {
 }
