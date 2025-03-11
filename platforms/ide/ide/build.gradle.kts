@@ -27,6 +27,7 @@ dependencies {
     implementation(projects.ear)
     implementation(projects.languageJava)
     implementation(projects.loggingApi)
+    implementation(projects.logging)
     implementation(projects.platformBase)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
