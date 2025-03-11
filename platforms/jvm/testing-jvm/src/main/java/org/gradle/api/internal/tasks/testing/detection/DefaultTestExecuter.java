@@ -89,7 +89,7 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             @Override
             public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
+                return createTestClassProcessor(workerLeaseService, workerFactory, testInstanceFactory, testExecutionSpec.getJavaForkOptions(),
                     classpath, testFramework.getWorkerConfigurationAction(), documentationRegistry);
             }
         };
@@ -117,6 +117,26 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
         }
 
         new TestMainAction(detector, processor, testResultProcessor, workerLeaseService, clock, testExecutionSpec.getPath(), "Gradle Test Run " + testExecutionSpec.getIdentityPath()).run();
+    }
+
+    protected TestClassProcessor createTestClassProcessor(
+        WorkerLeaseService workerLeaseService,
+        WorkerProcessFactory workerProcessFactory,
+        WorkerTestClassProcessorFactory workerTestClassProcessorFactory,
+        JavaForkOptions javaForkOptions,
+        ForkedTestClasspath classpath,
+        Action<WorkerProcessBuilder> workerConfigurationAction,
+        DocumentationRegistry documentationRegistry
+    ) {
+        return new ForkingTestClassProcessor(
+            workerLeaseService,
+            workerProcessFactory,
+            workerTestClassProcessorFactory,
+            javaForkOptions,
+            classpath,
+            workerConfigurationAction,
+            documentationRegistry
+        );
     }
 
     @Override
