@@ -24,7 +24,7 @@ class ServiceRegistryBuilderTest extends Specification {
 
     def "creates a scope-validating service registry when setting a scope"() {
         def scopedBuilder = ServiceRegistryBuilder.builder()
-            .scope(Scope.Build)
+            .scopeLenient(Scope.Build)
 
         when:
         scopedBuilder
