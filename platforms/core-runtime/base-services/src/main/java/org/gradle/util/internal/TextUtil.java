@@ -360,7 +360,7 @@ public class TextUtil {
         return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
     }
 
-    public static String removeLast(String originalString, String suffix) {
+    public static String removeTrailing(String originalString, String suffix) {
         if (originalString.endsWith(suffix)) {
             return originalString.substring(0, originalString.length() - suffix.length());
         }

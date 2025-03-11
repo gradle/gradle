@@ -147,7 +147,7 @@ public abstract class DistributionBasePlugin implements Plugin<Project> {
             CopySpec childSpec = project.copySpec();
             childSpec.with(distribution.getContents());
             childSpec.into((Callable<String>) () ->
-                TextUtil.removeLast(task.getArchiveFileName().get(), "." + task.getArchiveExtension().get())
+                TextUtil.removeTrailing(task.getArchiveFileName().get(), "." + task.getArchiveExtension().get())
             );
             task.with(childSpec);
         });

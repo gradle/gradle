@@ -121,9 +121,9 @@ class TextUtilTest extends Specification {
         "aBec"      | "a-bec"
     }
 
-    def "removeLast should remove the last occurrence of the given suffix only if it is at the end"() {
+    def "removeTrailing should remove the last occurrence of the given suffix only if it is at the end"() {
         expect:
-        TextUtil.removeLast(input, suffix) == expectedOutput
+        TextUtil.removeTrailing(input, suffix) == expectedOutput
 
         where:
         input              | suffix     || expectedOutput
