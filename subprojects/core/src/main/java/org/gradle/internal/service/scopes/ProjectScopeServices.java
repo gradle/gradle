@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TaskFileVarFactory;
 import org.gradle.api.internal.file.collections.ManagedFactories;
 import org.gradle.api.internal.file.temp.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -391,7 +392,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         return new ActionBasedModelDefaultsHandler(sharedModelDefaults, projectLayout, softwareTypeRegistry, pluginScheme.getInspectionScheme(), problems);
     }
 
-    @Provides
+    @Provides({ProjectLayout.class, TaskFileVarFactory.class})
     DefaultProjectLayout createProjectLayout(BuildLayout buildLayout, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
                                              FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
         File settingsDir = buildLayout.getSettingsDir();

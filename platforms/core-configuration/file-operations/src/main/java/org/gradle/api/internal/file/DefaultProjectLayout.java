@@ -33,12 +33,9 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
 
-@ServiceScope(Scope.Project.class)
 public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     private final Directory settingsDir;
@@ -123,9 +120,9 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         return fileCollectionFactory.resolving(paths);
     }
 
-    /**
-     * A temporary home. Should be on the public API somewhere
-     */
+    // TODO: this "unused" method should be removed
+    // However, currently, expressions like 'layout.buildDirectory = file(...)' resolve to this method,
+    // and removing it makes those expressions fail the build
     public void setBuildDirectory(Object value) {
         buildDir.set(fileResolver.resolve(value));
     }
