@@ -10,5 +10,5 @@ currentDir=$(pwd)
     --gradle-version="8.13" \
     --gradle-version="9.0-branch-provider_api_migration_public_api_changes-20250304171043+0000" \
     --project-dir="$currentDir" \
-    --scenario-file "$currentDir/scenario.config" "runSanityCheck"
+    --scenario-file "$currentDir/scenario.config" "runAssembleCheck"
 
