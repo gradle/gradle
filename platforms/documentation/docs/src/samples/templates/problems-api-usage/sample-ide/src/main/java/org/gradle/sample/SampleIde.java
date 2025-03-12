@@ -63,7 +63,7 @@ public class SampleIde {
         File projectDir = projectPath.toFile();
 
         // Initialize the Tooling API
-        return GradleConnector.newConnector().useGradleVersion("8.12").forProjectDirectory(projectDir).connect();
+        return GradleConnector.newConnector().useGradleVersion("8.13").forProjectDirectory(projectDir).connect();
     }
 
     private void prettyPrintFailures(List<? extends Failure> failures) {

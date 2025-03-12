@@ -51,13 +51,10 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/src/main/java/org/gradle/test/SomeOtherData.java') << """
             package org.gradle.test;
 
-            import org.gradle.api.provider.Property;
-
-            public interface SomeOtherData{
+            public interface SomeOtherData {
                 String getOtherName();
                 void setOtherName(String name);
             }
-
         """
 
         file('buildSrc/src/main/java/org/gradle/test/SomeData.java') << """
