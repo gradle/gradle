@@ -232,7 +232,17 @@ Your project must have a test class that extends [`AbstractAutoTestedSamplesTest
 At the minimum, Javadoc is present for every public type (including public inner types), and every public or protected member of such a type, with a few exceptions such as overrides and self-explanatory members:
 
 ```java
-public Image getImage(URL url, String name) {}
+/**
+ * Public Method that requires Javadoc
+ */
+public Image getImage(URL url, String name) {
+    // Method implementation
+}
+
+// Private Method that doesn't require Javadoc
+private Image getImage(URL url) {
+    // Method implementation
+}
 ```
 
 ## 1.5 A note on IDEs
@@ -241,19 +251,21 @@ public Image getImage(URL url, String name) {}
 
 IntelliJ IDEA will display `<p>` or an empty `*` as a new line:
 
-```java
+```text
 /**
  * A
  *
  * B
- ```
+ */
+```
 
-```java
+```text
 /**
  * A
  * <p>
  * B
- ```
+ */
+```
 
 Render as:
 
@@ -267,11 +279,12 @@ If you want to stop IntelliJ IDEA from auto closing HTML tags:
 
 ### 1.5.2 Android Studio
 
-Android studio will not display javadoc following a `<p>` so make sure your summary fragment is well detailed:
+Android studio will not display Javadoc following a `<p>` so make sure your summary fragment is well detailed:
 
-```java
+```text
 /**
  * A // Displayed
  * <p>
  * B // Not displayed
- ```
+ */
+```
