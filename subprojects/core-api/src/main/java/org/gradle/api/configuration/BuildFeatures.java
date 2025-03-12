@@ -43,7 +43,7 @@ public interface BuildFeatures {
     BuildFeature getConfigurationCache();
 
     /**
-     * Status of the <a href="https://docs.gradle.org/current/userguide/isolated_projects.html">Isolated Projects</a> feature configuration in the build.
+     * Status of the <a href="https://docs.gradle.org/current/userguide/isolated_projects.html">Isolated Projects</a> feature in the build.
      *
      * @since 8.5
      */
