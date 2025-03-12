@@ -17,12 +17,18 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 
 class GroovyLibraryInitIntegrationTest extends AbstractJvmLibraryInitIntegrationSpec {
 
     public static final String SAMPLE_LIBRARY_CLASS = "org/example/Library.groovy"
     public static final String SAMPLE_LIBRARY_TEST_CLASS = "org/example/LibraryTest.groovy"
+
+    @Override
+    def setup() {
+        resultsTestFramework(GenericTestExecutionResult.TestFramework.SPOCK)
+    }
 
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:

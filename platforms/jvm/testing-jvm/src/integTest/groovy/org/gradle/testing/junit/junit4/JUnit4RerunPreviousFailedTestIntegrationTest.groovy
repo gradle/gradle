@@ -16,11 +16,12 @@
 
 package org.gradle.testing.junit.junit4
 
+import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecutionResult.TestFramework
+import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.hamcrest.CoreMatchers
 
-class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
+class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     private static final String INDEX_OF_TEST_TO_FAIL = "index.of.test.to.fail"
     private static final List<Integer> TESTS = [1, 2, 3]
     private static final List<String> TEST_CLASSES = TESTS.collect { "ConditionalFailingTest_${it}".toString() }
@@ -103,7 +104,6 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
         assert findIt
     }
 
-
     def 'can delete previous failed test'() {
         given:
         letTestFail(indexOfTestToFail)
@@ -152,19 +152,24 @@ class JUnit4RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSp
     }
 
     void testFailed(def indexOfTestToFail) {
-        new DefaultTestExecutionResult(testDirectory)
-            .testClass("ConditionalFailingTest_${indexOfTestToFail}").assertTestFailed('failedTest', CoreMatchers.anything())
+        resultsFor(testDirectory).testPath("ConditionalFailingTest_$indexOfTestToFail", "failedTest").onlyRoot()
+            .assertHasResult(TestResult.ResultType.FAILURE)
     }
 
     void allTestsSucceed() {
-        new DefaultTestExecutionResult(testDirectory).assertTestClassesExecuted(TEST_CLASSES as String[])
+        resultsFor(testDirectory).assertAtLeastTestPathsExecuted(TEST_CLASSES as String[])
     }
 
     void remainTestsSucceed(def indexOfTestToFail) {
         def failedTest = "ConditionalFailingTest_${indexOfTestToFail}".toString()
         def testClasses = TEST_CLASSES.clone()
         testClasses.remove(failedTest)
-        new DefaultTestExecutionResult(testDirectory)
-            .assertTestClassesExecuted(testClasses as String[])
+
+        resultsFor(testDirectory).assertAtLeastTestPathsExecuted(testClasses as String[])
+    }
+
+    @Override
+    TestFramework getTestFramework() {
+        return TestFramework.JUNIT4
     }
 }
