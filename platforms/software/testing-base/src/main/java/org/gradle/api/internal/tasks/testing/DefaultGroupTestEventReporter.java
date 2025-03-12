@@ -17,13 +17,11 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.testing.GroupTestEventReporter;
-import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.internal.id.IdGenerator;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements GroupTestEventReporter {
+class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements GroupTestEventReporterInternal {
     private final IdGenerator<?> idGenerator;
 
     DefaultGroupTestEventReporter(TestListenerInternal listener, IdGenerator<?> idGenerator, TestDescriptorInternal testDescriptor, TestResultState testResultState) {
@@ -37,19 +35,36 @@ class DefaultGroupTestEventReporter extends DefaultTestEventReporter implements 
     }
 
     @Override
-    public TestEventReporter reportTest(String name, String displayName) {
-        return new DefaultTestEventReporter(listener,
-            new DecoratingTestDescriptor(new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName), testDescriptor),
+    public DefaultTestEventReporter reportTest(String name, String displayName) {
+        return reportTestDirectly(new DefaultTestDescriptor(idGenerator.generateId(), testDescriptor.getClassName(), name, testDescriptor.getClassDisplayName(), displayName));
+    }
+
+    @Override
+    public DefaultTestEventReporter reportTestDirectly(TestDescriptorInternal testDescriptor) {
+        if (testDescriptor.getParent() != this.testDescriptor) {
+            throw new IllegalArgumentException("Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
+        }
+        return new DefaultTestEventReporter(
+            listener,
+            testDescriptor,
             new TestResultState(testResultState)
         );
     }
 
     @Override
-    public GroupTestEventReporter reportTestGroup(String name) {
+    public DefaultGroupTestEventReporter reportTestGroup(String name) {
+        return reportTestGroupDirectly(new DefaultTestClassDescriptor(idGenerator.generateId(), name));
+    }
+
+    @Override
+    public DefaultGroupTestEventReporter reportTestGroupDirectly(TestDescriptorInternal testDescriptor) {
+        if (testDescriptor.getParent() != this.testDescriptor) {
+            throw new IllegalArgumentException("Test descriptor " + testDescriptor + " must have this as a parent: " + this.testDescriptor);
+        }
         return new DefaultGroupTestEventReporter(
             listener,
             idGenerator,
-            new DecoratingTestDescriptor(new DefaultTestClassDescriptor(idGenerator.generateId(), name), testDescriptor),
+            testDescriptor,
             new TestResultState(testResultState)
         );
     }

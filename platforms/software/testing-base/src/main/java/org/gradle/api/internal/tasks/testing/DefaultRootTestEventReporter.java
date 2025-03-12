@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
+import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.results.TestExecutionResultsListener;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
-import org.gradle.api.tasks.VerificationException;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -32,39 +31,45 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 @NullMarked
 class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
 
     private final Path binaryResultsDir;
     private final SerializableTestResultStore.Writer testResultWriter;
-    private final GenericHtmlTestReportGenerator htmlTestReportGenerator;
+    @Nullable
+    private final TestReportGenerator testReportGenerator;
     private final TestExecutionResultsListener executionResultsListener;
+    private final Supplier<TestEventReporterFactoryInternal.FailureReportResult> tryReportFailures;
 
     // Mutable state
     @Nullable
     private String failureMessage;
 
     DefaultRootTestEventReporter(
-        String rootName,
+        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
         TestListenerInternal listener,
-        IdGenerator<?> idGenerator,
+        IdGenerator<Long> idGenerator,
         Path binaryResultsDir,
         SerializableTestResultStore.Writer testResultWriter,
-        GenericHtmlTestReportGenerator htmlTestReportGenerator,
-        TestExecutionResultsListener executionResultsListener
+        @Nullable TestReportGenerator testReportGenerator,
+        TestExecutionResultsListener executionResultsListener,
+        Supplier<TestEventReporterFactoryInternal.FailureReportResult> tryReportFailures
     ) {
         super(
             listener,
             idGenerator,
-            new DefaultTestSuiteDescriptor(idGenerator.generateId(), rootName),
+            rootDescriptorFactory.apply(idGenerator.generateId()),
             new TestResultState(null)
         );
 
         this.binaryResultsDir = binaryResultsDir;
         this.testResultWriter = testResultWriter;
-        this.htmlTestReportGenerator = htmlTestReportGenerator;
+        this.testReportGenerator = testReportGenerator;
         this.executionResultsListener = executionResultsListener;
+        this.tryReportFailures = tryReportFailures;
     }
 
     @Override
@@ -87,18 +92,36 @@ class DefaultRootTestEventReporter extends DefaultGroupTestEventReporter {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
-        boolean rootTestFailed = failureMessage != null;
+        // Generate HTML report
+        Path reportIndexFile = testReportGenerator == null
+            ? null
+            : testReportGenerator.generate(Collections.singletonList(binaryResultsDir));
+
+        TestEventReporterFactoryInternal.FailureReportResult reportResult = tryReportFailures.get();
+        String failureMessage;
+        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) {
+            failureMessage = ((TestEventReporterFactoryInternal.FailureReportResult.TestFailureDetected) reportResult).getFailureMessage();
+        } else {
+            failureMessage = this.failureMessage;
+        }
+        boolean hasTestFailures = failureMessage != null;
 
         // Notify aggregate listener of final results
-        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, rootTestFailed);
+        executionResultsListener.executionResultsAvailable(testDescriptor, binaryResultsDir, hasTestFailures);
 
-        // Generate HTML report
-        Path reportIndexFile = htmlTestReportGenerator.generate(Collections.singletonList(binaryResultsDir));
+        if (reportResult instanceof TestEventReporterFactoryInternal.FailureReportResult.FailureReported) {
+            // Failures were reported by the tryReportFailures handler, so we don't need to throw an exception here.
+            return;
+        }
 
         // Throw an exception with rendered test results, if necessary
-        if (rootTestFailed) {
+        if (hasTestFailures) {
+            if (reportIndexFile == null) {
+                // No report was requested, just fail with the message we have
+                throw new MarkedVerificationException(failureMessage);
+            }
             String testResultsUrl = new ConsoleRenderer().asClickableFileUrl(reportIndexFile.toFile());
-            throw new VerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
+            throw new MarkedVerificationException(failureMessage + " See the test results for more details: " + testResultsUrl);
         }
     }
 
