@@ -221,4 +221,60 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
         assertDaemonUsedJvm(javaHome2)
         javaHome != javaHome2
     }
+
+    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable, IntegTestPreconditions.NotNoDaemonExecutor])
+    def "toolchain download can handle corrupted archive"() {
+        def differentJdk = AvailableJavaHomes.differentVersion
+        given:
+        def jdkRepository = new JdkRepository(differentJdk, "jdk.zip")
+        def uri = jdkRepository.start()
+        jdkRepository.reset()
+
+        println("Java version selected is ${differentJdk.javaVersion}")
+
+        writeJvmCriteria(differentJdk.javaVersion)
+        writeToolchainDownloadUrls(uri.toString())
+        captureJavaHome()
+
+        when:
+        executer.withTasks("help")
+            .requireOwnGradleUserHomeDir("Needs to download a JDK")
+            .requireIsolatedDaemons()
+            .withToolchainDownloadEnabled()
+            .start().waitForExit()
+
+        then:
+        def installedToolchains = executer.gradleUserHomeDir.file("jdks").listFiles().findAll { it.isDirectory() }
+        assert installedToolchains.size() == 1
+        def javaHome = findJavaHome(installedToolchains[0])
+        assertDaemonUsedJvm(javaHome)
+
+        when:
+        executer.gradleUserHomeDir.file("jdks")
+            .listFiles({ file -> file.name.endsWith(".zip") } as FileFilter)
+            .each { it.text = "corrupted data" }
+
+        // delete unpacked JDKs
+        executer.gradleUserHomeDir.file("jdks")
+            .listFiles({ file -> file.isDirectory() } as FileFilter)
+            .each { it.deleteDir() }
+
+        jdkRepository.reset()
+        executer.stop()
+
+        and:
+        def result = executer.withTasks("help", "--info")
+            .requireOwnGradleUserHomeDir("Needs to download a JDK")
+            .requireIsolatedDaemons()
+            .withToolchainDownloadEnabled()
+            .withStackTraceChecksDisabled()
+            .start().waitForFinish()
+
+        then:
+        assertDaemonUsedJvm(javaHome)
+        result.output.matches("(?s).*Re-downloading toolchain from URI .* because unpacking the existing archive .* failed with an exception.*")
+
+        cleanup:
+        jdkRepository.stop()
+    }
 }

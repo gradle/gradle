@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
@@ -182,6 +181,47 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
 
         cleanup:
         jdkRepository2.stop()
+    }
+
+    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    def "toolchain download can handle corrupted archive"() {
+        when:
+        result = executer
+            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
+            .withToolchainDownloadEnabled()
+            .withTasks("compileJava")
+            .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        assertJdkWasDownloaded()
+
+        when:
+        executer.gradleUserHomeDir.file("jdks")
+            .listFiles({ file -> file.name.endsWith(".zip") } as FileFilter)
+            .each { it.text = "corrupted data" }
+
+        // delete unpacked JDKs
+        executer.gradleUserHomeDir.file("jdks")
+            .listFiles({ file -> file.isDirectory() } as FileFilter)
+            .each { it.deleteDir() }
+
+        jdkRepository.reset()
+
+        // invalidating compilation
+        file("src/main/java/Bar.java") << "public class Bar {}"
+
+        and:
+        result = executer
+            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
+            .withToolchainDownloadEnabled()
+            .withTasks("compileJava", "--info")
+            .withStackTraceChecksDisabled()
+            .run()
+
+        then:
+        output.matches("(?s).*Re-downloading toolchain from URI .* because unpacking the existing archive .* failed with an exception.*")
+        result.assertTasksExecutedAndNotSkipped(":compileJava")
+        assertJdkWasDownloaded()
     }
 
     private void assertJdkWasDownloaded(JavaVersion javaVersion = JAVA_VERSION, String implementation = null) {
