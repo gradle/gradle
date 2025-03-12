@@ -51,6 +51,6 @@ abstract class AbstractJUnitIgnoreClassIntegrationTest extends AbstractTestingMu
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.IgnoredTest')
-        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0, 0).assertTestsSkipped("testIgnored")
+        result.testClass('org.gradle.IgnoredTest').assertTestCount(1, 0).assertTestsSkipped("testIgnored")
     }
 }

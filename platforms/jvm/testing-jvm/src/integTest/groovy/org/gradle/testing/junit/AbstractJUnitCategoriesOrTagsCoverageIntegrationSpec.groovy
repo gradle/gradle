@@ -90,11 +90,11 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('NoCatTests', 'SomeTests', 'SomeOtherCatTests')
-        result.testClass("SomeOtherCatTests").assertTestCount(2, 0, 0)
+        result.testClass("SomeOtherCatTests").assertTestCount(2, 0)
         result.testClass("SomeOtherCatTests").assertTestsExecuted('someOtherOk1', 'someOtherOk2')
-        result.testClass("NoCatTests").assertTestCount(2, 0, 0)
+        result.testClass("NoCatTests").assertTestCount(2, 0)
         result.testClass("NoCatTests").assertTestsExecuted('noCatOk1', 'noCatOk2')
-        result.testClass("SomeTests").assertTestCount(3, 0, 0)
+        result.testClass("SomeTests").assertTestCount(3, 0)
         result.testClass("SomeTests").assertTestsExecuted('noCatOk3', 'noCatOk4', 'someOtherCatOk2')
     }
 
@@ -147,9 +147,9 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('CategoryATests', 'SomeTests')
-        result.testClass("CategoryATests").assertTestCount(4, 0, 0)
+        result.testClass("CategoryATests").assertTestCount(4, 0)
         result.testClass("CategoryATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
-        result.testClass("SomeTests").assertTestCount(1, 0, 0)
+        result.testClass("SomeTests").assertTestCount(1, 0)
         result.testClass("SomeTests").assertTestsExecuted('catAOk1')
     }
 
@@ -196,7 +196,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         and:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('CategoryATests')
-        result.testClass("CategoryATests").assertTestCount(4, 0, 0)
+        result.testClass("CategoryATests").assertTestCount(4, 0)
         result.testClass("CategoryATests").assertTestsExecuted('catAOk1', 'catAOk2', 'catAOk3', 'catAOk4')
     }
 

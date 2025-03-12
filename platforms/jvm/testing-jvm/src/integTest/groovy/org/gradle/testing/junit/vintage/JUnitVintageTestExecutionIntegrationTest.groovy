@@ -65,6 +65,6 @@ class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutio
         failure.assertHasCause("Test process encountered an unexpected problem.")
         failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
         DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
-        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
+        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1)
     }
 }
