@@ -44,25 +44,6 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
         """
     }
 
-    def "get deprecation warnings for trying to use antGroovyDoc"() {
-        buildFile << """
-            tasks.named("groovydoc") {
-                doLast {
-                    println "Ant Groovy Doc " + antGroovydoc
-                }
-            }
-        """
-        file("src/main/groovy/pkg/Thing.groovy") << """
-            package pkg
-
-            class Thing {}
-        """
-        executer.expectDocumentedDeprecationWarning("The Groovydoc.getAntGroovydoc() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#antgroovydoc")
-        executer.expectDocumentedDeprecationWarning("The org.gradle.api.internal.tasks.AntGroovydoc type has been deprecated. This is scheduled to be removed in Gradle 9.0. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#antgroovydoc")
-        expect:
-        succeeds "groovydoc"
-    }
-
     @Issue("https://issues.gradle.org/browse/GRADLE-3116")
     def "can run groovydoc"() {
         when:
