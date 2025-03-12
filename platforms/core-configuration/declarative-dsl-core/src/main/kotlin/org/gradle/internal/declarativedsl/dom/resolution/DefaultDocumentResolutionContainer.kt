@@ -61,7 +61,7 @@ import org.gradle.internal.declarativedsl.dom.ValueFactoryNotResolvedReason
 import org.gradle.internal.declarativedsl.dom.ValueTypeMismatch
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.LanguageTreeBackedDocument
 import org.gradle.internal.declarativedsl.dom.fromLanguageTree.toDocument
-import org.gradle.internal.declarativedsl.language.Assignment
+import org.gradle.internal.declarativedsl.language.AssignmentLikeStatement
 import org.gradle.internal.declarativedsl.language.FunctionCall
 import org.gradle.internal.declarativedsl.language.LanguageTreeResult
 
@@ -231,7 +231,7 @@ class DocumentResolver(
     }
 
     private
-    fun propertyResolution(statement: Assignment) = when (val assignment = trace.assignmentResolution(statement)) {
+    fun propertyResolution(statement: AssignmentLikeStatement) = when (val assignment = trace.assignmentResolution(statement)) {
         is ResolutionTrace.ResolutionOrErrors.Resolution -> {
             val receiver = assignment.result.lhs.receiverObject
             if (strictReceiverChecks && receiver is ObjectOrigin.ImplicitThisReceiver && !receiver.isCurrentScopeReceiver) {
