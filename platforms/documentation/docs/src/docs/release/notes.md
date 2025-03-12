@@ -178,6 +178,40 @@ public interface SomeOtherData {
     void setOtherName(String name);
 }
 ```
+
+#### Receiving side on the Tooling API
+
+There is the [`CustomAdditionalData::get`](org/gradle/tooling/events/problems/CustomAdditionalData.html#get(java.lang.Class)) method,
+which allows you to provide a view type for the additional data.
+
+The TAPI side of things might look like this:
+
+```java
+void someMethod(List<Problem> problems) {
+    SomeDataView view = problems.get(0).getAdditionalData().get(SomeDataView.class);
+    System.out.println(view.getName());
+    System.out.println(view.getNames().get(0));
+    System.out.println(view.getOtherData().getOtherName());
+}
+```
+
+The corresponding view interfaces look like this:
+
+```java
+interface SomeOtherDataView {
+    String getOtherName();
+}
+
+interface SomeDataView {
+    String getSome();
+
+    String getName();
+
+    List<String> getNames();
+
+    SomeOtherDataView getOtherData();
+}
+```
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================
