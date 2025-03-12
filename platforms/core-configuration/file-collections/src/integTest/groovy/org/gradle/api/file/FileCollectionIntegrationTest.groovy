@@ -626,8 +626,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
                     null
                 )
             }
-        """
-        )
+        """)
         when:
         run "foo"
 
