@@ -17,8 +17,8 @@
 package org.gradle.internal.instrumentation.processor.codegen;
 
 import org.gradle.internal.instrumentation.model.CallInterceptionRequest;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 public interface HasFailures {

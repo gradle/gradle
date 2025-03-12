@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.jvm.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.attributes.HasConfigurableAttributes;
@@ -24,11 +23,12 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * This class exposes a number of internal utilities for use by Gradle JVM plugins.
  */
-@NonNullApi
+@NullMarked
 @HasInternalProtocol
 @ServiceScope(Scope.Project.class)
 @SuppressWarnings({"UnusedReturnValue", "deprecation"})

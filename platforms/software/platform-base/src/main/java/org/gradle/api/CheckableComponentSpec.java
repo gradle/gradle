@@ -17,8 +17,7 @@
 package org.gradle.api;
 
 import org.gradle.platform.base.ComponentSpec;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link ComponentSpec} that is directly checkable via a specified task.

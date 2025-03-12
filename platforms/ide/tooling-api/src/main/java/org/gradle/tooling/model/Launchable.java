@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Represents an object that can be used to launch a Gradle build, such as a task.

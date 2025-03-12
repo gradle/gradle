@@ -16,7 +16,8 @@
 
 package org.gradle.operations.problems;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.util.List;
 
 /**

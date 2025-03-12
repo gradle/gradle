@@ -16,18 +16,17 @@
 
 package org.gradle.api.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.internal.scan.UsedByScanPlugin;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Describes a test. A test may be a single atomic test, such as the execution of a test method, or it may be a
  * composite test, made up of zero or more tests.
  */
 @HasInternalProtocol
-@NonNullApi
+@NullMarked
 public interface TestDescriptor {
     /**
      * Returns the name of the test.  Not guaranteed to be unique.

@@ -30,8 +30,8 @@ import org.gradle.tooling.internal.protocol.problem.InternalAdditionalData;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemDetailsVersion2;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,7 +88,7 @@ public class ProblemAdditionalDataRemapper implements BuildEventConsumer {
         ((DefaultProblemDetails) details).setAdditionalData(new DefaultInternalProxiedAdditionalData(o, serializedType));
     }
 
-    @Nonnull
+    @NonNull
     private static List<URL> getClassPath(Class<?> type) {
         List<URL> classPath = new ArrayList<>();
         ((VisitableURLClassLoader) type.getClassLoader()).visit(new ClassLoaderVisitor() {

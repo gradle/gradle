@@ -17,7 +17,7 @@
 /**
  * Plugins which measure and enforce code quality.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

@@ -112,6 +112,7 @@ abstract class ExternalModulesExtension(isBundleGroovy4: Boolean) {
     val joda = "joda-time:joda-time"
     val jsch = "com.github.mwiede:jsch"
     val jsr305 = "com.google.code.findbugs:jsr305"
+    val jspecify = "org.jspecify:jspecify"
     val julToSlf4j = "org.slf4j:jul-to-slf4j"
     val junit = "junit:junit"
     val junit5JupiterApi = "org.junit.jupiter:junit-jupiter-api"

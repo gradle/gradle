@@ -24,10 +24,10 @@ import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveRe
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.ResourceExceptions;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

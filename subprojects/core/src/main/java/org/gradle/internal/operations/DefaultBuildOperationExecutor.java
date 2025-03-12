@@ -25,8 +25,8 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.work.WorkerLimits;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

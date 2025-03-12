@@ -19,8 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 

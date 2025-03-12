@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.toolchain.internal.msvcpp.version;
 
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultVisualStudioMetadata implements VisualStudioInstallCandidate {

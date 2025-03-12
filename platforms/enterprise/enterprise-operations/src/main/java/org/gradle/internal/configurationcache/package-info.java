@@ -17,7 +17,7 @@
 /**
  * Configuration-cache specific build operations.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.configurationcache;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

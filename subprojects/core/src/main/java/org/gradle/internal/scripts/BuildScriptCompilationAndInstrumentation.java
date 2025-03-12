@@ -37,8 +37,8 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.io.File;
 import java.util.Map;

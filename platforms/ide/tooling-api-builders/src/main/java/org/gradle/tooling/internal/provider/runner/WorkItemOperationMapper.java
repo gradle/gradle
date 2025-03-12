@@ -28,8 +28,7 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
 

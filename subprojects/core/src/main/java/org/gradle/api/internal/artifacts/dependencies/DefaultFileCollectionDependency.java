@@ -22,8 +22,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 

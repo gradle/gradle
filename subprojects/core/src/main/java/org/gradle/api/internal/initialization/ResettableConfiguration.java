@@ -18,8 +18,7 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.internal.Factory;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link Configuration} which can reset its resolution state. This interface is

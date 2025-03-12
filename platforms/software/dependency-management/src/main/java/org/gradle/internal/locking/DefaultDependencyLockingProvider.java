@@ -49,8 +49,8 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.resource.local.FileResourceListener;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

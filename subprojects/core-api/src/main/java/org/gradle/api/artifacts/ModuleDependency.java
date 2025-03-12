@@ -23,8 +23,8 @@ import org.gradle.api.artifacts.capability.CapabilitySelector;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.Capability;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

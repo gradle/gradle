@@ -47,8 +47,7 @@ import org.gradle.tooling.internal.provider.serialization.ClassLoaderCache;
 import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoaderRegistry;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Shared services for a tooling API provider connection.

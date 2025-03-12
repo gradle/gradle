@@ -17,10 +17,10 @@ package org.gradle.configuration;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +39,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 import static org.gradle.util.internal.CollectionUtils.sort;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
-@NonNullApi
+@NullMarked
 public class TaskDetailPrinter {
     private final String taskPath;
     private final List<TaskDetails> tasks;

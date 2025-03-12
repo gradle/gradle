@@ -19,7 +19,7 @@ dependencies {
     api(projects.logging)
     api(projects.toolingApi)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.baseServices)
     implementation(projects.core)

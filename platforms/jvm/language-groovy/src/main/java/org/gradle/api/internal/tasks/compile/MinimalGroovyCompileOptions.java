@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;

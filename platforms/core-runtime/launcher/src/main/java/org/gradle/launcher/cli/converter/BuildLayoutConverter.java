@@ -27,8 +27,8 @@ import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Map;
 import java.util.function.Consumer;

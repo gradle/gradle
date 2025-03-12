@@ -17,8 +17,7 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Project;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A self-contained action to run as a node in the work graph. Can be included in the dependencies of a {@link TaskDependencyContainer}.

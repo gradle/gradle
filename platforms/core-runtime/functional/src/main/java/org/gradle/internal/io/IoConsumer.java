@@ -16,7 +16,8 @@
 
 package org.gradle.internal.io;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.function.Consumer;

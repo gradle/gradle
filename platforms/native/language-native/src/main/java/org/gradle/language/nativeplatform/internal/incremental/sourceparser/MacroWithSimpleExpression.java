@@ -18,8 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental.sourceparser;
 
 import com.google.common.base.Objects;
 import org.gradle.language.nativeplatform.internal.IncludeType;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An "object-like" macro #define whose body is an expression with no arguments.

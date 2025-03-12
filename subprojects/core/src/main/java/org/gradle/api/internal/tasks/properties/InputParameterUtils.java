@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks.properties;
 import groovy.lang.GString;
 import org.gradle.api.Task;
 import org.gradle.util.internal.DeferredUtil;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class InputParameterUtils {
     @Nullable

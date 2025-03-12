@@ -16,8 +16,8 @@
 package org.gradle.api.plugins.antlr.internal.antlr2;
 
 import org.gradle.api.UncheckedIOException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;

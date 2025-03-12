@@ -16,7 +16,7 @@
 
 package org.gradle.internal.reflect.annotations;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Annotation metadata associated with properties.

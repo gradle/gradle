@@ -17,5 +17,5 @@
 /**
  * The standard {@link org.gradle.api.Task} implementations.
  */
-@org.gradle.api.NonNullApi
+@org.jspecify.annotations.NullMarked
 package org.gradle.api.tasks;

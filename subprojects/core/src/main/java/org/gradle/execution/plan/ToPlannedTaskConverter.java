@@ -16,10 +16,10 @@
 
 package org.gradle.execution.plan;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.initialization.DefaultPlannedTask;
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType.TaskIdentity;
 import org.gradle.internal.taskgraph.NodeIdentity;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * <p>
  * Only can convert {@link LocalTaskNode}s to planned tasks.
  */
-@NonNullApi
+@NullMarked
 public class ToPlannedTaskConverter implements ToPlannedNodeConverter {
 
     @Override

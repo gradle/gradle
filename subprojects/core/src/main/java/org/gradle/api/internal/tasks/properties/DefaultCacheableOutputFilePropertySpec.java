@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.properties;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.internal.execution.model.OutputNormalizer;
 import org.gradle.internal.file.TreeType;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

@@ -44,8 +44,8 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;

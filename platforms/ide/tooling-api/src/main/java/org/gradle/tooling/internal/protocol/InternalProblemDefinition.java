@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalDocumentationLink;
 import org.gradle.tooling.internal.protocol.problem.InternalSeverity;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public interface InternalProblemDefinition {
 
     InternalProblemId getId();

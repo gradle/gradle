@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.testing.logging;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -32,6 +31,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +41,7 @@ import java.util.List;
  *
  * This logger is non-configurable.
  */
-@NonNullApi
+@NullMarked
 public class SimpleTestEventLogger implements TestListenerInternal {
     private final StyledTextOutputFactory textOutputFactory;
 

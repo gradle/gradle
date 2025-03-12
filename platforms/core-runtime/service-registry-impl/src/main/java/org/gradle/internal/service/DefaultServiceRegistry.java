@@ -20,8 +20,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;

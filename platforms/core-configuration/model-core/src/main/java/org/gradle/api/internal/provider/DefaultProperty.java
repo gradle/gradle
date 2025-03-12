@@ -22,8 +22,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The implementation for general-purpose (atomic, non-composite) properties, where
@@ -179,7 +178,7 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         return String.format("property(%s, %s)", type.getName(), describeValue());
     }
 
-    public void replace(Transformer<? extends @org.jetbrains.annotations.Nullable Provider<? extends T>, ? super Provider<T>> transformation) {
+    public void replace(Transformer<? extends @Nullable Provider<? extends T>, ? super Provider<T>> transformation) {
         Provider<? extends T> newValue = transformation.transform(shallowCopy());
         if (newValue != null) {
             set(newValue);

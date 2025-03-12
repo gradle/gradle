@@ -23,16 +23,17 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvent;
 import com.tngtech.archunit.lang.ConditionEvents;
-import org.gradle.api.NonNullApi;
 import org.gradlebuild.AbstractClass;
 import org.gradlebuild.AllowedMethodTypesClass;
 import org.gradlebuild.ConcreteClass;
 import org.gradlebuild.Interface;
 import org.gradlebuild.WrongNullable;
+import org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType;
+import org.gradlebuild.nonnullapi.notinpackage.NullMarkedApiType;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +48,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.haveOnlyArgumentsOrRe
 import static org.gradle.architecture.test.ArchUnitFixture.primitive;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@NullMarked
 public class ArchUnitFixtureTest {
     @Test
     public void reports_valid_methods() {
@@ -126,7 +128,7 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void checks_for_nullable_annotation() {
-        ConditionEvents events = checkMethodCondition(ArchUnitFixture.useJavaxAnnotationNullable(), WrongNullable.class);
+        ConditionEvents events = checkMethodCondition(ArchUnitFixture.useJSpecifyNullable(), WrongNullable.class);
         assertTrue(events.containViolation());
         assertThat(events.getViolating().size()).isEqualTo(2);
         List<String> descriptions = events.getViolating().stream().map(ArchUnitFixtureTest::eventDescription).collect(Collectors.toList());
@@ -138,11 +140,11 @@ public class ArchUnitFixtureTest {
 
     @Test
     public void checks_for_annotation_presence() {
-        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NonNullApi.class);
-        assertNoViolation(checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.OwnNonNullApi.class));
-        ConditionEvent event = checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi.class);
+        ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NullMarked.class);
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
+        ConditionEvent event = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(event.isViolation());
-        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi> is not annotated (directly or via its package) with @org.gradle.api.NonNullApi");
+        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
         // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
     }
 
@@ -167,12 +169,10 @@ public class ArchUnitFixtureTest {
         return events.getAllEvents().iterator().next();
     }
 
-    @Nonnull
     private ConditionEvent checkThatHasOnlyAllowedTypes(String methodName) {
         return checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(methodName, String.class, String.class);
     }
 
-    @Nonnull
     private ConditionEvent checkThatMethodHasOnlyAllowedArgumentTypesOrReturnTypes(String methodName, Class<?>... arguments) {
         ArchCondition<JavaMethod> archCondition = haveOnlyArgumentsOrReturnTypesThatAre(resideInAnyPackage("java.lang").or(primitive).or(resideInAnyPackage("java.util")).as("allowed"));
         JavaClass javaClass = new ClassFileImporter().importClass(AllowedMethodTypesClass.class);

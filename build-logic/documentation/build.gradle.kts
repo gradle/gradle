@@ -23,6 +23,7 @@ dependencies {
     implementation("org.asciidoctor:asciidoctorj-pdf")
     implementation("dev.adamko.dokkatoo:dokkatoo-plugin")
     implementation("org.jetbrains.dokka:dokka-core")
+    implementation("org.jspecify:jspecify")
 
     testImplementation(gradleTestKit())
 }

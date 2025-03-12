@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRunner;
+import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Path;
 
-@NonNullApi
+@NullMarked
 public interface TestReportGenerator {
     boolean hasResults();
 

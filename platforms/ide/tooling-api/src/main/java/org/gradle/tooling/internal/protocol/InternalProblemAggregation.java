@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.protocol;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalLabel;
 import org.gradle.tooling.internal.protocol.problem.InternalProblemCategory;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface InternalProblemAggregation {
 
     InternalProblemCategory getCategory();

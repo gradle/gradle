@@ -17,8 +17,8 @@
 package org.gradle.internal;
 
 import org.gradle.api.UncheckedIOException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;

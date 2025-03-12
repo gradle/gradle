@@ -23,8 +23,8 @@ import org.gradle.api.problems.ProblemSpec;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 
 public class DefaultProblemReporter implements InternalProblemReporter {
@@ -57,7 +57,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         report(problemBuilder.build());
     }
 
-    @Nonnull
+    @NonNull
     private DefaultProblemBuilder createProblemBuilder() {
         return new DefaultProblemBuilder(infrastructure);
     }
@@ -87,7 +87,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         throw runtimeException(exception);
     }
 
-    @Nonnull
+    @NonNull
     private InternalProblem addExceptionToProblem(Throwable exception, Problem problem) {
         return getBuilder(problem).withException(transform(exception)).build();
     }
@@ -157,7 +157,7 @@ public class DefaultProblemReporter implements InternalProblemReporter {
         problemSummarizer.emit(internalProblem, id);
     }
 
-    @Nonnull
+    @NonNull
     private InternalProblemBuilder getBuilder(Problem problem) {
         return ((InternalProblem) problem).toBuilder(infrastructure);
     }

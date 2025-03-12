@@ -29,8 +29,8 @@ import org.gradle.internal.scan.eob.BuildScanEndOfBuildNotifier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 @ServiceScope(Scope.Build.class)

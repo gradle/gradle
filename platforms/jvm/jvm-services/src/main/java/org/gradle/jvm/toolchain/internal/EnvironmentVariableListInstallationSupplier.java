@@ -17,8 +17,8 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Map;

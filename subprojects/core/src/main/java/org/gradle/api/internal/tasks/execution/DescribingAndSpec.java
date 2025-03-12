@@ -22,8 +22,7 @@ import org.gradle.api.specs.CompositeSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link CompositeSpec} that requires all component specs to provide a description.

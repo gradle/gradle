@@ -24,8 +24,8 @@ import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 import org.gradle.util.internal.VersionNumber;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -217,7 +217,7 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
         private final File outputFile;
         private final VisualStudioTargetBinary.LanguageStandard languageStandard;
 
-        public ConfigurationSpec(String name, String configurationName, String projectName, String platformName, String type, boolean buildable, boolean debuggable, Set<File> includeDirs, @Nullable String buildTaskPath, @Nullable String cleanTaskPath, List<String> compilerDefines, @Nullable File outputFile, @Nullable VisualStudioTargetBinary.LanguageStandard languageStandard) {
+        public ConfigurationSpec(String name, String configurationName, String projectName, String platformName, String type, boolean buildable, boolean debuggable, Set<File> includeDirs, @Nullable String buildTaskPath, @Nullable String cleanTaskPath, List<String> compilerDefines, @Nullable File outputFile, VisualStudioTargetBinary.@Nullable LanguageStandard languageStandard) {
             this.name = name;
             this.configurationName = configurationName;
             this.projectName = projectName;
@@ -289,8 +289,7 @@ public class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
 
         @Input
         @Optional
-        @Nullable
-        public VisualStudioTargetBinary.LanguageStandard getLanguageStandard() {
+        public VisualStudioTargetBinary.@Nullable LanguageStandard getLanguageStandard() {
             return languageStandard;
         }
 

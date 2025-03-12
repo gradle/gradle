@@ -33,8 +33,8 @@ import org.gradle.internal.io.TextStream;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.internal.TextUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Deque;
 import java.util.Scanner;
 import java.util.regex.Matcher;

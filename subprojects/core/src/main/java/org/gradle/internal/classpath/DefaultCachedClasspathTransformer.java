@@ -17,7 +17,6 @@
 package org.gradle.internal.classpath;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.NonNullApi;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.GlobalCacheLocations;
 import org.gradle.cache.PersistentCache;
@@ -36,6 +35,7 @@ import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.FileSystemAccess;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
 import java.io.File;
@@ -208,7 +208,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         Optional<Either<U, Callable<U>>> apply(T input, Set<HashCode> seen);
     }
 
-    @NonNullApi
+    @NullMarked
     private static class ParallelTransformExecutor {
 
         private final PersistentCache cache;

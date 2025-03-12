@@ -17,7 +17,6 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
@@ -36,8 +35,9 @@ import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.internal.work.WorkerLimits;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -58,7 +58,7 @@ import java.util.function.ToLongFunction;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED;
 import static org.gradle.internal.resources.ResourceLockState.Disposition.RETRY;
 
-@NonNullApi
+@NullMarked
 public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     public static final InternalFlag STATS = new InternalFlag("org.gradle.internal.executor.stats");
     private static final Logger LOGGER = Logging.getLogger(DefaultPlanExecutor.class);

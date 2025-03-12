@@ -27,8 +27,8 @@ import org.gradle.internal.Cast;
 import org.gradle.testing.jacoco.tasks.rules.JacocoLimit;
 import org.gradle.testing.jacoco.tasks.rules.JacocoViolationRule;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;

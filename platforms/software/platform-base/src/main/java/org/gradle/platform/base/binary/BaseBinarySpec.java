@@ -48,8 +48,8 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.DefaultBinaryNamingScheme;
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection;
 import org.gradle.platform.base.internal.FixedBuildAbility;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Set;
 

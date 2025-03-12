@@ -16,9 +16,9 @@
 
 package org.gradle.tooling.provider.model.internal;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public interface PluginApplyingParameter {
 
     Class<?> getPluginType();

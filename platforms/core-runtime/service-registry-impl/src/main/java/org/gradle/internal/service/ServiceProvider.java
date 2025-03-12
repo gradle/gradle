@@ -17,8 +17,8 @@
 package org.gradle.internal.service;
 
 import org.gradle.internal.concurrent.Stoppable;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.Type;
 
 /**

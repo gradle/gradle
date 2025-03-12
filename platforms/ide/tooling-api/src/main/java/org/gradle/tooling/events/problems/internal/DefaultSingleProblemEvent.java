@@ -16,15 +16,14 @@
 
 package org.gradle.tooling.events.problems.internal;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.BaseProgressEvent;
 import org.gradle.tooling.events.problems.Problem;
 import org.gradle.tooling.events.problems.SingleProblemEvent;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
-
-@NonNullApi
+@NullMarked
 public class DefaultSingleProblemEvent extends BaseProgressEvent implements SingleProblemEvent {
     private final Problem problem;
 

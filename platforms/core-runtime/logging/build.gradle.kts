@@ -24,6 +24,7 @@ dependencies {
     api(projects.problemsApi)
 
     api(libs.jansi)
+    api(libs.jspecify)
     api(libs.jsr305)
     api(libs.slf4jApi)
 
@@ -51,7 +52,7 @@ dependencies {
     testImplementation(libs.groovyDateUtil)
 
     integTestImplementation(projects.problems)
-    
+
     integTestImplementation(libs.ansiControlSequenceUtil)
 
     testFixturesImplementation(projects.baseServices)

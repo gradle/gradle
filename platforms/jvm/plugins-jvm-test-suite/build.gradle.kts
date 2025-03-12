@@ -44,6 +44,7 @@ dependencies {
     implementation(projects.testingBase)
 
     implementation(libs.guava)
+    implementation(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class AdditionalVariant {
     private final String name;

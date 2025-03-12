@@ -19,8 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Debug options for Java compilation. Only take effect if {@link CompileOptions#debug}

@@ -62,8 +62,8 @@ import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
 import org.gradle.util.internal.IncubationLogger;
+import org.jspecify.annotations.NonNull;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -210,7 +210,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
         );
     }
 
-    @Nonnull
+    @NonNull
     private DefaultToolchainSpec getDaemonJvmToolchainSpec(DaemonJvmCriteria.Spec daemonJvmCriteria) {
         DefaultToolchainSpec toolchainSpec = new DefaultToolchainSpec(propertyFactory);
         toolchainSpec.getLanguageVersion().value(JavaLanguageVersion.of(daemonJvmCriteria.getJavaVersion().asInt()));

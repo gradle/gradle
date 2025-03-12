@@ -28,8 +28,8 @@ import org.gradle.language.nativeplatform.internal.Macro;
 import org.gradle.language.nativeplatform.internal.MacroFunction;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.ComplexExpression;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.SimpleExpression;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;

@@ -27,7 +27,7 @@ dependencies {
     implementation(projects.logging)
 
     implementation(libs.commonsLang)
-    implementation(libs.jsr305)
+    implementation(libs.jspecify)
 
     testImplementation(libs.jsoup)
 }

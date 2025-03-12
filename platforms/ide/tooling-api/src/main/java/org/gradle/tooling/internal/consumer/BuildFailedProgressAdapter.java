@@ -16,19 +16,19 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.FailureResult;
 import org.gradle.tooling.events.FinishEvent;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class BuildFailedProgressAdapter implements ProgressListener {
 
     public List<Failure> failures = new ArrayList<>();

@@ -25,8 +25,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.service.scopes.StatefulListener;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Build.class)
 public interface PluginRequestApplicator {

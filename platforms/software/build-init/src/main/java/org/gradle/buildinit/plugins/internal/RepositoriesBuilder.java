@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal;
 
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public interface RepositoriesBuilder {
     void mavenLocal(@Nullable String comment);

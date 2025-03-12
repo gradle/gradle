@@ -22,8 +22,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import org.gradle.internal.serialize.AbstractEncoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.PositionAwareEncoder;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;

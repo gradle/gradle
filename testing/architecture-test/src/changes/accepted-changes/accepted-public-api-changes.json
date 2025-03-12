@@ -7,6 +7,14 @@
             "changes": [
                 "From non-null returning to null returning breaking change"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.testing.Test",
+            "member": "Method org.gradle.api.tasks.testing.Test.setForkEvery(java.lang.Long)",
+            "acceptation": "Remove deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }

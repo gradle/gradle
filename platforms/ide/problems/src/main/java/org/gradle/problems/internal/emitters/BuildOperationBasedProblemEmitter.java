@@ -22,8 +22,7 @@ import org.gradle.api.problems.internal.InternalProblem;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.OperationIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Emits problems as build operation progress events.

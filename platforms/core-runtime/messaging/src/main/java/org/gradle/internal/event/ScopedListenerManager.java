@@ -16,12 +16,12 @@
 
 package org.gradle.internal.event;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.service.AnnotatedServiceLifecycleHandler;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 @ServiceScope({Scope.Global.class, Scope.UserHome.class, Scope.BuildSession.class, Scope.BuildTree.class, Scope.Build.class})
 public interface ScopedListenerManager extends ListenerManager, AnnotatedServiceLifecycleHandler {
 

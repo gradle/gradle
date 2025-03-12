@@ -16,7 +16,7 @@
 /**
  * {@link org.gradle.api.Project} specific APIs.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.api.project;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

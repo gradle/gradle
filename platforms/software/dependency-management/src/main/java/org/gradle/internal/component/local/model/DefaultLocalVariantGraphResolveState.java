@@ -32,8 +32,8 @@ import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -246,7 +246,7 @@ public class DefaultLocalVariantGraphResolveState implements LocalVariantGraphRe
         @Nullable
         public static OverrideComponentIdArtifactSetIdentifier of(
             ComponentIdentifier overrideComponentId,
-            @Nullable VariantResolveMetadata.Identifier delegate
+            VariantResolveMetadata.@Nullable Identifier delegate
         ) {
             if (delegate == null) {
                 return null;

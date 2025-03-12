@@ -17,8 +17,7 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Details about an artifact resolution query. This is used whenever repository

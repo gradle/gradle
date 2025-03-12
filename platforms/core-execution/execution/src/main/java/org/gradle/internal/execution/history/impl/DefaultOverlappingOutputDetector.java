@@ -29,8 +29,8 @@ import org.gradle.internal.snapshot.RelativePathTracker;
 import org.gradle.internal.snapshot.RelativePathTrackingFileSystemSnapshotHierarchyVisitor;
 import org.gradle.internal.snapshot.SnapshotUtil;
 import org.gradle.internal.snapshot.SnapshotVisitResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 import static org.gradle.internal.snapshot.SnapshotUtil.getRootHashes;

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
-@NonNullApi
+@NullMarked
 public class InstrumentedClosuresHelper {
     private InstrumentedClosuresHelper() {
     }

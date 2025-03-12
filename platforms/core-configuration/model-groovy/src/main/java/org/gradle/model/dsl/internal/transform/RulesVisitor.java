@@ -40,8 +40,8 @@ import org.gradle.groovy.scripts.internal.AstUtils;
 import org.gradle.groovy.scripts.internal.RestrictiveCodeVisitor;
 import org.gradle.internal.Pair;
 import org.gradle.model.internal.core.ModelPath;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.LinkedList;
 import java.util.List;
 

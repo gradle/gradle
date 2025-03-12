@@ -16,12 +16,12 @@
 
 package org.gradle.internal.build.event.types;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.tooling.internal.protocol.problem.InternalContextualLabel;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.Serializable;
 
-@NonNullApi
+@NullMarked
 public class DefaultContextualLabel implements InternalContextualLabel, Serializable {
 
     private final String contextualLabel;

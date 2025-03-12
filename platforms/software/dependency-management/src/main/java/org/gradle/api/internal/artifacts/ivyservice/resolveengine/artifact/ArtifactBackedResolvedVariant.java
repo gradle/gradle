@@ -32,8 +32,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentArtifactResolver;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -49,7 +49,7 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
     private final ComponentArtifactResolver componentArtifactResolver;
 
     public ArtifactBackedResolvedVariant(
-        @Nullable VariantResolveMetadata.Identifier identifier,
+        VariantResolveMetadata.@Nullable Identifier identifier,
         DisplayName displayName,
         ImmutableAttributes attributes,
         ImmutableCapabilities capabilities,

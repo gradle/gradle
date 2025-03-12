@@ -16,13 +16,13 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.util.internal.CollectionUtils;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -41,7 +41,7 @@ import java.util.Set;
 /**
  * An immutable classpath.
  */
-@NonNullApi
+@NullMarked
 public class DefaultClassPath implements ClassPath, Serializable {
 
     public static Builder builderWithExactSize(int size) {

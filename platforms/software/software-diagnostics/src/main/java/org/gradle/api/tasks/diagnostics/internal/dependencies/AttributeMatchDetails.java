@@ -17,8 +17,7 @@
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import org.gradle.api.attributes.Attribute;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class AttributeMatchDetails {
     private final MatchType matchType;

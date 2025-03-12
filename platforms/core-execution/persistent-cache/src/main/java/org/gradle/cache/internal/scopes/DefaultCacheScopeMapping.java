@@ -20,8 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.util.GradleVersion;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.regex.Pattern;
 

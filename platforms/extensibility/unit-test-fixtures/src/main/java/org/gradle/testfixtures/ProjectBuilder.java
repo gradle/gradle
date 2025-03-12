@@ -17,8 +17,8 @@ package org.gradle.testfixtures;
 
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 /**

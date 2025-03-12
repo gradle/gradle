@@ -16,11 +16,11 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.util.function.Consumer;
@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 /**
  * Manages the lifecycle for creating {@link NotifyDaemonAboutChangedPathsClient}s and using them.
  */
-@NonNullApi
+@NullMarked
 @ServiceScope(Scope.Global.class)
 public class NotifyDaemonClientExecuter {
 

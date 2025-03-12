@@ -17,5 +17,7 @@
 /**
  * Internal classes for managing and monitoring build initialization.
  */
-@org.gradle.api.NonNullApi
+@NullMarked
 package org.gradle.api.initialization.internal;
+
+import org.jspecify.annotations.NullMarked;

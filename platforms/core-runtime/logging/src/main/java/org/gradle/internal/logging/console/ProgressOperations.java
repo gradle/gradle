@@ -17,8 +17,8 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.operations.OperationIdentifier;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 

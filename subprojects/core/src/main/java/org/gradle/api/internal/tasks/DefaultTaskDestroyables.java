@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.internal.properties.PropertyVisitor;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@NonNullApi
+@NullMarked
 public class DefaultTaskDestroyables implements TaskDestroyablesInternal {
     private final TaskMutator taskMutator;
     private final FileCollectionFactory fileCollectionFactory;

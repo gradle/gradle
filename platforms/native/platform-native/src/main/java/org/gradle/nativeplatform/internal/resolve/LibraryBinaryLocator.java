@@ -20,8 +20,7 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Build.class)
 public interface LibraryBinaryLocator {

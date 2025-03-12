@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 public class DefaultModuleComponentArtifactMetadata implements ModuleComponentArtifactMetadata {

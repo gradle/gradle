@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.plugins;
 
-import org.gradle.api.NonNullApi;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jspecify.annotations.NullMarked;
 
 @SuppressWarnings("deprecation")
-@NonNullApi
+@NullMarked
 public class NaggingBasePluginConvention extends org.gradle.api.plugins.BasePluginConvention {
 
     private final org.gradle.api.plugins.BasePluginConvention delegate;

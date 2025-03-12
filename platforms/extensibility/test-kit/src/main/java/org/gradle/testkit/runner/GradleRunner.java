@@ -18,8 +18,8 @@ package org.gradle.testkit.runner;
 
 import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.internal.DefaultGradleRunner;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Writer;
 import java.net.URI;

@@ -19,8 +19,8 @@ package org.gradle.tooling.events.task.internal;
 import org.gradle.tooling.Failure;
 import org.gradle.tooling.events.internal.DefaultOperationFailureResult;
 import org.gradle.tooling.events.task.TaskFailureResult;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

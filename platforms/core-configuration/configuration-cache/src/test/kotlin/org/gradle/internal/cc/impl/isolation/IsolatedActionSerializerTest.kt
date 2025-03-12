@@ -155,7 +155,7 @@ class IsolatedActionSerializerTest {
         }
 
     private
-    inline fun <reified T> newInstance() =
+    inline fun <reified T : Any> newInstance() =
         objectFactory().newInstance(T::class.java)
 
     private

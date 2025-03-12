@@ -5,7 +5,7 @@ plugins {
 description = "Contains plugins for building Groovy projects."
 
 dependencies {
-    api(libs.jsr305)
+    api(libs.jspecify)
     api(libs.groovy)
     api(libs.inject)
 

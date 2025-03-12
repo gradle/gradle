@@ -17,8 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.GradleException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  *  Thrown when there is an error while serializing/deserializing a test result.

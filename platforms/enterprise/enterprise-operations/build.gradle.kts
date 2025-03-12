@@ -8,7 +8,7 @@ description = "Build operations consumed by the Develocity plugin"
 dependencies {
     api(projects.buildOperations)
 
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
 }

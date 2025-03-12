@@ -55,8 +55,8 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.gradle.jvm.toolchain.JavadocTool;
 import org.gradle.jvm.toolchain.internal.JavaExecutableUtils;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;

@@ -18,8 +18,8 @@ package org.gradle.tooling.model.eclipse;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.SourceDirectory;
 import org.gradle.tooling.model.UnsupportedMethodException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 /**

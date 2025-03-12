@@ -17,7 +17,7 @@
 /**
  * The Gradle Daemon JVM {@link org.gradle.api.Task}.
  */
-@NonNullApi
+@NullMarked
 package org.gradle.internal.buildconfiguration;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;

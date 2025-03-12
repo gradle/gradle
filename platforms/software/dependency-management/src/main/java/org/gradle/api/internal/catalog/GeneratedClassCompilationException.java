@@ -16,8 +16,7 @@
 package org.gradle.api.internal.catalog;
 
 import org.gradle.api.GradleException;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 class GeneratedClassCompilationException extends GradleException {
     public GeneratedClassCompilationException(String message) {

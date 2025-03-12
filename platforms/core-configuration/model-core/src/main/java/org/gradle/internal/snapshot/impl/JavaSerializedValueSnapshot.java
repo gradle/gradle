@@ -23,8 +23,8 @@ import org.gradle.internal.serialize.ClassLoaderObjectInputStream;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.snapshot.ValueSnapshottingException;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 

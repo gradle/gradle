@@ -25,6 +25,8 @@ dependencies {
     api(projects.stdlibJavaExtensions)
     api(projects.workerMain)
 
+    api(libs.jspecify)
+
     implementation(projects.classloaders)
     implementation(projects.coreApi)
     implementation(projects.persistentCache)

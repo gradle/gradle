@@ -17,8 +17,7 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Graph metadata for local variants.

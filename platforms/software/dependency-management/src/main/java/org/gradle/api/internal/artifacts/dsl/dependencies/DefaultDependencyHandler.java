@@ -59,8 +59,8 @@ import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Map;
 

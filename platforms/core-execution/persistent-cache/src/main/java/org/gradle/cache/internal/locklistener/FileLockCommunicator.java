@@ -16,7 +16,7 @@
 
 package org.gradle.cache.internal.locklistener;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -25,7 +25,7 @@ import java.net.SocketAddress;
 import java.util.Optional;
 import java.util.Set;
 
-@NonNullApi
+@NullMarked
 public interface FileLockCommunicator {
     boolean pingOwner(InetAddress address, int ownerPort, long lockId, String displayName);
 

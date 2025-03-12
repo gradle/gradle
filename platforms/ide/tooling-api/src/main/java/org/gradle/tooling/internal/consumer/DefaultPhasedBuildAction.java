@@ -18,8 +18,7 @@ package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.IntermediateResultHandler;
-
-import javax.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public class DefaultPhasedBuildAction implements PhasedBuildAction {
     @Nullable private final BuildActionWrapper<?> projectsLoadedAction;

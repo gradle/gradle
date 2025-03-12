@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.jvm;
 
-import org.gradle.api.NonNullApi;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
  * Shared code between {@link org.gradle.api.JavaVersion} and other code for parsing a full
  * Java version string.
  */
-@NonNullApi
+@NullMarked
 public class JavaVersionParser {
 
     public static int parseMajorVersion(String fullVersion) {

@@ -19,8 +19,8 @@ package org.gradle.model.internal.inspect;
 import org.gradle.internal.Cast;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.MutableModelNode;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;

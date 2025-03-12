@@ -18,8 +18,8 @@ package org.gradle.internal.operations.trace;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Ordering;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

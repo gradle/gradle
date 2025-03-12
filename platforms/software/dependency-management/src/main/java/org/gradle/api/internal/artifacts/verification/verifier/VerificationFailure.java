@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.verification.verifier;
 
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.File;
 
 public interface VerificationFailure {

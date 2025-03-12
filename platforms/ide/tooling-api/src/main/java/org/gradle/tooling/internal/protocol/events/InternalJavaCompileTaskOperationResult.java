@@ -17,8 +17,8 @@
 package org.gradle.tooling.internal.protocol.events;
 
 import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
+import org.jspecify.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 

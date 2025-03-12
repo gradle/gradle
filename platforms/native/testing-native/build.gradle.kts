@@ -30,7 +30,7 @@ dependencies {
     api(projects.time)
 
     api(libs.inject)
-    api(libs.jsr305)
+    api(libs.jspecify)
 
     implementation(projects.logging)
     implementation(projects.loggingApi)
