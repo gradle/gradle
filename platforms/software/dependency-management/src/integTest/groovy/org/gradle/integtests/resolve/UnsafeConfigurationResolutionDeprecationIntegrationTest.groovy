@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.lang.Wildcard
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
-    def "configuration in another project produces deprecation warning when resolved"() {
+    def "configuration in another project fails when resolved"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -273,7 +273,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":resolve")
     }
 
-    def "deprecation warning when configuration is resolved while evaluating a different project"() {
+    def "fails when configuration is resolved while evaluating a different project"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -400,7 +400,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         succeeds(":help")
     }
 
-    def "deprecation warning when configuration is resolved while evaluating lifecycle.beforeProject block"() {
+    def "fails when configuration is resolved while evaluating lifecycle.beforeProject block"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -428,5 +428,6 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         expect:
         executer.withArguments("--parallel", "-I", "init-script.gradle")
         fails(":help")
+        failureDescriptionContains("Resolution of the configuration :foo was attempted from a context different than the project context. This is not allowed.")
     }
 }
