@@ -916,7 +916,6 @@ Class <org.gradle.api.plugins.internal.DefaultJavaFeatureSpec> is not annotated 
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginConvention> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginConvention.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension$DefaultJavaResolutionConsistency> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginExtension.java:0)
 Class <org.gradle.api.plugins.internal.DefaultJavaPluginExtension> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultJavaPluginExtension.java:0)
-Class <org.gradle.api.plugins.internal.DefaultWarPluginConvention> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (DefaultWarPluginConvention.java:0)
 Class <org.gradle.api.plugins.internal.HelpBuiltInCommand> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (HelpBuiltInCommand.java:0)
 Class <org.gradle.api.plugins.internal.HelpTasksAutoApplyAction> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (HelpTasksAutoApplyAction.java:0)
 Class <org.gradle.api.plugins.internal.JavaConfigurationVariantMapping$UnpublishableArtifactTypeSpec> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked in (JavaConfigurationVariantMapping.java:0)

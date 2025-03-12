@@ -16,7 +16,6 @@ org.gradle.api.plugins.quality.PmdPlugin
 org.gradle.api.plugins.quality.PmdExtension
 org.gradle.api.plugins.scala.ScalaBasePlugin
 org.gradle.api.plugins.scala.ScalaPlugin
-org.gradle.api.plugins.WarPluginConvention
 org.gradle.api.tasks.application.CreateStartScripts
 org.gradle.api.tasks.bundling.Jar
 org.gradle.api.tasks.bundling.War

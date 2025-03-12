@@ -9,6 +9,54 @@
             ]
         },
         {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Class org.gradle.api.plugins.WarPluginConvention",
+            "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Constructor org.gradle.api.plugins.WarPluginConvention()",
+            "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getProject()",
+            "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getWebAppDir()",
+            "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.getWebAppDirName()",
+            "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.WarPluginConvention",
+            "member": "Method org.gradle.api.plugins.WarPluginConvention.setWebAppDirName(java.lang.String)",
+            "acceptation": "war plugin convention was deprecated",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.tasks.javadoc.Groovydoc",
             "member": "Method org.gradle.api.tasks.javadoc.Groovydoc.getAntGroovydoc()",
             "acceptation": "these methods were deprecated",
