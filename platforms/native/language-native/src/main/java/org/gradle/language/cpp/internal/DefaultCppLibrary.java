@@ -17,15 +17,16 @@
 package org.gradle.language.cpp.internal;
 
 import org.gradle.api.Action;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
-import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -52,12 +53,12 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     private final FileCollection publicHeadersWithConvention;
     private final SetProperty<Linkage> linkage;
     private final Property<CppBinary> developmentBinary;
-    private final Configuration apiElements;
+    private final NamedDomainObjectProvider<ConsumableConfiguration> apiElements;
     private final MainLibraryVariant mainVariant;
     private final DefaultLibraryDependencies dependencies;
 
     @Inject
-    public DefaultCppLibrary(String name, ObjectFactory objectFactory, RoleBasedConfigurationContainerInternal configurations, AttributesFactory attributesFactory) {
+    public DefaultCppLibrary(String name, ObjectFactory objectFactory, ConfigurationContainer configurations, AttributesFactory attributesFactory) {
         super(name, objectFactory);
         this.objectFactory = objectFactory;
         this.developmentBinary = objectFactory.property(CppBinary.class);
@@ -71,12 +72,11 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
 
         Usage apiUsage = objectFactory.named(Usage.class, Usage.C_PLUS_PLUS_API);
 
-        @SuppressWarnings("deprecation")
-        Configuration ae = configurations.migratingUnlocked(getNames().withSuffix("cppApiElements"), ConfigurationRolesForMigration.CONSUMABLE_DEPENDENCY_SCOPE_TO_CONSUMABLE);
-        apiElements = ae;
-        apiElements.extendsFrom(dependencies.getApiDependencies());
-        apiElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
-        apiElements.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        this.apiElements = configurations.consumable(getNames().withSuffix("cppApiElements"), conf -> {
+            conf.extendsFrom(dependencies.getApiDependencies());
+            conf.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
+            conf.getAttributes().attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
+        });
 
         AttributeContainer publicationAttributes = attributesFactory.mutable();
         publicationAttributes.attribute(Usage.USAGE_ATTRIBUTE, apiUsage);
@@ -121,7 +121,7 @@ public class DefaultCppLibrary extends DefaultCppComponent implements CppLibrary
     }
 
     public Configuration getApiElements() {
-        return apiElements;
+        return apiElements.get();
     }
 
     @Override

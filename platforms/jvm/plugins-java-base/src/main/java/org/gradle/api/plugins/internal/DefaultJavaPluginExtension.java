@@ -266,7 +266,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withJavadocJar);
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            JvmPluginsHelper.createDocumentationVariantWithArtifact(
+            JvmPluginsHelper.registerDocumentationVariantWithArtifact(
                 main.getJavadocElementsConfigurationName(),
                 null,
                 JAVADOC,
@@ -286,7 +286,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
             project.getComponents().withType(JvmSoftwareComponentInternal.class).configureEach(JvmSoftwareComponentInternal::withSourcesJar);
         } else {
             SourceSet main = getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-            JvmPluginsHelper.createDocumentationVariantWithArtifact(
+            JvmPluginsHelper.registerDocumentationVariantWithArtifact(
                 main.getSourcesElementsConfigurationName(),
                 null,
                 SOURCES,

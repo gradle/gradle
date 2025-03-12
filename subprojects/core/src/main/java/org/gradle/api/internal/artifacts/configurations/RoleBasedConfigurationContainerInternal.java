@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.DomainObjectCollectionInternal;
@@ -26,79 +27,43 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Extends {@link ConfigurationContainer} to define internal-only methods for creating configurations.
- * All methods in this interface produce <strong>unlocked</strong> configurations, meaning they
- * are allowed to change roles. Starting in Gradle 9.0, all Gradle-created configurations will be locked.
- *
- * <p>The methods on this interface are meant to be transitional, and as such all usages of this interface
- * should be migrated to the public API starting in Gradle 9.0.<p>
- *
+ * <p>
+ * TODO: Merge this class with ConfigurationContainerInternal
+ * <p>
  * <strong>New configurations should leverage the role-based factory methods on {@link ConfigurationContainer}.</strong>
  */
 @ServiceScope(Scope.Project.class)
 public interface RoleBasedConfigurationContainerInternal extends ConfigurationContainer, DomainObjectCollectionInternal<Configuration> {
 
     /**
-     * Creates a consumable configuration which can change roles.
-     */
-    Configuration consumableUnlocked(String name);
-
-    /**
-     * Creates a consumable configuration which can change roles and executes the provided
-     * {@code action} against the configuration.
-     */
-    Configuration consumableUnlocked(String name, Action<? super Configuration> action);
-
-    /**
-     * Creates a resolvable configuration which can change roles.
-     */
-    Configuration resolvableUnlocked(String name);
-
-    /**
-     * Creates a resolvable configuration which can change roles and executes the provided
-     * {@code action} against the configuration.
-     */
-    Configuration resolvableUnlocked(String name, Action<? super Configuration> action);
-
-    /**
-     * Creates a dependency scope configuration which can change roles.
-     */
-    Configuration dependencyScopeUnlocked(String name);
-
-    /**
-     * Creates a dependency scope configuration which can change role and executes the provided
-     * {@code action} against the configuration.
-     */
-    Configuration dependencyScopeUnlocked(String name, Action<? super Configuration> action);
-
-    /**
-     * Creates a new configuration, which can change roles, with initial role {@code role}.
+     * Registers a new configuration, with initial role {@code role}.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    Configuration migratingUnlocked(String name, ConfigurationRole role);
+    NamedDomainObjectProvider<? extends Configuration> migrating(String name, ConfigurationRole role);
 
     /**
-     * Creates a new configuration, which can change roles, with initial role {@code role},
+     * Registers a new configuration, with initial role {@code role},
      * and executes the provided {@code action} against the configuration.
      * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
      *
      * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
      */
-    Configuration migratingUnlocked(String name, ConfigurationRole role, Action<? super Configuration> action);
+    NamedDomainObjectProvider<? extends Configuration> migrating(String name, ConfigurationRole role, Action<? super Configuration> action);
 
     /**
-     * Creates a resolvable + dependency scope configuration which can change roles.
+     * Registers a resolvable + dependency scope configuration.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
      * is still under debate. However, in general, we should try to split up configurations which
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    Configuration resolvableDependencyScopeUnlocked(String name);
+    NamedDomainObjectProvider<? extends Configuration> resolvableDependencyScope(String name);
 
     /**
-     * Creates a resolvable + dependency scope configuration which can change roles and executes the provided
+     * Registers a resolvable + dependency scope configuration and executes the provided
      * {@code action} against the configuration.
      *
      * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
@@ -106,82 +71,20 @@ public interface RoleBasedConfigurationContainerInternal extends ConfigurationCo
      * have this role into separate resolvable and dependency scope configurations.
      */
     @Deprecated
-    Configuration resolvableDependencyScopeUnlocked(String name, Action<? super Configuration> action);
+    NamedDomainObjectProvider<? extends Configuration> resolvableDependencyScope(String name, Action<? super Configuration> action);
 
     /**
-     * If a configuration with the given name already exists, return it.
-     * Otherwise, creates a new resolvable configuration with the given name.
+     * Registers a new configuration as defined by the given {@code context}.
      *
-     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
-     * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
-     */
-    Configuration maybeCreateResolvableUnlocked(String name);
-
-    /**
-     * If a configuration with the given name already exists, return it.
-     * Otherwise, creates a new consumable configuration with the given name.
+     * @param name the name of the configuration to create
+     * @param role the role of the configuration to create
+     * @param context information about the desired configuration
+     * @param configureAction the action to apply to the configuration.
      *
-     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
-     * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
-     */
-    Configuration maybeCreateConsumableUnlocked(String name);
-
-    /**
-     * If a configuration with the given name already exists, return it.
-     * Otherwise, creates a new dependency scope configuration with the given name.
-     *
-     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
-     * would be set if the configuration needed to be created; it will emit an additional deprecation warning when doing this.
-     */
-    Configuration maybeCreateDependencyScopeUnlocked(String name);
-
-    /**
-     * If a configuration with the given name already exists,return it.
-     * Otherwise, creates a new dependency scope configuration with the given name.
-     *
-     * <p>If {@code verifyPrexisting} is false, the normal deprecation warning will not be emitted. Setting this to false
-     * should be avoided except in edge cases where it may emit deprecation warnings affecting large third-party plugins.</p>
-     *
-     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
-     * would be set if the configuration needed to be created and emit an additional deprecation warning when doing this
-     * <strong>IFF</strong> {@code verifyPrexisting} is set to {@code true}.
-     */
-    Configuration maybeCreateDependencyScopeUnlocked(String name, boolean verifyPrexisting);
-
-    /**
-     * If a configuration with the given name already exists, return it.
-     * Otherwise, creates a new configuration with the given name.
-     * Intended only for use with roles defined in {@link ConfigurationRolesForMigration}.
-     *
-     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
-     * would be set if the configuration needed to be created and emit an additional deprecation warning.
-     *
-     * @throws org.gradle.api.InvalidUserDataException If a non-migration role is used.
-     */
-    Configuration maybeCreateMigratingUnlocked(String name, ConfigurationRole role);
-
-    /**
-     * If a configuration with the given name already exists, return it.
-     * Otherwise, creates a new resolvable + dependency scope configuration with the given name.
-     *
-     * If a configuration with this name already exists this method will <strong>overwrite</strong> its current usage to match what
-     * would be set if the configuration needed to be created and emit an additional deprecation warning.
-     *
-     * @deprecated Whether concept of a resolvable + dependency scope configuration should exist
-     * is still under debate. However, in general, we should try to split up configurations which
-     * have this role into separate resolvable and dependency scope configurations.
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    Configuration maybeCreateResolvableDependencyScopeUnlocked(String name);
-
-    /**
-     * If a configuration with the given name already exists, verify its usage matches the expected role and return it.
-     * Otherwise, create a new configuration as defined by the given {@code request}.
-     *
-     * @param request information about the desired configuration
      * @return the configuration that was created or already existed
+     *
      * @throws GradleException if the request cannot be fulfilled
      */
-    Configuration maybeCreate(RoleBasedConfigurationCreationRequest request);
+    NamedDomainObjectProvider<? extends Configuration> registerWithContext(String name, ConfigurationRole role, RoleBasedConfigurationCreationRequest context, Action<? super Configuration> configureAction);
+
 }

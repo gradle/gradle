@@ -309,6 +309,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
+    @Nullable
     @Override
     public T findByName(String name) {
         T value = findByNameWithoutRules(name);

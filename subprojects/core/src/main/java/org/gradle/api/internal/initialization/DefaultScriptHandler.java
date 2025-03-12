@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.configurations.ConfigurationRolesForMigration;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -160,7 +159,7 @@ public class DefaultScriptHandler implements ScriptHandler, ScriptHandlerInterna
             resolutionContext = buildLogicBuilder.prepareDependencyHandler(dependencyHandler);
         }
         if (classpathConfiguration == null) {
-            classpathConfiguration = configContainer.migratingUnlocked(CLASSPATH_CONFIGURATION, ConfigurationRolesForMigration.LEGACY_TO_RESOLVABLE_DEPENDENCY_SCOPE);
+            classpathConfiguration = configContainer.resolvableDependencyScope(CLASSPATH_CONFIGURATION).get();
             configContainer.beforeCollectionChanges(methodName ->
                 DeprecationLogger.deprecateAction("Mutating " + configContainer.getDisplayName() + " using " + methodName)
                 .willBecomeAnErrorInGradle9()
