@@ -72,7 +72,7 @@ This defines a custom platform with specific versions of `guava` and `commons-la
 [[sec:bom-import]]
 == Importing a platform
 
-Gradle supports importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Importing_Dependencies[BOMs], which are POM files containing `<dependencyManagement>` sections that manage dependency versions.
+Gradle supports importing https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Bill_of_Materials_.28BOM.29_POMs[BOMs], which are POM files containing `<dependencyManagement>` sections that manage dependency versions.
 
 In order to qualify as a BOM, a `.pom` file needs to have pom set.
 This means that the POM file should explicitly specify <packaging>pom</packaging> in its metadata.
