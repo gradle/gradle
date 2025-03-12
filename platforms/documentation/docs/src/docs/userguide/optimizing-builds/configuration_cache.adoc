@@ -15,38 +15,38 @@
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
 [[config_cache]]
-= Configuration cache
+= Configuration Cache
 
 // Run tests for snippets included in this chapter with:
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-configuration-cache-*"
 // ./gradlew :docs:docsTest --tests="ExemplarExternalSamplesFunctionalTest.snippet-value-providers-*"
 
 [[config_cache:intro]]
-== Introduction
+The Configuration Cache improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
 
-The configuration cache improves build performance by caching the result of the <<build_lifecycle#build_lifecycle,configuration phase>> and reusing it for subsequent builds.
-
-When enabled, the configuration cache allows Gradle to skip the configuration phase entirely if nothing that affects the build configuration (such as build scripts) has changed.
+When enabled, the Configuration Cache allows Gradle to skip the configuration phase entirely if nothing that affects the build configuration (such as build scripts) has changed.
 Additionally, Gradle applies performance optimizations to task execution.
 
-The configuration cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:
+The Configuration Cache is similar to the <<build_cache#build_cache,Build Cache>>, but they store different types of data:
 
 - *Build Cache*: Stores outputs and intermediate files of the build (e.g., task outputs, artifact transform outputs).
 - *Configuration Cache*: Stores the build configuration for a particular set of tasks, capturing the output of the configuration phase.
+
+image::configuration-cache-2.png[]
 
 [IMPORTANT]
 ====
 This feature is _not enabled by default_ and has the following limitations:
 
 - It does not yet support all <<configuration_cache#config_cache:plugins:core, Core Gradle Plugins>> and <<configuration_cache#config_cache:not_yet_implemented, features>>. Full support is in progress.
-- Your build and its plugins may require modifications to meet the <<configuration_cache#config_cache:requirements, configuration cache requirements>>.
-- IDE imports and syncs do not yet use the configuration cache.
+- Your build and its plugins may require modifications to meet the <<configuration_cache#config_cache:requirements, Configuration Cache requirements>>.
+- IDE imports and syncs do not yet use the Configuration Cache.
 ====
 
 [[config_cache:intro:how_does_it_work]]
 == How Configuration Caching Works
 
-When the configuration cache is enabled and you run Gradle for a particular set of tasks, such as `gradlew check`, Gradle checks for a configuration cache entry.
+When the Configuration Cache is enabled and you run Gradle for a particular set of tasks, such as `gradlew check`, Gradle checks for a Configuration Cache entry.
 If an entry exists, Gradle uses it to skip the configuration phase.
 
 A cache entry contains:
@@ -57,31 +57,35 @@ A cache entry contains:
 
 === First-Time Execution
 
+image::configuration-cache-1.png[]
+
 The first time you run a set of tasks, there is no cache entry.
 Gradle performs the configuration phase as usual:
 
 1. Run init scripts.
-2.  the settings script, applying any requested settings plugins.
+2. Run the settings script, applying any requested settings plugins.
 3. Configure and build the `buildSrc` project, if present.
 4. Run build scripts, applying any requested project plugins.
 5. Calculate the task graph, executing deferred configuration actions.
 
-Gradle then stores a snapshot of the task graph in the configuration cache for future use.
+Gradle then stores a snapshot of the task graph in the Configuration Cache for future use.
 After this, Gradle loads the task graph from the cache and proceeds with task execution.
 
 === Subsequent Runs
 
+image::configuration-cache-3.png[]
+
 On subsequent executions of the same tasks (e.g., `gradlew check` again), Gradle:
 
-- Loads the task graph from the configuration cache.
+- Loads the task graph from the Configuration Cache.
 - Skips the configuration phase entirely.
 
 Before using the cache, Gradle verifies that no build configuration inputs have changed.
-If any input has changed, Gradle reruns the configuration phase and updates the cache
+If any input has changed, Gradle reruns the configuration phase and updates the cache.
 
 === Build Configuration Inputs
 
-The following elements determine whether a configuration cache entry is valid:
+The following elements determine whether a Configuration Cache entry is valid:
 
 - Init scripts
 - Settings scripts
@@ -94,7 +98,7 @@ The following elements determine whether a configuration cache entry is valid:
 
 === Serialization
 
-Gradle uses an optimized serialization mechanism to store configuration cache entries.
+Gradle uses an optimized serialization mechanism to store Configuration Cache entries.
 It automatically serializes object graphs containing simple state or supported types.
 
 For compatibility, Gradle provides limited support for <<configuration_cache#config_cache:not_yet_implemented:java_serialization, Java Serialization>>, but its use is discouraged due to performance reasons.
@@ -102,16 +106,13 @@ For compatibility, Gradle provides limited support for <<configuration_cache#con
 [[config_cache:intro:performance_improvements]]
 === Performance Improvements
 
-Beyond skipping the configuration phase, the configuration cache enhances performance in the following ways:
+Beyond skipping the configuration phase, the Configuration Cache enhances performance in the following ways:
 
 - *Parallel Task Execution*: All tasks run in parallel by default, subject to dependency constraints.
 - *Cached Dependency Resolution*: Dependency resolution results are stored and reused.
 - *Optimized Memory Usage*: After writing the task graph to the cache, Gradle discards configuration and dependency resolution state from memory, lowering peak heap usage.
 
 [[config_cache:in_action]]
-== Configuration Caching in Action
-
-// TODO-RC redo demo so it no longer shows as incubating
 image::configuration-cache/running-help.gif[]
 
 [[config_cache:usage]]
@@ -119,7 +120,7 @@ image::configuration-cache/running-help.gif[]
 
 It is recommended to get started with the simplest task invocation possible.
 
-Running `help` with the configuration cache enabled is a good first step:
+Running `help` with the Configuration Cache enabled is a good first step:
 
 [source,text]
 ----
@@ -128,7 +129,7 @@ include::{snippetsPath}/configurationCache/noProblem/tests/store.out[]
 ...
 BUILD SUCCESSFUL in 4s
 1 actionable task: 1 executed
-Configuration cache entry stored.
+Configuration Cache entry stored.
 ----
 
 Running this for the first time, the configuration phase executes, calculating the task graph.
@@ -144,7 +145,7 @@ include::{snippetsPath}/configurationCache/noProblem/tests/load.out[]
 ...
 BUILD SUCCESSFUL in 500ms
 1 actionable task: 1 executed
-Configuration cache entry reused.
+Configuration Cache entry reused.
 ----
 
 If it succeeds on your build, congratulations, you can now try with more useful tasks.
@@ -159,7 +160,7 @@ See the <<configuration_cache#config_cache:troubleshooting>> section below for m
 [[config_cache:usage:enable]]
 == Enabling the Configuration Cache
 
-By default, Gradle does not use the configuration cache.
+By default, Gradle does not use the Configuration Cache.
 
 To enable it at build time, use the `configuration-cache` flag:
 
@@ -185,8 +186,8 @@ If enabled in `gradle.properties`, you can override it and disable the cache at 
 [[config_cache:usage:ignore_problems]]
 === Ignoring Configuration Cache Problems
 
-By default, Gradle fails the build if configuration cache problems occur.
-However, when gradually updating plugins or build logic to support the configuration cache, it can be useful to temporarily turn problems into warnings.
+By default, Gradle fails the build if Configuration Cache problems occur.
+However, when gradually updating plugins or build logic to support the Configuration Cache, it can be useful to temporarily turn problems into warnings.
 
 NOTE: This does not guarantee that the build will succeed.
 
@@ -207,7 +208,7 @@ org.gradle.configuration-cache.problems=warn
 [[config_cache:usage:max_problems]]
 === Allowing a Maximum Number of Problems
 
-When configuration cache problems are treated as warnings, Gradle will fail the build if `512` problems are found by default.
+When Configuration Cache problems are treated as warnings, Gradle will fail the build if `512` problems are found by default.
 
 You can adjust this limit by specifying the maximum number of allowed problems on the command line:
 
@@ -226,7 +227,7 @@ org.gradle.configuration-cache.max-problems=5
 [[config_cache:usage:parallel]]
 === Enabling Parallel Configuration Caching
 
-By default, configuration cache storing and loading are sequential.
+By default, Configuration Cache storing and loading are sequential.
 Enabling parallel storing and loading can improve performance, but not all builds are compatible with it.
 
 To enable parallel configuration caching at build time, use:
@@ -253,13 +254,13 @@ However, this feature is expected to work well for <<multi_project_configuration
 [[config_cache:usage:invalidate]]
 == Invalidating the Configuration Cache
 
-The configuration cache is automatically invalidated when inputs to the configuration phase change.
+The Configuration Cache is automatically invalidated when inputs to the configuration phase change.
 However, some inputs are not yet tracked, meaning you may need to manually invalidate the cache when untracked inputs change.
 This is more likely if you have <<configuration_cache#config_cache:usage:ignore_problems,ignored problems>>.
 
 See the <<configuration_cache#config_cache:requirements>> and <<configuration_cache#config_cache:not_yet_implemented>> sections for more details.
 
-The configuration cache state is stored in a `.gradle/configuration-cache` directory in the root of your Gradle build.
+The Configuration Cache state is stored in a `.gradle/configuration-cache` directory in the root of your Gradle build.
 To manually invalidate the cache, delete this directory:
 
 [source,text]
@@ -287,7 +288,7 @@ The `STABLE_CONFIGURATION_CACHE` feature flag enforces stricter validation and i
 Undeclared Shared Build Service Usage::
 Tasks using a <<build_services#build_services, shared build service>> without explicitly declaring the requirement via the Task.usesService method will trigger a deprecation warning.
 
-Additionally, when the configuration cache is not enabled but this feature flag is present, deprecations for the following <<config_cache:requirements, configuration cache requirements>> will be enforced:
+Additionally, when the Configuration Cache is not enabled but this feature flag is present, deprecations for the following <<config_cache:requirements, Configuration Cache requirements>> will be enforced:
 
 - <<config_cache:requirements:build_listeners, Registering build listeners>>
 - <<config_cache:requirements:task_extensions, Using task extensions and conventions at execution time>>
@@ -295,15 +296,15 @@ Additionally, when the configuration cache is not enabled but this feature flag 
 It is recommended to enable this flag as soon as possible to prepare for its eventual default enforcement.
 
 [[config_cache:ide]]
-== IDE support
+== IDE Support
 
-If you enable and configure the configuration cache in your `gradle.properties` file, it will be automatically enabled when your IDE delegates builds to Gradle.
+If you enable and configure the Configuration Cache in your `gradle.properties` file, it will be automatically enabled when your IDE delegates builds to Gradle.
 No additional setup is required.
 
-Because `gradle.properties` is typically checked into source control, enabling the configuration cache this way will apply to your entire team.
+Because `gradle.properties` is typically checked into source control, enabling the Configuration Cache this way will apply to your entire team.
 If you prefer to enable it only for your local environment, you can configure it directly in your IDE instead.
 
-NOTE: Syncing a project in an IDE does not benefit from the configuration cache. Only running tasks through the IDE will leverage the cache.
+NOTE: Syncing a project in an IDE does not benefit from the Configuration Cache. Only running tasks through the IDE will leverage the cache.
 
 [[config_cache:ide:intellij]]
 === IntelliJ based IDEs
@@ -314,7 +315,7 @@ To enable it for the whole build, go to `Run > Edit configurations...`.
 This will open the IntelliJ IDEA or Android Studio dialog to configure Run/Debug configurations.
 Select `Templates > Gradle` and add the necessary system properties to the `VM options` field.
 
-For example to enable the configuration cache, turning problems into warnings, add the following:
+For example to enable the Configuration Cache, turning problems into warnings, add the following:
 
 [source,text]
 ----
@@ -330,13 +331,13 @@ Combining these two ways you can enable globally and disable for certain run con
 ====
 You can use the link:https://github.com/JetBrains/gradle-idea-ext-plugin[gradle-idea-ext-plugin] to configure IntelliJ run configurations from your build.
 
-This is a good way to enable the configuration cache only for the IDE.
+This is a good way to enable the Configuration Cache only for the IDE.
 ====
 
 [[config_cache:ide:eclipse]]
 === Eclipse based IDEs
 
-In Eclipse-based IDEs, you can enable the configuration cache through Buildship, either globally or per run configuration.
+In Eclipse-based IDEs, you can enable the Configuration Cache through Buildship, either globally or per run configuration.
 
 To enable it globally:
 
@@ -351,12 +352,12 @@ To enable it for a specific run configuration:
 2. Select the desired configuration.
 3. Navigate to `Project Settings`, check `Override project settings`, and add the same system properties as `JVM arguments`.
 
-Using these methods together, you can enable the configuration cache globally while disabling it for certain run configurations, or vice versa.
+Using these methods together, you can enable the Configuration Cache globally while disabling it for certain run configurations, or vice versa.
 
 [[config_cache:plugins]]
 == Supported Plugins
 
-The configuration cache introduces new requirements for plugin implementations.
+The Configuration Cache introduces new requirements for plugin implementations.
 As a result, both Core Gradle plugins and Community Plugins need to be adjusted to ensure compatibility.
 
 This section provides details on the current support in:
@@ -448,14 +449,12 @@ Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn ab
 [[config_cache:troubleshooting]]
 == Troubleshooting
 
-The following sections will go through some general guidelines on dealing with problems with the configuration cache.
-This applies to both your build logic and to your Gradle plugins.
+This section provides general guidelines for resolving issues with the Configuration Cache, whether in your build logic or Gradle plugins.
 
-Upon failure to serialize the state required to run the tasks, an HTML report of detected problems is generated.
-The Gradle failure output includes a clickable link to the report.
-This report is useful and allows you to drill down into problems, understand what is causing them.
+When Gradle encounters a problem serializing the necessary state to execute tasks, it generates an HTML report detailing the detected issues.
+The console output includes a clickable link to this report, allowing you to investigate the root causes.
 
-Let's look at a simple example build script that contains a couple problems:
+Consider the following build script, which contains two issues:
 
 ====
 include::sample[dir="snippets/configurationCache/problemsKotlin/kotlin",files="build.gradle.kts[]"]
@@ -464,55 +463,58 @@ include::sample[dir="snippets/configurationCache/problemsGroovy/groovy",files="b
 <1> <<config_cache:requirements:reading_sys_props_and_env_vars, A system property read at configuration time>>
 <2> <<config_cache:requirements:use_project_during_execution, Using the `Project` object at execution time>>
 
-Running that task fails and print the following in the console:
+Running the task fails with the following output:
 
+[soure,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 ...
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
-Configuration cache entry discarded with 1 problem.
+Configuration Cache entry discarded with 1 problem.
 ----
 
-The configuration cache entry was discarded because of the found problem failing the build.
+Since a problem was detected, Gradle discards the Configuration Cache entry, preventing reuse in future builds.
 
-Details can be found in the linked HTML report:
+The linked HTML report provides details about the detected problems:
 
 image::configuration-cache/problems-report.png[]
 
-The report displays the set of problems twice.
-First grouped by problem message, then grouped by task.
-The former allows you to quickly see what classes of problems your build is facing.
-The latter allows you to quickly see which tasks are problematic.
-In both cases you can expand the tree in order to discover where the culprit is in the object graph.
+The report presents issues in two ways:
 
-The report also includes a list of detected build configuration inputs, such as environment variables, system properties and value suppliers that were read at configuration phase:
+- *Grouped by message* → Quickly identify recurring problem types.
+- *Grouped by task* → Identify which tasks are causing problems.
+
+Expanding the problem tree helps locate the root cause within the object graph.
+
+Additionally, the report lists detected build configuration inputs, such as system properties, environment variables, and value suppliers accessed during configuration:
 
 image::configuration-cache/inputs-report.png[]
 
 [TIP]
 ====
-Problems displayed in the report have links to the corresponding <<configuration_cache#config_cache:requirements,requirement>> where you can find guidance on how to fix the problem or to the corresponding <<configuration_cache#config_cache:not_yet_implemented,not yet implemented>> feature.
+Each problem entry in the report includes links to relevant <<configuration_cache#config_cache:requirements, Configuration Cache requirements>> for guidance on resolving the issue, as well as any related <<configuration_cache#config_cache:not_yet_implemented, Not Yet Implemented features>>.
 
-When changing your build or plugin to fix the problems you should consider <<configuration_cache#config_cache:testing, testing your build logic with TestKit>>.
+When modifying your build or plugin, consider <<configuration_cache#config_cache:testing, Testing your Build Logic with TestKit>> to verify changes.
 ====
 
-At this stage, you can decide to either <<configuration_cache#config_cache:usage:ignore_problems, turn the problems into warnings>> and continue exploring how your build reacts to the configuration cache, or fix the problems at hand.
+At this stage, you can either ignore the problems (<<configuration_cache#config_cache:usage:ignore_problems,turn them into warnings>>) to continue exploring Configuration Cache behavior, or fix the issues immediately.
 
-Let's ignore the reported problem, and run the same build again twice to see what happens when reusing the cached problematic configuration:
+To continue using the Configuration Cache while observing problems, run:
 
+[source,text]
 ----
 ❯ gradle --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
-Configuration cache entry stored with 1 problem.
+Configuration Cache entry stored with 1 problem.
 ❯ gradle --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
-Configuration cache entry reused with 1 problem.
+Configuration Cache entry reused with 1 problem.
 ----
 
-The two builds succeed reporting the observed problem, storing then reusing the configuration cache.
+Gradle will successfully store and reuse the Configuration Cache while continuing to report the problem.
 
-With the help of the links present in the console problem summary and in the HTML report we can fix our problems.
-Here's a fixed version of the build script:
+The report and console logs provide links to guidance on resolving detected issues.
+Here’s a corrected version of the example build script:
 
 ====
 include::sample[dir="snippets/configurationCache/problemsFixed/kotlin",files="build.gradle.kts[tags=fixed]"]
@@ -522,28 +524,29 @@ include::sample[dir="snippets/configurationCache/problemsFixed/groovy",files="bu
 <2> with inputs and outputs declaration,
 <3> and injected with the `FileSystemOperations` service, a supported replacement for <<configuration_cache#config_cache:requirements:use_project_during_execution, `project.copy {}`>>.
 
-Running the task twice now succeeds without reporting any problem and reuses the configuration cache on the second run:
+After fixing these issues, running the task twice successfully reuses the Configuration Cache:
 
+[source,text]
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
-Configuration cache entry stored.
+Configuration Cache entry stored.
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
-Configuration cache entry reused.
+Configuration Cache entry reused.
 ----
 
-But, what if we change the value of the system property?
+If a build input changes (e.g., a system property value), the Configuration Cache entry becomes invalid, requiring a new configuration phase:
 
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=another
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out[]
-Configuration cache entry stored.
+Configuration Cache entry stored.
 ----
 
-The previous configuration cache entry could not be reused, and the task graph had to be calculated and stored again.
-This is because we read the system property at configuration time, hence requiring Gradle to run the configuration phase again when the value of that property changes.
-Fixing that is as simple as obtaining the provider of the system property and wiring it to the task input, without reading it at configuration time.
+The cache entry was invalidated because the system property was read at configuration time, forcing Gradle to re-run configuration when its value changed.
+
+A better approach is to use a provider to defer reading the system property until execution time:
 
 ====
 include::sample[dir="snippets/configurationCache/problemsFixedReuse/kotlin",files="build.gradle.kts[tags=fixed-reuse]"]
@@ -551,109 +554,122 @@ include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",file
 ====
 <1> We wired the system property provider directly, without reading it at configuration time.
 
-With this simple change in place we can run the task any number of times, change the system property value, and reuse the configuration cache:
+Now, the cache entry remains reusable even when changing the system property:
 
 ----
 ❯ gradle --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
-Configuration cache entry stored.
+Configuration Cache entry stored.
 ❯ gradle --configuration-cache someTask -DsomeDestination=another
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
-Configuration cache entry reused.
+Configuration Cache entry reused.
 ----
 
-We're now done with fixing the problems with this simple task.
+With these fixes in place, this task is fully compatible with the Configuration Cache.
 
-Keep reading to learn how to adopt the configuration cache for your build or your plugins.
+Continue reading to learn how to fully adopt the Configuration Cache for your build and plugins.
 
 [[config_cache:task_opt_out]]
-=== Declare a task incompatible with the configuration cache
+=== Declare a Task Incompatible with the Configuration Cache
 
-It is possible to declare that a particular task is not compatible with the configuration cache
-via the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[Task.notCompatibleWithConfigurationCache()] method.
+You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[Task.notCompatibleWithConfigurationCache()] method:
 
-Configuration cache problems found in tasks marked incompatible will no longer cause the build to fail.
+====
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/groovy",files="build.gradle[tags=resolve-all]"]
+====
 
-And, when an incompatible task is scheduled to run, Gradle discards the configuration state at the end of the build. You can use this to help with migration, by temporarily opting out certain tasks that are difficult to change to work with the configuration cache.
+When a task is marked as incompatible:
 
-Check the method documentation for more details.
+- Configuration Cache problems in that task will no longer cause the build to fail.
+- Gradle discards the configuration state at the end of the build if an incompatible task is executed.
+
+This mechanism can be useful during migration, allowing you to temporarily opt out tasks that require more extensive changes to become Configuration Cache-compatible.
+
+For more details, refer to the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[method] documentation.
 
 [[config_cache:adoption]]
 == Configuration Cache Adoption Steps
 
-An important prerequisite is to keep your Gradle and plugins versions up to date.
-The following explores the recommended steps for a successful adoption.
-It applies both to builds and plugins.
-While going through these steps, keep in mind the HTML report and the solutions explained in the <<configuration_cache#config_cache:requirements, requirements>> chapter below.
+An important prerequisite is to keep your Gradle and plugins up to date.
+The following steps outline a recommended approach for successful adoption.
+These steps apply to both builds and plugins.
 
-Start with `:help`::
-Always start by trying your build or plugin with the simplest task `:help`.
-This will exercise the minimal configuration phase of your build or plugin.
+While following this process, refer to the HTML report and the solutions explained in the <<configuration_cache#config_cache:requirements, requirements>> section.
 
-Progressively target useful tasks::
-Don't go with running `build` right away.
-You can also use `--dry-run` to discover more configuration time problems first.
+. Start with `help`
 +
-When working on a build, progressively target your development feedback loop.
-For example, running tests after making some changes to the source code.
-+
-When working on a plugin, progressively target the contributed or configured tasks.
+Always begin by testing your build or plugin with the simplest task: `help`. This exercises the minimal configuration phase of your build or plugin.
 
-Explore by turning problems into warnings::
-Don't stop at the first build failure; <<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to discover how your build and plugins behave.
-If a build fails, use the HTML report to reason about the reported problems related to the failure.
-Continue running more useful tasks.
+. Progressively target useful tasks
 +
-This will give you a good overview of the nature of the problems your build and plugins are facing.
-Remember that when turning problems into warnings you might need to <<configuration_cache#config_cache:usage:invalidate, manually invalidate the cache>> in case of troubles.
+Avoid running `build` right away. Instead:
 
-Step back and fix problems iteratively::
-When you feel you know enough about what needs to be fixed, take a step back and start iteratively fixing the most important problems.
-Use the HTML report and this documentation to help you in this journey.
-+
-Start with problems reported when _storing_ the configuration cache.
-Once fixed, you can rely on a valid cached configuration phase and move on to fixing problems reported when _loading_ the configuration cache if any.
+- Use `--dry-run` to identify configuration time problems first.
+- When working on a build, focus on your development feedback loop, such as running tests after modifying source code.
+- When working on a plugin, progressively target the contributed or configured tasks.
 
-Report encountered issues::
-If you face a problem with a <<configuration_cache#config_cache:not_yet_implemented, Gradle feature>> or with a <<configuration_cache#config_cache:plugins:core, Gradle core plugin>> that is not covered by this documentation, please report an issue on link:https://github.com/gradle/gradle/issues/new/choose[`gradle/gradle`].
+. Explore by turning problems into warnings
 +
-If you face a problem with a community Gradle plugin, see if it is already listed at link:{gradle-issues}13490[gradle/gradle#13490] and consider reporting the issue to the plugin's issue tracker.
-+
-A good way to report such issues is by providing information such as:
-+
-* a link to this very documentation,
-* the plugin version you tried,
-* the custom configuration of the plugin if any, or ideally a reproducer build,
-* a description of what fails, for example problems with a given task
-* a copy of the build failure,
-* the self-contained `configuration-cache-report.html` file.
+Don't stop at the first build failure—<<configuration_cache#config_cache:usage:ignore_problems, turn problems into warnings>> to better understand how your build and plugins behave. If a build fails:
 
-Test, test, test::
-Consider adding tests for your build logic.
-See the below section on <<configuration_cache#config_cache:testing, testing your build logic>> for the configuration cache.
-This will help you while iterating on the required changes and prevent future regressions.
+- Use the HTML report to analyze the reported problems.
+- Continue testing more tasks to get a full picture of the issues affecting your build and plugins.
+- Keep in mind that when turning problems into warnings, you may need to <<configuration_cache#config_cache:usage:invalidate, manually invalidate the cache>> in case of unexpected behavior.
 
-Roll it out to your team::
-Once you have your developer workflow working, for example running tests from the IDE, you can consider enabling it for your team.
-A faster turnaround when changing code and running tests could be worth it.
-You'll probably want to do this as an opt-in first.
+. Step back and fix problems iteratively
 +
-If needed, turn problems into warnings and set the maximum number of allowed problems in your build `gradle.properties` file.
-Keep the configuration cache disabled by default.
-Let your team know they can opt-in by, for example, enabling the configuration cache on their IDE run configurations for the supported workflow.
+Once you have a clear understanding of the issues, start fixing them iteratively. Use the HTML report and this documentation to guide your process:
+
+- Begin with problems reported when _storing_ the Configuration Cache.
+- Once those are fixed, move on to addressing any problems encountered when _loading_ the Configuration Cache.
+
+. Report encountered issues
 +
-Later on, when more workflows are working, you can flip this around.
-Enable the configuration cache by default, configure CI to disable it, and if required communicate the unsupported workflow(s) for which the configuration cache needs to be disabled.
+If you encounter issues with a <<configuration_cache#config_cache:not_yet_implemented, Gradle Feature>> or a <<configuration_cache#config_cache:plugins:core, Core Gradle Plugin>> that is not covered by this documentation, report it to link:https://github.com/gradle/gradle/issues/new/choose[`gradle/gradle`].
++
+For community Gradle plugins, check if the issue is already listed at link:{gradle-issues}13490[gradle/gradle#13490] and report it to the plugin's issue tracker if necessary.
++
+A good bug report should include:
+
+** A link to this documentation.
+** The plugin version you tested.
+** Any custom plugin configuration, or ideally a reproducer build.
+** A description of what fails (e.g., problems with a specific task).
+** A copy of the build failure output.
+** The self-contained `configuration-cache-report.html` file.
+
+. Test, test, test
++
+Add tests for your build logic to catch issues early.
+See <<configuration_cache#config_cache:testing, Testing Your Build Logic>> for details on testing Configuration Cache compatibility.
+This will help during iterations and prevent regressions.
+
+. Roll it out to your team
++
+Once your developer workflow (e.g., running tests from the IDE) is stable, consider enabling the Configuration Cache for your team:
+
+- Initially, introduce it as an opt-in feature.
+- If necessary, turn problems into warnings and set a maximum number of allowed problems in your `gradle.properties` file.
+- Keep the Configuration Cache disabled by default, and encourage team members to opt in by configuring their IDE run settings.
+- When more workflows are stable, reverse this approach:
+** Enable the Configuration Cache by default.
+** Configure CI to disable it where needed.
+** Communicate any unsupported workflows that require disabling the Configuration Cache.
 
 [[config_cache:adoption:reacting]]
-=== Reacting to the configuration cache in the build
+=== Reacting to the Configuration Cache in the Build
 
-Build logic or plugin implementations can detect if the configuration cache is enabled for a given build, and react to it accordingly.
-The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the configuration cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
-You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
+Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
 
-You can use this information to configure features of your plugin differently or to disable an optional feature that is not yet compatible.
-Another example involves providing additional guidance for your users, should they need to adjust their setup or be informed of temporary limitations.
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[BuildFeatures] service into your code.
+
+This information can be used to:
+
+- Configure plugin features differently when the Configuration Cache is enabled.
+- Disable an optional feature that is not yet compatible with the Configuration Cache.
+- Provide additional guidance to users, such as informing them of temporary limitations or suggesting adjustments to their setup.
 
 [[config_cache:adoption:changes_in_behavior]]
 === Adopting changes in the configuration cache behavior
@@ -690,8 +706,8 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     build/analytics.json
 ----
 
-* Before Gradle 8.4, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the configuration cache.
-However, their changes would not invalidate the configuration cache afterward.
+* Before Gradle 8.4, some undeclared configuration inputs that were never used in the configuration logic could still be read when the task graph was serialized by the Configuration Cache.
+However, their changes would not invalidate the Configuration Cache afterward.
 Starting with Gradle 8.4, such undeclared configuration inputs are correctly tracked.
 +
 To temporarily revert to the earlier behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
@@ -705,30 +721,30 @@ The support for these options will be removed in future releases.
 The Gradle TestKit (a.k.a. just TestKit) is a library that aids in testing Gradle plugins and build logic generally.
 For general guidance on how to use TestKit, see the <<test_kit.adoc#test_kit,dedicated chapter>>.
 
-To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#config_cache:usage:enable,Enabling the configuration cache>>.
+To enable configuration caching in your tests, you can pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner] or use one of the other methods described in <<configuration_cache.adoc#config_cache:usage:enable,Enabling the Configuration Cache>>.
 
 You need to run your tasks twice.
-Once to prime the configuration cache.
-Once to reuse the configuration cache.
+Once to prime the Configuration Cache.
+Once to reuse the Configuration Cache.
 
-.Testing the configuration cache
+.Testing the Configuration Cache
 ====
 include::sample[dir="snippets/configurationCache/testKit/kotlin",files="src/test/kotlin/org/example/BuildLogicFunctionalTest.kt[tags=functional-test-configuration-cache]"]
 include::sample[dir="snippets/configurationCache/testKit/groovy",files="src/test/groovy/org/example/BuildLogicFunctionalTest.groovy[tags=functional-test-configuration-cache]"]
 ====
-<1> First run primes the configuration cache.
-<2> Second run reuses the configuration cache.
-<3> Assert that the configuration cache gets reused.
+<1> First run primes the Configuration Cache.
+<2> Second run reuses the Configuration Cache.
+<3> Assert that the Configuration Cache gets reused.
 
-If problems with the configuration cache are found then Gradle will fail the build reporting the problems, and the test will fail.
+If problems with the Configuration Cache are found then Gradle will fail the build reporting the problems, and the test will fail.
 
 [TIP]
 ====
-A good testing strategy for a Gradle plugin is to run its whole test suite with the configuration cache enabled.
+A good testing strategy for a Gradle plugin is to run its whole test suite with the Configuration Cache enabled.
 This requires testing the plugin with a supported Gradle version.
 
 If the plugin already supports a range of Gradle versions it might already have tests for multiple Gradle versions.
-In that case we recommend enabling the configuration cache starting with the Gradle version that supports it.
+In that case we recommend enabling the Configuration Cache starting with the Gradle version that supports it.
 
 If this can’t be done right away, using tests that run all tasks contributed by the plugin several times, for e.g. asserting the `UP_TO_DATE` and `FROM_CACHE` behavior, is also a good strategy.
 ====
@@ -736,11 +752,11 @@ If this can’t be done right away, using tests that run all tasks contributed b
 [[config_cache:requirements]]
 == Configuration Cache Requirements
 
-In order to capture the state of the task graph to the configuration cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
-Each of these requirements is treated as a configuration cache "problem" and fails the build if violations are present.
+In order to capture the state of the task graph to the Configuration Cache and reload it again in a later build, Gradle applies certain requirements to tasks and other build logic.
+Each of these requirements is treated as a Configuration Cache "problem" and fails the build if violations are present.
 
 For the most part these requirements are actually surfacing some undeclared inputs.
-In other words, using the configuration cache is an opt-in to more strictness, correctness and reliability for all builds.
+In other words, using the Configuration Cache is an opt-in to more strictness, correctness and reliability for all builds.
 
 The following sections describe each of the requirements and how to change your build to fix the problems.
 
@@ -756,7 +772,7 @@ These types fall into some categories as follows:
 * Gradle model types
 * Dependency management types
 
-In all cases the reason these types are disallowed is that their state cannot easily be stored or recreated by the configuration cache.
+In all cases the reason these types are disallowed is that their state cannot easily be stored or recreated by the Configuration Cache.
 
 Live JVM state types (e.g. `ClassLoader`, `Thread`, `OutputStream`, `Socket` etc...) are simply disallowed.
 These types almost never represent a task input or output.
@@ -973,7 +989,7 @@ Note that this requirement makes it unsupported to write tasks that configure ot
 
 [[config_cache:requirements:shared_objects]]
 === Sharing mutable objects
-When storing a task to the configuration cache, all objects directly or indirectly referenced through the task's fields are serialized.
+When storing a task to the Configuration Cache, all objects directly or indirectly referenced through the task's fields are serialized.
 In most cases, deserialization preserves reference equality: if two fields `a` and `b` reference the same instance at configuration time, then upon deserialization they will reference the same instance again, so `a == b` (or `a === b` in Groovy and Kotlin syntax) still holds.
 However, for performance reasons, some classes, in particular `java.lang.String`, `java.io.File`, and many implementations of `java.util.Collection` interface, are serialized without preserving the reference equality.
 Upon deserialization, fields that referred to the object of such a class can refer to different but equal objects.
@@ -983,18 +999,18 @@ Let's look at a task that stores a user-defined object and an `ArrayList` in tas
 include::sample[dir="snippets/configurationCache/sharedObjects/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/configurationCache/sharedObjects/groovy",files="build.gradle[]"]
 ====
-<1> `doLast` action captures the references from the enclosing scope. These captured references are also serialized to the configuration cache.
+<1> `doLast` action captures the references from the enclosing scope. These captured references are also serialized to the Configuration Cache.
 <2> Compare the reference to an object of user-defined class stored in the task field and the reference captured in the `doLast` action.
 <3> Compare the reference to `ArrayList` instance stored in the task field and the reference captured in the `doLast` action.
 <4> Check the equality of stored and captured lists.
 
-Running the build without the configuration cache shows that reference equality is preserved in both cases.
+Running the build without the Configuration Cache shows that reference equality is preserved in both cases.
 ----
 ❯ gradle --no-configuration-cache checkEquality
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithoutConfigurationCache.out[]
 ----
 
-However, with the configuration cache enabled, only the user-defined object references are the same.
+However, with the Configuration Cache enabled, only the user-defined object references are the same.
 List references are different, though the referenced lists are equal.
 ----
 ❯ gradle --configuration-cache checkEquality
@@ -1031,7 +1047,7 @@ Plugin and build scripts should avoid running external processes at configuratio
 In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is up-to-date.
 However, if needed, you should only use the configuration-cache-compatible APIs described below, instead of Java and Groovy standard APIs, or
 Gradle-provided methods `Project.exec`, `Project.javaexec`, `ExecOperations.exec`, and `ExecOperations.javaexec`.
-The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the configuration cache entry can be safely reused.
+The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
 
 For simpler cases, when grabbing the output of the process is enough,
 link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:exec(org.gradle.api.Action)[providers.exec()] and
@@ -1059,15 +1075,15 @@ include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",
 ====
 
 In both approaches, if the value of the provider is used at configuration time then it will become a build configuration input.
-The external process will be executed for every build to determine if the configuration cache is up-to-date, so it is recommended to only call fast-running processes at configuration time.
+The external process will be executed for every build to determine if the Configuration Cache is up-to-date, so it is recommended to only call fast-running processes at configuration time.
 If the value changes then the cache is invalidated and the process will be run again during this build as part of the configuration phase.
 
 [[config_cache:requirements:reading_sys_props_and_env_vars]]
 === Reading system properties and environment variables
 
 Plugins and build scripts may read system properties and environment variables directly at configuration time with standard Java, Groovy, or Kotlin APIs or with the value supplier APIs.
-Doing so makes such variable or property a build configuration input, so changing the value invalidates the configuration cache.
-The configuration cache report includes a list of these build configuration inputs to help track them.
+Doing so makes such variable or property a build configuration input, so changing the value invalidates the Configuration Cache.
+The Configuration Cache report includes a list of these build configuration inputs to help track them.
 
 In general, you should avoid reading the value of system properties and environment variables at configuration time, to avoid cache misses when value changes.
 Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[providers.systemProperty()] or
@@ -1085,7 +1101,7 @@ include::sample[dir="snippets/valueProviders/envVarsSysPropsDont/kotlin",files="
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDont/groovy",files="build.gradle[]"]
 ====
 
-The logic in the predicate is opaque to the configuration cache, so all environment variables are considered inputs.
+The logic in the predicate is opaque to the Configuration Cache, so all environment variables are considered inputs.
 One way to reduce the number of inputs is to always use methods that query a concrete variable name, such as `getenv(String)`, or `getenv().get()`:
 
 ====
@@ -1102,12 +1118,12 @@ link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/groovy",files="build.gradle[]"]
 ====
-Note that the configuration cache would be invalidated not only when the value of the variable changes or the variable is removed but also
+Note that the Configuration Cache would be invalidated not only when the value of the variable changes or the variable is removed but also
 when another variable with the matching prefix is added to the environment.
 
 For more complex use cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation can be used.
 System properties and environment variables referenced in the code of the `ValueSource` do not become build configuration inputs, so any processing can be applied.
-Instead, the value of the `ValueSource` is recomputed each time the build runs and only if the value changes the configuration cache is invalidated.
+Instead, the value of the `ValueSource` is recomputed each time the build runs and only if the value changes the Configuration Cache is invalidated.
 For example, a `ValueSource` can be used to get all environment variables with names containing the substring `JDK`:
 
 ====
@@ -1135,7 +1151,7 @@ include::sample[dir="snippets/valueProviders/fileContentsDo/kotlin",files="build
 include::sample[dir="snippets/valueProviders/fileContentsDo/groovy",files="build.gradle[]"]
 ====
 
-In general, you should avoid reading files at configuration time, to avoid invalidating configuration cache entries when the file content changes.
+In general, you should avoid reading files at configuration time, to avoid invalidating Configuration Cache entries when the file content changes.
 Instead, you can connect the `Provider` returned by link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:fileContents(org.gradle.api.file.RegularFile)[providers.fileContents()] to task properties.
 
 [[config_cache:requirements:bytecode_modifications_and_isolation]]
@@ -1154,17 +1170,17 @@ In simple cases, when the libraries also provide command-line entry points (`pub
 [[config_cache:secrets]]
 == Handling of credentials and secrets
 
-The configuration cache has currently no option to prevent storing secrets that are used as inputs, and so they might end up in the serialized configuration cache entry which, by default, is stored under `.gradle/configuration-cache` in your project directory.
+The Configuration Cache has currently no option to prevent storing secrets that are used as inputs, and so they might end up in the serialized Configuration Cache entry which, by default, is stored under `.gradle/configuration-cache` in your project directory.
 
-To mitigate the risk of accidental exposure, Gradle encrypts the configuration cache.
+To mitigate the risk of accidental exposure, Gradle encrypts the Configuration Cache.
 Gradle transparently generates a machine-specific secret key as required, caches it under the
 `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory and uses it to encrypt the data in the project specific caches.
 
 To enhance security further, make sure to:
 
-* secure access to configuration cache entries;
+* secure access to Configuration Cache entries;
 * leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
-The content of that file is not part of the configuration cache, only its fingerprint.
+The content of that file is not part of the Configuration Cache, only its fingerprint.
 If you store secrets in that file, care must be taken to protect access to the file content.
 
 See link:{gradle-issues}22618[gradle/gradle#22618].
@@ -1187,7 +1203,7 @@ or else Gradle will not be able to reuse existing cached configurations.
 [[config_cache:secrets:generating_encryption_key]]
 === Generating an encryption key that is compatible with GRADLE_ENCRYPTION_KEY
 
-For Gradle to encrypt the configuration cache using a user-specified encryption key,
+For Gradle to encrypt the Configuration Cache using a user-specified encryption key,
 you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES key, encoded as a Base64 string.
 
 One way of generating a Base64-encoded AES-compatible key is by using a command like this:
@@ -1205,13 +1221,13 @@ You can then use the Base64-encoded key produced by that command and set it as t
 [[config_cache:not_yet_implemented]]
 == Not yet implemented
 
-Support for using configuration caching with certain Gradle features is not yet implemented.
+Support for using configuration caching with certain Gradle Features is not yet implemented.
 Support for these features will be added in later Gradle releases.
 
 [[config_cache:not_yet_implemented:sharing]]
-=== Sharing the configuration cache
+=== Sharing the Configuration Cache
 
-The configuration cache is currently stored locally only.
+The Configuration Cache is currently stored locally only.
 It can be reused by hot or cold local Gradle daemons.
 But it can't be shared between developers or CI machines.
 
@@ -1221,14 +1237,14 @@ See link:{gradle-issues}13510[gradle/gradle#13510].
 === Source dependencies
 
 Support for link:https://blog.gradle.org/introducing-source-dependencies[source dependencies] is not yet implemented.
-With the configuration cache enabled, no problem will be reported and the build will fail.
+With the Configuration Cache enabled, no problem will be reported and the build will fail.
 
 See link:{gradle-issues}13506[gradle/gradle#13506].
 
 [[config_cache:not_yet_implemented:testkit_build_with_java_agent]]
 === Using a Java agent with builds run using TestKit
 
-When running builds using <<test_kit#test_kit, TestKit>>, the configuration cache can interfere with Java agents, such as the Jacoco agent, that are applied to these builds.
+When running builds using <<test_kit#test_kit, TestKit>>, the Configuration Cache can interfere with Java agents, such as the Jacoco agent, that are applied to these builds.
 
 See link:{gradle-issues}25979[gradle/gradle#25979].
 
@@ -1236,14 +1252,14 @@ See link:{gradle-issues}25979[gradle/gradle#25979].
 === Fine-grained tracking of Gradle properties as build configuration inputs
 
 Currently, all external sources of Gradle properties (`gradle.properties` in project directories and in the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`, environment variables and system properties that set properties, and properties specified with
-command-line flags) are considered build configuration inputs regardless of what properties are actually used at configuration time. These sources, however, are not included in the configuration cache report.
+command-line flags) are considered build configuration inputs regardless of what properties are actually used at configuration time. These sources, however, are not included in the Configuration Cache report.
 
 See link:{gradle-issues}20969[gradle/gradle#20969].
 
 [[config_cache:not_yet_implemented:java_serialization]]
 === Java Object Serialization
 
-Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the configuration cache.
+Gradle allows objects that support the link:https://docs.oracle.com/javase/8/docs/platform/serialization/spec/serialTOC.html[Java Object Serialization] protocol to be stored in the Configuration Cache.
 
 The implementation is currently limited to serializable classes that
 either implement the `java.io.Externalizable` interface, or implement the `java.io.Serializable` interface and define one of the following combination of methods:
@@ -1256,7 +1272,7 @@ either implement the `java.io.Externalizable` interface, or implement the `java.
 
 The following _Java Object Serialization_ features are **not** supported:
 
-- the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the configuration cache considers all but `transient` fields serializable;
+- the `serialPersistentFields` member to explicitly declare which fields are serializable; the member, if present, is ignored; the Configuration Cache considers all but `transient` fields serializable;
 - the following methods of `ObjectOutputStream` are not supported and will throw `UnsupportedOperationException`:
 ** `reset()`, `writeFields()`, `putFields()`, `writeChars(String)`, `writeBytes(String)` and `writeUnshared(Any?)`.
 
@@ -1271,7 +1287,7 @@ See link:{gradle-issues}13588[gradle/gradle#13588].
 === Accessing top-level methods and variables of a build script at execution time
 
 A common approach to reuse logic and data in a build script is to extract repeating bits into top-level methods and variables.
-However, calling such methods at execution time is not currently supported if the configuration cache is enabled.
+However, calling such methods at execution time is not currently supported if the Configuration Cache is enabled.
 
 For builds scripts written in Groovy, the task fails because the method cannot be found.
 The following snippet uses a top-level method in the `listFiles` task:
@@ -1279,7 +1295,7 @@ The following snippet uses a top-level method in the `listFiles` task:
 include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=not-supported]"]
 ====
 
-Running the task with the configuration cache enabled produces the following error:
+Running the task with the Configuration Cache enabled produces the following error:
 ----
 include::{snippetsPath}/configurationCache/topLevel/tests-groovy/notSupported.out[]
 ----
@@ -1289,15 +1305,15 @@ To prevent the task from failing, convert the referenced top-level method to a s
 include::sample[dir="snippets/configurationCache/topLevel/groovy",files="build.gradle[tags=workaround]"]
 ====
 
-Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the configuration cache at all.
+Build scripts written in Kotlin cannot store tasks that reference top-level methods or variables at execution time in the Configuration Cache at all.
 This limitation exists because the captured script object references cannot be serialized.
-The first run of the Kotlin version of the `listFiles` task fails with the configuration cache problem.
+The first run of the Kotlin version of the `listFiles` task fails with the Configuration Cache problem.
 
 ====
 include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=not-supported]"]
 ====
 
-To make the Kotlin version of this task compatible with the configuration cache, make the following changes:
+To make the Kotlin version of this task compatible with the Configuration Cache, make the following changes:
 ====
 include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.gradle.kts[tags=workaround]"]
 ====
@@ -1307,11 +1323,11 @@ include::sample[dir="snippets/configurationCache/topLevel/kotlin",files="build.g
 See link:{gradle-issues}22879[gradle/gradle#22879].
 
 [[config_cache:not_yet_implemented:build_services_in_fingerprint]]
-=== Using build services to invalidate the configuration cache
+=== Using build services to invalidate the Configuration Cache
 
 Currently, it is impossible to use a `BuildServiceProvider` or provider derived from it with `map` or `flatMap` as a parameter for the `ValueSource`, if the value of the `ValueSource` is accessed at configuration time.
 The same applies when such a `ValueSource` is obtained in a task that executes as part of the configuration phase, for example tasks of the `buildSrc` build or included builds contributing plugins.
 Note that using a `@ServiceReference` or storing `BuildServiceProvider` in an `@Internal`-annotated property of a task is safe.
-Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the configuration cache.
+Generally speaking, this limitation makes it impossible to use a `BuildService` to invalidate the Configuration Cache.
 
 See link:{gradle-issues}24085[gradle/gradle#24085].
