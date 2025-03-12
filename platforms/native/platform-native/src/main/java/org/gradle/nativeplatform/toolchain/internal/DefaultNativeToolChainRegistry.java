@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.platform.base.internal.toolchain.ToolSearchResult;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,6 +38,7 @@ public class DefaultNativeToolChainRegistry extends DefaultPolymorphicDomainObje
     private final Map<String, Class<? extends NativeToolChain>> registeredDefaults = new LinkedHashMap<String, Class<? extends NativeToolChain>>();
     private final List<NativeToolChainInternal> searchOrder = new ArrayList<NativeToolChainInternal>();
 
+    @Inject
     public DefaultNativeToolChainRegistry(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
         super(NativeToolChain.class, instantiator, instantiator, collectionCallbackActionDecorator);
         whenObjectAdded(new Action<NativeToolChain>() {

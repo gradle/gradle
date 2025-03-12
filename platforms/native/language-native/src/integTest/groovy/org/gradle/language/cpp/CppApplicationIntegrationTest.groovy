@@ -105,7 +105,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
          """
 
         expect:
-        succeeds "assemble"
+        succeeds "assemble", "model"
         result.assertTasksExecuted(tasks.debug.allToInstall, ':assemble')
 
         executable("build/exe/main/debug/app").assertExists()
