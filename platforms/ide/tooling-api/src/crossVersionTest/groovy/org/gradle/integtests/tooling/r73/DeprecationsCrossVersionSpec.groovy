@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.r73
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.BuildException
 import org.gradle.util.GradleVersion
 
 class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
@@ -56,7 +55,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        BuildException e = thrown()
+        Throwable e = thrown()
         e.message.startsWith("Could not fetch model of type 'List' using connection")
         e.cause.message.contains("Resolution of the configuration :a:compileClasspath was attempted from a context different than the project context. This is not allowed.")
     }
