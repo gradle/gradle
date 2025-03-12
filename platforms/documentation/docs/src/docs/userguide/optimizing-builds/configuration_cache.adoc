@@ -166,7 +166,7 @@ To enable it at build time, use the `configuration-cache` flag:
 
 [source,text]
 ----
-❯ gradle --configuration-cache
+❯ ./gradlew --configuration-cache
 ----
 
 To enable the cache persistently, set the `org.gradle.configuration-cache` property in `gradle.properties`:
@@ -180,7 +180,7 @@ If enabled in `gradle.properties`, you can override it and disable the cache at 
 
 [source,text]
 ----
-❯ gradle --no-configuration-cache
+❯ ./gradlew --no-configuration-cache
 ----
 
 [[config_cache:usage:ignore_problems]]
@@ -195,7 +195,7 @@ To change this behavior at build time, use the following flag:
 
 [source,text]
 ----
-❯ gradle --configuration-cache-problems=warn
+❯ ./gradlew --configuration-cache-problems=warn
 ----
 
 Alternatively, configure it in `gradle.properties`:
@@ -214,7 +214,7 @@ You can adjust this limit by specifying the maximum number of allowed problems o
 
 [source,text]
 ----
-❯ gradle -Dorg.gradle.configuration-cache.max-problems=5
+❯ ./gradlew -Dorg.gradle.configuration-cache.max-problems=5
 ----
 
 Or configure it in a `gradle.properties` file:
@@ -234,7 +234,7 @@ To enable parallel configuration caching at build time, use:
 
 [source,text]
 ----
-❯ gradle -Dorg.gradle.configuration-cache.parallel=true
+❯ ./gradlew -Dorg.gradle.configuration-cache.parallel=true
 ----
 
 Or persistently in a `gradle.properties` file:
@@ -467,7 +467,7 @@ Running the task fails with the following output:
 
 [soure,text]
 ----
-❯ gradle --configuration-cache someTask -DsomeDestination=dest
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 ...
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/fail.out[]
 Configuration Cache entry discarded with 1 problem.
@@ -503,10 +503,10 @@ To continue using the Configuration Cache while observing problems, run:
 
 [source,text]
 ----
-❯ gradle --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+❯ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/store.out[]
 Configuration Cache entry stored with 1 problem.
-❯ gradle --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
+❯ ./gradlew --configuration-cache --configuration-cache-problems=warn someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsGroovy/tests/load.out[]
 Configuration Cache entry reused with 1 problem.
 ----
@@ -528,10 +528,10 @@ After fixing these issues, running the task twice successfully reuses the Config
 
 [source,text]
 ----
-❯ gradle --configuration-cache someTask -DsomeDestination=dest
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store.out[]
 Configuration Cache entry stored.
-❯ gradle --configuration-cache someTask -DsomeDestination=dest
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixed/tests/load.out[]
 Configuration Cache entry reused.
 ----
@@ -539,7 +539,7 @@ Configuration Cache entry reused.
 If a build input changes (e.g., a system property value), the Configuration Cache entry becomes invalid, requiring a new configuration phase:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeDestination=another
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=another
 include::{snippetsPath}/configurationCache/problemsFixed/tests/store-another.out[]
 Configuration Cache entry stored.
 ----
@@ -557,10 +557,10 @@ include::sample[dir="snippets/configurationCache/problemsFixedReuse/groovy",file
 Now, the cache entry remains reusable even when changing the system property:
 
 ----
-❯ gradle --configuration-cache someTask -DsomeDestination=dest
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=dest
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/store.out[]
 Configuration Cache entry stored.
-❯ gradle --configuration-cache someTask -DsomeDestination=another
+❯ ./gradlew --configuration-cache someTask -DsomeDestination=another
 include::{snippetsPath}/configurationCache/problemsFixedReuse/tests/load-another.out[]
 Configuration Cache entry reused.
 ----
@@ -1011,7 +1011,7 @@ include::sample[dir="snippets/configurationCache/sharedObjects/groovy",files="bu
 Reference equality is preserved in both cases:
 
 ----
-❯ gradle --no-configuration-cache checkEquality
+❯ ./gradlew --no-configuration-cache checkEquality
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithoutConfigurationCache.out[]
 ----
 
@@ -1019,7 +1019,7 @@ Only user-defined object references remain identical.
 List references are different, although the lists themselves remain equal:
 
 ----
-❯ gradle --configuration-cache checkEquality
+❯ ./gradlew --configuration-cache checkEquality
 include::{snippetsPath}/configurationCache/sharedObjects/tests/sharingObjectsWithConfigurationCache.out[]
 ----
 
