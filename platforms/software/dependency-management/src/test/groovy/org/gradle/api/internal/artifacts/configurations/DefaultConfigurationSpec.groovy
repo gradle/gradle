@@ -1775,7 +1775,8 @@ class DefaultConfigurationSpec extends Specification {
             TestUtil.domainObjectCollectionFactory(),
             calculatedValueContainerFactory,
             TestFiles.taskDependencyFactory(),
-            TestUtil.problemsService()
+            TestUtil.problemsService(),
+            new DocumentationRegistry()
         )
     }
 

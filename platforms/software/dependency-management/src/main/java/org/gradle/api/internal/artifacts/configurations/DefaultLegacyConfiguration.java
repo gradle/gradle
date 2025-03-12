@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.LegacyConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -69,7 +70,8 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry
     ) {
         super(
             domainObjectContext,
@@ -96,6 +98,7 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             taskDependencyFactory,
             roleAtCreation,
             problemsService,
+            documentationRegistry,
             false
         );
     }

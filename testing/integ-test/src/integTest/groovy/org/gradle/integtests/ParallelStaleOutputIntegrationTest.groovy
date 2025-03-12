@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @Issue(["https://github.com/gradle/gradle/issues/17812", "https://github.com/gradle/gradle/issues/22090"])
@@ -85,6 +86,7 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
         fails("a:foo", "b:foo", "--parallel")
         failure.assertHasDescription("Could not create task ':a:bar'.")
         failure.assertHasCause("Could not create task of type 'BadTask'.")
-        failure.assertHasCause("Resolution of the configuration :a:myconf was attempted from a context different than the project context. This is not allowed.")
+        failure.assertHasCause("Resolution of the configuration ':a:myconf' was attempted without an exclusive lock. This is unsafe and not allowed.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 }

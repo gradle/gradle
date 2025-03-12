@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
@@ -72,6 +73,7 @@ public class DefaultConfigurationFactory {
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
     private final InternalProblems problemsService;
+    private final DocumentationRegistry documentationRegistry;
 
     @Inject
     public DefaultConfigurationFactory(
@@ -91,7 +93,8 @@ public class DefaultConfigurationFactory {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
-        InternalProblems problemsService
+        InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry
     ) {
         this.instantiator = instantiator;
         this.resolver = resolver;
@@ -111,6 +114,7 @@ public class DefaultConfigurationFactory {
         this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
         this.problemsService = problemsService;
+        this.documentationRegistry = documentationRegistry;
     }
 
     /**
@@ -150,7 +154,8 @@ public class DefaultConfigurationFactory {
             this,
             taskDependencyFactory,
             role,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -191,7 +196,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -232,7 +238,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;
@@ -273,7 +280,8 @@ public class DefaultConfigurationFactory {
             calculatedValueFactory,
             this,
             taskDependencyFactory,
-            problemsService
+            problemsService,
+            documentationRegistry
         );
         instance.addMutationValidator(rootComponentMetadataBuilder.getValidator());
         return instance;

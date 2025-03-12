@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.GradleVersion
 import org.spockframework.lang.Wildcard
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
@@ -59,7 +60,8 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         expect:
         fails(":resolve")
-        failure.assertHasCause("Resolution of the configuration :bar:bar was attempted from a context different than the project context. This is not allowed.")
+        failure.assertHasCause("Resolution of the configuration ':bar:bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 
     private String declareRunInAnotherThread() {
@@ -127,8 +129,9 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
-            it.assertHasCause("Resolution of the configuration :bar was attempted from a context different than the project context. This is not allowed.")
+            it.assertHasCause("Resolution of the configuration ':bar' was attempted without an exclusive lock. This is unsafe and not allowed.")
         }
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
 
         where:
         expression << [
@@ -428,6 +431,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         expect:
         executer.withArguments("--parallel", "-I", "init-script.gradle")
         fails(":help")
-        failureDescriptionContains("Resolution of the configuration :foo was attempted from a context different than the project context. This is not allowed.")
+        failureDescriptionContains("Resolution of the configuration ':foo' was attempted without an exclusive lock. This is unsafe and not allowed.")
+        failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 }

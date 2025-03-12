@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.Action
 import org.gradle.api.artifacts.UnknownConfigurationException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
@@ -82,7 +83,8 @@ class DefaultConfigurationContainerSpec extends Specification {
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        new DocumentationRegistry()
     )
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
         instantiator,
