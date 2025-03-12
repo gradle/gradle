@@ -122,10 +122,14 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     @Override
     public Object buildAll(String modelName, EclipseRuntime eclipseRuntime, Project project) {
+        ProjectInternal rootProject = (ProjectInternal) project.getRootProject();
+        // Even though, models can be subproject-specific, the builder still traverses the whole hierarchy
+        // Since Buildship only requests this model for the root, we can deprecate and later simplify the implementation
+        ToolingModelDeprecations.nagOnNonRootTarget(project, rootProject);
         this.eclipseRuntime = eclipseRuntime;
         List<EclipseWorkspaceProject> projects = eclipseRuntime.getWorkspace().getProjects();
         HashSet<EclipseWorkspaceProject> projectsInBuild = new HashSet<>(projects);
-        projectsInBuild.removeAll(gatherExternalProjects((ProjectInternal) project.getRootProject(), projects));
+        projectsInBuild.removeAll(gatherExternalProjects(rootProject, projects));
         projectOpenStatus = projectsInBuild.stream().collect(Collectors.toMap(EclipseWorkspaceProject::getName, EclipseModelBuilder::isProjectOpen, (a, b) -> a || b));
 
         return buildAll(modelName, project);

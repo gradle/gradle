@@ -50,7 +50,9 @@ public class GradleProjectBuilder implements GradleProjectBuilderInternal {
     @Override
     public DefaultGradleProject buildForRoot(Project project) {
         boolean realizeTasks = GradleProjectBuilderOptions.shouldRealizeTasks();
-        return buildHierarchy(project.getRootProject(), realizeTasks);
+        Project rootProject = project.getRootProject();
+        ToolingModelDeprecations.nagOnNonRootTarget(project, rootProject);
+        return buildHierarchy(rootProject, realizeTasks);
     }
 
     /**

@@ -77,6 +77,18 @@ The extension should only be created by the Gradle Plugin Development plugin. Th
 
 These methods will be removed in Gradle 9.0.
 
+[[non_root_tooling_model_targets]]
+==== Requesting build-scoped tooling models with non-root project target is deprecated
+
+Some Tooling API models provided out of the box are always built for the root project, even if the requested target is another project.
+Since the target switch happens silently, this can lead to incorrect client code that works by accident.
+
+The following models must always be requested with the target of the root project or no explicit target (the root project is used as a default):
+
+TBD
+
+This will be an error in Gradle 9.0.
+
 [[changes_8.13]]
 == Upgrading from 8.12 and earlier
 
