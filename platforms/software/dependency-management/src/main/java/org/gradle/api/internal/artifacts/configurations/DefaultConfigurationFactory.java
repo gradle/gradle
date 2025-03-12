@@ -43,7 +43,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -69,7 +68,6 @@ public class DefaultConfigurationFactory {
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
     private final ProjectStateRegistry projectStateRegistry;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
     private final CalculatedValueFactory calculatedValueFactory;
     private final TaskDependencyFactory taskDependencyFactory;
@@ -90,7 +88,6 @@ public class DefaultConfigurationFactory {
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueFactory calculatedValueFactory,
         TaskDependencyFactory taskDependencyFactory,
@@ -110,7 +107,6 @@ public class DefaultConfigurationFactory {
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueFactory = calculatedValueFactory;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -149,7 +145,6 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
@@ -192,7 +187,6 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
@@ -234,7 +228,6 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,
@@ -276,7 +269,6 @@ public class DefaultConfigurationFactory {
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueFactory,
             this,

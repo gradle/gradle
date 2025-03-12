@@ -39,7 +39,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
  * A concrete resolvable {@link DefaultConfiguration} that cannot change roles.
@@ -65,7 +64,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -91,7 +89,6 @@ public class DefaultResolvableConfiguration extends DefaultConfiguration impleme
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             defaultConfigurationFactory,

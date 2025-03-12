@@ -113,7 +113,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
@@ -219,7 +218,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     private final AtomicInteger copyCount = new AtomicInteger();
@@ -256,7 +254,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -269,7 +266,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
@@ -727,12 +723,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            if (!workerThreadRegistry.isWorkerThread()) {
-                // Error if we are executing in a user-managed thread.
-                throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
-            } else {
-                throw new IllegalStateException("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. This is not allowed.");
-            }
+            throw new IllegalStateException("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. This is not allowed.");
         } else {
             newState = resolveExclusivelyIfRequired();
         }

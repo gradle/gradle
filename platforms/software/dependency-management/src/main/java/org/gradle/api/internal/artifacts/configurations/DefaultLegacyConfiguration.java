@@ -39,7 +39,6 @@ import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 
 /**
  * A concrete {@link DefaultConfiguration} implementation which can change roles.
@@ -65,7 +64,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
@@ -92,7 +90,6 @@ public class DefaultLegacyConfiguration extends DefaultConfiguration implements 
             userCodeApplicationContext,
             collectionCallbackActionDecorator,
             projectStateRegistry,
-            workerThreadRegistry,
             domainObjectCollectionFactory,
             calculatedValueContainerFactory,
             defaultConfigurationFactory,

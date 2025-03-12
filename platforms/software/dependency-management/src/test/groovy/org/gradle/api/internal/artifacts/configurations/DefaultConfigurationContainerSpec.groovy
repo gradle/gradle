@@ -36,7 +36,6 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.work.WorkerThreadRegistry
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
@@ -80,7 +79,6 @@ class DefaultConfigurationContainerSpec extends Specification {
         userCodeApplicationContext,
         CollectionCallbackActionDecorator.NOOP,
         projectStateRegistry,
-        Mock(WorkerThreadRegistry),
         TestUtil.domainObjectCollectionFactory(),
         calculatedValueContainerFactory,
         TestFiles.taskDependencyFactory(),

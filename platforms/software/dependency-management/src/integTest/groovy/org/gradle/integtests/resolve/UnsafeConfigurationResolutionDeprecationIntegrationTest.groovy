@@ -127,7 +127,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         then:
         failure.assertHasFailure("Execution failed for task ':resolve'.") {
-            it.assertHasCause("The configuration :bar was resolved from a thread not managed by Gradle.")
+            it.assertHasCause("Resolution of the configuration :bar was attempted from a context different than the project context. This is not allowed.")
         }
 
         where:
