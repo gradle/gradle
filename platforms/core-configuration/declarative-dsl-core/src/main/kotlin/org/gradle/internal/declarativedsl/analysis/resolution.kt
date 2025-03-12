@@ -23,10 +23,10 @@ data class ResolutionResult(
 )
 
 
-data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin)
+data class DataAdditionRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin, val operationId: OperationId)
 
 
-data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin.AccessAndConfigureReceiver)
+data class NestedObjectAccessRecord(val container: ObjectOrigin, val dataObject: ObjectOrigin, val operationId: OperationId)
 
 
 data class ResolutionError(

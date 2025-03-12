@@ -20,7 +20,7 @@ import org.gradle.internal.declarativedsl.analysis.ErrorReason
 import org.gradle.internal.declarativedsl.analysis.ResolutionError
 import org.gradle.internal.declarativedsl.language.LanguageTreeElement
 import org.gradle.internal.declarativedsl.language.SourceData
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentTraceElement
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinkTraceElement
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult.NotEvaluated.StageFailure
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureReason
@@ -55,10 +55,10 @@ object EvaluationFailureMessageGenerator {
 
                 StageFailure.NoParseResult -> appendLine("Failed to parse due to syntax errors")
                 is StageFailure.NoSchemaAvailable -> appendLine("No associated schema for ${stageFailure.scriptContext}")
-                is StageFailure.AssignmentErrors -> {
-                    appendLine("Failures in assignments:".indent(1))
+                is StageFailure.PropertyLinkErrors -> {
+                    appendLine("Failures in property links:".indent(1))
                     stageFailure.usages.forEach { unassigned ->
-                        appendLine(describedUnassignedValueUsage(unassigned).indent(2))
+                        appendLine(describePropertyLinkIssue(unassigned).indent(2))
                     }
                 }
 
@@ -127,12 +127,14 @@ object EvaluationFailureMessageGenerator {
     }
 
     private
-    fun describedUnassignedValueUsage(unassigned: AssignmentTraceElement.FailedToRecordAssignment): String {
-        val errorMessage = when (unassigned) {
-            is AssignmentTraceElement.Reassignment -> "Value reassigned"
-            is AssignmentTraceElement.UnassignedValueUsed -> "Unassigned value used"
+    fun describePropertyLinkIssue(issue: PropertyLinkTraceElement.FailedToResolveLinks): String {
+        val errorMessage = when (issue) {
+            is PropertyLinkTraceElement.Reassignment -> "reassigned value in '${issue.originElement.sourceData.text()}'"
+            is PropertyLinkTraceElement.UnassignedValueUsedInAssignment -> "unassigned property used in assigned value"
+            is PropertyLinkTraceElement.UnassignedValueUsedInAddition -> "unassigned property used in expression"
+            is PropertyLinkTraceElement.UnassignedValueUsedInNestedObjectAccess -> "unassigned property used in expression"
         }
-        return "${elementLocationString(unassigned.lhs.receiverObject.originElement)}: $errorMessage in ${unassigned.lhs} := ${unassigned.rhs}"
+        return "${elementLocationString(issue.originElement)}: $errorMessage"
     }
 
     private

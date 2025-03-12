@@ -128,8 +128,14 @@ class SchemaTypeRefContext(val schema: AnalysisSchema) : TypeRefContext {
  * invocation id).  Operations in different generations with the same invocation id have no relationship to each
  * other except by coincidence.
  */
-data class OperationId(val invocationId: Long, val generationId: OperationGenerationId) {
+data class OperationId(val invocationId: Long, val generationId: OperationGenerationId): Comparable<OperationId> {
     override fun toString(): String = "${generationId.ordinal}:$invocationId"
+
+    override fun compareTo(other: OperationId): Int = comparator.compare(this, other)
+
+    companion object {
+        private val comparator = compareBy<OperationId> { it.generationId.ordinal }.thenBy { it.invocationId }
+    }
 }
 
 
@@ -191,11 +197,11 @@ class AnalysisContext(
     }
 
     fun recordAddition(container: ObjectOrigin, dataObject: ObjectOrigin) {
-        mutableAdditions += DataAdditionRecord(container, dataObject)
+        mutableAdditions += DataAdditionRecord(container, dataObject, nextCallId())
     }
 
     fun recordNestedObjectAccess(container: ObjectOrigin, dataObject: ObjectOrigin.AccessAndConfigureReceiver) {
-        mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject)
+        mutableNestedObjectAccess += NestedObjectAccessRecord(container, dataObject, nextCallId())
     }
 
     fun nextCallId(): OperationId = OperationId(nextInstant.incrementAndGet(), generationId)
