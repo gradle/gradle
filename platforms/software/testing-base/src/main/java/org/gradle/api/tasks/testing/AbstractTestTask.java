@@ -24,7 +24,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.MultiTestReportGenerator;
@@ -501,6 +500,14 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
+
+        // Record test events to `results`, and test outputs to `testOutputStore`
+        Map<String, TestClassResult> results = new HashMap<>();
+        TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
+        TestOutputStore.Writer outputWriter = testOutputStore.writer();
+        TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
+        addTestListener(testReportDataCollector);
+        addTestOutputListener(testReportDataCollector);
 
         // Log number of completed, skipped, and failed tests to console, and update live as count changes
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());

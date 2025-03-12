@@ -36,4 +36,26 @@ class JUnitVintageTestExecutionIntegrationTest extends AbstractJUnitTestExecutio
             testImplementation 'junit:junit:${LATEST_JUNIT4_VERSION}'
         """
     }
+
+    def "tries to execute unparseable test classes"() {
+        given:
+        file('build/classes/java/test/com/example/Foo.class').text = "invalid class file"
+        buildFile << """
+            apply plugin: 'java'
+            ${mavenCentralRepository()}
+            dependencies {
+                ${testFrameworkDependencies}
+            }
+            test.${configureTestFramework}
+        """
+
+        when:
+        fails('test', '-x', 'compileTestJava')
+
+        then:
+        failure.assertHasCause("Test process encountered an unexpected problem.")
+        failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
+        DefaultTestExecutionResult testResult = new DefaultTestExecutionResult(testDirectory)
+        assertFailedToExecute(testResult, 'com.example.Foo').assertTestCount(1, 1, 0)
+    }
 }
