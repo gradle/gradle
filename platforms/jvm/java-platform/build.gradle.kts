@@ -20,12 +20,6 @@ plugins {
 
 description = "Adds support for creating dependency platforms for JVM projects"
 
-errorprone {
-    disabledChecks.addAll(
-        "InlineFormatString", // 1 occurrences
-    )
-}
-
 dependencies {
     api(projects.coreApi)
 

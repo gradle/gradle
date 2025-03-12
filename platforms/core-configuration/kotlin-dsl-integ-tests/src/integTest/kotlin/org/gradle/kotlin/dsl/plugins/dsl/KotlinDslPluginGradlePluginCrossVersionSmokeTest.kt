@@ -142,7 +142,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 "The org.gradle.util.WrapUtil type has been deprecated. " +
                     "This is scheduled to be removed in Gradle 9.0. " +
                     "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#org_gradle_util_reports_deprecations"
+                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_80"
             )
             executer.expectDocumentedDeprecationWarning(
                 "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +

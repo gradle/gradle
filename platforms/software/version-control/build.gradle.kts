@@ -4,12 +4,6 @@ plugins {
 
 description = "Version control integration (with git) for source dependencies"
 
-errorprone {
-    disabledChecks.addAll(
-        "UnusedVariable", // 3 occurrences
-    )
-}
-
 dependencies {
     api(projects.baseServices)
     api(projects.concurrent)

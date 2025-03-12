@@ -16,7 +16,7 @@
 
 package org.gradle.buildinit.plugins.internal.modifiers;
 
-import java.util.Arrays;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 public enum ComponentType {
@@ -27,11 +27,11 @@ public enum ComponentType {
     BASIC("Basic (build structure only)");
 
     private final String displayName;
-    private final List<String> defaultProjectNames;
+    private final ImmutableList<String> defaultProjectNames;
 
     ComponentType(String displayName, String... defaultProjectNames) {
         this.displayName = displayName;
-        this.defaultProjectNames = Arrays.asList(defaultProjectNames);
+        this.defaultProjectNames = ImmutableList.copyOf(defaultProjectNames);
     }
 
     public List<String> getDefaultProjectNames() {
@@ -48,6 +48,6 @@ public enum ComponentType {
     }
 
     public String pluralName() {
-        return (toString() + "s").replace("ys", "ies");
+        return (this + "s").replace("ys", "ies");
     }
 }

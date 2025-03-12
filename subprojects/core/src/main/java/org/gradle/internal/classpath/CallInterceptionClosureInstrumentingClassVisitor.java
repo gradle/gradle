@@ -56,6 +56,7 @@ import static org.objectweb.asm.commons.InstructionAdapter.OBJECT_TYPE;
  * </ul>
  */
 @NonNullApi
+@SuppressWarnings("ImmutableEnumChecker")
 public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisitor {
 
     private static final Type BYTECODE_INTERCEPTOR_FILTER_TYPE = Type.getType(BytecodeInterceptorFilter.class);
@@ -330,3 +331,4 @@ public class CallInterceptionClosureInstrumentingClassVisitor extends ClassVisit
 
     private static final String IS_EFFECTIVELY_INSTRUMENTED_FIELD_NAME = "$isEffectivelyInstrumented";
 }
+

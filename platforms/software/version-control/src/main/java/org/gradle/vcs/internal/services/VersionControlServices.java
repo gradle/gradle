@@ -83,7 +83,7 @@ public class VersionControlServices extends AbstractGradleModuleServices {
 
     private static class VersionControlBuildTreeServices implements ServiceRegistrationProvider {
         @Provides
-        VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, StartParameter startParameter, NotationParser<String, ModuleIdentifier> notationParser, VersionControlSpecFactory versionControlSpecFactory) {
+        VcsMappingFactory createVcsMappingFactory(ObjectFactory objectFactory, VersionControlSpecFactory versionControlSpecFactory) {
             return new DefaultVcsMappingFactory(objectFactory, versionControlSpecFactory);
         }
 

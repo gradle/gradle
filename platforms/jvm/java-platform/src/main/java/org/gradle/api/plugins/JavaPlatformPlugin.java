@@ -66,11 +66,6 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     // Resolvable configurations
     public static final String CLASSPATH_CONFIGURATION_NAME = "classpath";
 
-    private static final String DISALLOW_DEPENDENCIES = "Adding dependencies to platforms is not allowed by default.\n" +
-        "Most likely you want to add constraints instead.\n" +
-        "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n    javaPlatform.allowDependencies()\n" +
-        "Found dependencies in the '%s' configuration.";
-
     private final SoftwareComponentFactory softwareComponentFactory;
 
     @Inject
@@ -171,7 +166,11 @@ public abstract class JavaPlatformPlugin implements Plugin<Project> {
     private void checkNoDependencies(Configuration configuration, Set<Configuration> visited) {
         if (visited.add(configuration)) {
             if (!configuration.getDependencies().isEmpty()) {
-                throw new InvalidUserCodeException(String.format(DISALLOW_DEPENDENCIES, configuration.getName()));
+                throw new InvalidUserCodeException(String.format("Adding dependencies to platforms is not allowed by default.\n" +
+                    "Most likely you want to add constraints instead.\n" +
+                    "If you did this intentionally, you need to configure the platform extension to allow dependencies:\n" +
+                    "    javaPlatform.allowDependencies()\n" +
+                    "Found dependencies in the '%s' configuration.", configuration.getName()));
             }
             Set<Configuration> extendsFrom = configuration.getExtendsFrom();
             for (Configuration parent : extendsFrom) {
