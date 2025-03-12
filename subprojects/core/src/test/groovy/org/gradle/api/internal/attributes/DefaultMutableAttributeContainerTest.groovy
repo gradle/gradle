@@ -25,9 +25,9 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.internal.evaluation.CircularEvaluationException
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 
@@ -35,9 +35,10 @@ import org.gradle.util.TestUtil
  * Unit tests for the {@link DefaultMutableAttributeContainer} class.
  */
 final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerTest {
+
     @Override
     protected DefaultMutableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
+        DefaultMutableAttributeContainer container = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator(), TestUtil.propertyFactory())
         attributes.forEach {key, value ->
             container.attribute(key, value)
         }
@@ -64,7 +65,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         actual == expected
     }
 
-    def "realizing the value of lazy attributes may cause other attributes to be realized"() {
+    def "cannot query container while realizing the value of lazy attributes"() {
         def container = createContainer()
         def firstAttribute = Attribute.of("first", String)
         def secondAttribute = Attribute.of("second", String)
@@ -76,13 +77,11 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         })
         container.attributeProvider(secondAttribute, Providers.of("second"))
 
-        expect:
-        container.asImmutable().keySet() == [secondAttribute, firstAttribute] as Set
+        when:
+        container.asImmutable()
 
-        and:
-        def events = outputEventListener.events.findAll { it.logLevel == LogLevel.WARN }
-        events.size() == 1
-        events[0].message.startsWith("Querying the contents of an attribute container while realizing attributes of the container. This behavior has been deprecated. This will fail with an error in Gradle 9.0")
+        then:
+        thrown(CircularEvaluationException)
     }
 
     def "realizing the value of lazy attributes cannot add new attributes to the container"() {
@@ -96,6 +95,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
 
         when:
         container.asImmutable()
+
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
@@ -112,6 +112,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
 
         when:
         container.asImmutable()
+
         then:
         def e = thrown(IllegalStateException)
         e.message == "Cannot add new attribute 'second' while realizing all attributes of the container."
@@ -234,35 +235,6 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         "lazy value" == container.getAttribute(testAttr)
     }
 
-    @SuppressWarnings('GroovyAccessibility')
-    def "toString should not change the internal state of the class"() {
-        given: "a container and a lazy and non-lazy attribute"
-        def container = createContainer()
-        def testEager = Attribute.of("eager", String)
-        def testLazy = Attribute.of("lazy", String)
-        Property<String> testProvider = new DefaultProperty<>(Mock(PropertyHost), String).convention("lazy value")
-
-        when: "the attributes are added to the container"
-        container.attribute(testEager, "eager value")
-        container.attributeProvider(testLazy, testProvider)
-
-        then: "they are located in proper internal collections"
-        container.@attributes.containsKey(testEager)
-        !container.@attributes.containsKey(testLazy)
-        container.@lazyAttributes.containsKey(testLazy)
-        !container.@lazyAttributes.containsKey(testEager)
-
-        when: "calling toString"
-        def result = container.toString()
-
-        then: "the result should not change the internals of the class"
-        result == "{eager=eager value, lazy=property(java.lang.String, fixed(class java.lang.String, lazy value))}"
-        container.@attributes.containsKey(testEager)
-        !container.@attributes.containsKey(testLazy)
-        container.@lazyAttributes.containsKey(testLazy)
-        !container.@lazyAttributes.containsKey(testEager)
-    }
-
     def "can query contents of container"() {
         def thing = Attribute.of("thing", String)
         def thing2 = Attribute.of("thing2", String)
@@ -366,7 +338,7 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
         container.attributeProvider(a, Providers.of("a"))
 
         then:
-        container.toString() == "{a=fixed(class java.lang.String, a), b=b, c=c}"
+        container.toString() == "{a=a, b=b, c=c}"
         container.asImmutable().toString() == "{a=a, b=b, c=c}"
     }
 
@@ -423,5 +395,20 @@ final class DefaultMutableAttributeContainerTest extends BaseAttributeContainerT
             assert it.size() == 1
             assert it[Attribute.of("test", String)] == "b" // Second attribute to be added remains
         }
+    }
+
+    def "cannot define two attributes with the same name but different types"() {
+        def container = createContainer()
+
+        given:
+        container.attribute(Attribute.of('flavor', Boolean), true)
+        container.attribute(Attribute.of('flavor', String.class), 'paid')
+
+        when:
+        container.asImmutable()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot have two attributes with the same name but different types. This container has an attribute named 'flavor' of type 'java.lang.Boolean' and another attribute of type 'java.lang.String'"
     }
 }

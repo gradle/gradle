@@ -17,28 +17,14 @@
 package org.gradle.api.internal.attributes.immutable
 
 import org.gradle.api.attributes.Attribute
-import org.gradle.api.internal.attributes.AttributeValueIsolator
-import org.gradle.api.internal.attributes.AttributesFactory
-import org.gradle.api.internal.attributes.DefaultAttributesFactory
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.util.AttributeTestUtil
-import org.gradle.util.SnapshotTestUtil
-import org.gradle.util.TestUtil
 
 /**
- * Supplies some example attributes and a factory for easy testing of {@link ImmutableAttributes} and related types.
+ * Supplies some example attributes for easy testing of {@link ImmutableAttributes} and related types.
  */
-trait TestsImmutableAttributes {
+final class TestAttributes {
     static final Attribute<String> FOO = Attribute.of("foo", String)
     static final Attribute<String> BAR = Attribute.of("bar", String)
     static final Attribute<Object> OTHER_BAR = Attribute.of("bar", Object.class)
     static final Attribute<String> BAZ = Attribute.of("baz", String)
-
-    IsolatableFactory isolatableFactory = SnapshotTestUtil.isolatableFactory()
-    NamedObjectInstantiator instantiator = TestUtil.objectInstantiator()
-    AttributeValueIsolator attributeValueIsolator = AttributeTestUtil.attributeValueIsolator()
-
-    AttributesFactory factory = new DefaultAttributesFactory(attributeValueIsolator, isolatableFactory, instantiator)
 }

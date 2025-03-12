@@ -22,15 +22,18 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.provider.AbstractProviderWithValue;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.internal.Cast;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.gradle.internal.instantiation.InstanceGenerator;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -38,19 +41,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
-    private final ProviderFactory providerFactory;
     private final ProjectInternal project;
     private final InstanceGenerator instanceGenerator;
     private final Map<ConfigurationInternal, Set<TaskProvider<?>>> configurationToCompileTasks; // ? is really AbstractCompile & HasCompileOptions
 
     @Inject
     public DefaultJvmLanguageUtilities(
-            ProviderFactory providerFactory,
-            InstanceGenerator instanceGenerator,
-            ProjectInternal project) {
-        this.providerFactory = providerFactory;
+        InstanceGenerator instanceGenerator,
+        ProjectInternal project
+    ) {
         this.instanceGenerator = instanceGenerator;
         this.project = project;
         configurationToCompileTasks = new HashMap<>(5);
@@ -65,8 +67,40 @@ public class DefaultJvmLanguageUtilities implements JvmLanguageUtilities {
         JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
         configurationInternal.getAttributes().attributeProvider(
             TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
-            providerFactory.provider(() -> getDefaultTargetPlatform(configuration, java, compileTasks))
+            new DefaultProviderWithValue<>(Integer.class, () -> getDefaultTargetPlatform(configuration, java, compileTasks))
         );
+    }
+
+    /**
+     * Avoids executing the supplier (which has side effects) when determining whether the provider is present.
+     * <p>
+     * We should get rid of this when calling {@link #getDefaultTargetPlatform} no longer causes
+     * toolchains to be downloaded.
+     */
+    private static class DefaultProviderWithValue<T> extends AbstractProviderWithValue<T> {
+
+        private final Class<T> type;
+        private final Supplier<T> supplier;
+
+        public DefaultProviderWithValue(Class<T> type, Supplier<T> supplier) {
+            this.type = type;
+            this.supplier = supplier;
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            try (EvaluationScopeContext ignored = openScope()) {
+                return Value.of(supplier.get());
+            } catch (Exception e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        @Nullable
+        @Override
+        public Class<T> getType() {
+            return type;
+        }
     }
 
     @Override

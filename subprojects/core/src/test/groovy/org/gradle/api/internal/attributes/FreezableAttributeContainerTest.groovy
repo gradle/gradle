@@ -26,7 +26,7 @@ import org.gradle.util.AttributeTestUtil
 final class FreezableAttributeContainerTest extends BaseAttributeContainerTest {
     @Override
     protected FreezableAttributeContainer createContainer(Map<Attribute<?>, ?> attributes = [:], Map<Attribute<?>, ?> moreAttributes = [:]) {
-        def mutableContainer = new DefaultMutableAttributeContainer(attributesFactory, AttributeTestUtil.attributeValueIsolator())
+        def mutableContainer = AttributeTestUtil.attributesFactory().mutable()
         FreezableAttributeContainer container = new FreezableAttributeContainer(mutableContainer, { "owner" } as Describable);
         attributes.forEach { key, value ->
             container.attribute(key, value)
