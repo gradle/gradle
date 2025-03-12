@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.tasks.testing.results.DefaultTestResult;
 import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
-import org.gradle.api.tasks.testing.TestEventReporter;
 import org.gradle.api.tasks.testing.TestFailure;
 import org.gradle.api.tasks.testing.TestFailureDetails;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -29,10 +28,11 @@ import org.jspecify.annotations.NullMarked;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @NullMarked
-class DefaultTestEventReporter implements TestEventReporter {
+class DefaultTestEventReporter implements TestEventReporterInternal {
 
     protected final TestListenerInternal listener;
     protected final TestDescriptorInternal testDescriptor;
@@ -101,12 +101,17 @@ class DefaultTestEventReporter implements TestEventReporter {
 
     @Override
     public void failed(Instant endTime, String message, String additionalContent) {
+        TestFailureDetails failureDetails = new AssertionFailureDetails(message, Throwable.class.getName(), additionalContent, null, null);
+        TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
+        failed(endTime, Collections.singletonList(testFailure));
+    }
+
+    @Override
+    public void failed(Instant endTime, List<TestFailure> failures) {
         if (!isComposite()) {
             testResultState.incrementFailureCount();
         }
-        TestFailureDetails failureDetails = new AssertionFailureDetails(message, Throwable.class.getName(), additionalContent, null, null);
-        TestFailure testFailure = new DefaultTestFailure(new Throwable(message), failureDetails, Collections.emptyList());
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.singletonList(testFailure), null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), failures, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
