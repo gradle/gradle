@@ -359,4 +359,11 @@ public class TextUtil {
     public static String screamingSnakeToKebabCase(String text) {
         return StringUtils.replace(text.toLowerCase(Locale.ENGLISH), "_", "-");
     }
+
+    public static String removeTrailing(String originalString, String suffix) {
+        if (originalString.endsWith(suffix)) {
+            return originalString.substring(0, originalString.length() - suffix.length());
+        }
+        return originalString;
+    }
 }
