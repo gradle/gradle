@@ -19,6 +19,8 @@ package org.gradle.initialization;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.ExecutionPlan;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.Nullable;
 
@@ -27,6 +29,7 @@ import javax.annotation.Nullable;
  *
  * <p>This includes resolving the entry tasks and calculating the task graph.</p>
  */
+@ServiceScope(Scope.Gradle.class)
 public interface TaskExecutionPreparer {
     void scheduleRequestedTasks(GradleInternal gradle, @Nullable EntryTaskSelector selector, ExecutionPlan plan);
 }
