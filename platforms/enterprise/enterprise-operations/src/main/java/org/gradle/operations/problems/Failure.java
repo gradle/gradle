@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
-
-import org.gradle.internal.operations.BuildOperationType;
-import org.gradle.internal.problems.failure.Failure;
-import org.gradle.internal.scan.UsedByScanPlugin;
+package org.gradle.operations.problems;
 
 import javax.annotation.Nullable;
+import java.util.List;
+import java.util.Map;
 
-@UsedByScanPlugin
-public final class RunBuildBuildOperationType implements BuildOperationType<RunBuildBuildOperationType.Details, RunBuildBuildOperationType.Result> {
-    public interface Details {
-    }
+public interface Failure {
 
-    public interface Result {
-        @Nullable
-        Failure getFailure();
-    }
+    String getClassName();
+
+    @Nullable
+    String getMessage();
+
+    Map<String, String> getMetadata();
+
+    List<StackTraceElement> getStackTrace();
+
+    List<String> getClassLevelAnnotations();
+
+    List<Failure> getCauses();
+
+    List<Problem> getProblems();
 }
-

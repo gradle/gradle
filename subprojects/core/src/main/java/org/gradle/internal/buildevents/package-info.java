@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.exceptions;
+@NonNullApi
+package org.gradle.internal.buildevents;
 
-import org.gradle.api.GradleException;
-
-public class ContextAwareException extends GradleException {
-
-    public ContextAwareException(Throwable t) {
-        initCause(t);
-    }
-
-}
+import org.gradle.api.NonNullApi;
