@@ -26,6 +26,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -80,7 +81,7 @@ public class KotlinCompatibilityTest {
         private final JavaMethod method;
         private final boolean isGetter;
 
-        @org.jspecify.annotations.Nullable
+        @Nullable
         public static Accessor from(JavaMethod method) {
             PropertyAccessorType propertyAccessorType = PropertyAccessorType.fromName(method.getName());
             if (propertyAccessorType != null && (KotlinCompatibilityTest.isGetter(method, propertyAccessorType) || KotlinCompatibilityTest.isSetter(method, propertyAccessorType))) {
@@ -118,7 +119,7 @@ public class KotlinCompatibilityTest {
         private final Set<JavaMethod> getters;
         private final Set<JavaMethod> setters;
 
-        @org.jspecify.annotations.Nullable
+        @Nullable
         public static Accessors from(String propertyName, List<Accessor> accessors) {
             Map<Boolean, List<Accessor>> gettersAndSetters = accessors.stream().collect(partitioningBy(Accessor::isGetter));
             JavaClass owningClass = accessors.iterator().next().getMethod().getOwner();
@@ -171,15 +172,15 @@ public class KotlinCompatibilityTest {
         private static boolean getterAnnotatedWithNullable(JavaMethod getter) {
             try {
                 Method method = getter.reflect();
-                return method.getAnnotatedReturnType().getAnnotation(org.jspecify.annotations.Nullable.class) != null;
+                return method.getAnnotatedReturnType().getAnnotation(Nullable.class) != null;
             } catch (NoClassDefFoundError e) {
-                return getter.isAnnotatedWith(org.jspecify.annotations.Nullable.class);
+                return getter.isAnnotatedWith(Nullable.class);
             }
         }
 
         private static boolean setterAnnotatedWithNullable(JavaMethod setter) {
             return Arrays.stream(setter.reflect().getAnnotatedParameterTypes()[0].getAnnotations()).anyMatch(a ->
-                a instanceof org.jspecify.annotations.Nullable
+                a instanceof Nullable
             );
         }
 

@@ -28,6 +28,8 @@ import org.gradlebuild.AllowedMethodTypesClass;
 import org.gradlebuild.ConcreteClass;
 import org.gradlebuild.Interface;
 import org.gradlebuild.WrongNullable;
+import org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType;
+import org.gradlebuild.nonnullapi.notinpackage.NullMarkedApiType;
 import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -139,10 +141,10 @@ public class ArchUnitFixtureTest {
     @Test
     public void checks_for_annotation_presence() {
         ArchCondition<JavaClass> condition = ArchUnitFixture.beAnnotatedOrInPackageAnnotatedWith(NullMarked.class);
-        assertNoViolation(checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.OwnNonNullApi.class));
-        ConditionEvent event = checkClassCondition(condition, org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi.class);
+        assertNoViolation(checkClassCondition(condition, NullMarkedApiType.class));
+        ConditionEvent event = checkClassCondition(condition, NotNullMarkedApiType.class);
         assertTrue(event.isViolation());
-        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NoOwnNonNullApi> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
+        assertThat(eventDescription(event)).startsWith("Class <org.gradlebuild.nonnullapi.notinpackage.NotNullMarkedApiType> is not annotated (directly or via its package) with @org.jspecify.annotations.NullMarked");
         // Cannot test on-package (not on the class) annotation, due to `ClasFileImporter` limitations
     }
 
