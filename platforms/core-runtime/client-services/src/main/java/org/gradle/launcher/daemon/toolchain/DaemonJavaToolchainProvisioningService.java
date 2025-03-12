@@ -74,7 +74,7 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
             try {
                 File downloadFolder = cacheDirProvider.getDownloadLocation();
                 ExternalResource resource = downloader.getResourceFor(uri);
-                File archiveFile = new File(downloadFolder, getFileName(uri, resource));
+                File archiveFile = new File(downloadFolder, buildFileNameWithDetails(uri, resource, spec));
                 final FileLock fileLock = cacheDirProvider.acquireWriteLock(archiveFile, "Downloading toolchain");
                 try {
                     if (!archiveFile.exists()) {
