@@ -107,6 +107,77 @@ You can select the Java language version using [toolchains](userguide/toolchains
 However, Gradle itself cannot run on Java 24 yet, as Groovy does not fully support JDK 24.
 Future versions are expected to address this.
 
+<a name="Problems-api-additional-data"></a>
+
+### Expanded support for arbitrary data in the Problems API
+
+In Gradle 8.13, we introduced `additional data` support in the public-facing [Problems API](https://github.com/gradle/gradle/pull/32664/javadoc/org/gradle/api/problems/package-summary.html), allowing users to attach extra context to a problem with some limitations.
+In this release, those limitations have been removed, enabling the inclusion of `arbitrary data` in a problem.
+
+This enhancement is particularly useful for IDE implementors who manage both the plugin code and its integration via the [Tooling API](https://github.com/gradle/gradle/pull/32664/userguide/tooling_api.html#embedding).
+
+By leveraging this feature, you can provide richer context for problems that are not fully captured by the existing properties.
+
+For example, a worker task may now include more detailed diagnostic information:
+
+```java
+public abstract class ProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
+
+    // Use the Problems interface to report problems
+    @Inject
+    public abstract Problems getProblems();
+
+    // Use the ObjectFactory to create instances of classes for composition
+    @Inject
+    public abstract ObjectFactory getObjectFactory();
+
+    @Override
+    public void execute() {
+        ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
+        getProblems().getReporter().report(problemId, problem -> problem
+            .additionalData(SomeData.class, dataInstance -> {
+                dataInstance.getSome().set("some"); // Provider API properties can be used
+                dataInstance.setName("someData"); // Getters and setters can be used
+                dataInstance.setNames(Collections.singletonList("someMoreData")); // Collections can be used
+                SomeOtherData compositionDataInstance = getObjectFactory().newInstance(SomeOtherData.class);
+                compositionDataInstance.setOtherName("otherName");
+                dataInstance.setOtherData(compositionDataInstance); // Composition can be used
+            })
+        );
+    }
+}
+```
+
+The data interfaces for this example look as follows:
+
+```java
+import org.gradle.api.problems.AdditionalData;
+import org.gradle.api.provider.Property;
+
+import java.util.List;
+
+public interface SomeData extends AdditionalData {
+    Property<String> getSome();
+
+    String getName();
+
+    void setName(String name);
+
+    List<String> getNames();
+
+    void setNames(List<String> names);
+
+    SomeOtherData getOtherData();
+
+    void setOtherData(SomeOtherData otherData);
+}
+
+public interface SomeOtherData {
+    String getOtherName();
+
+    void setOtherName(String name);
+}
+```
 <!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ADD RELEASE FEATURES ABOVE
 ==========================================================

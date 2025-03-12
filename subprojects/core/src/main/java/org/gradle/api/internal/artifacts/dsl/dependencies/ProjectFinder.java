@@ -16,7 +16,10 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope({Scope.Gradle.class, Scope.Project.class})
 public interface ProjectFinder {
     /**
      * Locates the project with the provided path, failing if not found.

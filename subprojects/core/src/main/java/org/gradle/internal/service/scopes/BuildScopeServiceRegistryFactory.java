@@ -38,7 +38,7 @@ public class BuildScopeServiceRegistryFactory implements ServiceRegistryFactory,
         if (domainObject instanceof GradleInternal) {
             CloseableServiceRegistry gradleServices = ServiceRegistryBuilder.builder()
                 .displayName("Gradle-scope services")
-                .scope(Scope.Gradle.class)
+                .scopeStrictly(Scope.Gradle.class)
                 .parent(services)
                 .provider(new GradleScopeServices())
                 .build();

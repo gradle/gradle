@@ -17,11 +17,14 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.util.LinkedList;
 import java.util.List;
 
+@ServiceScope(Scope.Project.class)
 @NotThreadSafe
 public class DeferredProjectConfiguration {
 
