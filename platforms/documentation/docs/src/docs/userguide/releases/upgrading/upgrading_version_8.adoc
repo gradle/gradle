@@ -48,6 +48,14 @@ The change is driven by the need to interpret such default values in the scope o
 
 === Deprecations
 
+[[null-attribute-lookup]]
+==== Looking up attributes using null keys is deprecated ====
+
+Providing a `null` argument when retrieving attributes from a container using `link:{javadocPath}/org/gradle/api/attributes/AttributeContainer.html#getAttribute(org.gradle.api.attributes.Attribute)[getAttribute(Attribute)]` is now explicitly deprecated.
+
+Previously, a `null` lookup silently returned `null`. Now, it emits a deprecation warning.
+There should be no need to look up `null` values in an `AttributeContainer`.
+
 [[deprecated_string_to_enum_coercion_for_rich_properties]]
 ==== Groovy String to Enum coercion for Property types is deprecated
 
@@ -513,7 +521,7 @@ Accessing the mutable project instance of other projects should be avoided.
 
 To discover details about all projects that were included in a resolution, inspect the full link:{javadocPath}/org/gradle/api/artifacts/result/ResolutionResult.html[ResolutionResult].
 Project dependencies are exposed in the link:{javadocPath}/org/gradle/api/artifacts/result/DependencyResult.html[DependencyResult].
-See the user guide section on <<dependency_graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
+See the user guide section on <<graph_resolution.adoc#dependency-graph-resolution,programmatic dependency resolution>> for more details on this API.
 This is the only reliable way to find all projects that are used in a resolution.
 Inspecting only the declared `ProjectDependency`s may miss transitive or substituted project dependencies.
 

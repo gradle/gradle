@@ -18,18 +18,18 @@ package org.gradle.internal.serialize.codecs.dm.transform
 
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.artifacts.transform.DefaultTransform
+import org.gradle.api.internal.artifacts.transform.DefaultTransform.IsolateTransformParameters
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.problems.internal.InternalProblems
 import org.gradle.internal.extensions.stdlib.uncheckedCast
-import org.gradle.internal.serialize.graph.Codec
-import org.gradle.internal.serialize.graph.ReadContext
-import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.serialize.graph.Codec
+import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.WriteContext
 
 
 class IsolateTransformParametersCodec(
@@ -40,19 +40,19 @@ class IsolateTransformParametersCodec(
     val fileCollectionFactory: FileCollectionFactory,
     val documentationRegistry: DocumentationRegistry,
     val problems: InternalProblems
-) : Codec<DefaultTransform.IsolateTransformParameters> {
-    override suspend fun WriteContext.encode(value: DefaultTransform.IsolateTransformParameters) {
+) : Codec<IsolateTransformParameters> {
+    override suspend fun WriteContext.encode(value: IsolateTransformParameters) {
         write(value.parameterObject)
         writeClass(value.implementationClass)
         writeBoolean(value.isCacheable)
     }
 
-    override suspend fun ReadContext.decode(): DefaultTransform.IsolateTransformParameters? {
+    override suspend fun ReadContext.decode(): IsolateTransformParameters? {
         val parameterObject: TransformParameters? = read()?.uncheckedCast()
         val implementationClass = readClass()
         val cacheable = readBoolean()
 
-        return DefaultTransform.IsolateTransformParameters(
+        return IsolateTransformParameters(
             parameterObject,
             implementationClass,
             cacheable,

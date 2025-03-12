@@ -151,8 +151,8 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can replace attribute with same name and different type"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
-        def set2 = factory.of(BAR, "bar2")
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.of(BAR, "bar2") // String-typed bar
 
         when:
         def concat = factory.concat(set1, set2)
@@ -180,8 +180,8 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can detect incompatible attributes with different types when merging"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
-        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
 
         when:
         factory.safeConcat(set1, set2)
@@ -191,5 +191,19 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
         e.attribute == OTHER_BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"
+        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
+    }
+
+    def "can detect incompatible attributes with different types when merging; same value but different types"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1")) // String-typed bar
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        Exception e = thrown()
+        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
     }
 }

@@ -16,6 +16,8 @@
 
 package org.gradle.model.internal.registry;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
@@ -28,6 +30,7 @@ import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
 
+@ServiceScope(Scope.Project.class)
 public interface ModelRegistry {
 
     /**

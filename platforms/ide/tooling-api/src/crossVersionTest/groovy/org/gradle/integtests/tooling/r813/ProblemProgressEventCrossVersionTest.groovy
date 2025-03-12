@@ -16,30 +16,20 @@
 
 package org.gradle.integtests.tooling.r813
 
-
-import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildException
-import org.gradle.tooling.Failure
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.SingleProblemEvent
 import org.gradle.tooling.events.problems.internal.DefaultAdditionalData
 
-import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionTest.getProblemReportTaskString
-
 @ToolingApiVersion(">=8.13")
 @TargetGradleVersion(">=8.13")
 class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
-
-    def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {
-        buildFile getProblemReportTaskString(taskActionMethodBody)
-    }
 
     def runTask() {
         def listener = new ProblemProgressListener()
@@ -93,15 +83,9 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         where:
         detailsConfig              | expectedDetails | documentationConfig                         | expecteDocumentation
         '.details("long message")' | "long message"  | '.documentedAt("https://docs.example.org")' | 'https://docs.example.org'
-        ''                         | null            | ''                                          | null
+        '' | null | '' | null
     }
 
-
-    static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].definition.id.group.name == 'compilation'
-    }
 
     def "Property validation failure should produce problem report with domain-specific additional data"() {
         setup:
@@ -158,10 +142,6 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
                 this.problems.add(event.problem)
             }
         }
-    }
-
-    def failureMessage(failure) {
-        failure instanceof Failure ? failure.message : failure.failure.message
     }
 
     interface MyType {

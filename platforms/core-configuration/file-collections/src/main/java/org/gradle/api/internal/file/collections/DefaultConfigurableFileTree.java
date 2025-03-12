@@ -209,4 +209,8 @@ public class DefaultConfigurableFileTree extends CompositeFileTree implements Co
         buildDependency.setValues(tasks);
         return this;
     }
+
+    public PathToFileResolver getResolver() {
+        return resolver;
+    }
 }

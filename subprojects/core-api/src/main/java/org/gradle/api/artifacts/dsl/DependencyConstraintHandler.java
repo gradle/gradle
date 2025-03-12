@@ -19,6 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderConvertible;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * <p>A {@code DependencyConstraintHandler} is used to declare dependency constraints.</p>
@@ -74,6 +76,7 @@ import org.gradle.api.provider.ProviderConvertible;
  *
  * @since 4.5
  */
+@ServiceScope(Scope.Project.class)
 public interface DependencyConstraintHandler {
     /**
      * Adds a dependency constraint to the given configuration.

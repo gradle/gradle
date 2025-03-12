@@ -148,6 +148,7 @@ object EvaluationFailureMessageGenerator {
         DocumentCheckFailureReason.PluginsBlockOrderViolated -> "illegal content before 'plugins', which can only be preceded by 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginManagementBlock -> "duplicate 'pluginManagement'"
         DocumentCheckFailureReason.DuplicatePluginsBlock -> "duplicate 'plugins'"
+        DocumentCheckFailureReason.AccessOnCurrentReceiverViolation -> "illegal receiver, only implicit 'this' receiver is allowed"
         is DocumentCheckFailureReason.UnsupportedSyntaxInDocument -> "unsupported syntax (${reason.cause})"
     }
 

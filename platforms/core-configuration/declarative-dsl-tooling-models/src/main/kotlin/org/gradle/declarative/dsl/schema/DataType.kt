@@ -16,6 +16,17 @@
 
 package org.gradle.declarative.dsl.schema
 
+import org.gradle.declarative.dsl.schema.DataType.PrimitiveType
+import org.gradle.declarative.dsl.schema.DataType.ConstantType
+import org.gradle.declarative.dsl.schema.DataType.IntDataType
+import org.gradle.declarative.dsl.schema.DataType.LongDataType
+import org.gradle.declarative.dsl.schema.DataType.StringDataType
+import org.gradle.declarative.dsl.schema.DataType.BooleanDataType
+import org.gradle.declarative.dsl.schema.DataType.NullType
+import org.gradle.declarative.dsl.schema.DataType.UnitType
+import org.gradle.declarative.dsl.schema.DataType.TypeVariableUsage
+import org.gradle.declarative.dsl.schema.DataType.ClassDataType
+import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.ConcreteTypeArgument
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument.StarProjection
 import org.gradle.tooling.ToolingModelContract
@@ -23,28 +34,31 @@ import java.io.Serializable
 
 
 @ToolingModelContract(subTypes = [
-    DataType.NullType::class,
-    DataType.UnitType::class,
-    DataType.ConstantType::class,
-    DataType.IntDataType::class,
-    DataType.LongDataType::class,
-    DataType.StringDataType::class,
-    DataType.BooleanDataType::class,
-    DataType.ClassDataType::class,
-    DataClass::class,
-    EnumClass::class
+    PrimitiveType::class,
+        ConstantType::class,
+            IntDataType::class,
+            LongDataType::class,
+            StringDataType::class,
+            BooleanDataType::class,
+        NullType::class,
+        UnitType::class,
+        TypeVariableUsage::class,
+    ClassDataType::class,
+        ParameterizedTypeInstance::class,
+        DataClass::class,
+        EnumClass::class
 ])
 sealed interface DataType : Serializable {
 
     @ToolingModelContract(subTypes = [
         ConstantType::class,
-        IntDataType::class,
-        LongDataType::class,
-        StringDataType::class,
-        BooleanDataType::class,
-        TypeVariableUsage::class,
+            IntDataType::class,
+            LongDataType::class,
+            StringDataType::class,
+            BooleanDataType::class,
+        NullType::class,
         UnitType::class,
-        NullType::class
+        TypeVariableUsage::class,
     ])
     sealed interface PrimitiveType : DataType
 
@@ -77,9 +91,12 @@ sealed interface DataType : Serializable {
     }
 
     @ToolingModelContract(subTypes = [
-        DataClass::class,
-        EnumClass::class,
-        ParameterizedTypeSignature::class
+        ClassDataType::class,
+            ParameterizedTypeInstance::class,
+            EnumClass::class,
+            DataClass::class,
+        ParameterizedTypeSignature::class,
+            VarargSignature::class,
     ])
     sealed interface HasTypeName {
         val name: FqName
@@ -87,6 +104,7 @@ sealed interface DataType : Serializable {
     }
 
     @ToolingModelContract(subTypes = [
+        ParameterizedTypeInstance::class,
         DataClass::class,
         EnumClass::class
     ])
@@ -103,7 +121,9 @@ sealed interface DataType : Serializable {
      */
     // In the future, a type signature may become resolvable to a generic DataClass, but for now, it should not be associated with any DataClass, even if
     // a data class with the same name appears in the schema.
-    @ToolingModelContract(subTypes = [VarargSignature::class])
+    @ToolingModelContract(subTypes = [
+        VarargSignature::class
+    ])
     interface ParameterizedTypeSignature : HasTypeName, Serializable {
         interface TypeParameter : Serializable {
             val name: String

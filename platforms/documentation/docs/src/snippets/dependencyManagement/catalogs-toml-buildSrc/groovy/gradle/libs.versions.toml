@@ -1,0 +1,13 @@
+[versions]
+groovy = "3.0.5"
+jacocolog = "3.1.0"
+
+[libraries]
+groovy-core = { module = "org.codehaus.groovy:groovy", version.ref = "groovy" }
+guava = "com.google.guava:guava:32.1.2-jre"
+
+[bundles]
+
+[plugins]
+versions = { id = "com.github.ben-manes.versions", version = "0.45.0" }
+jacocolog = { id = "org.barfuin.gradle.jacocolog", version.ref = "jacocolog" }

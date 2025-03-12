@@ -39,6 +39,7 @@ import org.gradle.internal.declarativedsl.evaluator.schema.InterpretationSchemaB
 import org.gradle.internal.declarativedsl.evaluator.schema.DeclarativeScriptContext
 import org.gradle.internal.declarativedsl.settings.SettingsBlocksCheck
 import org.gradle.internal.declarativedsl.common.UnsupportedSyntaxFeatureCheck
+import org.gradle.internal.declarativedsl.evaluator.checks.AccessOnCurrentReceiverCheck
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.plugin.software.internal.SoftwareTypeRegistry
@@ -60,7 +61,7 @@ fun defaultDeclarativeScriptEvaluator(
     softwareTypeRegistry: SoftwareTypeRegistry
 ): DeclarativeKotlinScriptEvaluator = DefaultDeclarativeKotlinScriptEvaluator(
     schemaBuilder,
-    documentChecks = setOf(SettingsBlocksCheck, UnsupportedSyntaxFeatureCheck),
+    documentChecks = setOf(SettingsBlocksCheck, AccessOnCurrentReceiverCheck, UnsupportedSyntaxFeatureCheck),
     resolutionResultHandlers = setOf(
         ApplyModelDefaultsHandler.DO_NOTHING,
         ModelDefaultsDefinitionCollector(softwareTypeRegistryBasedModelDefaultsRegistrar(softwareTypeRegistry))
