@@ -16,12 +16,21 @@
 
 package org.gradle.internal.service;
 
+import org.gradle.internal.InternalTransformer;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
+import javax.annotation.Nullable;
+
+import static org.gradle.util.internal.ArrayUtils.contains;
+import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
  * A registry validating that all registered services are annotated with a corresponding {@link Scope}.
  */
 class ScopedServiceRegistry extends DefaultServiceRegistry {
+
+    private final Class<? extends Scope> scope;
 
     public ScopedServiceRegistry(
         Class<? extends Scope> scope,
@@ -30,6 +39,7 @@ class ScopedServiceRegistry extends DefaultServiceRegistry {
         ServiceRegistry... parents
     ) {
         super(displayName, parents);
+        this.scope = scope;
         addServiceValidator(scope, strict);
     }
 
@@ -39,5 +49,71 @@ class ScopedServiceRegistry extends DefaultServiceRegistry {
      */
     private void addServiceValidator(Class<? extends Scope> scope, boolean strict) {
         add(new ServiceScopeValidator(scope, strict));
+    }
+
+    @Override
+    public DefaultServiceRegistry addProvider(ServiceRegistrationProvider provider) {
+        validateProviderScope(provider.getClass());
+        return super.addProvider(provider);
+    }
+
+    private void validateProviderScope(Class<?> providerType) {
+        if (providerType.isAnonymousClass()) {
+            return;
+        }
+
+        Class<? extends Scope>[] serviceScopes = scopeOf(providerType);
+
+        if (serviceScopes == null) {
+            throw new IllegalArgumentException(missingScopeMessage(providerType));
+        }
+
+        if (serviceScopes.length == 0) {
+            throw new IllegalArgumentException(String.format("Service '%s' is declared with empty scope list", providerType.getName()));
+        }
+
+        if (!contains(serviceScopes, scope)) {
+            throw new IllegalArgumentException(invalidScopeMessage(providerType, serviceScopes));
+        }
+    }
+
+    @Nullable
+    private static Class<? extends Scope>[] scopeOf(Class<?> type) {
+        ServiceScope scopeAnnotation = type.getAnnotation(ServiceScope.class);
+        return scopeAnnotation != null ? scopeAnnotation.value() : null;
+    }
+
+    private String invalidScopeMessage(Class<?> serviceType, Class<? extends Scope>[] actualScopes) {
+        return String.format(
+            "The service provider '%s' declares %s but is registered in the '%s' scope. " +
+                "Either update the '@ServiceScope()' annotation on '%s' to include the '%s' scope " +
+                "or move the service provider to one of the declared scopes.",
+            serviceType.getName(),
+            displayScopes(actualScopes),
+            scope.getSimpleName(),
+            serviceType.getSimpleName(),
+            scope.getSimpleName()
+        );
+    }
+
+    private String missingScopeMessage(Class<?> providerType) {
+        return String.format(
+            "The service provider '%s' is registered in the '%s' scope but does not declare it. " +
+                "Add the '@ServiceScope()' annotation on '%s' with the '%s' scope.",
+            providerType.getName(), scope.getSimpleName(), providerType.getSimpleName(), scope.getSimpleName()
+        );
+    }
+
+    private static String displayScopes(Class<? extends Scope>[] scopes) {
+        if (scopes.length == 1) {
+            return "service scope '" + scopes[0].getSimpleName() + "'";
+        }
+
+        return "service scopes " + join(", ", scopes, new InternalTransformer<String, Class<? extends Scope>>() {
+            @Override
+            public String transform(Class<? extends Scope> aClass) {
+                return "'" + aClass.getSimpleName() + "'";
+            }
+        });
     }
 }
