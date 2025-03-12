@@ -253,7 +253,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.factory.FactoryTest')
-        result.testClass('org.gradle.factory.FactoryTest').assertTestCount(2, 0, 0)
+        result.testClass('org.gradle.factory.FactoryTest').assertTestCount(2, 0)
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingFirst'))
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingSecond'))
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(not(containsString('Default test name')))
@@ -306,7 +306,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         failure.assertHasCause("Could not execute test class 'com.example.Foo'.")
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.testClassStartsWith('Gradle Test Executor')
-            .assertTestCount(1, 1, 0)
+            .assertTestCount(1, 1)
             .assertTestFailed("failed to execute tests", containsString("Could not execute test class 'com.example.Foo'"))
     }
 
@@ -343,7 +343,7 @@ class TestNGIntegrationTest extends MultiVersionIntegrationSpec {
         then:
         new DefaultTestExecutionResult(testDirectory)
             .assertTestClassesExecuted('TestNG7878')
-            .testClass('TestNG7878').assertTestCount(4, 0, 0)
+            .testClass('TestNG7878').assertTestCount(4, 0)
     }
 
     @Issue("https://github.com/gradle/gradle/issues/23602")

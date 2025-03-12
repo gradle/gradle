@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 /**
  * Reports test events, and child test event reporters.
@@ -24,6 +25,7 @@ import org.gradle.api.Incubating;
  * @since 8.12
  */
 @Incubating
+@HasInternalProtocol
 public interface GroupTestEventReporter extends TestEventReporter {
     /**
      * Create a child 'test' test event reporter. This can be used, for example, to emit events for each method in a tested class.
