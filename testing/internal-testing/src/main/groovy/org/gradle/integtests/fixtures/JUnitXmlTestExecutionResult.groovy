@@ -110,6 +110,10 @@ class JUnitXmlTestExecutionResult implements TestExecutionResult {
 
         Map<String, File> classes = [:]
         testResultsDir.eachFile { File file ->
+            System.err.println("Processing file: ${file.name}")
+            if (file.isFile()) {
+                System.err.println(file.text)
+            }
             def matcher = (file.name=~/TEST-(.+)\.xml/)
             if (matcher.matches()) {
                 classes[fromFileToTestClass(file)] = file

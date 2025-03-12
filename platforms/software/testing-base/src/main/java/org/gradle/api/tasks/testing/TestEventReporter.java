@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.time.Instant;
 import java.util.Map;
@@ -27,6 +28,7 @@ import java.util.Map;
  * @since 8.12
  */
 @Incubating
+@HasInternalProtocol
 public interface TestEventReporter extends AutoCloseable {
     /**
      * Emit a start event for the test. Can only be called once, and must be followed by a call to {@link #succeeded(Instant)}, {@link #skipped(Instant)}, {@link #failed(Instant)},

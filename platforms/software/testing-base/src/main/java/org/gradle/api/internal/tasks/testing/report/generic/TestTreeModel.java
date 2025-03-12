@@ -113,7 +113,8 @@ public class TestTreeModel {
 
         private void finalizePath(Path path, long id, PerRootInfo rootInfo) {
             // We use LinkedHashMap for the roots to keep them in the order of declaration in TestReport.
-            TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(p, new LinkedHashMap<>(), new HashMap<>()));
+            // We use LinkedHashMap for the children to keep them in the order of results in the store.
+            TestTreeModel model = modelsByPath.computeIfAbsent(path, p -> new TestTreeModel(p, new LinkedHashMap<>(), new LinkedHashMap<>()));
             model.perRootInfo.put(rootIndex, rootInfo);
             for (Child child : childrenByParentId.get(id)) {
                 Path childPath = path.child(child.info.outputTrackedResult.getInnerResult().getName());
@@ -205,5 +206,49 @@ public class TestTreeModel {
 
     public Iterable<TestTreeModel> getChildrenOf(int rootIndex) {
         return Iterables.transform(perRootInfo.get(rootIndex).getChildren(), children::get);
+    }
+
+    /**
+     * Returns the maximum number of levels of children in this tree.
+     *
+     * @return the depth of the tree, where 1 is the root level
+     */
+    public int getDepth() {
+        int deepest = 0;
+        for (TestTreeModel treeModel : children.values()) {
+            int depth = treeModel.getDepth();
+            if (depth > deepest) {
+                deepest = depth;
+            }
+        }
+        return deepest + 1;
+    }
+
+    private static final int INDENT_SIZE = 2;
+
+    /**
+     * Dumps the basic tree structure to an appendable, for debugging purposes.
+     *
+     * @param appendable the appendable to dump to
+     */
+    // This may be used for debugging, so keep it around even when not used.
+    @SuppressWarnings("unused")
+    public void dumpStructure(Appendable appendable) {
+        dumpStructure(appendable, 0);
+    }
+
+    private void dumpStructure(Appendable appendable, int indent) {
+        try {
+            for (int i = 0; i < indent; i++) {
+                appendable.append(' ');
+            }
+            String name = path.segmentCount() == 0 ? ":" : path.getName();
+            appendable.append("- ").append(name).append('\n');
+            for (TestTreeModel child : children.values()) {
+                child.dumpStructure(appendable, indent + INDENT_SIZE);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to dump test tree structure", e);
+        }
     }
 }
