@@ -19,13 +19,14 @@ package org.gradle.api.internal.tasks.testing.logging;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat;
 import org.gradle.api.tasks.testing.logging.TestLogEvent;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter;
-import org.gradle.internal.reflect.Instantiator;
 
+import javax.inject.Inject;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +34,8 @@ import java.util.Set;
 public class DefaultTestLoggingContainer implements TestLoggingContainer {
     private final Map<LogLevel, TestLogging> perLevelTestLogging = Maps.newEnumMap(LogLevel.class);
 
-    public DefaultTestLoggingContainer(Instantiator instantiator) {
+    @Inject
+    public DefaultTestLoggingContainer(ObjectFactory instantiator) {
         for (LogLevel level: LogLevel.values()) {
             perLevelTestLogging.put(level, instantiator.newInstance(DefaultTestLogging.class));
         }

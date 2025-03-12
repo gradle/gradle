@@ -112,7 +112,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         executionResult.assertTestClassesExecuted("org.FailingTest", "org.PassingTest", "org.MixedMethodsTest", "org.NoOutputsTest", "org.EncodingTest", "org.ParameterizedTest", "org.OutputLifecycleTest")
 
         def mixedMethods = executionResult.testClass("org.MixedMethodsTest")
-                .assertTestCount(4, 2, 0)
+                .assertTestCount(4, 2)
                 .assertTestsExecuted("passing", "passing2", "failing", "failing2")
                 .assertTestFailed("failing", equalTo('java.lang.AssertionError: failing!'))
                 .assertTestFailed("failing2", equalTo('java.lang.AssertionError: failing2!'))
@@ -139,7 +139,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         }
 
         def passing = executionResult.testClass("org.PassingTest")
-                .assertTestCount(2, 0, 0)
+                .assertTestCount(2, 0)
                 .assertTestsExecuted("passing", "passing2")
                 .assertTestPassed("passing").assertTestPassed("passing2")
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
@@ -155,7 +155,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         }
 
         def failing = executionResult.testClass("org.FailingTest")
-                .assertTestCount(2, 2, 0)
+                .assertTestCount(2, 2)
                 .assertTestsExecuted("failing", "failing2")
                 .assertTestFailed("failing", anything()).assertTestFailed("failing2", anything())
 
@@ -173,7 +173,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         }
 
         def noOutputs = executionResult.testClass("org.NoOutputsTest")
-                .assertTestCount(1, 0, 0)
+                .assertTestCount(1, 0)
                 .assertTestsExecuted("passing").assertTestPassed("passing")
 
         if (executionResult instanceof HtmlTestExecutionResult || outputAssociation == WITH_SUITE) {
@@ -187,7 +187,7 @@ class TestNGXmlResultAndHtmlReportIntegrationTest extends
         }
 
         def encoding = executionResult.testClass("org.EncodingTest")
-                .assertTestCount(2, 1, 0)
+                .assertTestCount(2, 1)
                 .assertTestPassed("encodesCdata")
                 .assertTestFailed("encodesAttributeValues", equalTo('java.lang.RuntimeException: html: <> cdata: ]]> non-ascii: ż'))
 
@@ -208,7 +208,7 @@ xml entity: &amp;
         }
 
         def parameterized = executionResult.testClass("org.ParameterizedTest")
-                .assertTestCount(6, 4, 0)
+                .assertTestCount(6, 4)
                 .assertTestsExecuted(
                 "p1[0](1, 2)", "p4[0](1, \">…Ú)", "p1[1](3, 4)", "p3[0]", "p3[1]", "p4[1](2, \">…Ú)"
         )
@@ -230,7 +230,7 @@ xml entity: &amp;
         }
 
         def outputLifecycle = executionResult.testClass("org.OutputLifecycleTest")
-                .assertTestCount(2, 0, 0)
+                .assertTestCount(2, 0)
                 .assertTestsExecuted("m1", "m2")
                 .assertTestPassed("m1")
                 .assertTestPassed("m1")
