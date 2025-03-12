@@ -26,15 +26,15 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
+import org.jspecify.annotations.NullMarked;
 
-import javax.annotation.Nonnull;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@Nonnull
+@NullMarked
 @CacheableTask
 public abstract class GenerateDefaultImports extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)
