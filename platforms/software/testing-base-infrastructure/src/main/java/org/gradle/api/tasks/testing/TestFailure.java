@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.tasks.testing.AssumptionTestFailure;
 import org.gradle.api.internal.tasks.testing.DefaultTestFailure;
 
 import java.util.List;
@@ -104,5 +105,17 @@ public abstract class TestFailure {
      */
     public static TestFailure fromTestFrameworkFailure(Throwable failure, List<TestFailure> causes) {
         return DefaultTestFailure.fromTestFrameworkFailure(failure, causes);
+    }
+
+    /**
+     * Creates a new TestFailure instance from an assumption failure.
+     *
+     * @param failure the failure
+     * @return the new instance
+     *
+     * @since 8.14
+     */
+    public static TestFailure fromAssumptionFailure(Throwable failure) {
+        return AssumptionTestFailure.fromAssumptionFailure(failure);
     }
 }
