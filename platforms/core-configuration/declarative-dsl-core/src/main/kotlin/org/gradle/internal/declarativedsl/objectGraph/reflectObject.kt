@@ -157,8 +157,6 @@ fun reflect(
                 objectOrigin.elementValues.map { reflect(it, context) },
                 objectOrigin
             )
-
-        is ObjectOrigin.AugmentationOrigin -> TODO()
     }
 }
 
