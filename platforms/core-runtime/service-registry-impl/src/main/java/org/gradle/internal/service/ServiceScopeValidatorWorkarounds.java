@@ -31,6 +31,10 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.cache.internal.ProducerGuard",
         "org.gradle.internal.typeconversion.NotationParser",
 
+        // Avoid annotating services published as public libraries
+        // build-cache-base:
+        "org.gradle.caching.internal.origin.OriginMetadataFactory",
+
         // It's supposed to be only in the Settings scope
         // However, ProjectBuilderImpl does not instantiate that scope at all, while still requiring the service
         // Because of this, it artificially puts it into the Build-scope to make it available
@@ -45,7 +49,10 @@ class ServiceScopeValidatorWorkarounds {
 
         "org.gradle.nativeplatform.platform.internal.NativePlatforms",
         "org.gradle.nativeplatform.internal.NativePlatformResolver",
-        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory"
+        "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory",
+
+        // Build init feature of converting Maven to Gradle build stops working with CC
+        "org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry"
     ));
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {

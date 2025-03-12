@@ -16,15 +16,24 @@
 
 package org.gradle.api.internal.attributes
 
-import org.gradle.api.internal.attributes.immutable.TestsImmutableAttributes
+
+import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
+
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAR
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.BAZ
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.FOO
+import static org.gradle.api.internal.attributes.immutable.TestAttributes.OTHER_BAR
 
 /**
  * Unit tests for {@link DefaultAttributesFactory}.
  * <p>
  * Not responsible for testing {@link ImmutableAttributes} directly.
  */
-class DefaultAttributesFactoryTest extends Specification implements TestsImmutableAttributes {
+class DefaultAttributesFactoryTest extends Specification {
+
+    AttributesFactory factory = AttributeTestUtil.attributesFactory()
+
     def "can create a single entry immutable set"() {
         when:
         def attributes = factory.of(FOO, "foo")
@@ -111,7 +120,7 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can compare attribute sets created by two different factories"() {
         given:
-        def otherFactory = new DefaultAttributesFactory(attributeValueIsolator, isolatableFactory, instantiator)
+        def otherFactory = AttributeTestUtil.attributesFactory()
 
         when:
         def set1 = factory.concat(factory.of(FOO, "foo"), BAR, "bar")
@@ -123,7 +132,7 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can append to a set created with a different factory"() {
         given:
-        def otherFactory = new DefaultAttributesFactory(attributeValueIsolator, isolatableFactory, instantiator)
+        def otherFactory = AttributeTestUtil.attributesFactory()
         def attributes = otherFactory.of(FOO, 'foo')
 
         when:
@@ -151,8 +160,8 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can replace attribute with same name and different type"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
-        def set2 = factory.of(BAR, "bar2")
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.of(BAR, "bar2") // String-typed bar
 
         when:
         def concat = factory.concat(set1, set2)
@@ -180,8 +189,8 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
 
     def "can detect incompatible attributes with different types when merging"() {
         given:
-        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1"))
-        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2"))
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar2")) // String-typed bar
 
         when:
         factory.safeConcat(set1, set2)
@@ -191,5 +200,19 @@ class DefaultAttributesFactoryTest extends Specification implements TestsImmutab
         e.attribute == OTHER_BAR
         e.leftValue == "bar1"
         e.rightValue == "bar2"
+        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
+    }
+
+    def "can detect incompatible attributes with different types when merging; same value but different types"() {
+        given:
+        def set1 = factory.concat(factory.of(FOO, "foo1"), factory.of(OTHER_BAR, "bar1")) // Object-typed bar
+        def set2 = factory.concat(factory.of(FOO, "foo1"), factory.of(BAR, "bar1")) // String-typed bar
+
+        when:
+        factory.safeConcat(set1, set2)
+
+        then:
+        Exception e = thrown()
+        e.message == "Cannot have two attributes with the same name but different types. This container already has an attribute named 'bar' of type 'java.lang.String' and you are trying to store another one of type 'java.lang.Object'"
     }
 }

@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.file.RelativePath",
+            "member": "Method org.gradle.api.file.RelativePath.getParent()",
+            "acceptation": "Method can return null values",
+            "changes": [
+                "From non-null returning to null returning breaking change"
+            ]
+        }
+    ]
 }

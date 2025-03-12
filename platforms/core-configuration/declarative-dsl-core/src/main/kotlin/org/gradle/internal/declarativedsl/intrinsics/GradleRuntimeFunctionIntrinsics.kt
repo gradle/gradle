@@ -16,10 +16,9 @@
 
 package org.gradle.internal.declarativedsl.intrinsics
 
-import kotlin.reflect.KFunction
 import kotlin.reflect.jvm.javaMethod
 
-val gradleRuntimeIntrinsicsKClass = (::self as KFunction<*>).javaMethod!!.declaringClass.kotlin
+val gradleRuntimeIntrinsicsKClass = ::self.javaMethod!!.declaringClass.kotlin
 
 /**
  * Intrinsic bridge for invoking [kotlin.collections.listOf], which cannot be invoked via reflection due to its containing class not being public.

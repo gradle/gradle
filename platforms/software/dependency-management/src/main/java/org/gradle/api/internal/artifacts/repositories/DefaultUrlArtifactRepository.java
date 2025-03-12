@@ -21,6 +21,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.repositories.UrlArtifactRepository;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.deprecation.Documentation;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 
@@ -123,6 +125,7 @@ public class DefaultUrlArtifactRepository implements UrlArtifactRepository {
             );
     }
 
+    @ServiceScope(Scope.Project.class)
     public static class Factory {
         private final FileResolver fileResolver;
 

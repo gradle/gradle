@@ -216,6 +216,7 @@ public abstract class Actions {
         };
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> Action<T> set(Action<T>... actions) {
         return ImmutableActionSet.of(actions);
     }

@@ -17,14 +17,17 @@
 package org.gradle.declarative.dsl.schema
 
 import org.gradle.declarative.dsl.schema.DataType.ParameterizedTypeInstance.TypeArgument
+import org.gradle.declarative.dsl.schema.DataTypeRef.Name
+import org.gradle.declarative.dsl.schema.DataTypeRef.NameWithArgs
+import org.gradle.declarative.dsl.schema.DataTypeRef.Type
 import org.gradle.tooling.ToolingModelContract
 import java.io.Serializable
 
 
 @ToolingModelContract(subTypes = [
-    DataTypeRef.Type::class,
-    DataTypeRef.Name::class,
-    DataTypeRef.NameWithArgs::class
+    Type::class,
+    Name::class,
+    NameWithArgs::class
 ])
 sealed interface DataTypeRef : Serializable {
     interface Type : DataTypeRef {

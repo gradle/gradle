@@ -116,6 +116,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.snapshotsWorker)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
     api(projects.versionedCache)
@@ -136,6 +137,7 @@ dependencies {
     implementation(projects.modelGroovy)
     implementation(projects.problemsRendering)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
     implementation(libs.asmCommons)
     implementation(libs.commonsCompress)
@@ -242,6 +244,7 @@ dependencies {
     testFixturesImplementation(projects.normalizationJava)
     testFixturesImplementation(projects.persistentCache)
     testFixturesImplementation(projects.snapshots)
+    testFixturesImplementation(projects.snapshotsWorker)
     testFixturesImplementation(libs.ant)
     testFixturesImplementation(libs.asm)
     testFixturesImplementation(libs.groovyAnt)

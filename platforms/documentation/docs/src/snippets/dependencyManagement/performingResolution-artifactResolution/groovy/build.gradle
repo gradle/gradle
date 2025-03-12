@@ -29,12 +29,6 @@ abstract class ResolveFiles extends DefaultTask {
 tasks.register("resolveConfiguration", ResolveFiles) {
     files.from(configurations.runtimeClasspath)
 }
-tasks.register("resolveIncomingFiles", ResolveFiles) {
-// end::implicit-file-resolution[]
-    dependsOn(tasks.named("resolveConfiguration")) // To preserve output ordering
-// tag::implicit-file-resolution[]
-    files.from(configurations.runtimeClasspath.incoming.files)
-}
 // end::implicit-file-resolution[]
 
 // tag::artifact-resolution-task[]

@@ -182,6 +182,7 @@ public class GUtil {
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, boolean failOnNull, Iterable<? extends V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
@@ -195,6 +196,7 @@ public class GUtil {
     }
 
     @Deprecated
+    @SuppressWarnings("unchecked")
     public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
         return addToCollection(dest, false, srcs);
     }

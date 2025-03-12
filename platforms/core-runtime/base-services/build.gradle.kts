@@ -5,7 +5,10 @@ plugins {
 
 description = "A set of generic services and utilities."
 
-gradlebuildJava.usedInWorkers()
+gradlebuildJava {
+    usedInWorkers()
+    usesFutureStdlib = true
+}
 
 /**
  * Use Java 8 compatibility for Unit tests, so we can test Java 8 features as well

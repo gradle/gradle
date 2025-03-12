@@ -18,11 +18,14 @@ package org.gradle.internal.serialize.codecs.core
 
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.readFile
+import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeFile
 
 
@@ -30,14 +33,17 @@ class ConfigurableFileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileTree> {
     override suspend fun WriteContext.encode(value: ConfigurableFileTree) {
+        require(value is DefaultConfigurableFileTree)
+        write(value.resolver)
         writeFile(value.dir)
         write(value.patterns)
     }
 
     override suspend fun ReadContext.decode(): ConfigurableFileTree {
+        val resolver = readNonNull<PathToFileResolver>()
         val dir = readFile()
-        val patterns = read() as PatternSet
-        val tree = fileCollectionFactory.fileTree()
+        val patterns = readNonNull<PatternSet>()
+        val tree = fileCollectionFactory.withResolver(resolver).fileTree()
         tree.setDir(dir)
         // TODO - read patterns directly into tree
         tree.patterns.copyFrom(patterns)

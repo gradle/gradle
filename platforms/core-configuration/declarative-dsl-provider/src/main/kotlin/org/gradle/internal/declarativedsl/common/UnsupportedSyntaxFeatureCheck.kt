@@ -20,7 +20,7 @@ import org.gradle.declarative.dsl.evaluation.InterpretationStepFeature
 import org.gradle.internal.declarativedsl.dom.DeclarativeDocument
 import org.gradle.internal.declarativedsl.dom.UnsupportedSyntax
 import org.gradle.internal.declarativedsl.dom.data.NodeData
-import org.gradle.internal.declarativedsl.dom.resolution.DocumentResolutionContainer
+import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheck
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailure
 import org.gradle.internal.declarativedsl.evaluator.checks.DocumentCheckFailureLocation
@@ -40,7 +40,7 @@ object UnsupportedSyntaxFeatureCheck : DocumentCheck {
     override val checkKey: String
         get() = UnsupportedSyntaxFeatureCheck::class.java.name
 
-    override fun detectFailures(document: DeclarativeDocument, resolutionContainer: DocumentResolutionContainer, isAnalyzedNode: NodeData<Boolean>): List<DocumentCheckFailure> {
+    override fun detectFailures(documentWithResolution: DocumentWithResolution, isAnalyzedNode: NodeData<Boolean>): List<DocumentCheckFailure> {
         val failures = mutableListOf<DocumentCheckFailure>()
 
         fun visitNode(node: DeclarativeDocument.DocumentNode) {
@@ -68,7 +68,7 @@ object UnsupportedSyntaxFeatureCheck : DocumentCheck {
             }
         }
 
-        document.content.forEach {
+        documentWithResolution.document.content.forEach {
             visitNode(it)
         }
 

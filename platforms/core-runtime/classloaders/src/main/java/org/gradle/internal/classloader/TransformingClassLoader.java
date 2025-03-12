@@ -76,7 +76,8 @@ public abstract class TransformingClassLoader extends VisitableURLClassLoader {
         }
 
         String packageName = StringUtils.substringBeforeLast(name, ".");
-        @SuppressWarnings("deprecation") Package p = getPackage(packageName);
+        @SuppressWarnings("deprecation")
+        Package p = getPackage(packageName);
         if (p == null) {
             definePackage(packageName, null, null, null, null, null, null, null);
         }

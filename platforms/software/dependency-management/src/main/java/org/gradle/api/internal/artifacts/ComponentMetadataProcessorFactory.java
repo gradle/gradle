@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 /**
  * A factory for {@link ComponentMetadataProcessor}.
  * <p>
@@ -25,6 +28,7 @@ package org.gradle.api.internal.artifacts;
  * <p>
  * The {@link MetadataResolutionContext} enables a {@link ComponentMetadataProcessor} to execute with the proper context.
  */
+@ServiceScope(Scope.Project.class)
 public interface ComponentMetadataProcessorFactory {
 
     /**

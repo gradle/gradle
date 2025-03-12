@@ -68,6 +68,7 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
+    api(projects.snapshotsWorker)
     api(projects.stdlibJavaExtensions)
     api(projects.versionedCache)
 
@@ -88,6 +89,7 @@ dependencies {
     implementation(projects.loggingApi)
     implementation(projects.resourcesHttp)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.wrapperShared)
 
     implementation(libs.ant)
     implementation(libs.asm)
