@@ -78,10 +78,8 @@ public abstract class WarPlugin implements Plugin<Project> {
         this.project = project;
         this.mainFeature = JavaPluginHelper.getJavaComponent(project).getMainFeature();
 
-        @SuppressWarnings("deprecation") final WarPluginConvention pluginConvention = setupPluginConvention(project);
-
         project.getTasks().withType(War.class).configureEach(task -> {
-            task.getWebAppDirectory().convention(project.getLayout().dir(project.provider(() -> DeprecationLogger.whileDisabled(pluginConvention::getWebAppDir))));
+            task.getWebAppDirectory().convention(project.getLayout().getProjectDirectory().dir("src/main/webapp"));
             task.from(task.getWebAppDirectory());
             task.dependsOn((Callable<FileCollection>) () -> mainFeature.getSourceSet().getRuntimeClasspath());
             task.classpath((Callable<FileCollection>) () -> {
@@ -99,13 +97,6 @@ public abstract class WarPlugin implements Plugin<Project> {
         project.getExtensions().getByType(DefaultArtifactPublicationSet.class).addCandidateInternal(warArtifact);
         configureConfigurations(((ProjectInternal) project).getConfigurations(), mainFeature);
         configureComponent(project, warArtifact);
-    }
-
-    @SuppressWarnings("deprecation")
-    private WarPluginConvention setupPluginConvention(Project project) {
-        final WarPluginConvention pluginConvention = objectFactory.newInstance(org.gradle.api.plugins.internal.DefaultWarPluginConvention.class, project);
-        DeprecationLogger.whileDisabled(() -> project.getConvention().getPlugins().put("war", pluginConvention));
-        return pluginConvention;
     }
 
     /**

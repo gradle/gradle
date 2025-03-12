@@ -26,13 +26,12 @@ import org.gradle.util.TestUtil
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 
 class WarPluginTest extends AbstractProjectBuilderSpec {
-    def "applies Java plugin and adds convention"() {
+    def "applies Java plugin"() {
         when:
         project.pluginManager.apply(WarPlugin)
 
         then:
         project.getPlugins().hasPlugin(JavaPlugin)
-        project.convention.plugins.war instanceof WarPluginConvention
     }
 
     def "creates configurations"() {
