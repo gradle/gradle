@@ -17,12 +17,12 @@
 package org.gradle.api.internal.tasks.testing.junit.result;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -32,11 +32,14 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.NullMarked;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 
+@NullMarked
 public class Binary2JUnitXmlReportGenerator {
     private static final String REPORT_FILE_PREFIX = "TEST-";
     private static final String REPORT_FILE_EXTENSION = ".xml";
@@ -51,10 +54,14 @@ public class Binary2JUnitXmlReportGenerator {
     private final BuildOperationExecutor buildOperationExecutor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options, BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, String hostName) {
+    @Inject
+    public Binary2JUnitXmlReportGenerator(
+        BuildOperationRunner buildOperationRunner, BuildOperationExecutor buildOperationExecutor, HostnameLookup hostnameLookup,
+        File testResultsDir, TestResultsProvider testResultsProvider, JUnitXmlResultOptions options
+    ) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, options);
+        this.xmlWriter = new JUnitXmlResultWriter(hostnameLookup.getHostname(), testResultsProvider, options);
         this.buildOperationRunner = buildOperationRunner;
         this.buildOperationExecutor = buildOperationExecutor;
     }
@@ -83,18 +90,12 @@ public class Binary2JUnitXmlReportGenerator {
             }
         });
 
-        buildOperationExecutor.runAll(new Action<BuildOperationQueue<JUnitXmlReportFileGenerator>>() {
-            @Override
-            public void execute(final BuildOperationQueue<JUnitXmlReportFileGenerator> queue) {
-                testResultsProvider.visitClasses(new Action<TestClassResult>() {
-                    @Override
-                    public void execute(final TestClassResult result) {
-                        final File reportFile = new File(testResultsDir, getReportFileName(result));
-                        queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
-                    }
-                });
-            }
-        });
+        buildOperationExecutor.runAll((BuildOperationQueue<JUnitXmlReportFileGenerator> queue) ->
+            testResultsProvider.visitClasses(result -> {
+                final File reportFile = new File(testResultsDir, getReportFileName(result));
+                queue.add(new JUnitXmlReportFileGenerator(result, reportFile, xmlWriter));
+            })
+        );
 
         LOG.info("Finished generating test XML results ({}) into: {}", clock.getElapsed(), testResultsDir);
     }

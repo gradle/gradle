@@ -31,7 +31,7 @@ public interface TestPathRootExecutionResult {
      *
      * <p>
      * For example, if you want to know if {@code :TestClass:testMethod} executed {@code subTest1} and {@code subTest2},
-     * you would call {@code testPath(":TestClass:testMethod").assertPathsExecuted("subTest1", "subTest2")}.
+     * you would call {@code testPath(":TestClass:testMethod").assertChildrenExecuted("subTest1", "subTest2")}.
      * </p>
      *
      * <p>
@@ -40,7 +40,23 @@ public interface TestPathRootExecutionResult {
      */
     TestPathRootExecutionResult assertChildrenExecuted(String... testNames);
 
-    TestPathRootExecutionResult assertChildCount(int tests, int failures, int errors);
+    TestPathRootExecutionResult assertChildCount(int tests, int failures);
+
+    /**
+     * Returns the number of child tests that were executed for the current test path.
+     *
+     * @return the number of executed child tests
+     */
+    int getExecutedChildCount();
+
+    TestPathRootExecutionResult assertChildrenSkipped(String... testNames);
+
+    /**
+     * Returns the number of child tests that were skipped for the current test path.
+     *
+     * @return the number of skipped child tests
+     */
+    int getSkippedChildCount();
 
     TestPathRootExecutionResult assertStdout(Matcher<? super String> matcher);
 
@@ -48,7 +64,11 @@ public interface TestPathRootExecutionResult {
 
     TestPathRootExecutionResult assertHasResult(TestResult.ResultType resultType);
 
+    TestPathRootExecutionResult assertDisplayName(Matcher<? super String> matcher);
+
     TestPathRootExecutionResult assertFailureMessages(Matcher<? super String> matcher);
+
+    String getFailureMessages();
 
     /**
      * Asserts that the given metadata keys are present in the test result.

@@ -202,7 +202,7 @@ abstract class AbstractTestFilteringIntegrationTest extends AbstractTestingMulti
         then:
         def result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted("FooTest")
-        result.testClass("FooTest").assertTestCount(2, 0, 0)
+        result.testClass("FooTest").assertTestCount(2, 0)
     }
 
     def "executes multiple methods from different classes"() {
