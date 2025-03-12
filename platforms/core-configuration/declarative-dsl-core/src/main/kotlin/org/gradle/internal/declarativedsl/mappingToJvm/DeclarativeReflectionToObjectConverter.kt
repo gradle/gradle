@@ -77,8 +77,7 @@ class DeclarativeReflectionToObjectConverter(
     private
     fun applyPropertyValue(receiver: ObjectOrigin, property: DataProperty, assigned: PropertyValueReflection) {
         when (assigned.assignmentMethod) {
-            is AssignmentMethod.Property -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
-            AssignmentMethod.Augmentation -> TODO()
+            is AssignmentMethod.Property, is AssignmentMethod.Augmentation -> setPropertyValue(receiver, property, getObjectByResolvedOrigin(assigned.value.objectOrigin).instance)
             is AssignmentMethod.BuilderFunction -> invokeBuilderFunction(receiver, assigned.assignmentMethod.function, assigned.value.objectOrigin)
             is AssignmentMethod.AsConstructed -> Unit // the value should have already been passed to the constructor or the factory function
         }
