@@ -29,7 +29,7 @@ import org.gradle.internal.declarativedsl.evaluator.main.SimpleAnalysisEvaluator
 import org.gradle.internal.declarativedsl.evaluator.runner.AnalysisStepResult
 import org.gradle.internal.declarativedsl.evaluator.runner.EvaluationResult
 import org.gradle.internal.declarativedsl.language.SourceIdentifier
-import org.gradle.internal.declarativedsl.objectGraph.AssignmentResolver.AssignmentResolutionResult.Assigned
+import org.gradle.internal.declarativedsl.objectGraph.PropertyLinksResolver.AssignmentResolutionResult.Assigned
 import org.gradle.internal.declarativedsl.parsing.DefaultLanguageTreeBuilder
 import org.gradle.internal.declarativedsl.parsing.ParserKt
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -134,7 +134,7 @@ class DeclarativeDslToolingModelsCrossVersionTest extends AbstractDeclarativeDsl
         and: 'defaults get properly applied'
         // check the conventions in the resolution results, they should be there, and it is independent of the DOM overlay
         def projectEvaluated = project.stepResults.values()[0] as EvaluationResult.Evaluated<AnalysisStepResult>
-        projectEvaluated.stepResult.assignmentTrace.resolvedAssignments.entrySet().any {
+        projectEvaluated.stepResult.propertyLinkTrace.finalAssignments.entrySet().any {
             it.key.property.name == "id" && ((it.value as Assigned).objectOrigin as ObjectOrigin.ConstantOrigin).literal.value == "default"
         }
 
