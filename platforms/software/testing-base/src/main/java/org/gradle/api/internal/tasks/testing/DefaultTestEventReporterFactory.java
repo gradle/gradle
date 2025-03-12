@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.serializable.SerializableTestResultStore;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.testing.GroupTestEventReporter;
-import org.gradle.api.tasks.testing.TestEventReporterFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -37,9 +36,11 @@ import org.jspecify.annotations.NullMarked;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.LongFunction;
+import java.util.function.Supplier;
 
 @NullMarked
-public final class DefaultTestEventReporterFactory implements TestEventReporterFactory {
+public final class DefaultTestEventReporterFactory implements TestEventReporterFactoryInternal {
 
     private final ListenerManager listenerManager;
     private final StyledTextOutputFactory textOutputFactory;
@@ -60,11 +61,7 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
     }
 
     @Override
-    public GroupTestEventReporter createTestEventReporter(
-        String rootName,
-        Directory binaryResultsDirectory,
-        Directory htmlReportDirectory
-    ) {
+    public GroupTestEventReporter createTestEventReporter(String rootName, Directory binaryResultsDirectory, Directory htmlReportDirectory) {
         ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster = listenerManager.createAnonymousBroadcaster(TestListenerInternal.class);
 
         // Renders console output for the task
@@ -73,29 +70,45 @@ public final class DefaultTestEventReporterFactory implements TestEventReporterF
         // Emits progress logger events
         testListenerInternalBroadcaster.add(new TestEventProgressListener(progressLoggerFactory));
 
+        GenericHtmlTestReportGenerator reportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
+        return createInternalTestEventReporter(
+            id -> new DefaultTestSuiteDescriptor(id, rootName),
+            binaryResultsDirectory,
+            reportGenerator,
+            testListenerInternalBroadcaster,
+            false,
+            FailureReportResult::noAction
+        );
+    }
+
+    @Override
+    public GroupTestEventReporterInternal createInternalTestEventReporter(
+        LongFunction<TestDescriptorInternal> rootDescriptorFactory,
+        Directory binaryResultsDirectory,
+        TestReportGenerator reportGenerator,
+        ListenerBroadcast<TestListenerInternal> testListenerInternalBroadcaster,
+        boolean skipFirstLevelOnDisk,
+        Supplier<FailureReportResult> detectOtherFailures
+    ) {
         // Record all emitted results to disk
         Path binaryResultsDir = binaryResultsDirectory.getAsFile().toPath();
-        SerializableTestResultStore.Writer resultsSerializingListener = newResultsSerializingListener(binaryResultsDir);
+        SerializableTestResultStore.Writer resultsSerializingListener;
+        try {
+            resultsSerializingListener = new SerializableTestResultStore(binaryResultsDir).openWriter(skipFirstLevelOnDisk);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
         testListenerInternalBroadcaster.add(resultsSerializingListener);
 
-        GenericHtmlTestReportGenerator htmlReportGenerator = objectFactory.newInstance(GenericHtmlTestReportGenerator.class, htmlReportDirectory.getAsFile().toPath());
-
         return new LifecycleTrackingGroupTestEventReporter(new DefaultRootTestEventReporter(
-            rootName,
+            rootDescriptorFactory,
             testListenerInternalBroadcaster.getSource(),
             new LongIdGenerator(),
             binaryResultsDir,
             resultsSerializingListener,
-            htmlReportGenerator,
-            listenerManager.getBroadcaster(TestExecutionResultsListener.class)
+            reportGenerator,
+            listenerManager.getBroadcaster(TestExecutionResultsListener.class),
+            detectOtherFailures
         ));
-    }
-
-    private SerializableTestResultStore.Writer newResultsSerializingListener(Path binaryResultsDir) {
-        try {
-            return new SerializableTestResultStore(binaryResultsDir).openWriter();
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 }

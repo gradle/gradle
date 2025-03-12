@@ -129,7 +129,7 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         executedAndNotSkipped(":test")
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         def testClass = result.testClass("Not a real class name")
-        testClass.assertTestCount(1, 0, 0)
+        testClass.assertTestCount(1, 0)
         testClass.assertTestPassed("someTest")
     }
 

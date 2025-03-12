@@ -75,7 +75,7 @@ abstract class AbstractJUnitSuitesIntegrationTest extends AbstractTestingMultiVe
         then:
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.testClass("org.gradle.SomeTest").assertTestCount(2, 0, 0)
+        result.testClass("org.gradle.SomeTest").assertTestCount(2, 0)
         result.testClass("org.gradle.SomeTest").assertTestsExecuted("ok", "ok")
     }
 }
