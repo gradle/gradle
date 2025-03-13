@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.GradleVersion
+import org.gradle.util.Matchers
 import spock.lang.Issue
 
 @Issue(["https://github.com/gradle/gradle/issues/17812", "https://github.com/gradle/gradle/issues/22090"])
@@ -84,9 +85,11 @@ class ParallelStaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails("a:foo", "b:foo", "--parallel")
-        failure.assertHasDescription("Could not create task ':a:bar'.")
+
+        // We don't know which task will fail first and stop the built, but they will fail in the same way and is acceptable
+        failure.assertThatDescription(Matchers.matchesRegexp("Could not create task ':(a|b):bar'\\."))
         failure.assertHasCause("Could not create task of type 'BadTask'.")
-        failure.assertHasCause("Resolution of the configuration ':a:myconf' was attempted without an exclusive lock. This is unsafe and not allowed.")
+        failure.assertThatCause(Matchers.matchesRegexp("Resolution of the configuration ':(a|b):myconf' was attempted without an exclusive lock\\. This is unsafe and not allowed\\."))
         failure.assertHasResolution("For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html.html#sub:resolving-unsafe-configuration-resolution-errors in the Gradle documentation.")
     }
 }

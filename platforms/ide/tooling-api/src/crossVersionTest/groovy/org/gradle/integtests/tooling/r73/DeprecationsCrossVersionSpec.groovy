@@ -42,7 +42,7 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
         }
     }
 
-    @TargetGradleVersion(">=8.14")
+    @TargetGradleVersion("current")
     def "resolving configuration from a project other than its target fails in newer Gradle versions"() {
         given:
         setupBuild()
