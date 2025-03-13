@@ -234,7 +234,7 @@ public class FileUtils {
      * @return new file name, e.g. name-new.zip
      */
     public static String addSuffixToName(String filename, String suffix) {
-        int dotIndex = filename.lastIndexOf('.');
+        int dotIndex = filename.indexOf('.');
 
         if (dotIndex > 0) {
             String name = filename.substring(0, dotIndex);
