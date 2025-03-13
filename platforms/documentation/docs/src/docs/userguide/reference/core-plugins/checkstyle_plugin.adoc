@@ -148,9 +148,10 @@ tasks.withType(Checkstyle).configureEach {
 ----
 
 This approach offers several advantages:
-* **Decoupling**: Checkstyle execution is isolated from the project's JDK, enabling compatibility without altering your build’s core environment.
-* **Automation**: Gradle’s toolchain support automatically provisions the specified JDK, streamlining setup and ensuring consistency across environments.
-* **Sustainability**: It eliminates reliance on community-maintained backports, which may lag behind official releases or introduce maintenance overhead.
+
+- **Decoupling**: Checkstyle execution is isolated from the project's JDK, enabling compatibility without altering your build’s core environment.
+- **Automation**: Gradle’s toolchain support automatically provisions the specified JDK, streamlining setup and ensuring consistency across environments.
+- **Sustainability**: It eliminates reliance on community-maintained backports, which may lag behind official releases or introduce maintenance overhead.
 
 We strongly recommend adopting this configuration as the preferred method for managing Checkstyle’s JDK requirements, particularly as the ecosystem progresses toward JDK 17 and beyond.
 
