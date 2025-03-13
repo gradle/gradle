@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
  * A container of the artifacts visited during graph traversal.
  */
 public interface VisitedArtifactSet {
+
     /**
      * Creates a set that selects the artifacts from this set that match the given criteria.
      * Implementations are lazy, so that the selection happens only when the contents are queried.
@@ -32,5 +33,6 @@ public interface VisitedArtifactSet {
      * Legacy method of artifact selection, intended for use by
      * {@link org.gradle.api.artifacts.LenientConfiguration}.
      */
-    SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec, boolean lenient);
+    SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec);
+
 }

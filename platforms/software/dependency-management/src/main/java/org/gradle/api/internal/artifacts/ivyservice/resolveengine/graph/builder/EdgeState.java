@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
-import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.attributes.Attribute;
@@ -25,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.attributes.AttributeMergingException;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
@@ -422,14 +420,6 @@ class EdgeState implements DependencyGraphEdge {
     @Nullable
     private ComponentState getSelectedComponent() {
         return selector.getTargetModule().getSelected();
-    }
-
-    @Override
-    public Dependency getOriginalDependency() {
-        if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
-            return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
-        }
-        return null;
     }
 
     @Override

@@ -15,9 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.specs.Spec;
-
-import java.io.File;
 import java.util.Set;
 
 /**
@@ -33,6 +30,7 @@ import java.util.Set;
  * </ul>
  */
 public interface ResolvedConfiguration {
+
     /**
      * Returns whether all dependencies were successfully retrieved or not.
      */
@@ -44,39 +42,15 @@ public interface ResolvedConfiguration {
     LenientConfiguration getLenientConfiguration();
 
     /**
-     * A resolve of a configuration that is not successful does not automatically throws an exception.
-     * Such a exception is only thrown if the result of a resolve is accessed. You can force the throwing
-     * of such an exception by calling this method.
+     * When a configuration fails to resolve, it does not automatically throw an exception.
+     * Exceptions are only thrown if the result of a resolution is accessed.
+     * If this configuration failed to resolve, this method will throw the resolution exception.
      *
      * <p>This method does nothing when resolution was successful.</p>
      *
      * @throws ResolveException when the resolve was not successful.
      */
     void rethrowFailure() throws ResolveException;
-
-    /**
-     * Returns the files for the configuration dependencies.
-     *
-     * @return The artifact files of the specified dependencies.
-     * @throws ResolveException when the resolve was not successful.
-     * @since 3.3
-     *
-     * @deprecated Use {@link ResolvableDependencies#getFiles()} instead.
-     */
-    @Deprecated
-    Set<File> getFiles() throws ResolveException;
-
-    /**
-     * Returns the files for the specified subset of configuration dependencies.
-     *
-     * @param dependencySpec The filter for the configuration dependencies.
-     * @return The artifact files of the specified dependencies.
-     * @throws ResolveException when the resolve was not successful.
-     *
-     * @deprecated Use an {@link ArtifactView} with a {@code componentFilter} instead.
-     */
-    @Deprecated
-    Set<File> getFiles(Spec<? super Dependency> dependencySpec) throws ResolveException;
 
     /**
      * Returns the {@link ResolvedDependency} instances for each direct dependency of the configuration. Via those
@@ -92,20 +66,6 @@ public interface ResolvedConfiguration {
     Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException;
 
     /**
-     * Returns the {@link ResolvedDependency} instances for each direct dependency of the configuration that matches
-     * the given spec. Via those you have access to all {@link ResolvedDependency} instances, including the transitive
-     * dependencies of the configuration.
-     *
-     * @param dependencySpec A filter for the dependencies to be resolved.
-     * @return A {@code ResolvedDependency} instance for each direct dependency.
-     * @throws ResolveException when the resolve was not successful.
-     *
-     * @deprecated Use {@link #getFirstLevelModuleDependencies()}.
-     */
-    @Deprecated
-    Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec) throws ResolveException;
-
-    /**
      * Returns the set of artifact meta-data for this configuration.
      * <p>
      * Prefer {@link ResolvableDependencies#getArtifacts()}.
@@ -114,4 +74,5 @@ public interface ResolvedConfiguration {
      * @throws ResolveException when the resolve was not successful.
      */
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
+
 }

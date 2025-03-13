@@ -56,7 +56,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyArtifactsVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.CompositeDependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
@@ -65,15 +64,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.DefaultResolvedConfigurationBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolutionFailureCollector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedConfigurationDependencyGraphVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.ResolvedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResultsLoader;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResultGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AdhocHandlingComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.FileDependencyCollectingGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.StreamingResolutionResultBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.StoreSet;
@@ -280,15 +276,11 @@ public class ResolutionExecutor {
 
         VisitedArtifactSet visitedArtifacts = getVisitedArtifactSet(params, resolvers, graphResults, artifactsResults, dependenciesResolverFactory);
 
-        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(
-            // When resolving build dependencies, we ignore the dependencySpec, potentially capturing a greater
-            // set of build dependencies than actually required. This is because it takes a lot of extra information
-            // from the visited graph to properly filter artifacts by dependencySpec, and we don't want capture that when
-            // calculating build dependencies.
-            dependencySpec -> visitedArtifacts.select(getImplicitSelectionSpec(params))
+        return DefaultResolverResults.buildDependenciesResolved(
+            graphResults,
+            visitedArtifacts,
+            DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved()
         );
-
-        return DefaultResolverResults.buildDependenciesResolved(graphResults, visitedArtifacts, legacyResolverResults);
     }
 
     /**
@@ -320,7 +312,6 @@ public class ResolutionExecutor {
         ResolvedLocalComponentsResultGraphVisitor localComponentsVisitor = new ResolvedLocalComponentsResultGraphVisitor(currentBuild, projectStateRegistry);
 
         DefaultResolvedArtifactsBuilder artifactsBuilder = new DefaultResolvedArtifactsBuilder(buildProjectDependencies);
-        FileDependencyCollectingGraphVisitor fileDependencyVisitor = new FileDependencyCollectingGraphVisitor();
         ResolutionFailureCollector failureCollector = new ResolutionFailureCollector(componentSelectorConverter);
 
         ImmutableList.Builder<DependencyGraphVisitor> graphVisitors = ImmutableList.builder();
@@ -338,7 +329,7 @@ public class ResolutionExecutor {
 
         ComponentResolvers resolvers = getResolvers(params, legacyParams, repositories);
         CompositeDependencyArtifactsVisitor artifactVisitors = new CompositeDependencyArtifactsVisitor(ImmutableList.of(
-            oldModelVisitor, fileDependencyVisitor, artifactsBuilder
+            oldModelVisitor, artifactsBuilder
         ));
         graphVisitors.add(artifactVisitorFor(artifactVisitors, params.getArtifactTypeRegistry()));
 
@@ -346,8 +337,6 @@ public class ResolutionExecutor {
         localComponentsVisitor.complete(ConfigurationInternal.InternalState.GRAPH_RESOLVED);
 
         VisitedArtifactResults artifactsResults = artifactsBuilder.complete();
-        VisitedFileDependencyResults fileDependencyResults = fileDependencyVisitor.complete();
-        ResolvedGraphResults legacyGraphResults = oldModelBuilder.complete();
 
         Set<UnresolvedDependency> lockingFailures = Collections.emptySet();
         if (lockingVisitor != null) {
@@ -379,22 +368,22 @@ public class ResolutionExecutor {
         VisitedArtifactSet visitedArtifacts = getVisitedArtifactSet(params, resolvers, graphResults, artifactsResults, dependenciesResolverFactory);
 
         // Legacy results
-        TransientConfigurationResultsLoader transientConfigurationResultsFactory = new TransientConfigurationResultsLoader(oldTransientModelBuilder, legacyGraphResults);
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(
             params.getResolutionHost(),
             graphResults,
             visitedArtifacts,
-            fileDependencyResults,
-            transientConfigurationResultsFactory,
+            oldTransientModelBuilder::load,
             artifactSetResolver,
             getImplicitSelectionSpec(params)
         );
-        ResolverResults.LegacyResolverResults legacyResolverResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            lenientConfiguration,
-            new DefaultResolvedConfiguration(graphResults, params.getResolutionHost(), visitedArtifacts, lenientConfiguration)
-        );
 
-        return DefaultResolverResults.graphResolved(graphResults, visitedArtifacts, legacyResolverResults);
+        DefaultResolvedConfiguration configuration = new DefaultResolvedConfiguration(graphResults, params.getResolutionHost(), visitedArtifacts, lenientConfiguration);
+
+        return DefaultResolverResults.graphResolved(
+            graphResults,
+            visitedArtifacts,
+            DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(configuration)
+        );
     }
 
     private static ArtifactSelectionSpec getImplicitSelectionSpec(ResolutionParameters params) {
