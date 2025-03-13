@@ -23,6 +23,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -84,6 +85,13 @@ public class Providers {
         } else {
             return of(value);
         }
+    }
+
+    public static void nagOnToString() {
+        DeprecationLogger.deprecateBehaviour("Calling toString() on a Provider")
+            .willBecomeAnErrorInGradle9()
+            .undocumented()
+            .nagUser();
     }
 
     public interface SerializableCallable<V> extends Callable<V>, Serializable {
