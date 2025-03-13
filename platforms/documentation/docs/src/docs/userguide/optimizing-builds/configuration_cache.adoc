@@ -261,6 +261,7 @@ This is more likely if you have <<configuration_cache#config_cache:usage:ignore_
 See the <<configuration_cache#config_cache:requirements>> and <<configuration_cache#config_cache:not_yet_implemented>> sections for more details.
 
 The Configuration Cache state is stored in a `.gradle/configuration-cache` directory in the root of your Gradle build.
+
 To manually invalidate the cache, delete this directory:
 
 [source,text]
@@ -276,7 +277,7 @@ Entries that have not been used for 7 days are automatically deleted.
 
 To ensure a smooth transition as Gradle stabilizes configuration caching, a strict mode has been implemented behind a feature flag.
 
-You can enable the feature flag in your build by adding:
+You can enable the feature flag in your build as follows:
 
 ====
 include::sample[dir="snippets/configurationCache/stableFeatureFlag/kotlin",files="settings.gradle.kts[]"]
@@ -286,7 +287,7 @@ include::sample[dir="snippets/configurationCache/stableFeatureFlag/groovy",files
 The `STABLE_CONFIGURATION_CACHE` feature flag enforces stricter validation and introduces the following behavior:
 
 Undeclared Shared Build Service Usage::
-Tasks using a <<build_services#build_services, shared build service>> without explicitly declaring the requirement via the Task.usesService method will trigger a deprecation warning.
+Tasks using a <<build_services#build_services, shared Build Service>> without explicitly declaring the requirement via the `Task.usesService` method will trigger a deprecation warning.
 
 Additionally, when the Configuration Cache is not enabled but this feature flag is present, deprecations for the following <<config_cache:requirements, Configuration Cache requirements>> will be enforced:
 
@@ -325,7 +326,7 @@ For example to enable the Configuration Cache, turning problems into warnings, a
 You can also choose to only enable it for a given run configuration.
 In this case, leave the `Templates > Gradle` configuration untouched and edit each run configuration as you see fit.
 
-Combining these two ways you can enable globally and disable for certain run configurations, or the opposite.
+Using these methods together, you can enable the Configuration Cache globally while disabling it for certain run configurations, or vice versa.
 
 [TIP]
 ====
@@ -444,7 +445,7 @@ link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_
 [[config_cache:plugins:community]]
 === Community Plugins
 
-Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of community plugins.
+Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of Community Plugins.
 
 [[config_cache:troubleshooting]]
 == Troubleshooting
@@ -514,6 +515,7 @@ Configuration Cache entry reused with 1 problem.
 Gradle will successfully store and reuse the Configuration Cache while continuing to report the problem.
 
 The report and console logs provide links to guidance on resolving detected issues.
+
 Here’s a corrected version of the example build script:
 
 ====
@@ -572,7 +574,7 @@ Continue reading to learn how to fully adopt the Configuration Cache for your bu
 [[config_cache:task_opt_out]]
 === Declare a Task Incompatible with the Configuration Cache
 
-You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[Task.notCompatibleWithConfigurationCache()] method:
+You can explicitly mark a task as incompatible with the Configuration Cache using the link:{javadocPath}/org/gradle/api/Task.html#notCompatibleWithConfigurationCache-java.lang.String-[`Task.notCompatibleWithConfigurationCache()`] method:
 
 ====
 include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=resolve-all]"]
@@ -663,7 +665,7 @@ Once your developer workflow (e.g., running tests from the IDE) is stable, consi
 Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
 
 The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
-You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[BuildFeatures] service into your code.
+You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
 
 This information can be used to:
 
@@ -677,7 +679,8 @@ This information can be used to:
 Gradle releases continuously enhance the Configuration Cache by detecting more cases where configuration logic interacts with the environment.
 These improvements increase cache correctness by preventing false cache hits but also introduce stricter rules that plugins and build logic must follow for optimal caching.
 
-Some newly detected configuration inputs may not impact the configured tasks but can still cause cache invalidation. To minimize unnecessary cache misses, follow these steps:
+Some newly detected configuration inputs may not impact the configured tasks but can still cause cache invalidation.
+To minimize unnecessary cache misses, follow these steps:
 
 * Identify problematic configuration inputs using the <<configuration_cache#config_cache:troubleshooting, Configuration Cache report>>.
 ** Fix undeclared configuration inputs accessed by project build logic.
@@ -719,7 +722,7 @@ These options are intended as temporary workarounds and will be removed in futur
 Gradle TestKit is a library designed to facilitate testing Gradle plugins and build logic.
 For general guidance on using TestKit, refer to the <<test_kit.adoc#test_kit, dedicated chapter>>.
 
-To test your build logic with the Configuration Cache enabled, pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[GradleRunner], or use one of the other methods described in <<configuration_cache.adoc#config_cache:usage:enable, Enabling the Configuration Cache>>.
+To test your build logic with the Configuration Cache enabled, pass the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[`GradleRunner`], or use one of the other methods described in <<configuration_cache.adoc#config_cache:usage:enable, Enabling the Configuration Cache>>.
 
 To properly test Configuration Cache behavior, tasks must be executed twice:
 
@@ -771,7 +774,8 @@ These restrictions exist because these types cannot easily be stored or reconstr
 ==== Live JVM State Types
 
 Live JVM state types (e.g., `ClassLoader`, `Thread`, `OutputStream`, `Socket`) are disallowed, as they do not represent task inputs or outputs.
-The only exceptions are standard streams (`System.in`, `System.out`, `System.err`), which can be used as parameters for link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[Exec] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[JavaExec] tasks.
+
+The only exceptions are standard streams (`System.in`, `System.out`, `System.err`), which can be used as parameters for link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] and link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] tasks.
 
 ==== Gradle Model Types
 
@@ -826,6 +830,7 @@ include::sample[dir="snippets/configurationCache/disallowedTypes/groovy",files="
 <1> This will be reported as a problem because the `doLast {}` closure is capturing a reference to the `SourceSet`
 
 You still need to fulfil the same requirement, that is not referencing a disallowed type.
+
 This is how the task declaration above can be fixed:
 
 ====
@@ -1030,7 +1035,7 @@ Best Practices:
 * Do not rely on reference equality for standard Java, Groovy, Kotlin, or Gradle-defined types.
 
 Reference equality is never preserved between tasks—each task is an isolated "realm."
-To share objects across tasks, use a <<build_services#build_services, build service>> to wrap the shared state.
+To share objects across tasks, use a <<build_services#build_services, Build Service>> to wrap the shared state.
 
 [[config_cache:requirements:task_extensions]]
 === Accessing Task Extensions or Conventions
@@ -1047,8 +1052,8 @@ This includes listeners such as `BuildListener` or `TaskExecutionListener`.
 
 Recommended Alternatives:
 
-- Use <<build_services#build_services, build services>> to handle execution-time logic.
-- Register a build service to receive <<build_services#operation_listener, task execution notifications>>.
+- Use <<build_services#build_services, Build Services>> to handle execution-time logic.
+- Register a Build Service to receive <<build_services#operation_listener, task execution notifications>>.
 - Replace `buildFinished` listeners with <<dataflow_actions.adoc#dataflow_action, dataflow actions>> to manage build results.
 
 [[config_cache:requirements:external_processes]]
@@ -1056,7 +1061,7 @@ Recommended Alternatives:
 
 Plugin and build scripts should avoid running external processes at configuration time.
 
-In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is up-to-date.
+In general, it is preferred to run external processes in tasks with properly declared inputs and outputs to avoid unnecessary work when the task is `UP-TO-DATE`.
 However, if needed, you should only use the configuration-cache-compatible APIs described below instead of Java and Groovy standard APIs, or Gradle-provided methods `Project.exec`, `Project.javaexec`, `ExecOperations.exec`, and `ExecOperations.javaexec`.
 The flexibility of these methods prevents Gradle from determining how the calls impact the build configuration, making it difficult to ensure that the Configuration Cache entry can be safely reused.
 
@@ -1069,7 +1074,7 @@ include::sample[dir="snippets/valueProviders/externalProcessProvider/kotlin",fil
 include::sample[dir="snippets/valueProviders/externalProcessProvider/groovy",files="build.gradle[]"]
 ====
 
-For more complex cases, a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation with injected `ExecOperations` can be used.
+For more complex cases, a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation with injected `ExecOperations` can be used.
 This `ExecOperations` instance can be used at configuration time without restrictions:
 
 ====
@@ -1087,7 +1092,7 @@ include::sample[dir="snippets/valueProviders/externalProcessValueSource/groovy",
 ====
 
 In both approaches, if the value of the provider is used at configuration time then it will become a build configuration input.
-The external process will be executed for every build to determine if the Configuration Cache is up-to-date, so it is recommended to only call fast-running processes at configuration time.
+The external process will be executed for every build to determine if the Configuration Cache is `UP-TO-DATE`, so it is recommended to only call fast-running processes at configuration time.
 If the value changes then the cache is invalidated and the process will be run again during this build as part of the configuration phase.
 
 [[config_cache:requirements:reading_sys_props_and_env_vars]]
@@ -1135,7 +1140,7 @@ include::sample[dir="snippets/valueProviders/envVarsSysPropsDoPrefix/groovy",fil
 Note that the Configuration Cache would be invalidated not only when the value of the variable changes or the variable is removed but also
 when another variable with the matching prefix is added to the environment.
 
-For more complex use cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[ValueSource] implementation can be used.
+For more complex use cases a custom link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] implementation can be used.
 System properties and environment variables referenced in the code of the `ValueSource` do not become build configuration inputs, so any processing can be applied.
 Instead, the value of the `ValueSource` is recomputed each time the build runs and only if the value changes the Configuration Cache is invalidated.
 For example, a `ValueSource` can be used to get all environment variables with names containing the substring `JDK`:
@@ -1184,49 +1189,54 @@ In simple cases, when the libraries also provide command-line entry points (`pub
 [[config_cache:secrets]]
 == Handling of Credentials and Secrets
 
-The Configuration Cache has currently no option to prevent storing secrets that are used as inputs, and so they might end up in the serialized Configuration Cache entry which, by default, is stored under `.gradle/configuration-cache` in your project directory.
+Currently, the Configuration Cache does not have a built-in mechanism to prevent storing secrets used as inputs.
+As a result, secrets may end up in the serialized Configuration Cache entry, which, by default, is stored under `.gradle/configuration-cache` in your project directory.
 
 To mitigate the risk of accidental exposure, Gradle encrypts the Configuration Cache.
-Gradle transparently generates a machine-specific secret key as required, caches it under the
-`<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory and uses it to encrypt the data in the project specific caches.
+When required, Gradle transparently generates a machine-specific secret key, caches it under the
+`<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory, and uses it to encrypt data in the project-specific caches.
 
-To enhance security further, make sure to:
+To further enhance security, follow these recommendations:
 
-* secure access to Configuration Cache entries;
-* leverage `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` for storing secrets.
-The content of that file is not part of the Configuration Cache, only its fingerprint.
-If you store secrets in that file, care must be taken to protect access to the file content.
+- Secure access to Configuration Cache entries.
+- Use `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>/gradle.properties` to store secrets.
+The content of this file is **not** included in the Configuration Cache—only its fingerprint is.
+If storing secrets in this file, ensure access is **properly restricted**.
 
 See link:{gradle-issues}22618[gradle/gradle#22618].
 
 [[config_cache:secrets:configuring_encryption_key]]
 === Providing an Encryption Key with the `GRADLE_ENCRYPTION_KEY` Environment Variable
 
-By default, Gradle automatically generates and manages the encryption key as a Java keystore stored under the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
+By default, Gradle automatically generates and manages the encryption key as a Java keystore, stored under the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory.
 
-For environments where this is undesirable (for instance, when the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory is shared across machines), you may provide Gradle with the exact encryption key to use when reading or writing the cached configuration data via the `GRADLE_ENCRYPTION_KEY` environment variable.
+For environments where this behavior is undesirable—such as when the `<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>` directory is shared across multiple machines—you can explicitly provide an encryption key using the `GRADLE_ENCRYPTION_KEY` environment variable.
 
 [IMPORTANT]
 ====
-You must ensure that the same encryption key is consistently provided across multiple Gradle runs, or else Gradle will not be able to reuse existing cached configurations.
+The same encryption key **must be consistently provided** across multiple Gradle runs; otherwise, Gradle will be unable to reuse existing cached configurations.
 ====
 
 [[config_cache:secrets:generating_encryption_key]]
 === Generating an Encryption Key compatible with `GRADLE_ENCRYPTION_KEY`
 
-For Gradle to encrypt the Configuration Cache using a user-specified encryption key,
-you must run Gradle while having the GRADLE_ENCRYPTION_KEY environment variable set with a valid AES key, encoded as a Base64 string.
+To encrypt the Configuration Cache using a user-specified encryption key, Gradle requires the `GRADLE_ENCRYPTION_KEY` environment variable to be set with a valid AES key, encoded as a Base64 string.
 
-One way of generating a Base64-encoded AES-compatible key is by using a command like this:
+You can generate a Base64-encoded AES-compatible key using the following command:
 
-```
+[source,text]
+----
 ❯ openssl rand -base64 16
-```
+----
 
-This command should work on Linux, Mac OS, or on Windows, if using a tool like Cygwin.
+This command works on Linux and macOS, and on Windows if using a tool like Cygwin.
 
-You can then use the Base64-encoded key produced by that command and set it as the value of the
-`GRADLE_ENCRYPTION_KEY` environment variable.
+Once generated, set the Base64-encoded key as the value of the `GRADLE_ENCRYPTION_KEY` environment variable:
+
+[source,text]
+----
+❯ export GRADLE_ENCRYPTION_KEY="your-generated-key-here"
+----
 
 [[config_cache:not_yet_implemented]]
 == Not Yet Implemented
