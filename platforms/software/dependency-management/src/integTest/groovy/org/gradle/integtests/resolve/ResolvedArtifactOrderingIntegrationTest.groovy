@@ -67,61 +67,33 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
         checkArtifacts("unordered", ordered)
     }
 
-    private void checkLegacyOrder(List<?> ordered) {
-        checkLegacyArtifacts("unordered", ordered)
-        checkLegacyArtifacts("consumerFirst", ordered)
-        checkLegacyArtifacts("dependencyFirst", ordered)
-
-        3.times { executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
-        if (!GradleContextualExecuter.configCache) {
-            3.times { executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods") }
-        }
-
-        assert succeeds("checkLegacyunordered", "checkLegacyconsumerFirst", "checkLegacydependencyFirst")
-    }
-
-    private void checkLegacyArtifacts(String name, List<?> modules) {
-        def fileNames = toFileNames(modules).join(',')
-        buildFile << """
-            task checkLegacy${name} {
-                def filteredFiles = configurations.${name}.files { true }
-                doLast {
-                    assert filteredFiles.collect { it.name } == [${fileNames}]
-                    if (${!GradleContextualExecuter.configCache}) {
-                        // Don't check eager methods when CC is enabled
-                        assert configurations.${name}.resolvedConfiguration.getFiles { true }.collect { it.name } == [${fileNames}]
-                    }
-                }
-            }
-        """
-    }
-
     private void checkArtifacts(String name, List<?> modules) {
         def fileNames = toFileNames(modules).join(',')
         buildFile << """
             task check${name} {
-                def files = configurations.${name}
-                def incomingFiles = files.incoming.files
-                def artifactFiles = files.incoming.artifactView{}.files
-                def artifacts = files.incoming.artifactView{}.artifacts
+                def conf = configurations.${name}
+                def files = conf
+                def incomingFiles = conf.files
+                def artifactFiles = conf.incoming.artifactView { }.files
+                def artifacts = conf.incoming.artifactView { }.artifacts
+                def filteredArtifactFiles = conf.incoming.artifactView { componentFilter { true } }.files
+                def filteredArtifacts = conf.incoming.artifactView { componentFilter { true } }.artifacts
                 doLast {
                     assert files.collect { it.name } == [${fileNames}]
                     assert incomingFiles.collect { it.name } == [${fileNames}]
                     assert artifactFiles.collect { it.name } == [${fileNames}]
                     assert artifacts.collect { it.file.name } == [${fileNames}]
+                    assert filteredArtifactFiles.collect { it.name } == [${fileNames}]
+                    assert filteredArtifacts.collect { it.file.name } == [${fileNames}]
                     if (${!GradleContextualExecuter.configCache}) {
                         // Don't check eager methods when CC is enabled
                         assert configurations.${name}.resolve().collect { it.name } == [${fileNames}]
                         assert configurations.${name}.files.collect { it.name } == [${fileNames}]
-                        assert configurations.${name}.resolvedConfiguration.files.collect { it.name } == [${fileNames}]
                     }
                 }
             }
-"""
+        """
 
-        if (!GradleContextualExecuter.configCache) {
-            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles() method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration#getFiles instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_legacy_configuration_get_files")
-        }
         assert succeeds("check${name}")
     }
 
@@ -138,7 +110,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modC, modD, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 2"() {
@@ -150,7 +121,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 3"() {
@@ -162,7 +132,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modB, modC])
     }
 
     def "artifact collection has resolved artifact files and metadata 4"() {
@@ -174,7 +143,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 5"() {
@@ -186,7 +154,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata 6"() {
@@ -198,7 +165,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modB, modC, modD])
-        checkLegacyOrder([modA, modD, modC, modB])
     }
 
     def "artifact collection has resolved artifact files and metadata cycle"() {
@@ -211,7 +177,6 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered([modA, modC, modD, modB])
-        checkLegacyOrder([modA, modB, modC, modD])
     }
 
     def "project and external and file dependencies are ordered"() {
@@ -257,6 +222,5 @@ class ResolvedArtifactOrderingIntegrationTest extends AbstractHttpDependencyReso
 
         then:
         checkOrdered(['root-lib.jar', modA, 'a.jar', 'a-lib.jar', modB, 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modC, modD])
-        checkLegacyOrder(['root-lib.jar', modA, modC, modD, 'a.jar', 'a-lib.jar', 'b.jar', 'b-lib.jar', 'c.jar', 'c-lib.jar', modB])
     }
 }

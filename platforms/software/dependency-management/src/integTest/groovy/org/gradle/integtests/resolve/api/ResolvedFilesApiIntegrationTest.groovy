@@ -20,6 +20,26 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 
 class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    // These methods return Set<File>, and do not carry task dependencies
+    private static final List<String> FILE_EXPRESSION_LIST = [
+        "configurations.compile.files",
+        "configurations.compile.resolve()",
+    ]
+
+    // These methods return FileCollection, and are expected to track task dependencies
+    private static final List<String> FILE_COLLECTION_EXPRESSION_LIST = [
+        "configurations.compile",
+        "configurations.compile.incoming.files",
+        "configurations.compile.incoming.artifacts.artifactFiles",
+        "configurations.compile.incoming.artifactView { }.files",
+        "configurations.compile.incoming.artifactView { }.artifacts.artifactFiles",
+        "configurations.compile.incoming.artifactView { componentFilter { true } }.files",
+        "configurations.compile.incoming.artifactView { componentFilter { true } }.artifacts.artifactFiles",
+    ]
+
+    private static final List<String> ALL_EXPRESSIONS = FILE_EXPRESSION_LIST + FILE_COLLECTION_EXPRESSION_LIST
+
     def setup() {
         settingsFile << """
             rootProject.name = 'test'
@@ -68,18 +88,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
             task show {
                 doLast {
-                    println "files 1: " + configurations.compile.collect { it.name }
-                    println "files 2: " + configurations.compile.incoming.files.collect { it.name }
-                    println "files 3: " + configurations.compile.files.collect { it.name }
-                    println "files 4: " + configurations.compile.resolve().collect { it.name }
-                    println "files 5: " + configurations.compile.incoming.artifactView({}).files.collect { it.name }
-                    println "files 6: " + configurations.compile.incoming.artifactView({componentFilter { true }}).files.collect { it.name }
-                    println "files 7: " + configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles.collect { it.name }
-                    println "files 8: " + configurations.compile.files { true }.collect { it.name }
-                    println "files 9: " + configurations.compile.fileCollection { true }.collect { it.name }
-                    println "files 10: " + configurations.compile.fileCollection { true }.files.collect { it.name }
-                    println "files 11: " + configurations.compile.resolvedConfiguration.getFiles { true }.collect { it.name }
-                    println "files 12: " + configurations.compile.resolvedConfiguration.lenientConfiguration.getFiles { true }.collect { it.name }
+                    println "files: " + ${expression}.collect { it.name }
                 }
             }
         """
@@ -110,27 +119,13 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The LenientConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use a lenient ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         run 'show'
 
         then:
-        outputContains("files 1: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 2: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 3: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 4: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 5: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 6: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        outputContains("files 7: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
-        // Note: the filtered views order files differently. This is documenting existing behaviour rather than necessarily desired behaviour
-        outputContains("files 8: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
-        outputContains("files 9: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
-        outputContains("files 10: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
-        outputContains("files 11: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
-        outputContains("files 12: [test-lib.jar, a.jar, a-lib.jar, b.jar, b-lib.jar, test2-1.0.jar, test-1.0.jar")
+        outputContains("files: [test-lib.jar, a.jar, a-lib.jar, test-1.0.jar, b.jar, b-lib.jar, test2-1.0.jar")
+
+        where:
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -206,19 +201,14 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
-        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
-        result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+        if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
+            result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+        }
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -281,19 +271,14 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
-        2.times { maybeExpectDeprecation(expression) }
         succeeds("show")
         output.contains("files: [a-free.jar, b-paid.jar]")
-        result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+        if (FILE_COLLECTION_EXPRESSION_LIST.contains(expression)) {
+            result.assertTasksExecuted(':a:freeJar', ':b:paidJar', ':show')
+        }
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -342,7 +327,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
-        maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -355,17 +339,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
           - Provides flavor 'paid' but the consumer didn't ask for it""")
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.files"                                                                     | _
-        "configurations.compile.resolve()"                                                                 | _
-        "configurations.compile.files { true }"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -423,7 +397,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
-        maybeExpectDeprecation(expression)
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
   - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
@@ -446,17 +419,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
           - Doesn't say anything about usage (required 'compile')""")
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.files"                                                                     | _
-        "configurations.compile.resolve()"                                                                 | _
-        "configurations.compile.files { true }"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -488,7 +451,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         m.pom.expectGetBroken()
 
         when:
-        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -497,17 +459,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         failure.assertHasCause("Could not resolve org:test2:2.0.")
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.files"                                                                     | _
-        "configurations.compile.resolve()"                                                                 | _
-        "configurations.compile.files { true }"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -542,7 +494,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         m2.artifact.expectGet()
 
         when:
-        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -550,17 +501,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         failure.assertHasCause("Could not find test-1.0.jar (org:test:1.0).")
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.files"                                                                     | _
-        "configurations.compile.resolve()"                                                                 | _
-        "configurations.compile.files { true }"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -580,8 +521,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
             }
         """
 
-        when:
-        maybeExpectDeprecation(expression)
+        when:\
         fails 'show'
 
         then:
@@ -589,17 +529,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         failure.assertHasCause("broken")
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.files"                                                                     | _
-        "configurations.compile.resolve()"                                                                 | _
-        "configurations.compile.files { true }"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
+        expression << ALL_EXPRESSIONS
     }
 
     @ToBeFixedForConfigurationCache(because = "task uses Configuration API")
@@ -646,7 +576,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         m2.artifact.expectGetBroken()
 
         when:
-        maybeExpectDeprecation(expression)
         fails 'show'
 
         then:
@@ -658,53 +587,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
 
         where:
-        expression                                                                                         | _
-        "configurations.compile"                                                                           | _
-        "configurations.compile.incoming.files"                                                            | _
-        "configurations.compile.files"                                                                     | _
-        "configurations.compile.resolve()"                                                                 | _
-        "configurations.compile.files { true }"                                                            | _
-        "configurations.compile.fileCollection { true }"                                                   | _
-        "configurations.compile.resolvedConfiguration.getFiles { true }"                                   | _
-        "configurations.compile.incoming.artifactView({}).files"                                           | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).files"                   | _
-        "configurations.compile.incoming.artifactView({componentFilter { true }}).artifacts.artifactFiles" | _
-    }
-
-    def "filtered file and fileCollection methods are deprecated"() {
-        given:
-        buildFile << """
-            $header
-
-            configurations {
-                conf
-            }
-
-            def dep = dependencies.create("org:dep:1.0")
-
-            task resolve {
-                Closure depClosure = { d -> true }
-                Spec<Dependency> depSpec = (d) -> true
-
-                configurations.conf.files(dep)
-                configurations.conf.files(depSpec)
-                configurations.conf.files(depClosure)
-                configurations.conf.fileCollection(dep)
-                configurations.conf.fileCollection(depSpec)
-                configurations.conf.fileCollection(depClosure)
-            }
-        """
-
-        when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Dependency...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Dependency...) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-
-        then:
-        succeeds "help"
+        expression << ALL_EXPRESSIONS
     }
 
     private String freeAndPaidFlavoredJars(String prefix) {
@@ -723,16 +606,5 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
                 }
             }
         """
-    }
-
-    def maybeExpectDeprecation(String expression) {
-        if (expression.contains("files { true }")) {
-            executer.expectDocumentedDeprecationWarning("The Configuration.files(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        } else if (expression.contains("fileCollection { true }")) {
-            executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        } else if (expression.contains("configurations.compile.resolvedConfiguration.getFiles { true }")) {
-            executer.expectDocumentedDeprecationWarning("The ResolvedConfiguration.getFiles(Spec) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use an ArtifactView with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
-        }
-        true
     }
 }

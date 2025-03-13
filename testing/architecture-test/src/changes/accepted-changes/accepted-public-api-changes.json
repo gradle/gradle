@@ -2,7 +2,111 @@
     "acceptedApiChanges": [
         {
             "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.fileCollection(groovy.lang.Closure)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.fileCollection(org.gradle.api.artifacts.Dependency[])",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.fileCollection(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.files(groovy.lang.Closure)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.files(org.gradle.api.artifacts.Dependency[])",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
+            "member": "Method org.gradle.api.artifacts.Configuration.files(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.Configuration",
             "member": "Method org.gradle.api.artifacts.Configuration.getUploadTaskName()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.LenientConfiguration",
+            "member": "Method org.gradle.api.artifacts.LenientConfiguration.getArtifacts(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.LenientConfiguration",
+            "member": "Method org.gradle.api.artifacts.LenientConfiguration.getFiles()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.LenientConfiguration",
+            "member": "Method org.gradle.api.artifacts.LenientConfiguration.getFiles(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.LenientConfiguration",
+            "member": "Method org.gradle.api.artifacts.LenientConfiguration.getFirstLevelModuleDependencies(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ResolvedConfiguration",
+            "member": "Method org.gradle.api.artifacts.ResolvedConfiguration.getFiles()",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ResolvedConfiguration",
+            "member": "Method org.gradle.api.artifacts.ResolvedConfiguration.getFiles(org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ResolvedConfiguration",
+            "member": "Method org.gradle.api.artifacts.ResolvedConfiguration.getFirstLevelModuleDependencies(org.gradle.api.specs.Spec)",
             "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
@@ -420,6 +524,38 @@
             "type": "org.gradle.jvm.application.tasks.CreateStartScripts",
             "member": "Method org.gradle.jvm.application.tasks.CreateStartScripts.setMainClassName(java.lang.String)",
             "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.fileCollection(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.artifacts.Dependency[])",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.fileCollection(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.files(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.artifacts.Dependency[])",
+            "acceptation": "Removed deprecated method",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ConfigurationDeprecatedExtensionsKt.files(org.gradle.api.NamedDomainObjectProvider,org.gradle.api.specs.Spec)",
+            "acceptation": "Removed deprecated method",
             "changes": [
                 "Method has been removed"
             ]

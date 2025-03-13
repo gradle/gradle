@@ -237,43 +237,6 @@ val <T : Configuration> NamedDomainObjectProvider<T>.hierarchy: Set<Configuratio
 fun <T : Configuration> NamedDomainObjectProvider<T>.resolve(): Set<File> =
     get().resolve()
 
-
-/**
- * See [Configuration.files].
- */
-@Suppress("DEPRECATION")
-@Deprecated(DEPRECATION_MESSAGE, replaceWith = ReplaceWith("get().files(dependencySpec)"), level = DeprecationLevel.HIDDEN)
-fun <T : Configuration> NamedDomainObjectProvider<T>.files(dependencySpec: Spec<Dependency>): Set<File> =
-    get().files(dependencySpec)
-
-
-/**
- * See [Configuration.files].
- */
-@Suppress("DEPRECATION")
-@Deprecated(DEPRECATION_MESSAGE, replaceWith = ReplaceWith("get().files(dependencies)"), level = DeprecationLevel.HIDDEN)
-fun <T : Configuration> NamedDomainObjectProvider<T>.files(vararg dependencies: Dependency): Set<File> =
-    get().files(*dependencies)
-
-
-/**
- * See [Configuration.fileCollection].
- */
-@Suppress("DEPRECATION")
-@Deprecated(DEPRECATION_MESSAGE, replaceWith = ReplaceWith("get().fileCollection(dependencySpec)"), level = DeprecationLevel.HIDDEN)
-fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(dependencySpec: Spec<Dependency>): FileCollection =
-    get().fileCollection(dependencySpec)
-
-
-/**
- * See [Configuration.fileCollection].
- */
-@Suppress("DEPRECATION")
-@Deprecated(DEPRECATION_MESSAGE, replaceWith = ReplaceWith("get().fileCollection(dependencies)"), level = DeprecationLevel.HIDDEN)
-fun <T : Configuration> NamedDomainObjectProvider<T>.fileCollection(vararg dependencies: Dependency): FileCollection =
-    get().fileCollection(*dependencies)
-
-
 /**
  * See [Configuration.getResolvedConfiguration].
  */

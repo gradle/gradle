@@ -46,8 +46,8 @@ def coverageDataPath = configurations.create('coverageDataPath') {
 
 // Register a code coverage report task to generate the aggregated report
 def codeCoverageReport = tasks.register('codeCoverageReport', JacocoReport) {
-    classDirectories.from(classesPath.getIncoming().getFiles())
-    sourceDirectories.from(sourcesPath.getIncoming().artifactView { lenient(true) }.getFiles())
+    additionalClassDirs(classesPath.filter { it.isDirectory() })
+    additionalSourceDirs(sourcesPath.getIncoming().artifactView { lenient(true) }.getFiles())
     executionData(coverageDataPath.getIncoming().artifactView { lenient(true) }.getFiles().filter { it.exists() })
 
     reports {
