@@ -257,4 +257,12 @@ public interface Provider<T> {
      * @since 6.6
      */
     <U, R> Provider<R> zip(Provider<U> right, BiFunction<? super T, ? super U, ? extends @org.jetbrains.annotations.Nullable R> combiner);
+
+    /**
+     * String representation of the provider for debugging purposes.
+     *
+     * @return string representation of the provider for debugging purposes
+     * @since 8.14
+     */
+    String toDebugString();
 }
