@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -57,7 +58,6 @@ import org.gradle.buildinit.specs.BuildInitSpec;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
@@ -89,6 +89,11 @@ public abstract class InitBuild extends DefaultTask {
 
     // To be exposed as property, see https://github.com/gradle/gradle/issues/22625
     private final Directory projectDir = getProject().getLayout().getProjectDirectory();
+
+    private final Provider<List<String>> availableBuildTypes = getProviderFactory().provider(getProjectLayoutRegistry()::getAllTypes);
+    private final Provider<List<String>> availableDSLs = getProviderFactory().provider(BuildInitDsl::listSupported);
+    private final Provider<List<String>> availableTestFrameworks = getProviderFactory().provider(BuildInitTestFramework::listSupported);
+
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
@@ -589,9 +594,9 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     @OptionValues("type")
-    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<String> getAvailableBuildTypes() {
-        return getProjectLayoutRegistry().getAllTypes();
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAvailableBuildTypes() {
+        return availableBuildTypes;
     }
 
     /**
@@ -600,18 +605,18 @@ public abstract class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @OptionValues("dsl")
-    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<String> getAvailableDSLs() {
-        return BuildInitDsl.listSupported();
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAvailableDSLs() {
+        return availableDSLs;
     }
 
     /**
      * Available test frameworks.
      */
     @OptionValues("test-framework")
-    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<String> getAvailableTestFrameworks() {
-        return BuildInitTestFramework.listSupported();
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAvailableTestFrameworks() {
+        return availableTestFrameworks;
     }
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
