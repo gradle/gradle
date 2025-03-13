@@ -28,12 +28,12 @@ import org.gradle.api.provider.Provider;
  * <p>
  * Some flags disable features.
  * For instance, {@code --export-keys} flag always disables {@link BuildFeatures#getConfigurationCache() Configuration Cache}.
- * If {@code --configuration-cache} is provided at the same time, then {@code configurationCache.requested == true},
- * but {@code configurationCache.active == false}.
+ * If {@code --configuration-cache} is provided at the same time, then {@code configurationCache.requested.get() == true},
+ * but {@code configurationCache.active.get() == false}.
  * <p>
  * Some features automatically enable other features.
  * For instance, enabling {@link BuildFeatures#getIsolatedProjects() Isolated Projects} enables Configuration Cache.
- * So that {@code configurationCache.requested == null}, but {@code configurationCache.active == true}.
+ * So that {@code configurationCache.requested} has no value, but {@code configurationCache.active.get() == true}.
  *
  * @see BuildFeatures
  * @since 8.5
@@ -45,18 +45,18 @@ public interface BuildFeature {
      * <ul>
      *     <li>true - explicitly enabled (e.g. {@code --configuration-cache})
      *     <li>false - explicitly disabled (e.g. {@code --no-configuration-cache})
-     *     <li>null (value not present) - no preference, default behavior
+     *     <li>provider has no value - no preference, default behavior
      * </ul>
      *
      * Use {@link Provider#getOrNull()} to safely retrieve a nullable value or check {@link Provider#isPresent()}
-     * as the provider <b>can be undefined</b> in the case there is no explicit request.
+     * as the <b>provider can have no value</b> in the case there is no explicit request.
      * <p>
      * Note that enabling the feature doesn't necessary mean the feature will be activated.
      * See {@link BuildFeature} for more details.
      * <p>
      * Use {@link #getActive()} to get the effective status of the feature.
      *
-     * @return The provider that <b>can be undefined</b> and its value denotes the requested status of a feature
+     * @return The provider that <b>can have no value</b> and its value denotes the requested status of a feature
      * @since 8.5
      */
     Provider<Boolean> getRequested();
@@ -75,7 +75,7 @@ public interface BuildFeature {
      * Note that a feature can get activated even if not explicitly enabled.
      * See {@link BuildFeature} for more details.
      *
-     * @return The provider that is always defined and its value denotes the effective status of a feature
+     * @return The provider that is always has a value and its value denotes the effective status of a feature
      * @since 8.5
      */
     Provider<Boolean> getActive();
