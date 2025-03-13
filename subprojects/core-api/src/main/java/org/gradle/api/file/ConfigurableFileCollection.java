@@ -42,14 +42,14 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
     /**
      * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
-     * @param paths The paths.
+     * @param paths The paths. {@code null} values are ignored.
      */
     void setFrom(Iterable<?> paths);
 
     /**
      * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
-     * @param paths The paths.
+     * @param paths The paths. {@code null} values are ignored.
      */
     void setFrom(Object... paths);
 
@@ -60,7 +60,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
      * to resolve this file collection.
      *
-     * @param paths The paths.
+     * @param paths The paths. {@code null} values are ignored.
      * @return this collection
      *
      * @since 8.8
@@ -75,7 +75,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
      * to resolve this file collection.
      *
-     * @param paths The paths.
+     * @param paths The paths. {@code null} values are ignored.
      * @return this collection
      *
      * @since 8.8
@@ -86,7 +86,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
     /**
      * Adds a set of source paths to this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
-     * @param paths The files to add.
+     * @param paths The files to add. {@code null} values are ignored.
      * @return this
      */
     ConfigurableFileCollection from(Object... paths);
