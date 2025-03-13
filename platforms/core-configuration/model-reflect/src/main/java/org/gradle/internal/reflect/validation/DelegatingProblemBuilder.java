@@ -126,11 +126,6 @@ class DelegatingProblemBuilder implements InternalProblemBuilder {
     }
 
     @Override
-    public <T extends AdditionalData> InternalProblemBuilder additionalDataInternal(T additionalDataInstance) {
-        return validateDelegate(delegate.additionalDataInternal(additionalDataInstance));
-    }
-
-    @Override
     public InternalProblemBuilder withException(Throwable t) {
         return validateDelegate(delegate.withException(t));
     }

@@ -80,9 +80,6 @@ public interface InternalProblemBuilder extends InternalProblemSpec {
     <T extends AdditionalData> InternalProblemBuilder additionalData(Class<T> type, Action<? super T> config);
 
     @Override
-    <T extends AdditionalData> InternalProblemBuilder additionalDataInternal(T additionalDataInstance);
-
-    @Override
     InternalProblemBuilder withException(Throwable t);
 
     @Override

@@ -52,7 +52,10 @@ class ServiceScopeValidatorWorkarounds {
         "org.gradle.nativeplatform.internal.DefaultTargetMachineFactory",
 
         // Build init feature of converting Maven to Gradle build stops working with CC
-        "org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry"
+        "org.gradle.buildinit.plugins.internal.ProjectLayoutSetupRegistry",
+
+        // Non-trivial case with generics
+        "org.gradle.internal.event.ListenerBroadcast"
     ));
 
     public static boolean shouldSuppressValidation(Class<?> serviceType) {
