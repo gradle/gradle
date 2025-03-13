@@ -20,7 +20,9 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 
+@ServiceScope(Scope.Gradle.class)
 @EventScope(Scope.Build.class)
 public interface TaskListenerInternal {
     /**
