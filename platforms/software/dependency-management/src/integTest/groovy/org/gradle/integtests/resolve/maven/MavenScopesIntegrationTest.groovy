@@ -109,7 +109,7 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
 
         then:
         failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
-        failure.assertHasCause("Cannot select a variant by configuration name from this component.")
+        failure.assertHasCause("Cannot select a variant by configuration name from 'test:target:1.0'.")
 
         where:
         scopeName << ["compile", "runtime", "test", "provided"]
@@ -129,7 +129,7 @@ class MavenScopesIntegrationTest extends AbstractDependencyResolutionTest {
 
         then:
         failure.assertHasCause("Could not resolve test:target:1.0.\nRequired by:\n    root project :")
-        failure.assertHasCause("Cannot select a variant by configuration name from this component.")
+        failure.assertHasCause("Cannot select a variant by configuration name from 'test:target:1.0'.")
     }
 
 }

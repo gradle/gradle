@@ -33,6 +33,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.ImmutableCapabilities
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
+import org.gradle.internal.component.local.model.LocalVariantGraphResolveState
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByAttributesException
 import org.gradle.internal.component.resolution.failure.exception.VariantSelectionByNameException
 import org.gradle.util.AttributeTestUtil
@@ -48,11 +51,14 @@ class LocalComponentDependencyMetadataTest extends Specification {
     ComponentIdentifier toComponentId = Stub(ComponentIdentifier) {
         getDisplayName() >> "[target]"
     }
-    ComponentGraphResolveMetadata toComponentMetadata = Mock(ComponentGraphResolveMetadata) {
-        getId() >> toComponentId
-        getModuleVersionId() >> Stub(ModuleVersionIdentifier)
-        getAttributesSchema() >> ImmutableAttributesSchema.EMPTY
-    }
+
+    ComponentGraphResolveMetadata toComponentMetadata = new LocalComponentGraphResolveMetadata(
+        Stub(ModuleVersionIdentifier),
+        toComponentId,
+        "status",
+        ImmutableAttributesSchema.EMPTY
+    )
+
     TestComponentState toComponent = Mock(TestComponentState) {
         getMetadata() >> toComponentMetadata
         getId() >> toComponentId
@@ -382,14 +388,14 @@ Configuration 'bar':
     }
 
 
-    interface TestComponentState extends ComponentGraphResolveState {
+    interface TestComponentState extends LocalComponentGraphResolveState {
         @Override
         TestGraphCandidates getCandidatesForGraphVariantSelection()
     }
 
     interface TestConfigurationState extends ConfigurationGraphResolveState, VariantGraphResolveState {}
 
-    class TestGraphCandidates implements GraphSelectionCandidates {
+    class TestGraphCandidates implements LocalComponentGraphResolveState.LocalComponentGraphSelectionCandidates {
         List<VariantGraphResolveState> variants = []
 
         @Override
@@ -405,6 +411,11 @@ Configuration 'bar':
         @Override
         VariantGraphResolveState getVariantByConfigurationName(String name) {
             variants.find { it -> it.name == name }
+        }
+
+        @Override
+        List<LocalVariantGraphResolveState> getAllSelectableVariants() {
+            return Collections.emptyList()
         }
     }
 }

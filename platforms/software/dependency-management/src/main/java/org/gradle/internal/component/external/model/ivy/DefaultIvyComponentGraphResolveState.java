@@ -76,8 +76,8 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
     }
 
     @Override
-    public GraphSelectionCandidates getCandidatesForGraphVariantSelection() {
-        return new IvyGraphSelectionCandidates(
+    public IvyGraphSelectionCandidates getCandidatesForGraphVariantSelection() {
+        return new DefaultIvyGraphSelectionCandidates(
             super.getCandidatesForGraphVariantSelection(),
             this::getConfigurationAsVariant
         );
@@ -102,11 +102,12 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
         }
     }
 
-    private static class IvyGraphSelectionCandidates implements GraphSelectionCandidates {
+    private static class DefaultIvyGraphSelectionCandidates implements IvyGraphSelectionCandidates {
+
         private final GraphSelectionCandidates candidates;
         private final Function<String, VariantGraphResolveState> configurationSupplier;
 
-        public IvyGraphSelectionCandidates(
+        public DefaultIvyGraphSelectionCandidates(
             GraphSelectionCandidates candidates,
             Function<String, VariantGraphResolveState> configurationSupplier
         ) {
@@ -130,6 +131,7 @@ public class DefaultIvyComponentGraphResolveState extends DefaultExternalModuleC
         public VariantGraphResolveState getVariantByConfigurationName(String name) {
             return configurationSupplier.apply(name);
         }
+
     }
 
 }

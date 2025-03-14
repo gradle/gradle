@@ -175,7 +175,6 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return Collections.emptyList();
         }
 
-        @Nullable
         @Override
         public VariantGraphResolveState getLegacyVariant() {
             return implicitVariantState.get();

@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model.ivy;
 
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.model.ConfigurationGraphResolveState;
+import org.gradle.internal.component.model.GraphSelectionCandidates;
+import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
@@ -37,5 +39,18 @@ public interface IvyComponentGraphResolveState extends ExternalModuleComponentGr
      */
     @Nullable
     ConfigurationGraphResolveState getConfiguration(String configurationName);
+
+    @Override
+    IvyGraphSelectionCandidates getCandidatesForGraphVariantSelection();
+
+    interface IvyGraphSelectionCandidates extends GraphSelectionCandidates {
+
+        /**
+         * Returns the variant that is identified by the given configuration name.
+         */
+        @Nullable
+        VariantGraphResolveState getVariantByConfigurationName(String name);
+
+    }
 
 }
