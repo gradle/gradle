@@ -48,7 +48,7 @@ dependencies {
     implementation(projects.hashing)
     implementation(projects.persistentCache)
     implementation(projects.serviceRegistryBuilder)
-//    implementation(projects.buildOperations)
+    implementation(projects.buildOperations)
     implementation(projects.messaging)
     implementation(projects.problemsApi)
     implementation(projects.workerMain)

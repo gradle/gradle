@@ -15,7 +15,7 @@ dependencies {
     api(projects.logging) {
         because("Because GradleVersion temporarily lives in the logging project until 9.0")
     }
-//    api(projects.messaging)
+    api(projects.messaging)
     api(projects.serialization)
     api(projects.stdlibJavaExtensions)
 
