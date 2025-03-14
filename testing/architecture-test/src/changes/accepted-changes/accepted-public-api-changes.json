@@ -1,6 +1,14 @@
 {
     "acceptedApiChanges": [
         {
+            "type": "org.gradle.api.artifacts.component.ProjectComponentSelector",
+            "member": "Method org.gradle.api.artifacts.component.ProjectComponentSelector.getBuildName()",
+            "acceptation": "Deprecated in 8.x",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.api.file.RelativePath",
             "member": "Method org.gradle.api.file.RelativePath.getParent()",
             "acceptation": "Method can return null values",
