@@ -24,6 +24,7 @@ import org.gradle.cache.internal.filelock.DefaultLockOptions
 import org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
 import org.gradle.cache.internal.locklistener.InetAddressProvider
+import org.gradle.cache.internal.locklistener.UnixDomainSocketFileCommunicatorProvider
 import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.remote.internal.inet.InetAddressFactory
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
@@ -50,8 +51,8 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
             return addressFactory.localBindingAddress
         }
     }
-    FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
-    FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, addressProvider)
+    FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, addressProvider, new UnixDomainSocketFileCommunicatorProvider())
+    FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, addressProvider, new UnixDomainSocketFileCommunicatorProvider())
     FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler)
     FileLockManager manager2 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler2)
 
@@ -102,8 +103,8 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         FileLockContentionHandler contentionHandler3 = Mock(FileLockContentionHandler)
         FileLockManager manager3 = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler3)
 
-        int port1 = contentionHandler.communicator.socket.localPort
-        int port2 = contentionHandler2.communicator.socket.localPort
+        int port1 = contentionHandler.communicator.getPort()
+        int port2 = contentionHandler2.communicator.getPort()
 
         def file = tmpDir.file("lock-file.bin")
         FileLock lock1 = createLock(Exclusive, file, manager)
@@ -113,14 +114,14 @@ class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
         createLock(Exclusive, file, manager3)
 
         then:
-        1 * contentionHandler3.maybePingOwner(port1, _, _, _, _) >> { int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
+        1 * contentionHandler3.maybePingOwner(_, port1, _, _, _, _) >> { String pid, int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
             assert timeElapsed < 20
             lock1.close()
             lock2 = createLock(Exclusive, file, manager2)
             Thread.sleep(50)
             return false
         }
-        1 * contentionHandler3.maybePingOwner(port2, _, _, _, _)  >> { int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
+        1 * contentionHandler3.maybePingOwner(_, port2, _, _, _, _)  >> { String pid, int port, long lockId, String displayName, long timeElapsed, FileLockReleasedSignal signal ->
             assert timeElapsed < 20
             lock2.close()
             return false
