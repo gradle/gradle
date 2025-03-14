@@ -70,6 +70,7 @@ abstract class PrecompiledScriptPlugins : Plugin<Project> {
             pluginDependencyScope.name(kotlin("scripting-compiler-embeddable"))
         }
 
+        @Suppress("DEPRECATION") // will be addressed in a different thread of work
         kotlinBaseApiPlugin.registerKotlinJvmCompileTask(
             taskName = taskName,
             compilerOptions = kotlinBaseApiPlugin.createCompilerJvmOptions(),

@@ -18,8 +18,11 @@ package org.gradle.kotlin.dsl.normalization
 
 import org.gradle.cache.IndexedCache
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 
 
+@ServiceScope(Scope.UserHome::class)
 class KotlinDslCompileAvoidanceClasspathHashCache(val cache: IndexedCache<HashCode, HashCode>) {
 
 
