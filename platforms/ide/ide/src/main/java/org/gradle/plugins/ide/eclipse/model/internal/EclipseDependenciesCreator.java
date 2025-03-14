@@ -115,8 +115,7 @@ public class EclipseDependenciesCreator {
             if (componentIdentifier.equals(currentProjectId)) {
                 return;
             }
-            LibraryElements libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-            if (libraryElements == null || !libraryElements.getName().equals(LibraryElements.JAR)) {
+            if (isNotJar(artifact)) {
                 return;
             }
             ComponentArtifactIdentifier artifactId = artifact.getId();
@@ -255,5 +254,13 @@ public class EclipseDependenciesCreator {
 
             return out;
         }
+    }
+
+    @SuppressWarnings("ConstantValue")
+    private static boolean isNotJar(ResolvedArtifactResult artifact) {
+        Object libraryElements = artifact.getVariant().getAttributes().getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        return libraryElements == null
+            || (libraryElements instanceof String && !libraryElements.equals(LibraryElements.JAR))
+            || (libraryElements instanceof LibraryElements && !((LibraryElements) libraryElements).getName().equals(LibraryElements.JAR));
     }
 }
