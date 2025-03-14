@@ -22,6 +22,7 @@ val antVersion = "1.10.15"
 val asmVersion = "9.7.1"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.78.1"
+val hamcrestVersion = "3.0"
 val jacksonVersion = "2.16.1"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
@@ -98,7 +99,8 @@ dependencies {
         api(libs.groovyXml)             { version { strictly(libs.groovyVersion) }}
         api(libs.gson)                  { version { strictly("2.10") }}
         api(libs.h2Database)            { version { strictly("2.2.220") }}
-        api(libs.hamcrestCore)          { version { strictly("1.3"); because("2.x changes the API") }}
+        api(libs.hamcrest)              { version { strictly(hamcrestVersion) }}
+        api("org.hamcrest:hamcrest-core") { version { strictly(hamcrestVersion) }}
         api(libs.hikariCP)              { version { strictly("4.0.3"); because("5.x requires Java 11+") }}
         api(libs.httpcore)              { version { strictly("4.4.14") }}
         api(libs.inject)                { version { strictly("1") }}
