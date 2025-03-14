@@ -21,8 +21,8 @@ dependencies {
     api(projects.messaging)
     api(projects.modelReflect)
     api(projects.persistentCache)
+    api(projects.problemsApi)
     api(projects.snapshots)
-    api(projects.snapshotsWorker)
     api(libs.asm)
     api(libs.jsr305)
     api(libs.inject)
@@ -33,7 +33,6 @@ dependencies {
     implementation(projects.baseAsm)
     implementation(projects.classloaders)
     implementation(projects.logging)
-    implementation(projects.problemsApi)
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
 

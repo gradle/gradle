@@ -311,7 +311,7 @@
     "name": "daemon-server-worker",
     "path": "platforms/core-execution/daemon-server-worker",
     "unitTests": true,
-    "functionalTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {
