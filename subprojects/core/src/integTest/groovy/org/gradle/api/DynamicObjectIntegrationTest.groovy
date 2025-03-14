@@ -17,6 +17,7 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import spock.lang.Issue
@@ -130,7 +131,7 @@ class ConventionBean {
 }
 '''
 
-        expectConventionTypeDeprecationWarnings()
+        expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 2 : 1)
 
         expect:
         succeeds()
@@ -927,7 +928,7 @@ task print(type: MyTask) {
             }
         """
 
-        expectConventionTypeDeprecationWarnings(4)
+        expectConventionTypeDeprecationWarnings(GradleContextualExecuter.isolatedProjects ? 8 : 4)
 
         expect:
         succeeds()
