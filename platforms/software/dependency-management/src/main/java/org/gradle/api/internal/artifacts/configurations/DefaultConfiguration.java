@@ -55,6 +55,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
@@ -102,6 +103,7 @@ import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
@@ -113,7 +115,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.scopes.DetachedDependencyMetadataProvider;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.internal.work.WorkerThreadRegistry;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
@@ -219,7 +220,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private final DisplayName displayName;
     private final UserCodeApplicationContext userCodeApplicationContext;
     private final CollectionCallbackActionDecorator collectionCallbackActionDecorator;
-    private final WorkerThreadRegistry workerThreadRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     private final AtomicInteger copyCount = new AtomicInteger();
@@ -233,6 +233,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private String consistentResolutionReason;
     private final DefaultConfigurationFactory defaultConfigurationFactory;
     private final InternalProblems problemsService;
+    private final DocumentationRegistry documentationRegistry;
 
     /**
      * To create an instance, use {@link DefaultConfigurationFactory#create}.
@@ -256,20 +257,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator,
         ProjectStateRegistry projectStateRegistry,
-        WorkerThreadRegistry workerThreadRegistry,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         CalculatedValueContainerFactory calculatedValueContainerFactory,
         DefaultConfigurationFactory defaultConfigurationFactory,
         TaskDependencyFactory taskDependencyFactory,
         ConfigurationRole roleAtCreation,
         InternalProblems problemsService,
+        DocumentationRegistry documentationRegistry,
         boolean lockUsage
     ) {
         super(taskDependencyFactory);
         this.userCodeApplicationContext = userCodeApplicationContext;
         this.collectionCallbackActionDecorator = collectionCallbackActionDecorator;
         this.projectStateRegistry = projectStateRegistry;
-        this.workerThreadRegistry = workerThreadRegistry;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
         this.calculatedValueContainerFactory = calculatedValueContainerFactory;
         this.identityPath = domainObjectContext.identityPath(name);
@@ -311,6 +311,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
         this.problemsService = problemsService;
+        this.documentationRegistry = documentationRegistry;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
         this.canBeResolved = roleAtCreation.isResolvable();
@@ -727,16 +728,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            if (!workerThreadRegistry.isWorkerThread()) {
-                // Error if we are executing in a user-managed thread.
-                throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
-            } else {
-                DeprecationLogger.deprecateBehaviour("Resolution of the configuration " + identityPath.toString() + " was attempted from a context different than the project context. Have a look at the documentation to understand why this is a problem and how it can be resolved.")
-                    .willBecomeAnErrorInGradle9()
-                    .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
-                    .nagUser();
-                newState = domainObjectContext.getModel().fromMutableState(p -> resolveExclusivelyIfRequired());
-            }
+            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.", documentationRegistry);
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -2000,6 +1992,20 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return Arrays.stream(properUsages)
                 .map(ProperMethodUsage::buildProperName)
                 .collect(Collectors.joining(", "));
+        }
+    }
+
+    private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
+        private final String resolution;
+
+        public IllegalResolutionException(String message, DocumentationRegistry documentationRegistry) {
+            super(message);
+            resolution = "For more information, please refer to " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies.html", "sub:resolving-unsafe-configuration-resolution-errors") + " in the Gradle documentation.";
+        }
+
+        @Override
+        public List<String> getResolutions() {
+            return Collections.singletonList(resolution);
         }
     }
 }
