@@ -636,6 +636,11 @@
             <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
          </artifact>
       </component>
+      <component group="com.google.j2objc" name="j2objc-annotations" version="3.0.0">
+         <artifact name="j2objc-annotations-3.0.0.jar">
+            <pgp value="EB1B3DE71713C9EC2E87CC26EE92349AD86DE446"/>
+         </artifact>
+      </component>
       <component group="com.google.protobuf" name="protobuf-java" version="3.19.6">
          <artifact name="protobuf-java-3.19.6.jar">
             <pgp value="187366A3FFE6BF8F94B9136A9987B20C8F6A3064"/>
