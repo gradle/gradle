@@ -94,8 +94,10 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         RootComponentMetadataBuilder.RootComponentState root = configuration.toRootComponent();
         VisitedGraphResults missingConfigurationResults = maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, root);
         if (missingConfigurationResults != null) {
-            return DefaultResolverResults.buildDependenciesResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
-                DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved(ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE)
+            return DefaultResolverResults.buildDependenciesResolved(
+                missingConfigurationResults,
+                ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.buildDependenciesResolved()
             );
         }
 
@@ -110,12 +112,15 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         VisitedGraphResults missingConfigurationResults = maybeGetEmptyGraphForInvalidMissingConfigurationWithNoDependencies(configuration, root);
         if (missingConfigurationResults != null) {
             ResolvedConfiguration resolvedConfiguration = new DefaultResolvedConfiguration(
-                missingConfigurationResults, configuration.getResolutionHost(), ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, new ShortCircuitingResolutionExecutor.EmptyLenientConfiguration()
+                missingConfigurationResults,
+                configuration.getResolutionHost(),
+                ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
+                new ShortCircuitingResolutionExecutor.EmptyLenientConfiguration()
             );
-            return DefaultResolverResults.graphResolved(missingConfigurationResults, ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
-                DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-                    ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE, resolvedConfiguration
-                )
+            return DefaultResolverResults.graphResolved(
+                missingConfigurationResults,
+                ShortCircuitingResolutionExecutor.EmptyResults.INSTANCE,
+                DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(resolvedConfiguration)
             );
         }
 

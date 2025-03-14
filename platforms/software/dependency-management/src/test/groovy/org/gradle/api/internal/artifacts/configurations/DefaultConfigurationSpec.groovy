@@ -378,88 +378,6 @@ class DefaultConfigurationSpec extends Specification {
         configuration.getState() == RESOLVED_WITH_FAILURES
     }
 
-    def fileCollectionWithDependencies() {
-        def dependency1 = dependency("group1", "name", "version")
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(dependency1)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithSpec() {
-        def configuration = conf()
-        Spec<Dependency> spec = Mock(Spec)
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(spec)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def fileCollectionWithClosureSpec() {
-        def closure = { dep -> dep.group == 'group1' }
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def fileCollection = configuration.fileCollection(closure)
-
-        then:
-        fileCollection.files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithDependencies() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Dependency))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithSpec() {
-        def configuration = conf()
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(Mock(Spec))
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
-    def filesWithClosureSpec() {
-        def configuration = conf()
-        def closure = { dep -> dep.group == 'group1' }
-        def fileSet = [new File("somePath")] as Set
-        resolver.resolveGraph(configuration) >> graphResolved(fileSet)
-
-        when:
-        def files = configuration.files(closure)
-
-        then:
-        files == fileSet
-        configuration.state == RESOLVED
-    }
-
     def "multiple resolves use cached result"() {
         given:
         def configuration = conf()
@@ -1666,7 +1584,6 @@ class DefaultConfigurationSpec extends Specification {
         }
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(failure),
             Mock(ResolvedConfiguration) {
                 hasError() >> true
             }
@@ -1680,7 +1597,6 @@ class DefaultConfigurationSpec extends Specification {
         def visitedGraphResults = new DefaultVisitedGraphResults(resolutionResult, [] as Set)
 
         def legacyResults = DefaultResolverResults.DefaultLegacyResolverResults.graphResolved(
-            depSpec -> selectedArtifacts(files),
             Mock(ResolvedConfiguration)
         )
 

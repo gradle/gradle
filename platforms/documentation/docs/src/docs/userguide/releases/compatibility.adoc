@@ -67,7 +67,7 @@ We encourage users to try it out and let us know.
 [[kotlin]]
 == Kotlin
 
-Gradle is tested with Kotlin 1.6.10 through 2.1.20-RC2.
+Gradle is tested with Kotlin 1.9.0 through 2.1.20-RC3.
 Beta and RC versions may or may not work.
 
 .Embedded Kotlin version

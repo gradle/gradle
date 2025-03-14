@@ -43,7 +43,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
                 compile files('main-lib.jar') { builtBy lib }
             }
             task direct { inputs.files configurations.compile }
-            task fileCollection { inputs.files configurations.compile.fileCollection { true } }
+            task artifactView { inputs.files configurations.compile.incoming.artifactView { componentFilter { true } }.files }
             task ownDependencies { dependsOn configurations.compile.dependencies }
             task allDependencies { dependsOn configurations.compile.allDependencies }
             task incomingFiles { inputs.files configurations.compile.incoming.files }
@@ -68,7 +68,6 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         """
 
         when:
-        executer.expectDocumentedDeprecationWarning("The Configuration.fileCollection(Closure) method has been deprecated. This is scheduled to be removed in Gradle 9.0. Use Configuration.getIncoming().artifactView(Action) with a componentFilter instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecate_filtered_configuration_file_and_filecollection_methods")
         succeeds(taskName)
 
         then:
@@ -77,7 +76,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         where:
         taskName               | _
         "direct"               | _
-        "fileCollection"       | _
+        "artifactView"       | _
         "ownDependencies"      | _
         "allDependencies"      | _
         "incomingFiles"        | _
