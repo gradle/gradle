@@ -82,7 +82,7 @@ class GradlePropertyApiPropertyExtractor(
                     property.returnType,
                     property.returnTypeToRefOrError(host) { propertyValueType(property.returnType) },
                     DefaultDataProperty.DefaultPropertyMode.DefaultWriteOnly,
-                    hasDefaultValue = false,
+                    hasDefaultValue = true,
                     isHiddenInDeclarativeDsl = isHidden,
                     isDirectAccessOnly = isDirectAccessOnly,
                     claimedFunctions = emptyList()
