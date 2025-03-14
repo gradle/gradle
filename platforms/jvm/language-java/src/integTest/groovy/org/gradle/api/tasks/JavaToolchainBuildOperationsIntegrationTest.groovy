@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JavaToolchainBuildOperationsFixture
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -30,7 +29,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.VersionNumber
 import spock.lang.Issue
 
 class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpec implements JavaToolchainFixture, JavaToolchainBuildOperationsFixture {
@@ -404,13 +402,10 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
 
     @Issue("https://github.com/gradle/gradle/issues/21368")
     @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    @UnsupportedWithConfigurationCache(because = "See KotlinGradlePluginVersions#hasConfigurationCacheWarnings()", iterationMatchers = [/.* 1\.6 Kotlin plugin .*/, /.* 1\.7 Kotlin plugin .*/])
     def "emits toolchain usages when configuring toolchains for #kotlinPlugin Kotlin plugin '#kotlinPluginVersion'"() {
-        // Kotlin <1.9 doesn't support JDK21
-        // e: Unknown JVM target version: 21
-        // Supported versions: 1.6, 1.8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18
+        // Kotlin doesn't support the latest JDK, see KotlinCompiler.toKotlinJvmTarget()
         JvmInstallationMetadata jdkMetadata = AvailableJavaHomes.getJvmInstallationMetadata(AvailableJavaHomes.getDifferentVersion({
-            it.languageVersion.majorVersion.toInteger() <= 17
+            it.languageVersion.majorVersion.toInteger() <= 21
         }))
 
         given:
@@ -441,63 +436,7 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
             }
         """
 
-        and:
-        def kotlinVersionNumber = VersionNumber.parse(kotlinPluginVersion)
-        def isKotlin1dot6 = kotlinVersionNumber.baseVersion < VersionNumber.parse("1.7.0")
-        def isKotlin1dot8 = kotlinVersionNumber.baseVersion >= VersionNumber.parse("1.8.0")
-
         when:
-        if (isKotlin1dot6) {
-            def wrapUtilWarning = "The org.gradle.util.WrapUtil type has been deprecated. " +
-                "This is scheduled to be removed in Gradle 9.0. " +
-                "Consult the upgrading guide for further information: " +
-                "https://docs.gradle.org/current/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_80"
-            if (GradleContextualExecuter.isConfigCache()) {
-                executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
-            } else {
-                executer.beforeExecute {
-                    executer.expectDocumentedDeprecationWarning(wrapUtilWarning)
-                }
-            }
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.BasePluginConvention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#base_convention_deprecation")
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
-            executer.expectDocumentedDeprecationWarning(
-                "The AbstractCompile.destinationDir property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Property was automatically upgraded to the lazy version. " +
-                    "Please use the destinationDirectory property instead. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
-            executer.expectDocumentedDeprecationWarning(
-                "The BasePluginExtension.archivesBaseName property has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Please use the archivesName property instead. " +
-                    "For more information, please refer to https://docs.gradle.org/current/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
-            )
-        }
-        if (!isKotlin1dot8) {
-            if (GradleContextualExecuter.isConfigCache()) {
-                executer.expectDocumentedDeprecationWarning(
-                    "The Provider.forUseAtConfigurationTime method has been deprecated. " +
-                        "This is scheduled to be removed in Gradle 9.0. " +
-                        "Simply remove the call. " +
-                        "Consult the upgrading guide for further information: " +
-                        "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
-            }
-        }
-        // KGP performed convention registration at config time until 1.9.20
-        if (kotlinVersionNumber <= VersionNumber.parse("1.9.20")) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         def eventsOnCompile = toolchainEvents(":compileKotlin")
         def eventsOnTest = toolchainEvents(":test")
@@ -505,51 +444,27 @@ class JavaToolchainBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         then:
         executedAndNotSkipped(":compileKotlin", ":test")
         println(eventsOnCompile)
-        if (isKotlin1dot8 && GradleContextualExecuter.notConfigCache) {
-            // Kotlin 1.8 uses both launcher and compiler
+        if (GradleContextualExecuter.notConfigCache) {
             assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher", "JavaCompiler")
-        } else {
-            // The tool is a launcher with Kotlin < 1.8, because it runs own compilation in a Java VM
-            assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         }
         // Even though we only configure the toolchain within the `kotlin` block,
         // it actually affects the java launcher selected by the test task.
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         when:
-        if (isKotlin1dot6 && GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
-        }
-        if (kotlinVersionNumber <= VersionNumber.parse("1.9.20") && GradleContextualExecuter.notConfigCache) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions")
-        }
         withInstallations(jdkMetadata).run(":compileKotlin", ":test")
         eventsOnCompile = toolchainEvents(":compileKotlin")
         eventsOnTest = toolchainEvents(":test")
 
         then:
-        if (isKotlin1dot6 && Jvm.current().javaVersion.java8 && GradleContextualExecuter.configCache) {
-            // For Kotlin 1.6 the compilation is not up-to-date with configuration caching when running on Java 8
-            executedAndNotSkipped(":compileKotlin")
-        } else {
-            skipped(":compileKotlin", ":test")
-        }
+        skipped(":compileKotlin", ":test")
         assertToolchainUsages(eventsOnCompile, jdkMetadata, "JavaLauncher")
         assertToolchainUsages(eventsOnTest, jdkMetadata, "JavaLauncher")
 
         where:
         kotlinPlugin | _
-        "1.6"        | _
-        "1.7"        | _
-        "1.8"        | _
         "1.9"        | _
+        "2.0"        | _
         "latest"     | _
 
         kotlinPluginVersion = kotlinPlugin == "latest" ? kgpLatestVersions.last() : latestStableKotlinPluginVersion(kotlinPlugin)
