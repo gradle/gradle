@@ -20,11 +20,8 @@ import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 
-import static org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions.hasConfigurationCacheWarnings
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import static org.junit.Assume.assumeFalse
-import static org.junit.Assume.assumeTrue
 
 /**
  * Smoke test for the Kotlin plugins.
@@ -68,8 +65,6 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
     def 'kotlin jvm and test suites (kotlin=#version)'() {
 
-        assumeFalse(version.startsWith("1.6."))
-        assumeFalse(version.startsWith("1.7."))
         setupForKotlinVersion(version)
 
         given:
@@ -130,35 +125,9 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         version << TestedVersions.kotlin.versions
     }
 
-    def 'kotlin javascript (kotlin=#version, workers=#parallelTasksInProject)'() {
-
-        setupForKotlinVersion(version)
-
-        // kotlinjs has been removed in Kotlin 1.7 in favor of kotlin-mpp
-        assumeTrue(kotlinPluginVersion.baseVersion < VersionNumber.version(1, 7))
-
-        given:
-        useSample("kotlin-js-sample")
-        withKotlinBuildFile()
-        replaceVariablesInBuildFile(kotlinVersion: version)
-        when:
-        def result = kgpRunner(parallelTasksInProject, kotlinPluginVersion, 'compileKotlin2Js').build()
-
-        then:
-        result.task(':compileKotlin2Js').outcome == SUCCESS
-
-        where:
-        [version, parallelTasksInProject] << [
-            TestedVersions.kotlin.versions,
-            [true, false]
-        ].combinations()
-    }
-
     def 'kotlin jvm and groovy plugins combined (kotlin=#kotlinVersion)'() {
 
         setupForKotlinVersion(kotlinVersion)
-
-        def kotlinCompileClasspathPropertyName = kotlinPluginVersion >= VersionNumber.parse("1.7.0") ? 'libraries' : 'classpath'
 
         given:
         buildFile << """
@@ -175,7 +144,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 classpath = sourceSets.main.compileClasspath
             }
             tasks.named('compileKotlin') {
-                ${kotlinCompileClasspathPropertyName}.from(files(sourceSets.main.groovy.classesDirectory))
+                libraries.from(files(sourceSets.main.groovy.classesDirectory))
             }
 
             dependencies {
@@ -192,11 +161,7 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
 
         then:
         result.task(':compileJava').outcome == SUCCESS
-        if (VersionNumber.parse(kotlinVersion).baseVersion >= VersionNumber.parse("1.9.20")) {
-            result.tasks.collect { it.path } == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
-        } else {
-            result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
-        }
+        result.tasks.collect { it.path } == [':checkKotlinGradlePluginConfigurationErrors', ':compileGroovy', ':compileKotlin', ':compileJava']
 
         where:
         kotlinVersion << TestedVersions.kotlin.versions
@@ -205,9 +170,6 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     def 'kotlin jvm and java-gradle-plugin plugins combined (kotlin=#kotlinVersion)'() {
 
         setupForKotlinVersion(kotlinVersion)
-
-        assumeFalse(kotlinVersion.startsWith("1.6."))
-        assumeFalse(kotlinVersion.startsWith("1.7."))
 
         given:
         buildFile << """
@@ -245,7 +207,6 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     Map<String, Versions> getPluginsToValidate() {
         [
             'org.jetbrains.kotlin.jvm': TestedVersions.kotlin,
-            'org.jetbrains.kotlin.js': TestedVersions.kotlin,
             'org.jetbrains.kotlin.android': TestedVersions.kotlin,
             'org.jetbrains.kotlin.android.extensions': TestedVersions.kotlin,
             'org.jetbrains.kotlin.kapt': TestedVersions.kotlin,
@@ -269,10 +230,5 @@ class KotlinPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
             return extraPlugins
         }
         return [:]
-    }
-
-    @Override
-    protected int maxConfigurationCacheProblems() {
-        return kotlinPluginVersion == null ? 0 : (hasConfigurationCacheWarnings(kotlinPluginVersion) ? 1 : 0)
     }
 }

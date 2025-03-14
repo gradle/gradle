@@ -57,7 +57,6 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         IntegTestPreconditions.NotEmbeddedExecutor::class,
         reason = "newer Kotlin version always leaks on the classpath when running embedded"
     )
-    @UnsupportedWithConfigurationCache(because = "See KotlinGradlePluginVersions#hasConfigurationCacheWarnings()", iterationMatchers = [""".*\[1\.6\.21\]""", """.*\[1\.7\.0\]""", """.*\[1\.7\.22\]"""])
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
@@ -101,78 +100,17 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
                 implementation(kotlin("stdlib"))
             }
 
-            ${if (kotlinVersion >= VersionNumber.parse("1.9.0")) {
-                """
-                // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
-                tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-                    jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
-                }
-                """
-            } else {
-                ""
-            }}
+            // Work around JVM validation issue: https://youtrack.jetbrains.com/issue/KT-66919
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                jvmTargetValidationMode = org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.WARNING
+            }
 
             println("root build script classpath kotlin compiler version " + KotlinCompilerVersion.VERSION)
             """
         )
         withFile("src/main/kotlin/SomeSource.kt", "fun main(args: Array<String>) {}")
 
-
-        if (kotlinVersion >= VersionNumber.parse("1.6") && kotlinVersion < VersionNumber.parse("1.7")) {
-            executer.expectDocumentedDeprecationWarning("The AbstractCompile.destinationDir property has been deprecated. This is scheduled to be removed in Gradle 9.0. Property was automatically upgraded to the lazy version. Please use the destinationDirectory property instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_7.html#compile_task_wiring")
-            if (GradleContextualExecuter.isConfigCache()) {
-                executer.expectDocumentedDeprecationWarning(
-                    "The BasePluginExtension.archivesBaseName property has been deprecated. " +
-                        "This is scheduled to be removed in Gradle 9.0. " +
-                        "Please use the archivesName property instead. " +
-                        "For more information, please refer to https://docs.gradle.org/current/dsl/org.gradle.api.plugins.BasePluginExtension.html#org.gradle.api.plugins.BasePluginExtension:archivesName in the Gradle documentation."
-                )
-            }
-        }
-
-        if (kotlinVersion < VersionNumber.parse("1.7.0") && GradleContextualExecuter.isConfigCache()) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.BasePluginConvention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#base_convention_deprecation")
-        }
-        if (kotlinVersion <= VersionNumber.parse("1.7.20")) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.util.WrapUtil type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#org_gradle_util_reports_deprecations_80"
-            )
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.JavaPluginConvention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#java_convention_deprecation")
-        }
-        if (kotlinVersion <= VersionNumber.parse("1.9.0")) {
-            executer.expectDocumentedDeprecationWarning(
-                "The org.gradle.api.plugins.Convention type has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_8.html#deprecated_access_to_conventions"
-            )
-        }
-        if (kotlinVersion < VersionNumber.parse("1.8.0") && GradleContextualExecuter.isConfigCache()) {
-            executer.expectDocumentedDeprecationWarning(
-                "The Provider.forUseAtConfigurationTime method has been deprecated. " +
-                    "This is scheduled to be removed in Gradle 9.0. " +
-                    "Simply remove the call. " +
-                    "Consult the upgrading guide for further information: " +
-                    "https://docs.gradle.org/current/userguide/upgrading_version_7.html#for_use_at_configuration_time_deprecation")
-        }
-        val extraParameters = if (KotlinGradlePluginVersions.hasConfigurationCacheWarnings(kotlinVersion))
-            arrayOf("--${ConfigurationCacheProblemsOption.LONG_OPTION}=warn", "-D${ConfigurationCacheMaxProblemsOption.PROPERTY_NAME}=2")
-        else
-            emptyArray()
-
-
-        build("classes", *extraParameters).apply {
+        build("classes").apply {
             assertThat(
                 output,
                 allOf(
