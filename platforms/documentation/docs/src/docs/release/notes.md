@@ -212,6 +212,23 @@ interface SomeDataView {
 }
 ```
 
+### GraalVM Native Image selection for toolchains
+
+Gradle's [toolchain support](userguide/toolchains.html) allows provisioning and selection of JDK versions required for building projects (compiling code, running tests, etc) and running Gradle itself.
+
+With this release, the selection criteria have been expanded to include [GraalVM Native Image](https://www.graalvm.org/reference-manual/native-image/) capability selection:
+
+```kotlin
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+        nativeImageCapable = true
+    }
+}
+```
+
+See [the documentation](userguide/toolchains.html#sec:native_image) for details.
+
 ### Configuration Cache improvements
 
 #### Integrity Check mode
