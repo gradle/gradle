@@ -40,6 +40,13 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Lowest supported Kotlin Gradle Plugin version change
+
+Starting with Gradle 9.0 the lowest supported Kotlin Gradle Plugin version is 1.9.21.
+Previous versions are not supported anymore because they use now removed Gradle APIs.
+
+The lowest supported Kotlin Gradle Plugin version for Gradle 8.x was 1.6.10.
+
 ==== Gradle API now uses JSpecify Nullability Annotations
 
 The initial introduction of null safety in the Gradle API dates back to 2018 in Gradle 5.0.

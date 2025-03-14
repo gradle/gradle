@@ -43,7 +43,7 @@ tasks.register<UpdateAgpVersions>("updateAgpVersions") {
 
 tasks.register<UpdateKotlinVersions>("updateKotlinVersions") {
     comment = " Generated - Update by running `./gradlew updateKotlinVersions`"
-    minimumSupported = "1.6.10"
+    minimumSupported = "1.9.21"
     propertiesFile = layout.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties")
     compatibilityDocFile = layout.projectDirectory.file("platforms/documentation/docs/src/docs/userguide/releases/compatibility.adoc")
 }
