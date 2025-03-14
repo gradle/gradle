@@ -32,6 +32,7 @@ import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instrumentation.api.jvmbytecode.BridgeMethodBuilder;
 import org.gradle.internal.instrumentation.api.jvmbytecode.JvmBytecodeCallInterceptor;
+import org.gradle.internal.instrumentation.api.jvmbytecode.ReplacementMethodBuilder;
 import org.gradle.internal.instrumentation.api.metadata.InstrumentationMetadata;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
 import org.gradle.internal.instrumentation.reporting.listener.MethodInterceptionListener;
@@ -50,6 +51,7 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -168,6 +170,7 @@ public class InstrumentingClassTransform implements ClassTransform {
         private final BytecodeInterceptorFilter interceptorFilter;
 
         private final Map<Handle, BridgeMethod> bridgeMethods = new LinkedHashMap<>();
+        private final List<ReplacementMethodBuilder> replacementMethods = new ArrayList<>();
         private final MethodInterceptionListener methodInterceptionListener;
         private int nextBridgeMethodIndex;
 
@@ -208,14 +211,25 @@ public class InstrumentingClassTransform implements ClassTransform {
             if (name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                 hasGroovyCallSites = true;
             }
-            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             Lazy<MethodNode> asMethodNode = Lazy.unsafe().of(() -> {
                 Optional<MethodNode> methodNode = classData.readClassAsNode().methods.stream().filter(method ->
                     Objects.equals(method.name, name) && Objects.equals(method.desc, descriptor) && Objects.equals(method.signature, signature)
                 ).findFirst();
                 return methodNode.orElseThrow(() -> new IllegalStateException("could not find method " + name + " with descriptor " + descriptor));
             });
-            return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+
+            return interceptors.stream()
+                .map(interceptor -> interceptor.findReplacementMethod(className, access, name, descriptor, signature, exceptions, asMethodNode))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .map(builder -> {
+                    replacementMethods.add(builder);
+                    return builder.createCapturingVisitor();
+                })
+                .orElseGet(() -> {
+                    MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
+                    return new InstrumentingMethodVisitor(this, methodVisitor, asMethodNode);
+                });
         }
 
         @Override
@@ -224,6 +238,7 @@ public class InstrumentingClassTransform implements ClassTransform {
                 generateCallSiteFactoryMethod();
             }
             bridgeMethods.values().forEach(this::generateBridgeMethod);
+            replacementMethods.forEach(this::generateReplacementMethod);
             super.visitEnd();
         }
 
@@ -292,6 +307,7 @@ public class InstrumentingClassTransform implements ClassTransform {
 
         /**
          * Prepares the bridge method for the {@code interceptedHandle} with proper argument types.
+         *
          * @param targetOwner the owner type to be used by the bridge method
          * @param interceptedHandle the method reference to potentially intercept
          * @return the bridge method data or null if the method shouldn't be intercepted
@@ -341,6 +357,10 @@ public class InstrumentingClassTransform implements ClassTransform {
 
         private Handle makeBridgeMethodHandle(String name, String desc) {
             return new Handle(H_INVOKESTATIC, className, name, desc, isInterface);
+        }
+
+        private void generateReplacementMethod(ReplacementMethodBuilder replacement) {
+            replacement.generateReplacementMethod(this);
         }
     }
 
