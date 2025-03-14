@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.sources
+package org.gradle.internal.instantiation.generator.annotations;
 
-class SystemPropertyValueSourceTest extends ValueSourceBasedSpec {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    def "system property has no value when property name has no value"() {
-        given:
-        def provider = createProviderOf(SystemPropertyValueSource) {
-            // give property name no value
-        }
-
-        expect:
-        !provider.isPresent()
-    }
+/**
+ * Annotates methods that create managed objects.
+ * <p>
+ * The service class that contains the method must be annotated with {@link ManagedObjectProvider}.
+ */
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ManagedObjectCreator {
 }

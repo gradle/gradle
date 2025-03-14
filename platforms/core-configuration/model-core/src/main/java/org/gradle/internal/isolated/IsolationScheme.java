@@ -24,6 +24,7 @@ import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.generator.ManagedObjectRegistry;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Types;
 import org.gradle.internal.reflect.Types.TypeVisitResult;
@@ -240,6 +241,9 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
                 }
                 if (serviceClass.isAssignableFrom(InternalProblems.class)) {
                     return allServices.find(InternalProblems.class);
+                }
+                if (serviceClass.isAssignableFrom(ManagedObjectRegistry.class)) {
+                    return allServices.find(ManagedObjectRegistry.class);
                 }
                 for (Class<?> whiteListedService : additionalWhiteListedServices) {
                     if (serviceClass.isAssignableFrom(whiteListedService)) {

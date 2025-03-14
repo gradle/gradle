@@ -19,7 +19,7 @@ package org.gradle.ide.visualstudio.internal
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil

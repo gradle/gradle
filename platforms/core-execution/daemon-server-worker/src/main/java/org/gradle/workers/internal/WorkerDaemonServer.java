@@ -31,7 +31,7 @@ import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.project.antbuilder.DefaultIsolatedAntBuilder;
-import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.factory.DefaultProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;

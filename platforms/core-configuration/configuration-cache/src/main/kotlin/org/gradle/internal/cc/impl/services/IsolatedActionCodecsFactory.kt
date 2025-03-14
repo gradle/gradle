@@ -19,8 +19,8 @@ package org.gradle.internal.cc.impl.services
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FilePropertyFactory
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.PropertyFactory
+import org.gradle.api.internal.provider.sources.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.internal.cc.impl.serialize.baseTypes
 import org.gradle.internal.serialize.codecs.core.DirectoryCodec

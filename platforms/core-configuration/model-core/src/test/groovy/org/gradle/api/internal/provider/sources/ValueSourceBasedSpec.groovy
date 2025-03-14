@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider
+package org.gradle.api.internal.provider.sources
 
 import org.gradle.api.Action
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters

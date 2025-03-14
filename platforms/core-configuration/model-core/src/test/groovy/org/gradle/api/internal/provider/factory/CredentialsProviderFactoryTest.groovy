@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider
+package org.gradle.api.internal.provider.factory
 
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.api.credentials.HttpHeaderCredentials
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.api.internal.provider.DefaultProvider
+import org.gradle.api.internal.provider.MissingValueException
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.internal.credentials.DefaultAwsCredentials

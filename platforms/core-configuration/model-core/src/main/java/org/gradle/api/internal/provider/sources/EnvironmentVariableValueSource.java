@@ -43,6 +43,7 @@ public abstract class EnvironmentVariableValueSource implements ValueSource<Stri
         return String.format("environment variable '%s'", variableNameOrNull());
     }
 
+    @Nullable
     private String variableNameOrNull() {
         return getParameters().getVariableName().getOrNull();
     }

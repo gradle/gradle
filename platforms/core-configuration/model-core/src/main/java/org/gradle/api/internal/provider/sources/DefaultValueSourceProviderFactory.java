@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.provider.sources;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -146,7 +147,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             .provider(registration -> {
                 registration.add(GradleProperties.class, gradleProperties);
                 registration.add(ExecOperations.class, execOperations);
-                if (isolatedParameters != null) {
+                if (parametersType != null && isolatedParameters != null) {
                     registration.add(parametersType, isolatedParameters);
                 }
             })
@@ -414,6 +415,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             return parametersType;
         }
 
+        @Nullable
         @Override
         public P getValueSourceParameters() {
             return parameters;

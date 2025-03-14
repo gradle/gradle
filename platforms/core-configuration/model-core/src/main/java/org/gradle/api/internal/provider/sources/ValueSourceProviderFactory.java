@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.api.internal.provider.sources;
 
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
