@@ -273,7 +273,10 @@
          </trusted-key>
          <trusted-key id="BAE5C184E3B70CB15617700598FE03A974CE0A0B" group="org.jetbrains.kotlin"/>
          <trusted-key id="BD95A93175BFE816FC152DE5F9FD57A03B80305D" group="com.lihaoyi"/>
-         <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE" group="com.google.guava"/>
+         <trusted-key id="BDB5FA4FE719D787FB3D3197F6D4A1D411E9D1AE">
+            <trusting group="com.google.guava"/>
+            <trusting group="^com[.]google($|([.].*))" regex="true"/>
+         </trusted-key>
          <trusted-key id="C0822D185FBFD963C33ACBFEA318A06284D602D5" group="com.tngtech.archunit"/>
          <trusted-key id="C70B844F002F21F6D2B9C87522E44AC0622B91C3" group="com.beust" name="jcommander"/>
          <trusted-key id="C7BE5BCC9FEC15518CFDA882B0F3710FA64900E7">
