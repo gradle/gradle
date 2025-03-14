@@ -181,10 +181,9 @@ public interface SomeOtherData {
 
 #### Receiving side on the Tooling API
 
-There is the [`CustomAdditionalData::get`](org/gradle/tooling/events/problems/CustomAdditionalData.html#get(java.lang.Class)) method,
-which allows you to provide a view type for the additional data.
+The [`CustomAdditionalData.get()`](org/gradle/tooling/events/problems/CustomAdditionalData.html#get(java.lang.Class)) method allows you to retrieve additional data using a specified view type.
 
-The TAPI side of things might look like this:
+On the TAPI side, retrieving and using the additional data might look like this:
 
 ```java
 void someMethod(List<Problem> problems) {
@@ -195,7 +194,7 @@ void someMethod(List<Problem> problems) {
 }
 ```
 
-The corresponding view interfaces look like this:
+The retrieved data can be structured using view interfaces like the following:
 
 ```java
 interface SomeOtherDataView {
