@@ -53,6 +53,7 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
         ClassLoaderScope buildSrcClassLoaderScope = settingsClassLoaderScope.createChild("buildSrc[" + gradle.getIdentityPath() + "]", null);
         gradle.setBaseProjectClassLoaderScope(buildSrcClassLoaderScope);
         generateDependenciesAccessorsAndAssignPluginVersions(gradle.getServices(), settings, buildSrcClassLoaderScope);
+
         // attaches root project
         buildLoader.load(gradle.getSettings(), gradle);
 
@@ -61,6 +62,9 @@ public class BuildTreePreparingProjectsPreparer implements ProjectsPreparer {
 
         // Build buildSrc and export classpath to root project
         buildBuildSrcAndLockClassloader(gradle, buildSrcClassLoaderScope);
+
+        // Executes previously registered actions only after base project classloader has been locked
+        gradle.executeRootProjectActions();
 
         delegate.prepareProjects(gradle);
 
