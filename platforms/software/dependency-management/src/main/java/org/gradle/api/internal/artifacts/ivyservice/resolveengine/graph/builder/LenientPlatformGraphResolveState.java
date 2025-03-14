@@ -49,7 +49,6 @@ import org.gradle.internal.component.model.VariantArtifactResolveState;
 import org.gradle.internal.component.model.VariantGraphResolveMetadata;
 import org.gradle.internal.component.model.VariantGraphResolveState;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.jspecify.annotations.Nullable;
 
@@ -176,29 +175,8 @@ public class LenientPlatformGraphResolveState extends AbstractComponentGraphReso
             return Collections.emptyList();
         }
 
-        @Nullable
         @Override
         public VariantGraphResolveState getLegacyVariant() {
-            return doGetVariantByConfigurationName(Dependency.DEFAULT_CONFIGURATION);
-        }
-
-        @Nullable
-        @Override
-        public VariantGraphResolveState getVariantByConfigurationName(String name) {
-            DeprecationLogger.deprecateBehaviour("Selecting a variant by configuration name from a non-Ivy external component.")
-                .willBecomeAnErrorInGradle9()
-                .withUpgradeGuideSection(8, "selecting_variant_by_configuration_name")
-                .nagUser();
-
-            return doGetVariantByConfigurationName(name);
-        }
-
-        @Nullable
-        private VariantGraphResolveState doGetVariantByConfigurationName(String name) {
-            if (!name.equals(Dependency.DEFAULT_CONFIGURATION)) {
-                return null;
-            }
-
             return implicitVariantState.get();
         }
 

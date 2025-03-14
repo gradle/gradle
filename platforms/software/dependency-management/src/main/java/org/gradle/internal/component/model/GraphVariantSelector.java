@@ -32,6 +32,8 @@ import org.gradle.api.internal.capabilities.ImmutableCapability;
 import org.gradle.api.internal.capabilities.ShadowedCapability;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ivy.IvyComponentGraphResolveState;
+import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.resolution.failure.ResolutionFailureHandler;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.scopes.Scope;
@@ -179,7 +181,16 @@ public class GraphVariantSelector {
      * Select the variant that is identified by the given configuration name.
      */
     public VariantGraphResolveState selectVariantByConfigurationName(String name, ImmutableAttributes consumerAttributes, ComponentGraphResolveState targetComponentState, ImmutableAttributesSchema consumerSchema) {
-        VariantGraphResolveState conf = targetComponentState.getCandidatesForGraphVariantSelection().getVariantByConfigurationName(name);
+
+        VariantGraphResolveState conf;
+        if (targetComponentState instanceof IvyComponentGraphResolveState) {
+            conf = ((IvyComponentGraphResolveState) targetComponentState).getCandidatesForGraphVariantSelection().getVariantByConfigurationName(name);
+        } else if (targetComponentState instanceof LocalComponentGraphResolveState) {
+            conf = ((LocalComponentGraphResolveState) targetComponentState).getCandidatesForGraphVariantSelection().getVariantByConfigurationName(name);
+        } else {
+            throw new IllegalArgumentException("Cannot select a variant by configuration name from '" + targetComponentState.getId() + "'.");
+        }
+
         if (conf == null) {
             throw failureHandler.configurationDoesNotExistFailure(targetComponentState, name);
         }
