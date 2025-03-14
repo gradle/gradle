@@ -69,7 +69,7 @@ class ServiceScopeValidator implements AnnotatedServiceLifecycleHandler {
     }
 
     private void validateScope(Class<?> serviceType) {
-        if (ServiceScopeValidator.class.isAssignableFrom(serviceType)) {
+        if (ServiceScopeValidator.class.isAssignableFrom(serviceType) || ServiceCreationListener.class.isAssignableFrom(serviceType)) {
             return;
         }
 
