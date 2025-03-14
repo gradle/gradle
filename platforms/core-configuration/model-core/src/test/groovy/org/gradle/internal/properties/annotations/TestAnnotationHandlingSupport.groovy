@@ -51,6 +51,7 @@ trait TestAnnotationHandlingSupport {
         [ThisIsAThing],
         [(TestNested): TYPE, (Long): TYPE, (Short): TYPE, (Tint): Modifiers.COLOR],
         [:],
+        [],
         ["java", "groovy"],
         [Object],
         [Object, GroovyObject],

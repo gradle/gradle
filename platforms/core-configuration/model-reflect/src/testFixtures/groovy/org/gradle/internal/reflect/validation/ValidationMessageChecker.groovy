@@ -21,6 +21,8 @@ import org.gradle.api.services.BuildService
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils
 
+import java.lang.annotation.Annotation
+
 import static org.gradle.internal.reflect.validation.TypeValidationProblemRenderer.convertToSingleLine
 
 // https://issues.apache.org/jira/browse/GROOVY-10055
@@ -233,7 +235,7 @@ trait ValidationMessageChecker {
         incorrectUseOfInputAnnotation.render()
     }
 
-    IncorrectUseOfInputAnnotation incorrectUseOfInputAnnotationConfig(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST)Closure<?> spec) {
+    IncorrectUseOfInputAnnotation incorrectUseOfInputAnnotationConfig(@DelegatesTo(value = IncorrectUseOfInputAnnotation, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(IncorrectUseOfInputAnnotation, 'incorrect_use_of_input_annotation', spec)
         def incorrectUseOfInputAnnotation = config.description("has @Input annotation used on property of type '${config.propertyType}'")
             .reason("A property of type '${config.propertyType}' annotated with @Input cannot determine how to interpret the file")
@@ -471,10 +473,10 @@ trait ValidationMessageChecker {
 
     String nestedMapUnsupportedKeyType(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         NestedMapUnsupportedKeyType config = nestedMapUnsupportedKeyTypeConfig(spec)
-           config.render()
+        config.render()
     }
 
-    NestedMapUnsupportedKeyType nestedMapUnsupportedKeyTypeConfig(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST)Closure<?> spec) {
+    NestedMapUnsupportedKeyType nestedMapUnsupportedKeyTypeConfig(@DelegatesTo(value = NestedMapUnsupportedKeyType, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         def config = display(NestedMapUnsupportedKeyType, "unsupported_key_type_of_nested_map", spec)
         config.description("where key of nested map is of type '${config.keyType}'.")
             .reason("Key of nested map must be an enum or one of the following types: 'java.lang.String', 'java.lang.Integer'.")
@@ -483,7 +485,7 @@ trait ValidationMessageChecker {
 
     String nestedTypeUnsupported(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
         NestedTypeUnsupported config = nestedTypeUnsupportedConfig(spec)
-            config.render()
+        config.render()
     }
 
     NestedTypeUnsupported nestedTypeUnsupportedConfig(@DelegatesTo(value = NestedTypeUnsupported, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
@@ -491,6 +493,14 @@ trait ValidationMessageChecker {
         config.description("with nested type '${config.annotatedType}' is not supported.")
             .solution("Use a different input annotation if type is not a bean.")
             .solution("Use a different package that doesn't conflict with standard Java or Kotlin types for custom types.")
+    }
+
+    String propertyAccessorMustNotBeOverridden(@DelegatesTo(value = PropertyAccessorMustNotBeOverridden, strategy = Closure.DELEGATE_FIRST) Closure<?> spec) {
+        def config = display(PropertyAccessorMustNotBeOverridden, "property_accessor_must_not_be_overridden", spec)
+        config
+            .description("overrides an accessor of a property annotated with @${config.annotation.simpleName}")
+            .solution("Do not override the accessor method.")
+            .render()
     }
 
     void expectThatExecutionOptimizationDisabledWarningIsDisplayed(GradleExecuter executer,
@@ -1073,6 +1083,19 @@ trait ValidationMessageChecker {
 
         UnsupportedServiceReferenceType(ValidationMessageChecker checker) {
             super(checker)
+        }
+    }
+
+    static class PropertyAccessorMustNotBeOverridden extends ValidationMessageDisplayConfiguration<PropertyAccessorMustNotBeOverridden> {
+        Class<? extends Annotation> annotation
+
+        PropertyAccessorMustNotBeOverridden(ValidationMessageChecker checker) {
+            super(checker)
+        }
+
+        PropertyAccessorMustNotBeOverridden annotation(Class<? extends Annotation> annotation) {
+            this.annotation = annotation
+            this
         }
     }
 }

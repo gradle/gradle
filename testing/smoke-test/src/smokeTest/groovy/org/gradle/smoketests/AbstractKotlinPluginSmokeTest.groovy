@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.api.problems.Severity
+import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
 
 /**
@@ -50,6 +51,29 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
             }
 
             /*
+             * Register validation failures due to property accessor overriding.
+             * Issue was fixed in Kotlin 1.7.0.
+             */
+            if (version == "1.6.10" || version == "1.6.21") {
+                onPlugins(["org.jetbrains.kotlin.jvm",
+                           "org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin",
+                           "org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin",
+                           "org.jetbrains.kotlin.js",
+                           "org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin",
+                           "org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin",
+                           "org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin",
+                           "org.jetbrains.kotlin.android"]) {
+                    // This is an old version of the plugin, let's ignore the validation failures
+                    skip()
+                }
+            }
+
+            if (testedPluginId in ['org.jetbrains.kotlin.android', 'org.jetbrains.kotlin.android.extensions']) {
+                onPlugins(["com.android.internal.application",
+                           "com.android.internal.version-check"]) { registerAndroidInternalApplicationPropertyAccessorOverrideValidationFailure(delegate) }
+            }
+
+            /*
              * Register validation failures due to unsupported nested types
              * The issue picked up by validation was fixed in Kotlin 1.7.2,
              * see https://youtrack.jetbrains.com/issue/KT-51532
@@ -57,34 +81,32 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
             if (version == '1.7.0') {
                 // Register validation failure for plugin itself (or jvm plugin respectively)
                 if (testedPluginId in ['org.jetbrains.kotlin.kapt', 'org.jetbrains.kotlin.plugin.scripting']) {
-                    onPlugins(['org.jetbrains.kotlin.jvm']) { registerValidationFailure(delegate) }
+                    onPlugins(['org.jetbrains.kotlin.jvm']) { registerKotlinUnsupportedNestedTypesValidationFailure(delegate) }
                 } else {
-                    onPlugin(testedPluginId) { registerValidationFailure(delegate) }
+                    onPlugin(testedPluginId) { registerKotlinUnsupportedNestedTypesValidationFailure(delegate) }
                 }
                 // Register validation failures for plugins brought in by this plugin
                 if (testedPluginId in ['org.jetbrains.kotlin.android', 'org.jetbrains.kotlin.android.extensions']) {
                     onPlugins(['com.android.application',
-                               'com.android.build.gradle.api.AndroidBasePlugin',
-                               'com.android.internal.application',
-                               'com.android.internal.version-check']) { alwaysPasses() }
+                               'com.android.build.gradle.api.AndroidBasePlugin']) { alwaysPasses() }
                 }
                 if (testedPluginId == 'org.jetbrains.kotlin.jvm'
-                        || testedPluginId == 'org.jetbrains.kotlin.multiplatform'
-                        || testedPluginId == 'org.jetbrains.kotlin.kapt'
-                        || testedPluginId == 'org.jetbrains.kotlin.plugin.scripting') {
+                    || testedPluginId == 'org.jetbrains.kotlin.multiplatform'
+                    || testedPluginId == 'org.jetbrains.kotlin.kapt'
+                    || testedPluginId == 'org.jetbrains.kotlin.plugin.scripting') {
                     onPlugins(['org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin',
                                'org.jetbrains.kotlin.gradle.scripting.internal.ScriptingKotlinGradleSubplugin',
-                    ]) { registerValidationFailure(delegate) }
+                    ]) { registerKotlinUnsupportedNestedTypesValidationFailure(delegate) }
                 }
                 if (testedPluginId == 'org.jetbrains.kotlin.js'
-                        || testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
+                    || testedPluginId == 'org.jetbrains.kotlin.multiplatform') {
                     onPlugins(['org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin',
                                'org.jetbrains.kotlin.gradle.targets.js.npm.NpmResolverPlugin',
                                'org.jetbrains.kotlin.gradle.targets.js.yarn.YarnPlugin'
-                    ]) { registerValidationFailure(delegate) }
+                    ]) { registerKotlinUnsupportedNestedTypesValidationFailure(delegate) }
                 }
                 if (testedPluginId == 'org.jetbrains.kotlin.kapt') {
-                    onPlugin('kotlin-kapt') { registerValidationFailure(delegate) }
+                    onPlugin('kotlin-kapt') { registerKotlinUnsupportedNestedTypesValidationFailure(delegate) }
                 }
             } else {
                 alwaysPasses()
@@ -106,13 +128,31 @@ abstract class AbstractKotlinPluginSmokeTest extends AbstractPluginValidatingSmo
     }
 
     @SuppressWarnings('UnnecessaryQualifiedReference')
-    protected registerValidationFailure(org.gradle.smoketests.WithPluginValidation.PluginValidation pluginValidation) {
+    protected registerAndroidInternalApplicationPropertyAccessorOverrideValidationFailure(org.gradle.smoketests.WithPluginValidation.PluginValidation pluginValidation) {
+        pluginValidation.failsWith(
+            (propertyAccessorMustNotBeOverridden {
+                type('com.android.build.gradle.internal.tasks.PackageRenderscriptTask')
+                    .method('getDestinationDir')
+                    .annotation(ToBeReplacedByLazyProperty)
+                    .includeLink()
+            }): Severity.WARNING,
+            (propertyAccessorMustNotBeOverridden {
+                type('com.android.build.gradle.internal.tasks.ProcessJavaResTask')
+                    .method('getDestinationDir')
+                    .annotation(ToBeReplacedByLazyProperty)
+                    .includeLink()
+            }): Severity.WARNING,
+        )
+    }
+
+    @SuppressWarnings('UnnecessaryQualifiedReference')
+    protected registerKotlinUnsupportedNestedTypesValidationFailure(org.gradle.smoketests.WithPluginValidation.PluginValidation pluginValidation) {
         pluginValidation.failsWith(nestedTypeUnsupported {
             type('org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest')
-                    .property('environment')
-                    .annotatedType('java.lang.String')
-                    .reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.")
-                    .includeLink()
+                .property('environment')
+                .annotatedType('java.lang.String')
+                .reason("Type is in 'java.*' or 'javax.*' package that are reserved for standard Java API types.")
+                .includeLink()
         }, Severity.WARNING)
     }
 

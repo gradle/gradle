@@ -58,6 +58,7 @@ abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
         [],
         [:],
         [:],
+        [],
         ["java", "groovy"],
         [],
         [Object, GroovyObject],
