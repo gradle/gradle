@@ -675,6 +675,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(items.size());
             boolean hasChanges = false;
             for (Object candidate : items) {
+                if (candidate == null) {
+                    continue;
+                }
                 if (candidate instanceof FileCollectionInternal) {
                     FileCollectionInternal newCollection = ((FileCollectionInternal) candidate).replace(original, supplier);
                     hasChanges |= newCollection != candidate;
