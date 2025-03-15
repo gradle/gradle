@@ -475,9 +475,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         commonProject.pluginManager.apply(JavaPlugin)
         commonProject.group = "group"
         commonProject.extensions.configure(JavaPluginExtension) { java ->
-            java.sourceSets.create("other")
+            var otherRegistered = java.sourceSets.register("otherRegistered")
             java.registerFeature("other") {
-                it.usingSourceSet(java.sourceSets.other)
+                it.usingSourceSet(otherRegistered)
             }
         }
         middleProject.pluginManager.apply(JavaPlugin)

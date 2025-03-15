@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.jvm.internal.DefaultJvmFeature;
 import org.gradle.api.plugins.jvm.internal.JvmFeatureInternal;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.DefaultImmutableCapability;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -34,7 +36,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
     private final Set<Capability> capabilities = new LinkedHashSet<>(1);
     private final ProjectInternal project;
 
-    private SourceSet sourceSet;
+    private final Property<SourceSet> sourceSet;
     private boolean withJavadocJar = false;
     private boolean withSourcesJar = false;
     private boolean allowPublication = true;
@@ -42,11 +44,17 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
     public DefaultJavaFeatureSpec(String name, ProjectInternal project) {
         this.name = name;
         this.project = project;
+        this.sourceSet = project.getObjects().property(SourceSet.class);
     }
 
     @Override
     public void usingSourceSet(SourceSet sourceSet) {
-        this.sourceSet = sourceSet;
+        this.sourceSet.set(sourceSet);
+    }
+
+    @Override
+    public void usingSourceSet(Provider<SourceSet> sourceSet) {
+        this.sourceSet.set(sourceSet);
     }
 
     @Override
@@ -74,6 +82,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
     }
 
     public JvmFeatureInternal create() {
+        SourceSet sourceSet = this.sourceSet.getOrNull();
         if (sourceSet == null) {
             throw new InvalidUserCodeException("You must specify which source set to use for feature '" + name + "'");
         }

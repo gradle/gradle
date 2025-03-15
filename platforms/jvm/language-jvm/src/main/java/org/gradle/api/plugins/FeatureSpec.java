@@ -15,6 +15,8 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -31,6 +33,14 @@ public interface FeatureSpec {
      * @param sourceSet the source set
      */
     void usingSourceSet(SourceSet sourceSet);
+
+    /**
+     * Declares the source set which this feature is built from.
+     * @param sourceSet the source set
+     * @since 9.0
+     */
+    @Incubating
+    void usingSourceSet(Provider<SourceSet> sourceSet);
 
     /**
      * Declares a capability of this feature.
