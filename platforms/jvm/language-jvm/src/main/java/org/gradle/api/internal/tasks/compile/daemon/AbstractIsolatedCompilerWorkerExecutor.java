@@ -16,27 +16,21 @@
 
 package org.gradle.api.internal.tasks.compile.daemon;
 
-import org.gradle.api.tasks.WorkResult;
-import org.gradle.internal.Cast;
-import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.language.base.internal.compile.Compiler;
-import org.gradle.workers.WorkAction;
+import org.gradle.language.base.internal.compile.CompilerParameters;
+import org.gradle.language.base.internal.compile.CompilerWorkAction;
 import org.gradle.workers.internal.ActionExecutionSpecFactory;
 import org.gradle.workers.internal.BuildOperationAwareWorker;
 import org.gradle.workers.internal.DaemonForkOptions;
 import org.gradle.workers.internal.DefaultWorkResult;
 import org.gradle.workers.internal.IsolatedClassLoaderWorkerRequirement;
-import org.gradle.workers.internal.ProvidesWorkResult;
 import org.gradle.workers.internal.WorkerFactory;
-
-import javax.inject.Inject;
 
 /**
  * Base implementation of {@link CompilerWorkerExecutor} which handles submitting a compile work item to execute.
  * Inheritors need to provide an appropriate isolated worker requirement depending on what isolation mode is being used.
  */
 abstract public class AbstractIsolatedCompilerWorkerExecutor implements CompilerWorkerExecutor {
+
     private final WorkerFactory workerFactory;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
@@ -55,40 +49,4 @@ abstract public class AbstractIsolatedCompilerWorkerExecutor implements Compiler
         return worker.execute(actionExecutionSpecFactory.newIsolatedSpec("compiler daemon", CompilerWorkAction.class, parameters, workerRequirement, true));
     }
 
-    public static class CompilerWorkAction implements WorkAction<CompilerParameters>, ProvidesWorkResult {
-        private DefaultWorkResult workResult;
-        private final CompilerParameters parameters;
-        private final Instantiator instantiator;
-
-        @Inject
-        public CompilerWorkAction(CompilerParameters parameters, Instantiator instantiator) {
-            this.parameters = parameters;
-            this.instantiator = instantiator;
-        }
-
-        @Override
-        public CompilerParameters getParameters() {
-            return parameters;
-        }
-
-        @Override
-        public void execute() {
-            Class<? extends Compiler<?>> compilerClass = Cast.uncheckedCast(ClassLoaderUtils.classFromContextLoader(getParameters().getCompilerClassName()));
-            Compiler<?> compiler = instantiator.newInstance(compilerClass, getParameters().getCompilerInstanceParameters());
-            setWorkResult(compiler.execute(Cast.uncheckedCast(getParameters().getCompileSpec())));
-        }
-
-        private void setWorkResult(WorkResult workResult) {
-            if (workResult instanceof DefaultWorkResult) {
-                this.workResult = (DefaultWorkResult) workResult;
-            } else {
-                this.workResult = new DefaultWorkResult(workResult.getDidWork(), null);
-            }
-        }
-
-        @Override
-        public DefaultWorkResult getWorkResult() {
-            return workResult;
-        }
-    }
 }

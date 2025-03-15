@@ -24,7 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.provider.PropertyFactory;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.SourceRootInferrer;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -188,7 +188,7 @@ public abstract class Javadoc extends SourceTask {
     }
 
     private boolean isModule() {
-        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
+        List<File> sourcesRoots = SourceRootInferrer.inferSourceRoots((FileTreeInternal) getSource());
         return JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
     }
 

@@ -16,19 +16,14 @@
 
 package org.gradle.api.internal.tasks.compile
 
-
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.tasks.compile.BaseForkOptions
 import spock.lang.Specification
 
 class BaseForkOptionsConverterTest extends Specification {
     BaseForkOptionsConverter converter = new BaseForkOptionsConverter(TestFiles.execFactory())
 
     def "converts a base fork options to a java fork options"() {
-        BaseForkOptions baseForkOptions = new BaseForkOptions()
-        baseForkOptions.memoryInitialSize = "128m"
-        baseForkOptions.memoryMaximumSize = "1g"
-        baseForkOptions.jvmArgs = ["-foo", "-bar"]
+        MinimalCompilerDaemonForkOptions baseForkOptions = new MinimalCompilerDaemonForkOptions("128m", "1g", ["-foo", "-bar"])
 
         when:
         def javaForkOptions = converter.transform(baseForkOptions)
@@ -40,8 +35,7 @@ class BaseForkOptionsConverterTest extends Specification {
     }
 
     def "can convert a partially configured base fork options"() {
-        BaseForkOptions baseForkOptions = new BaseForkOptions()
-        baseForkOptions.memoryInitialSize = "128m"
+        MinimalCompilerDaemonForkOptions baseForkOptions =  new MinimalCompilerDaemonForkOptions("128m", null, [])
 
         when:
         def javaForkOptions = converter.transform(baseForkOptions)
