@@ -10,7 +10,6 @@ dependencies {
     api(projects.files)
     api(projects.functional)
     api(projects.hashing)
-    api(projects.snapshotsWorker)
 
     api(libs.guava)
     api(libs.jsr305)

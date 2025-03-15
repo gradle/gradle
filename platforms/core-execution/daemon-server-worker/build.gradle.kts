@@ -34,7 +34,7 @@ dependencies {
     api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.serviceProvider)
-    api(projects.snapshotsWorker)
+    api(projects.snapshots)
 
     api(libs.inject)
     api(libs.jsr305)

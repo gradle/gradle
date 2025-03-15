@@ -36,7 +36,7 @@ dependencies {
     api(projects.logging)
     api(projects.modelCore)
     api(projects.problemsApi)
-    api(projects.snapshotsWorker)
+    api(projects.snapshots)
 
     api(libs.kotlinStdlib)
 
@@ -44,7 +44,6 @@ dependencies {
     implementation(projects.configurationCacheBase)
     implementation(projects.serviceLookup)
     implementation(projects.serialization)
-    implementation(projects.snapshots)
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.stdlibKotlinExtensions)
 

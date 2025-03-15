@@ -38,8 +38,6 @@ dependencies {
     api(projects.serviceLookup)
     api(projects.serviceProvider)
     api(projects.snapshots)
-    api(projects.snapshotsWorker)
-    api(projects.requestHandlerWorker)
     api(projects.time)
     api(projects.toolingApi)
 
