@@ -40,6 +40,19 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+==== Conventions removal
+
+The "convention" concept defined by the `org.gradle.api.plugins.Convention` type has been deprecated since Gradle 8.2 and is now removed.
+
+Core Gradle plugins were still registering deprecated conventions that also got removed in Gradle 9.0:
+
+.Removed plugin extensions
+[cols="1,1,1,5"]
+|===
+|Plugin |Access |Type |Solution
+|`war` |`project.war` | `WarPluginConvention` | Configure the `war` task directly instead.
+|===
+
 ==== Gradle API now uses JSpecify Nullability Annotations
 
 The initial introduction of null safety in the Gradle API dates back to 2018 in Gradle 5.0.

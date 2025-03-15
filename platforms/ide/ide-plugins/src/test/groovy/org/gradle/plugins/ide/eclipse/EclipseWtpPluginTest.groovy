@@ -180,7 +180,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.webAppDirName = 'foo'
+        project.war.webAppDirectory = project.layout.projectDirectory.dir('foo')
 
         then:
         project.eclipse.wtp.component.resources == [new WbResource('/', 'foo')]
@@ -190,7 +190,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         when:
         project.apply(plugin: 'war')
         project.apply(plugin: 'eclipse-wtp')
-        project.webAppDirName = 'foo'
+        project.war.webAppDirectory = project.layout.projectDirectory.dir('foo')
 
         project.eclipse.wtp {
             component {
@@ -393,7 +393,7 @@ class EclipseWtpPluginTest extends AbstractProjectBuilderSpec {
         assert wtp.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert wtp.deployName == project.name
         assert wtp.contextPath == project.war.archiveBaseName.get()
-        assert wtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
+        assert wtp.resources == [new WbResource('/', project.projectDir.toPath().relativize(project.war.webAppDirectory.get().asFile.toPath()).toString())]
         assert wtp.classesDeployPath == "/WEB-INF/classes"
         assert wtp.libDeployPath == "/WEB-INF/lib"
     }
