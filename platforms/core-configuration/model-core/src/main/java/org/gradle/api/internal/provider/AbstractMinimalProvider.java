@@ -36,6 +36,8 @@ import javax.annotation.Nullable;
  */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
+    public static final String DIFFERENT_CLASSLOADERS_SUGGESTION = "\nThis can be caused by a plugin being applied to two sibling projects and then using a shared build service. " +
+        "To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script.";
 
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends @org.jetbrains.annotations.Nullable S, ? super T> transformer) {
@@ -169,12 +171,15 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     private static String formatInvalidTypeException(String owner, Class<?> targetType, Class<?> selfType) {
         String targetTypeName = targetType.getName();
         String selfTypeName = selfType.getName();
+        String suggestion = "";
         if (targetTypeName.equals(selfTypeName)) {
             // This may happen when the same type is loaded by different classloaders.
             targetTypeName = targetTypeName + " loaded with " + targetType.getClassLoader();
             selfTypeName = selfTypeName + " loaded with " + selfType.getClassLoader();
+            // TODO: use problems API to have fancier report
+            suggestion = DIFFERENT_CLASSLOADERS_SUGGESTION;
         }
-        return String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner, targetTypeName, selfTypeName);
+        return String.format("Cannot set the value of %s of type %s using a provider of type %s.%s", owner, targetTypeName, selfTypeName, suggestion);
     }
 
     @Override

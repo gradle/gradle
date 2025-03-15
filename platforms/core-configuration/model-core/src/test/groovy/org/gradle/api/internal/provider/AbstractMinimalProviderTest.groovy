@@ -152,7 +152,9 @@ class AbstractMinimalProviderTest extends ProviderSpec<String> {
         then:
         def e = thrown(IllegalArgumentException)
 
-        e.message == "Cannot set the value of someProp of type ${TestValue.name} loaded with TestClassLoader(target) using a provider of type ${TestValue.name} loaded with TestClassLoader(src)."
+        e.message == "Cannot set the value of someProp of type ${TestValue.name} loaded with TestClassLoader(target) using a provider of type ${TestValue.name} loaded with TestClassLoader(src).\n" +
+            "This can be caused by a plugin being applied to two sibling projects and then using a shared build service. " +
+            "To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script."
     }
 
     def "exception contains no classloader info when different types are requested"() {

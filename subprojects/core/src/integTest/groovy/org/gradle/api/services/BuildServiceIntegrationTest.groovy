@@ -1012,6 +1012,84 @@ Hello, subproject1
         outputContains("Hello, subproject2")
     }
 
+    def "service provided by a plugin shared by subprojects with different classloaders by name should give actionable error message"() {
+        createDirs("plugin1", "plugin2", "subproject1", "subproject2")
+        settingsFile """
+        pluginManagement {
+            includeBuild 'plugin1'
+            includeBuild 'plugin2'
+        }
+        include 'subproject1'
+        include 'subproject2'
+        """
+        // plugin 1 declares a service
+        buildFile(file("plugin1/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin1/src/main/groovy/my.plugin1.gradle"), """
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            abstract class MyService implements BuildService<BuildServiceParameters.None> {
+                String hello(String message) {
+                    "Hello, \$message"
+                }
+            }
+
+            def service = gradle.sharedServices.registerIfAbsent("myService", MyService) {}
+
+            abstract class HelloTask extends DefaultTask {
+                @$Internal.name
+                abstract Property<MyService> getMyServiceReference()
+
+                @$Internal.name
+                abstract Property<String> getProjectName()
+
+                @TaskAction
+                def go() {
+                    println(myServiceReference.get().hello(projectName.get()))
+                }
+            }
+
+            project.tasks.register('hello', HelloTask) {
+                projectName = project.name
+                myServiceReference = service
+                doLast {
+                    assert MyService == myServiceReference.type
+                }
+            }
+        """)
+
+        // plugin 2
+        buildFile(file("plugin2/build.gradle"), "plugins { id 'groovy-gradle-plugin' }")
+        buildFile(file("plugin2/src/main/groovy/my.plugin2.gradle"), "/* no code needed */")
+        // subproject1 and subproject2 apply different sets of plugins, so get different classloaders
+        buildFile(file("subproject1/build.gradle"), """
+        plugins {
+            id 'my.plugin1'
+            id 'my.plugin2'
+        }
+        """)
+        buildFile(file("subproject2/build.gradle"), """
+        plugins {
+            // must include the plugin contributing the build service,
+            // and must be a different ordered set than the other project
+            // or else both subprojects are built with the same classloader
+            id 'my.plugin2'
+            id 'my.plugin1'
+        }
+        """)
+
+        when:
+        succeeds(":subproject1:hello")
+
+        then:
+        outputContains("Hello, subproject1")
+
+        when:
+        fails(":subproject2:hello", "-s")
+
+        then:
+        failureHasCause(~/.*Cannot set the value of task ':subproject2:hello' property 'myServiceReference' of type MyService loaded with .* using a provider of type MyService loaded with .*\nThis can be caused by a plugin being applied to two sibling projects and then using a shared build service. To fix this, use `@ServiceReference` or add the problematic plugin with `apply false` to the root build script./)
+    }
+
     @ToBeFixedForIsolatedProjects(because = "subprojects")
     def "plugin applied to multiple projects can register a shared service"() {
         createDirs("a", "b", "c")
