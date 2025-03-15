@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.deprecation;
 
+import com.google.common.base.Strings;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.problems.Problems;
 import org.gradle.internal.Factory;
@@ -135,6 +136,9 @@ public class DeprecationLogger {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
             DeprecationMessage build() {
+                if (problemIdDisplayName == null) {
+                    setProblemIdDisplayName(Strings.nullToEmpty(createDefaultDeprecationIdDisplayName()));
+                }
                 return new DeprecationMessage(behaviour + ". This behavior is deprecated.", "", advice, null, null, DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT, problemIdDisplayName, problemId);
             }
         }); // TODO: it is not ok that NO_DOCUMENTATION is hardcoded here

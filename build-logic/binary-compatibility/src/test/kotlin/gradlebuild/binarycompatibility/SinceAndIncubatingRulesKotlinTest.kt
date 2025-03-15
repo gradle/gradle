@@ -16,11 +16,13 @@
 
 package gradlebuild.binarycompatibility
 
+import org.intellij.lang.annotations.Language
 import org.junit.Test
 
 
 class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
+    @Language("kotlin")
     private
     val publicKotlinMembers = """
 
@@ -67,6 +69,7 @@ class SinceAndIncubatingRulesKotlinTest : AbstractBinaryCompatibilityTest() {
 
     """
 
+    @Language("kotlin")
     private
     val annotatedKotlinMembers = """
 

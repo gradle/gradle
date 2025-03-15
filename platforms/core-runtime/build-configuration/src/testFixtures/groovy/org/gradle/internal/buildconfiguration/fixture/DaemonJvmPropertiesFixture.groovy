@@ -40,7 +40,8 @@ trait DaemonJvmPropertiesFixture {
     }
 
     void assertDaemonUsedJvm(File expectedJavaHome) {
-        assert file("javaHome.txt").text == expectedJavaHome.canonicalPath
+        // might be not the same as the actual java home because the actual JRE can be in a subdirectory of the jdk/installedToolchain
+        assert file("javaHome.txt").text.startsWith(expectedJavaHome.canonicalPath)
     }
 
     void captureJavaHome() {

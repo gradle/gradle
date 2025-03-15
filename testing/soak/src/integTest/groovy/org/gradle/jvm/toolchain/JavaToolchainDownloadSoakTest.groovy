@@ -16,7 +16,6 @@
 
 package org.gradle.jvm.toolchain
 
-
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
@@ -140,9 +139,94 @@ class JavaToolchainDownloadSoakTest extends AbstractIntegrationSpec {
                 .run()
     }
 
-    private void assertJdkWasDownloaded(String implementation = null) {
+    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    def "toolchain download can handle different jvms with the same archive name"() {
+        when:
+        result = executer
+            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
+            .withToolchainDownloadEnabled()
+            .withTasks("compileJava")
+            .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        assertJdkWasDownloaded()
+
+        when:
+        def differentJdk = AvailableJavaHomes.getDifferentVersion { (it.languageVersion != JAVA_VERSION) }
+        def jdkRepository2 = new JdkRepository(differentJdk.javaVersion)
+        def uri2 = jdkRepository2.start()
+        jdkRepository2.reset()
+
+        and:
+        settingsFile.text = settingsFile.text.replace(uri.toString(), uri2.toString())
+        buildFile.text = buildFile.text.replace(TOOLCHAIN_WITH_VERSION,
+            """
+            java {
+                toolchain {
+                    languageVersion = JavaLanguageVersion.of(${differentJdk.javaVersion.majorVersion})
+                }
+            }
+            """
+        )
+
+        and:
+        result = executer
+            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
+            .withToolchainDownloadEnabled()
+            .withTasks("compileJava")
+            .run()
+
+        then: "another suitable JDK gets auto-provisioned"
+        assertJdkWasDownloaded(differentJdk.javaVersion)
+
+        cleanup:
+        jdkRepository2.stop()
+    }
+
+    @Requires(value = [IntegTestPreconditions.JavaHomeWithDifferentVersionAvailable])
+    def "toolchain download can handle corrupted archive"() {
+        when:
+        result = executer
+            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
+            .withToolchainDownloadEnabled()
+            .withTasks("compileJava")
+            .run()
+
+        then: "suitable JDK gets auto-provisioned"
+        assertJdkWasDownloaded()
+
+        when:
+        executer.gradleUserHomeDir.file("jdks")
+            .listFiles({ file -> file.name.endsWith(".zip") } as FileFilter)
+            .each { it.text = "corrupted data" }
+
+        // delete unpacked JDKs
+        executer.gradleUserHomeDir.file("jdks")
+            .listFiles({ file -> file.isDirectory() } as FileFilter)
+            .each { it.deleteDir() }
+
+        jdkRepository.reset()
+
+        // invalidating compilation
+        file("src/main/java/Bar.java") << "public class Bar {}"
+
+        and:
+        result = executer
+            .requireOwnGradleUserHomeDir("needs to test toolchain download functionality")
+            .withToolchainDownloadEnabled()
+            .withTasks("compileJava", "--info")
+            .withStackTraceChecksDisabled()
+            .run()
+
+        then:
+        output.matches("(?s).*Re-downloading toolchain from URI .* because unpacking the existing archive .* failed with an exception.*")
+        result.assertTasksExecutedAndNotSkipped(":compileJava")
+        assertJdkWasDownloaded()
+    }
+
+    private void assertJdkWasDownloaded(JavaVersion javaVersion = JAVA_VERSION, String implementation = null) {
         assert executer.gradleUserHomeDir.file("jdks").listFiles({ file ->
-            file.name.contains("-${JAVA_VERSION.majorVersion}-") && (implementation == null || file.name.contains(implementation))
+            file.name.contains("-${javaVersion.majorVersion}-") && (implementation == null || file.name.contains(implementation))
         } as FileFilter)
     }
 

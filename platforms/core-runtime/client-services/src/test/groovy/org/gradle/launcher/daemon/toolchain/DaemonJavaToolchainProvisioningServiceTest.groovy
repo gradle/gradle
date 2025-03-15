@@ -21,7 +21,9 @@ import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainSpec
+import org.gradle.jvm.toolchain.JvmVendorSpec
 import org.gradle.jvm.toolchain.internal.install.DefaultJdkCacheDirectory
 import org.gradle.jvm.toolchain.internal.install.SecureFileDownloader
 import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainDownloadException
@@ -29,12 +31,14 @@ import org.gradle.jvm.toolchain.internal.install.exceptions.ToolchainProvisionin
 import org.gradle.platform.Architecture
 import org.gradle.platform.OperatingSystem
 import org.gradle.platform.internal.CurrentBuildPlatform
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.TempDir
 
 class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
     private static final String ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux.zip'
+    private static final String UPDATED_ARCHIVE_NAME = 'ibm-11-x64-hotspot-linux-Eclipse#20Temurin-11.zip'
     private static final URI DOWNLOAD_URL = URI.create('https://server.com')
 
     @TempDir
@@ -44,7 +48,10 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
     def cache = Mock(DefaultJdkCacheDirectory)
     def archiveFileLock = Mock(FileLock)
     def buildPlatform = Mock(CurrentBuildPlatform)
-    def spec = Mock(JavaToolchainSpec)
+    def spec = Mock(JavaToolchainSpec) {
+        getLanguageVersion() >> TestUtil.propertyFactory().property(JavaLanguageVersion).value(JavaLanguageVersion.of(11))
+        getVendor() >> TestUtil.propertyFactory().property(JvmVendorSpec).value(JvmVendorSpec.ADOPTIUM)
+    }
     def progressLogger = Mock(ProgressLogger)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
 
@@ -86,14 +93,14 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
         given:
         def toolchainDownloadUrlProvider = new ToolchainDownloadUrlProvider([(buildPlatform.toBuildPlatform()) : DOWNLOAD_URL.toString()])
         def provisioningService = new DaemonJavaToolchainProvisioningService(downloader, cache, buildPlatform, toolchainDownloadUrlProvider, true, progressLoggerFactory)
-        new File(temporaryFolder, ARCHIVE_NAME).createNewFile()
+        new File(temporaryFolder, UPDATED_ARCHIVE_NAME).createNewFile()
 
         when:
         provisioningService.tryInstall(spec)
 
         then:
         1 * progressLogger.start("Installing toolchain", null)
-        1 * progressLogger.progress("Unpacking toolchain archive $ARCHIVE_NAME")
+        1 * progressLogger.progress("Unpacking toolchain archive $UPDATED_ARCHIVE_NAME")
         1 * progressLogger.completed("Installed toolchain", false)
         0 * progressLogger._
         0 * downloader.download(_, _, _)
@@ -148,9 +155,9 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         1 * progressLogger.start("Installing toolchain", null)
-        1 * progressLogger.progress("Unpacking toolchain archive $ARCHIVE_NAME")
+        1 * progressLogger.progress("Unpacking toolchain archive $UPDATED_ARCHIVE_NAME")
         1 * progressLogger.completed("Installed toolchain", false)
         0 * progressLogger._
-        1 * downloader.download(DOWNLOAD_URL, new File(temporaryFolder, ARCHIVE_NAME), _)
+        1 * downloader.download(DOWNLOAD_URL, new File(temporaryFolder, UPDATED_ARCHIVE_NAME), _)
     }
 }
