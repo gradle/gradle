@@ -181,4 +181,49 @@ class ProblemProgressEventCrossVersionTest extends ToolingApiSpecification {
         where:
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
+
+    def "deprecations with their own additional data types are reported correctly"() {
+        buildFile """
+            import org.gradle.api.problems.Severity
+            import org.gradle.api.problems.AdditionalData
+            import org.gradle.api.problems.deprecation.ReportSource
+
+            abstract class DeprecatingTask extends DefaultTask {
+                @Inject
+                protected abstract Problems getProblems();
+
+                @TaskAction
+                void run() {
+                    getProblems()
+                        .getDeprecationReporter()
+                        .deprecate(ReportSource.gradle(), "test deprecation", feature -> feature
+                            .removedInVersion("x.y.z")
+                            .replacedBy("new way")
+                            .because("well thought out reasoning")
+                        )
+                }
+            }
+
+            tasks.register("reportDeprecation", DeprecatingTask)
+        """
+
+        when:
+        def listener = new org.gradle.integtests.tooling.r813.ProblemProgressEventCrossVersionTest.ProblemProgressListener()
+        withConnection { connection ->
+            connection
+                .newBuild()
+                .forTasks("reportDeprecation")
+                .addProgressListener(listener)
+                .run()
+        }
+
+        then:
+        def problems = listener.problems
+        problems.size() == 1
+
+        def deprecation = problems[0]
+        deprecation.contextualLabel.contextualLabel == "test deprecation"
+        def additionalData = deprecation.additionalData.getAsMap()
+        additionalData.size() == 1
+    }
 }
