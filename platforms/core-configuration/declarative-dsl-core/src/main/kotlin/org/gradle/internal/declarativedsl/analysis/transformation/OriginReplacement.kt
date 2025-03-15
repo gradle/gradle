@@ -44,6 +44,9 @@ object OriginReplacement {
                 is ObjectOrigin.PropertyDefaultValue -> origin.copy(receiver = replace(origin.receiver))
                 is ObjectOrigin.PropertyReference -> origin.copy(receiver = replace(origin.receiver))
                 is ObjectOrigin.GroupedVarargValue -> origin.copy(elementValues = origin.elementValues.map { replace(it) })
+                is ObjectOrigin.AugmentationOrigin -> origin.copy(
+                    augmentedProperty = replaceIn(origin.augmentedProperty), augmentationOperand = replace(origin.augmentationOperand), augmentationResult = replace(origin.augmentationResult)
+                )
 
                 is ObjectOrigin.ConstantOrigin,
                 is ObjectOrigin.EnumConstantOrigin,
@@ -82,6 +85,9 @@ object OriginReplacement {
                 receiver = replace(accessAndConfigureReceiver.receiver),
                 parameterBindings = replaceInArgs(accessAndConfigureReceiver.parameterBindings)
             )
+
+        private fun replaceIn(origin: ObjectOrigin.PropertyReference) =
+            ObjectOrigin.PropertyReference(replace(origin.receiver), origin.property, origin.originElement)
 
         private
         fun replaceInArgs(

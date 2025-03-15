@@ -37,6 +37,12 @@ interface DeclarativeDocument : DocumentNodeContainer {
         interface PropertyNode : DocumentNode {
             val name: String
             val value: ValueNode
+            val augmentation: PropertyAugmentation
+
+            sealed interface PropertyAugmentation {
+                data object None : PropertyAugmentation
+                data object Plus : PropertyAugmentation
+            }
         }
 
         interface ElementNode : DocumentNode, DocumentNodeContainer {

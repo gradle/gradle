@@ -43,6 +43,11 @@ interface AnalysisSchema : Serializable {
      */
     val genericInstantiationsByFqName: Map<FqName, Map<List<TypeArgument>, ClassDataType>>
 
+    /**
+     * Available assignment augmentations, grouped by the type identified by its name as in [dataClassTypesByFqName] or [genericSignaturesByFqName].
+     */
+    val assignmentAugmentationsByTypeName: Map<FqName, List<AssignmentAugmentation>>
+
     val externalFunctionsByFqName: Map<FqName, DataTopLevelFunction>
     val externalObjectsByFqName: Map<FqName, ExternalObjectProviderKey>
     val defaultImports: Set<FqName>

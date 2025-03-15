@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.mappingToJvm
 
 import org.gradle.internal.declarativedsl.InstanceAndPublicType
+import org.gradle.internal.declarativedsl.mappingToJvm.DeclarativeRuntimePropertySetter.Companion.skipSetterSpecialValue
 
 
 fun interface DeclarativeRuntimePropertyGetter {
@@ -24,6 +25,31 @@ fun interface DeclarativeRuntimePropertyGetter {
 }
 
 
-fun interface DeclarativeRuntimePropertySetter {
+/**
+ * A property setter object that the DCL runtime uses to set values to properties.
+ *
+ * The factory function [declarativeRuntimePropertySetter] creates setter objects taking care of some parts of the contract.
+ */
+interface DeclarativeRuntimePropertySetter {
+    /**
+     * Invoke the setter and set the value of the property on the [receiver] to [value].
+     * If the [value] is [skipSetterSpecialValue], the call should not have any effect.
+     */
     fun setValue(receiver: Any, value: Any?)
+
+    companion object {
+        /**
+         * When passed to [DeclarativeRuntimePropertySetter.setValue] as the value, the setter implementation should not set any value.
+         */
+        val skipSetterSpecialValue = Any()
+    }
 }
+
+fun declarativeRuntimePropertySetter(setterImplementation: (receiver: Any, value: Any?) -> Unit): DeclarativeRuntimePropertySetter =
+    object : DeclarativeRuntimePropertySetter {
+        override fun setValue(receiver: Any, value: Any?) {
+            if (value != skipSetterSpecialValue) {
+                setterImplementation(receiver, value)
+            }
+        }
+    }

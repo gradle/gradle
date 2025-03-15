@@ -44,78 +44,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
 
     def 'can configure a custom plugin extension in declarative DSL for a plugin written in #language'() {
         given:
-        file("build-logic/build.gradle.kts") << """
-            plugins {
-                `java-gradle-plugin`
-                ${if (language == "kotlin") { "`kotlin-dsl`" } else { "" }}
-            }
-            ${if (language == "kotlin") { "repositories { mavenCentral() }" } else { "" }}
-            gradlePlugin {
-                plugins {
-                    create("restrictedPlugin") {
-                        id = "com.example.restricted"
-                        implementationClass = "com.example.restricted.RestrictedPlugin"
-                    }
-                    create("softwareTypeRegistrator") {
-                        id = "com.example.restricted.ecosystem"
-                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
-                    }
-                }
-            }
-        """
-
-        file(extensionFile) << extensionCode
-
-        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
-        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << """
-            package com.example.restricted;
-
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.Plugin;
-            import org.gradle.api.Project;
-            import org.gradle.api.provider.ListProperty;
-            import org.gradle.api.provider.Property;
-            import ${SoftwareType.class.name};
-
-            public abstract class RestrictedPlugin implements Plugin<Project> {
-                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
-                public abstract Extension getRestricted();
-
-                @Override
-                public void apply(Project target) {
-                    target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
-                        Property<Extension.Point> referencePoint = getRestricted().getReferencePoint();
-                        Extension.Access acc = getRestricted().getPrimaryAccess();
-                        ListProperty<Extension.Access> secondaryAccess = getRestricted().getSecondaryAccess();
-
-                        task.doLast("print restricted extension content", t -> {
-                            System.out.println("id = " + getRestricted().getId().get());
-                            Extension.Point point = referencePoint.getOrElse(getRestricted().point(-1, -1));
-                            System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
-                            System.out.println("arguments = " + getRestricted().getArguments().get());
-                            System.out.println("primaryAccess = { " +
-                                    acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
-                            );
-                            secondaryAccess.get().forEach(it -> {
-                                System.out.println("secondaryAccess { " +
-                                        it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() +
-                                        "}"
-                                );
-                            });
-                        });
-                    });
-                }
-            }
-        """
-
-        file("settings.gradle.dcl") << """
-            pluginManagement {
-                includeBuild("build-logic")
-            }
-            plugins {
-                id("com.example.restricted.ecosystem")
-            }
-        """
+        simpleDeclarativePlugin(language)
 
         file("build.gradle.dcl") << """
             restricted {
@@ -123,6 +52,7 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
 
                 referencePoint = point(1, 2)
                 arguments = listOf("one", "two")
+                flags = listOf()
 
                 primaryAccess {
                     read = false
@@ -150,15 +80,133 @@ class DeclarativeDslProjectBuildFileIntegrationSpec extends AbstractIntegrationS
         outputContains("""id = test
 referencePoint = (1, 2)
 arguments = [one, two]
+flags = []
 primaryAccess = { primary, false, false}
 secondaryAccess { two, true, false}
 secondaryAccess { three, true, true}"""
         )
 
         where:
-        language | extensionFile                    | extensionCode
-        "java"   | JAVA_PLUGIN_EXTENSION_FILENAME   | JAVA_PLUGIN_EXTENSION
-        "kotlin" | KOTLIN_PLUGIN_EXTENSION_FILENAME | KOTLIN_PLUGIN_EXTENSION
+        language | _
+        "java"   | _
+        "kotlin" | _
+    }
+
+    def 'can use list augmentation with += from a DCL file'() {
+        given:
+        simpleDeclarativePlugin()
+
+        file("settings.gradle.dcl") << """
+
+            defaults {
+                restricted {
+                    arguments = listOf("one")
+                    flags = listOf("foo", "bar")
+                }
+            }
+        """
+
+        file("build.gradle.dcl") << """
+            restricted {
+                arguments += listOf("two", "three")
+                flags += listOf("baz")
+            }
+        """
+
+        when:
+        run(":printConfiguration")
+
+        then:
+        outputContains("arguments = [one, two, three]")
+        outputContains("flags = [foo, bar, baz]")
+    }
+
+    def simpleDeclarativePlugin(String language = "kotlin") {
+        file("build-logic/build.gradle.kts") << defineCustomPluginBuild(language)
+        file("build-logic/src/main/java/com/example/restricted/SoftwareTypeRegistrationPlugin.java") << defineSettingsPluginRegisteringSoftwareTypeProvidingPlugin()
+        file("build-logic/src/main/java/com/example/restricted/RestrictedPlugin.java") << defineRestrictedPlugin()
+
+        if (language == "kotlin") {
+            file(KOTLIN_PLUGIN_EXTENSION_FILENAME) << KOTLIN_PLUGIN_EXTENSION
+        } else if (language == "java") {
+            file(JAVA_PLUGIN_EXTENSION_FILENAME) << JAVA_PLUGIN_EXTENSION
+        }
+
+        file("settings.gradle.dcl") << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            plugins {
+                id("com.example.restricted.ecosystem")
+            }
+        """
+
+    }
+
+    private static String defineRestrictedPlugin() {
+        """
+            package com.example.restricted;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.ListProperty;
+            import org.gradle.api.provider.Property;
+            import ${SoftwareType.class.name};
+
+            public abstract class RestrictedPlugin implements Plugin<Project> {
+                @SoftwareType(name = "restricted", modelPublicType = Extension.class)
+                public abstract Extension getRestricted();
+
+                @Override
+                public void apply(Project target) {
+                    target.getTasks().register("printConfiguration", DefaultTask.class, task -> {
+                        Property<Extension.Point> referencePoint = getRestricted().getReferencePoint();
+                        Extension.Access acc = getRestricted().getPrimaryAccess();
+                        ListProperty<Extension.Access> secondaryAccess = getRestricted().getSecondaryAccess();
+
+                        task.doLast("print restricted extension content", t -> {
+                            System.out.println("id = " + getRestricted().getId().get());
+                            Extension.Point point = referencePoint.getOrElse(getRestricted().point(-1, -1));
+                            System.out.println("referencePoint = (" + point.getX() + ", " + point.getY() + ")");
+                            System.out.println("arguments = " + getRestricted().getArguments().get());
+                            System.out.println("flags = " + getRestricted().getFlags());
+                            System.out.println("primaryAccess = { " +
+                                    acc.getName().get() + ", " + acc.getRead().get() + ", " + acc.getWrite().get() + "}"
+                            );
+                            secondaryAccess.get().forEach(it -> {
+                                System.out.println("secondaryAccess { " +
+                                        it.getName().get() + ", " + it.getRead().get() + ", " + it.getWrite().get() +
+                                        "}"
+                                );
+                            });
+                        });
+                    });
+                }
+            }
+        """
+    }
+
+    private static String defineCustomPluginBuild(String language) {
+        """
+            plugins {
+                `java-gradle-plugin`
+                ${if (language == "kotlin") { "`kotlin-dsl`" } else { "" }}
+            }
+            ${if (language == "kotlin") { "repositories { mavenCentral() }" } else { "" }}
+            gradlePlugin {
+                plugins {
+                    create("restrictedPlugin") {
+                        id = "com.example.restricted"
+                        implementationClass = "com.example.restricted.RestrictedPlugin"
+                    }
+                    create("softwareTypeRegistrator") {
+                        id = "com.example.restricted.ecosystem"
+                        implementationClass = "com.example.restricted.SoftwareTypeRegistrationPlugin"
+                    }
+                }
+            }
+        """
     }
 
     private static final JAVA_PLUGIN_EXTENSION_FILENAME = "build-logic/src/main/java/com/example/restricted/Extension.java"
@@ -168,6 +216,8 @@ secondaryAccess { three, true, true}"""
     private static final JAVA_PLUGIN_EXTENSION = """
         package com.example.restricted;
 
+        import java.util.ArrayList;
+        import java.util.List;
         import org.gradle.declarative.dsl.model.annotations.Adding;
         import org.gradle.declarative.dsl.model.annotations.Configuring;
         import org.gradle.declarative.dsl.model.annotations.Restricted;
@@ -206,6 +256,17 @@ secondaryAccess { three, true, true}"""
 
             @Restricted
             public abstract ListProperty<String> getArguments();
+
+            private List<String> flags = new ArrayList<>();
+
+            @Restricted // TODO: test a primitive-typed list as well (has issues currently)
+            public List<String> getFlags() {
+                return flags;
+            }
+
+            public void setFlags(List<String> flags) {
+                this.flags = flags;
+            }
 
             @Configuring
             public void primaryAccess(Action<? super Access> configure) {
@@ -296,6 +357,9 @@ secondaryAccess { three, true, true}"""
 
             @get:Restricted
             abstract val arguments: ListProperty<String>
+
+            @get:Restricted // TODO: test a primitive-typed list as well (has issues currently)
+            var flags: List<String> = emptyList()
 
             @Configuring
             fun primaryAccess(configure: Access.() -> Unit) {

@@ -16,27 +16,32 @@
 
 package org.gradle.internal.declarativedsl.dom.mutation
 
+import org.gradle.internal.declarativedsl.dom.DeclarativeDocument.DocumentNode.PropertyNode.PropertyAugmentation.None
 import org.gradle.internal.declarativedsl.dom.DefaultElementNode
 import org.gradle.internal.declarativedsl.dom.DefaultLiteralNode
 import org.gradle.internal.declarativedsl.dom.DefaultNamedReferenceNode
+import org.gradle.internal.declarativedsl.dom.DefaultPropertyNode
+import org.gradle.internal.declarativedsl.dom.DefaultValueFactoryNode
 import org.gradle.internal.declarativedsl.dom.TestApi
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ElementNodeMutation.AddChildrenToEndOfBlock
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.RemoveNode
+import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.DocumentNodeTargetedMutation.ReplaceNode
 import org.gradle.internal.declarativedsl.dom.mutation.DocumentMutation.ValueTargetedMutation.ReplaceValue
 import org.gradle.internal.declarativedsl.dom.mutation.ModelMutationIssueReason.ScopeLocationNotMatched
 import org.gradle.internal.declarativedsl.dom.mutation.common.NewDocumentNodes
 import org.gradle.internal.declarativedsl.dom.mutation.common.NodeRepresentationFlagsContainer
 import org.gradle.internal.declarativedsl.dom.resolution.DocumentWithResolution
 import org.gradle.internal.declarativedsl.dom.resolution.documentWithResolution
+import org.gradle.internal.declarativedsl.fakeListAugmentationProvider
 import org.gradle.internal.declarativedsl.language.SyntheticallyProduced
 import org.gradle.internal.declarativedsl.parsing.ParseTestUtil
 import org.gradle.internal.declarativedsl.schemaBuilder.schemaFromTypes
 import org.gradle.internal.declarativedsl.schemaUtils.functionFor
 import org.gradle.internal.declarativedsl.schemaUtils.propertyFor
 import org.gradle.internal.declarativedsl.schemaUtils.typeFor
+import org.junit.Test
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.Test
 
 
 class ModelToDocumentMutationPlannerTest {
@@ -55,6 +60,7 @@ class ModelToDocumentMutationPlannerTest {
                 number = 456
                 add()
                 enum = A
+                listOfComplexValueOne += mySingletonList(one(two("three")))
             }
         """.trimIndent()
 
@@ -62,7 +68,7 @@ class ModelToDocumentMutationPlannerTest {
     val planner = DefaultModelToDocumentMutationPlanner()
 
     private
-    val schema = schemaFromTypes(TestApi.TopLevelReceiver::class, TestApi::class.nestedClasses.toList())
+    val schema = schemaFromTypes(TestApi.TopLevelReceiver::class, TestApi::class.nestedClasses.toList(), augmentationsProvider = fakeListAugmentationProvider())
 
     private
     val resolved: DocumentWithResolution = documentWithResolution(schema, ParseTestUtil.parse(code))
@@ -90,6 +96,23 @@ class ModelToDocumentMutationPlannerTest {
         assertSuccessfulMutation(
             mutationPlan,
             ReplaceValue(document.elementNamed("nested").propertyNamed("number").value) { newValue }
+        )
+    }
+
+    @Test
+    fun `setting property value when there is augmentation replaces the augmentation with assignment`() {
+        val newValue = DefaultValueFactoryNode("listOf", SyntheticallyProduced, emptyList())
+
+        val mutationPlan = planMutation(
+            resolved,
+            mutationRequest(ModelMutation.SetPropertyValue(schema.propertyFor(TestApi.NestedReceiver::listOfComplexValueOne), NewValueNodeProvider.Constant(newValue)))
+        )
+
+        assertSuccessfulMutation(
+            mutationPlan,
+            ReplaceNode(document.elementNamed("nested").propertyNamed("listOfComplexValueOne")) {
+                NewDocumentNodes(listOf(DefaultPropertyNode(TestApi.NestedReceiver::listOfComplexValueOne.name, SyntheticallyProduced, newValue, None)))
+            }
         )
     }
 
@@ -280,6 +303,11 @@ class ModelToDocumentMutationPlannerTest {
             expected.nodes().representationFlags == actual.nodes().representationFlags
         is ReplaceValue -> actual is ReplaceValue && expected.targetValue == actual.targetValue && expected.replaceWithValue() == actual.replaceWithValue()
         is RemoveNode -> expected == actual
+        is ReplaceNode -> actual is ReplaceNode && expected.targetNode == actual.targetNode && run {
+            val expectedReplacement = expected.replaceWithNodes()
+            val actualReplacement = actual.replaceWithNodes()
+            expectedReplacement.nodes == actualReplacement.nodes && expectedReplacement.representationFlags == actualReplacement.representationFlags
+        }
         else -> throw UnsupportedOperationException("cannot check for the expected mutation $expected")
     }
 

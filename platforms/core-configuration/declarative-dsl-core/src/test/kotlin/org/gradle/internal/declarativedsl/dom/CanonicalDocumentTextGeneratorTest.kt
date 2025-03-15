@@ -36,6 +36,7 @@ class CanonicalDocumentTextGeneratorTest {
             c = true
             nested {
                 x = "y"
+                y += listOf("z")
             }
             factory(1)
             otherFactory()

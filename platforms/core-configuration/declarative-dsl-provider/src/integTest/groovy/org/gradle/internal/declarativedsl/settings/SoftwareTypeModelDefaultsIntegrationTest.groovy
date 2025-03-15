@@ -72,7 +72,7 @@ class SoftwareTypeModelDefaultsIntegrationTest extends AbstractIntegrationSpec i
         fails(":printTestSoftwareTypeExtensionConfiguration")
 
         then:
-        result.assertHasErrorOutput("Value reassigned")
+        result.assertHasErrorOutput("reassigned value in ")
 
         where:
         testCase                                   | modelDefault

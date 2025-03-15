@@ -31,6 +31,8 @@ dependencies {
     testImplementation(projects.coreApi)
     testImplementation("org.jetbrains:annotations:24.0.1")
 
+    testFixturesImplementation(libs.kotlinReflect)
+
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
 tasks.isolatedProjectsIntegTest {

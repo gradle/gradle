@@ -134,7 +134,7 @@ class DefaultPropertyExtractor(private val includeMemberFilter: MemberFilter = i
             property.returnTypeToRefOrError(host),
             if (isReadOnly) DefaultPropertyMode.DefaultReadOnly else DefaultPropertyMode.DefaultReadWrite,
             hasDefaultValue = run {
-                isReadOnly || property.annotationsWithGetters.any { it is HasDefaultValue }
+                isReadOnly || property.annotationsWithGetters.none { it is HasDefaultValue && !it.value }
             },
             isHiddenInDeclarativeDsl = isHidden,
             isDirectAccessOnly = isDirectAccessOnly,

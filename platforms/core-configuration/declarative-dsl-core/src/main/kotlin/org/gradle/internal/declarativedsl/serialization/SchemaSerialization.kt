@@ -23,6 +23,8 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 import org.gradle.declarative.dsl.schema.AnalysisSchema
+import org.gradle.declarative.dsl.schema.AssignmentAugmentation
+import org.gradle.declarative.dsl.schema.AssignmentAugmentationKind
 import org.gradle.declarative.dsl.schema.ConfigureAccessor
 import org.gradle.declarative.dsl.schema.DataClass
 import org.gradle.declarative.dsl.schema.DataParameter
@@ -39,9 +41,11 @@ import org.gradle.declarative.dsl.schema.SchemaItemMetadata
 import org.gradle.declarative.dsl.schema.SchemaMemberFunction
 import org.gradle.declarative.dsl.schema.SchemaMemberOrigin
 import org.gradle.declarative.dsl.schema.VarargParameter
+import org.gradle.internal.declarativedsl.analysis.AssignmentAugmentationKindInternal
 import org.gradle.internal.declarativedsl.analysis.ConfigureAccessorInternal
 import org.gradle.internal.declarativedsl.analysis.DataTypeRefInternal
 import org.gradle.internal.declarativedsl.analysis.DefaultAnalysisSchema
+import org.gradle.internal.declarativedsl.analysis.DefaultAssignmentAugmentation
 import org.gradle.internal.declarativedsl.analysis.DefaultDataBuilderFunction
 import org.gradle.internal.declarativedsl.analysis.DefaultDataClass
 import org.gradle.internal.declarativedsl.analysis.DefaultDataConstructor
@@ -179,6 +183,15 @@ object SchemaSerialization {
             }
             polymorphic(DataType.VarargSignature::class) {
                 subclass(DefaultVarargSignature::class)
+            }
+            polymorphic(AssignmentAugmentation::class) {
+                subclass(DefaultAssignmentAugmentation::class)
+            }
+            polymorphic(AssignmentAugmentationKind::class) {
+                subclass(AssignmentAugmentationKindInternal.DefaultPlus::class)
+            }
+            polymorphic(AssignmentAugmentationKind.Plus::class) {
+                subclass(AssignmentAugmentationKindInternal.DefaultPlus::class)
             }
         }
         prettyPrint = true
