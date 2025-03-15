@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.SubtractingFileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
@@ -204,6 +205,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         // Currently we support just FileCollection for Groovy assign, so first try to cast to FileCollection
         FileCollectionInternal fileCollection = Cast.castNullable(FileCollectionInternal.class, Cast.castNullable(FileCollection.class, object));
 
+        throwOnSelfSubtraction(fileCollection);
+
         // Don't allow a += b or a = (a + b), this is not support
         fileCollection.visitStructure(new FileCollectionStructureVisitor() {
             @Override
@@ -235,6 +238,18 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         });
 
         setFrom(Cast.castNullable(FileCollection.class, object));
+    }
+
+    // We don't support 'a -= b' in Groovy DSL due to the inherent self-referencing.
+    // At the same time, Groovy always rewrites that as 'a = a - b'
+    // and at runtime all these options look the same as 'a = a.minus(b)', and we can't distinguish
+    private void throwOnSelfSubtraction(FileCollectionInternal fileCollection) {
+        if (fileCollection instanceof SubtractingFileCollection) {
+            SubtractingFileCollection subtraction = (SubtractingFileCollection) fileCollection;
+            if (DefaultConfigurableFileCollection.this == subtraction.getLeft()) {
+                throw new UnsupportedOperationException("ConfigurableFileCollection does not support '-=' operator or assignment of subtraction via '-' operator or a minus() method");
+            }
+        }
     }
 
     @Override
