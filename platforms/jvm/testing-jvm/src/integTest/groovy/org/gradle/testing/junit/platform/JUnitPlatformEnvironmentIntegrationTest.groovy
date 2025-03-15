@@ -87,49 +87,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             .assertExecutionFailedWithCause(containsString('consider adding an engine implementation JAR to the classpath'))
     }
 
-    // When running embedded with test distribution, the remote distribution has a newer version of
-    // junit-platform-launcher which is not compatible with the junit jupiter jars we test against.
-    @Requires(IntegTestPreconditions.NotEmbeddedExecutor)
-    def "automatically loads framework dependencies from distribution"() {
-        given:
-        buildFile << """
-            testing.suites.test.dependencies {
-                implementation 'org.junit.jupiter:junit-jupiter:${JUNIT_JUPITER_VERSION}'
-            }
-        """
-
-        addClasspathTest("""
-            Set<String> jarSet = new HashSet<>(Arrays.asList(
-                "gradle-worker.jar",
-                "test",
-                "junit-jupiter-params-${JUNIT_JUPITER_VERSION}.jar",
-                "junit-jupiter-engine-${JUNIT_JUPITER_VERSION}.jar",
-                "junit-jupiter-api-${JUNIT_JUPITER_VERSION}.jar",
-                "junit-platform-engine-${JUNIT_PLATFORM_VERSION}.jar",
-                "junit-platform-commons-${JUNIT_PLATFORM_VERSION}.jar",
-                "junit-jupiter-${JUNIT_JUPITER_VERSION}.jar",
-                "opentest4j-${OPENTEST4J_VERSION}.jar",
-                "apiguardian-api-${API_GUARDIAN_VERSION}.jar"
-            ));
-            assertTrue(jars.containsAll(jarSet));
-            jars.removeAll(jarSet);
-
-            // The distribtuion-loaded jars can vary in version, since the GE test acceleration
-            // plugins inject their own versions of these libraries during integration tests.
-            // See: https://github.com/gradle/gradle/pull/21494
-            assertEquals(jars.size(), 3);
-            assertTrue(jars.removeIf(it -> it.startsWith("junit-platform-launcher-1.")));
-            assertTrue(jars.removeIf(it -> it.startsWith("junit-platform-commons-1.")));
-            assertTrue(jars.removeIf(it -> it.startsWith("junit-platform-engine-1.")));
-            assertEquals(jars.size(), 0);
-        """)
-
-        expect:
-        executer.expectDocumentedDeprecationWarning("The automatic loading of test framework implementation dependencies has been deprecated. This is scheduled to be removed in Gradle 9.0. Declare the desired test framework directly on the test suite or explicitly declare the test framework implementation dependencies on the test's runtime classpath. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_8.html#test_framework_implementation_dependencies")
-        succeeds "test"
-    }
-
-    def "does not load framework dependencies from distribution when they are on the classpath already"() {
+    def "test classpath reflects declared dependencies"() {
         given:
         buildFile << """
             testing.suites.test.dependencies {
@@ -160,7 +118,7 @@ class JUnitPlatformEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
-    def "does not load framework dependencies even if they are on the classpath but have nonstandard-named jars"() {
+    def "test classpath dependencies can have non-standard names"() {
         given:
         buildFile << """
             testing.suites.test.dependencies {

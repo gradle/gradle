@@ -27,6 +27,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.exceptions.MarkedVerificationException;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
+import org.gradle.api.internal.tasks.testing.FatalTestFailureListener;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -512,6 +513,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         testListenerInternalBroadcaster.add(testWorkerProgressListener);
 
+        // Capture any fatal test framework failures, so we can throw them immediately
+        FatalTestFailureListener fatalTestFailureListener = new FatalTestFailureListener();
+        testListenerInternalBroadcaster.add(fatalTestFailureListener);
+
         TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
         TestListenerInternal resultProcessorDelegate = testListenerInternalBroadcaster.getSource();
         if (failFast) {
@@ -530,6 +535,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             testListenerInternalBroadcaster.removeAll();
             outputWriter.close();
         }
+
+        // If there was a fatal test failure, the testing infrastructure failed to initialize.
+        // This is more than just a test failure, there is an inherent misconfiguration of the
+        // testing infrastructure. Do not write any results to disk. Fail immediately.
+        fatalTestFailureListener.rethrowFatalFailure();
 
         // Write binary results to disk
         new TestResultSerializer(binaryResultsDir).write(results.values());
