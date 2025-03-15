@@ -83,6 +83,7 @@ class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMain
             """.trimIndent()
         )
 
+        //language=JSON
         secondAcceptedApiChangesFile.writeText(
             """
                 {
@@ -117,6 +118,7 @@ class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMain
         val finalVerifyResult = run(":verifyAcceptedApiChangesOrdering").build()
         assertEquals(TaskOutcome.SUCCESS, finalVerifyResult.task(":verifyAcceptedApiChangesOrdering")!!.outcome)
 
+        //language=JSON
         val expectedFirstJson = loadChangesJson(
             """
                 {
@@ -172,6 +174,7 @@ class SortAcceptedApiChangesTaskIntegrationTest : AbstractAcceptedApiChangesMain
                     ]
                 }
             """)
+        //language=JSON
         val expectedSecondJson = loadChangesJson(
             """
                 {
