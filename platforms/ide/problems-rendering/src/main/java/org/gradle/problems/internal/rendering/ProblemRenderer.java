@@ -59,13 +59,13 @@ public class ProblemRenderer {
             formatMultiline(output, problem.getDetails(), 0);
         } else {
             if (problem.getContextualLabel() != null) {
-                formatMultiline(output, problem.getContextualLabel(), 1);
+                formatMultiline(output, problem.getDefinition().getId().getDisplayName() + ": " +problem.getContextualLabel(), 0);
             } else {
-                formatMultiline(output, problem.getDefinition().getId().getDisplayName(), 1);
+                formatMultiline(output, problem.getDefinition().getId().getDisplayName(), 0);
             }
             if (problem.getDetails() != null) {
                 output.printf("%n");
-                formatMultiline(output, problem.getDetails(), 2);
+                formatMultiline(output, problem.getDetails(), 1);
             }
         }
     }

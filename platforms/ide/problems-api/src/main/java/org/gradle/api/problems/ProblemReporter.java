@@ -103,6 +103,8 @@ public interface ProblemReporter {
      * @param problems the problems to report
      * @return nothing, the method throws an exception
      * @since 8.13
+     *
+     * @see #create(ProblemId, Action)
      */
     RuntimeException throwing(Throwable exception, Collection<? extends Problem> problems);
 }

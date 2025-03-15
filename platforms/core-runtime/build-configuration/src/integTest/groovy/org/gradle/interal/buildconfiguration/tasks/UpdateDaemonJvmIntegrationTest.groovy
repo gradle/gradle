@@ -68,7 +68,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         then:
         // TODO The description is different with CC on
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
-        failureHasCause("Toolchain download repositories have not been configured.")
+        failureHasCause("Invalid task configuration: Toolchain download repositories have not been configured.")
     }
 
     def "When execute updateDaemonJvm without options Then daemon jvm properties are populated with default values"() {
@@ -323,7 +323,7 @@ tasks.named("updateDaemonJvm") {
         then:
         // TODO The description is different with CC on
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific} for any of the requested platforms")
+        failureHasCause("Invalid task configuration: Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific} for any of the requested platforms")
     }
 
     def "configuring the languageVersion will use that value for the generate properties file"() {
@@ -392,7 +392,7 @@ tasks.named("updateDaemonJvm") {
 
         then:
         failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Configuring 'jvmVendor' is no longer supported")
+        failureHasCause("Invalid task configuration: Configuring 'jvmVendor' is no longer supported")
     }
 
     def "can hardcode download URLs in task configuration for generation and then it does not require a toolchain provider configured"() {
