@@ -19,6 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
 class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -27,6 +28,8 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
     private final TestFile reportFile = file("build/reports/jacoco/test/html/index.html")
 
     def setup() {
+        JacocoCoverage.assumeDefaultJacocoWorksOnCurrentJdk()
+
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
 
         buildFile << """
