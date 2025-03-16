@@ -226,4 +226,23 @@ public class FileUtils {
         return root;
     }
 
+    /**
+     * Adds suffix to the filename, preserving the extension
+     *
+     * @param filename original file name, e.g. name.zip
+     * @param suffix suffix to add, e.g. "-new"
+     * @return new file name, e.g. name-new.zip
+     */
+    public static String addSuffixToName(String filename, String suffix) {
+        int dotIndex = filename.indexOf('.');
+
+        if (dotIndex > 0) {
+            String name = filename.substring(0, dotIndex);
+            String extension = filename.substring(dotIndex);
+            return name + suffix + extension;
+        } else {
+            return filename + suffix;
+        }
+    }
+
 }
